@@ -19,4 +19,11 @@ export class ThisModule {
    * @type {symbol}
    */
   static SYM_linkRoot = Symbol('compote.linkRoot');
+
+  /**
+   * Symbol used for the module-private method `setState`.
+   *
+   * @type {symbol}
+   */
+  static SYM_setState = Symbol('compote.setState');
 }

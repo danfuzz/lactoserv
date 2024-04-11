@@ -3,8 +3,7 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
-  from '@this/compote';
+import { BaseComponent, BaseConfig, RootControlContext } from '@this/compote';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -63,23 +62,26 @@ export class WebappRoot extends BaseComponent {
   constructor(rawConfig) {
     // Note: `super()` is called with a second argument exactly because this
     // instance is the root of its hierarchy.
-    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('webapp')));
+    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('root')));
 
     const { applications, endpoints, hosts, services } = this.config;
 
     this.#applicationManager = new ComponentManager(applications, {
       baseClass:     BaseApplication,
-      baseSublogger: ThisModule.cohortLogger('app')
+      baseSublogger: ThisModule.cohortLogger('app'),
+      logTag:        'apps'
     });
 
     this.#serviceManager = new ComponentManager(services, {
       baseClass:     BaseService,
-      baseSublogger: ThisModule.cohortLogger('service')
+      baseSublogger: ThisModule.cohortLogger('service'),
+      logTag:        'services'
     });
 
     this.#endpointManager = new ComponentManager(endpoints, {
       baseClass:     NetworkEndpoint,
-      baseSublogger: ThisModule.cohortLogger('endpoint')
+      baseSublogger: ThisModule.cohortLogger('endpoint'),
+      logTag:        'endpoints'
     });
 
     this.#hostManager = new HostManager(hosts);
@@ -110,23 +112,18 @@ export class WebappRoot extends BaseComponent {
 
   /** @override */
   async _impl_init(isReload) {
-    const callInit = (name, obj) => {
-      const context = new ControlContext(obj, this, ThisModule.subsystemLogger(name));
-      return obj.init(context, isReload);
-    };
-
     const results = [
-      callInit('services',  this.#serviceManager),
-      callInit('apps',      this.#applicationManager),
-      callInit('hosts',     this.#hostManager),
-      callInit('endpoints', this.#endpointManager)
+      this._prot_addChild(this.#serviceManager,     isReload),
+      this._prot_addChild(this.#applicationManager, isReload),
+      this._prot_addChild(this.#hostManager,        isReload),
+      this._prot_addChild(this.#endpointManager,    isReload)
     ];
 
     await Promise.all(results);
   }
 
   /** @override */
-  async _impl_start(isReload = false) {
+  async _impl_start(isReload) {
     await this.#hostManager.start(isReload);
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
@@ -134,7 +131,7 @@ export class WebappRoot extends BaseComponent {
   }
 
   /** @override */
-  async _impl_stop(willReload = false) {
+  async _impl_stop(willReload) {
     const endpointsStopped = this.#endpointManager.stop(willReload);
 
     await PromiseUtil.race([

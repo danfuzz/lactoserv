@@ -129,10 +129,7 @@ export class BaseComponent {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
-  /**
-   * @returns {Array<function(new:object)>} Array of interface classes that this
-   * class claims to implement. Always a frozen object.
-   */
+  /** @override */
   get implementedInterfaces() {
     if (this.#implementedInterfaces === null) {
       const ifaces = this._impl_implementedInterfaces();
@@ -154,6 +151,13 @@ export class BaseComponent {
   /** @override */
   get name() {
     return this.#config?.name ?? null;
+  }
+
+  /** @override */
+  get state() {
+    return this.#initialized
+      ? this.context.state
+      : 'new';
   }
 
   /** @override */
@@ -183,10 +187,13 @@ export class BaseComponent {
         throw new Error('No context was set up in constructor or `init()`.');
       }
       await this.init(this.#context.nascentRoot, isReload);
+    } else if (this.state !== 'stopped') {
+      throw new Error('Already running.');
     }
 
     BaseComponent.logStarting(this.logger, isReload);
     await this._impl_start(isReload);
+    this.#context[ThisModule.SYM_setState]('running');
     BaseComponent.logStarted(this.logger, isReload);
   }
 
@@ -194,8 +201,13 @@ export class BaseComponent {
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 
+    if (this.state !== 'running') {
+      throw new Error('Not running.');
+    }
+
     BaseComponent.logStopping(this.logger, willReload);
     await this._impl_stop(willReload);
+    this.#context[ThisModule.SYM_setState]('stopped');
     BaseComponent.logStopped(this.logger, willReload);
   }
 
@@ -243,6 +255,41 @@ export class BaseComponent {
    */
   async _impl_stop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /**
+   * Adds a child to this instance. This is a protected method which is
+   * intended to only be called by an instance to modify itself.
+   *
+   * @param {BaseComponent} child Child component to add.
+   * @param {boolean} [isReload] Is the system being reloaded?
+   */
+  async _prot_addChild(child, isReload = false) {
+    MustBe.instanceOf(child, BaseComponent);
+
+    if (!this.#initialized) {
+      throw new Error('Cannot add child to uninitialized component.');
+    } else if (child.#initialized) {
+      throw new Error('Child already initialized; cannot add to different parent.');
+    }
+
+    const { logger }       = this;
+    const { logTag, name } = child.config;
+
+    let subLogger = logger;
+    if (logTag) {
+      subLogger = logger?.[logTag];
+    } else if (name) {
+      subLogger = logger?.[name];
+    }
+
+    const context = new ControlContext(child, this, subLogger);
+    await child.init(context, isReload);
+
+    if (this.state === 'running') {
+      // Get the child running, so as to match the parent.
+      await child.start(isReload);
+    }
   }
 
   /** @returns {boolean} Whether or not this instance is initialized. */

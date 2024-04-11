@@ -30,6 +30,13 @@ export class ControlContext {
   #logger;
 
   /**
+   * Current component state.
+   *
+   * @type {string}
+   */
+  #state = 'stopped';
+
+  /**
    * Associated controllable instance. Is only ever `null` for the context of
    * the root instance itself, and only briefly while it gets bootstrapped.
    *
@@ -45,6 +52,14 @@ export class ControlContext {
    * @type {?ControlContext}
    */
   #parent;
+
+  /**
+   * Instances which represent the children of this instance's associated
+   * controllable.
+   *
+   * @type {Set<ControlContext>}
+   */
+  #children = new Set();
 
   /**
    * Instance which represents the root of the containership hierarchy.
@@ -76,6 +91,7 @@ export class ControlContext {
       this.#parent    = MustBe.instanceOf(parent.context, ControlContext);
       this.#root      = MustBe.instanceOf(this.#parent.#root, /*Root*/ControlContext);
 
+      this.#parent.#addChild(this);
       this.#root[ThisModule.SYM_addDescendant](this);
     }
   }
@@ -109,6 +125,16 @@ export class ControlContext {
     }
 
     return this.#root;
+  }
+
+  /**
+   * @returns {string} Current component state. One of:
+   *
+   * * `stopped` -- Initialized but not running.
+   * * `running` -- Currently running.
+   */
+  get state() {
+    return this.#state;
   }
 
   /**
@@ -170,5 +196,24 @@ export class ControlContext {
     }
 
     this.#associate = root;
+  }
+
+  /**
+   * Changes the {@link #state}. This is a module-private method, so that it can
+   * only be called by the `BaseComponent` lifecycle methods.
+   *
+   * @param {string} state The new state.
+   */
+  [ThisModule.SYM_setState](state) {
+    this.#state = state;
+  }
+
+  /**
+   * Adds a child (direct descendant) to the set of children of this instance.
+   *
+   * @param {ControlContext} context The child context instance.
+   */
+  #addChild(context) {
+    this.#children.add(context);
   }
 }

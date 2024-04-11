@@ -12,7 +12,7 @@ import { ControlContext } from '#x/ControlContext';
  * with other such components.
  *
  * TLDR: Concrete implementations (a) have an associated context, and (b) have a
- * set of lifecycle methods.
+ * set of `_impl_*` methods for subclasses to fill in.
  *
  * @interface
  */
@@ -24,6 +24,14 @@ export class IntfComponent {
     throw Methods.abstract();
   }
 
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. Always a frozen object.
+   */
+  get implementedInterfaces() {
+    throw Methods.abstract();
+  }
+
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     throw Methods.abstract();
@@ -31,6 +39,18 @@ export class IntfComponent {
 
   /** @returns {?string} Component name, or `null` if it does not have one. */
   get name() {
+    throw Methods.abstract();
+  }
+
+  /**
+   * @returns {string} Current component state. One of:
+   *
+   * * `new` -- Not yet initialized, which also means not yet attached to a
+   *   hierarchy.
+   * * `stopped` -- Initialized but not running.
+   * * `running` -- Currently running.
+   */
+  get state() {
     throw Methods.abstract();
   }
 
@@ -49,7 +69,8 @@ export class IntfComponent {
   /**
    * Starts this instance. It is only valid to call this after {@link #init} has
    * been called, _except_ if this instance is the root, in which case this
-   * method will call {@link #init} itself before doing the start-per-se.
+   * method will call {@link #init} itself before doing the start-per-se. It is
+   * also only valid to call this method if the instance is not already running.
    *
    * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
@@ -59,7 +80,7 @@ export class IntfComponent {
 
   /**
    * Stops this this instance. This method returns when the instance is fully
-   * stopped.
+   * stopped. It is only valid to call this method if it is already running.
    *
    * @param {boolean} [willReload] Is this action due to an in-process reload
    *   being requested?

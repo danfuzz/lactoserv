@@ -22,7 +22,7 @@ export class ThisModule {
    *
    * @type {?IntfLogger}
    */
-  static #logger = Loggy.loggerFor('framework');
+  static #logger = Loggy.loggerFor('webapp');
 
   /**
    * Gets a logger for a particular cohort. A "cohort" is a set of similar items
