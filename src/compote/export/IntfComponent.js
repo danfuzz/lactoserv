@@ -49,7 +49,8 @@ export class IntfComponent {
   /**
    * Starts this instance. It is only valid to call this after {@link #init} has
    * been called, _except_ if this instance is the root, in which case this
-   * method will call {@link #init} itself before doing the start-per-se.
+   * method will call {@link #init} itself before doing the start-per-se. It is
+   * also only valid to call this method if the instance is not already running.
    *
    * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
@@ -59,7 +60,7 @@ export class IntfComponent {
 
   /**
    * Stops this this instance. This method returns when the instance is fully
-   * stopped.
+   * stopped. It is only valid to call this method if it is already running.
    *
    * @param {boolean} [willReload] Is this action due to an in-process reload
    *   being requested?
