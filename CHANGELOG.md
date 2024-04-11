@@ -14,7 +14,11 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `compote`:
+  * Components now track their children directly.
+  * New method `BaseComponent._prot_addChild()`, to simplify adding children,
+    though as of this version things are still more complicated than they would
+    ideally be.
 
 ### v0.6.14 -- 2024-04-11
 
