@@ -117,4 +117,116 @@ describe('_impl_handleRequest()', () => {
       expect(result.status).toBe(599);
     });
   });
+
+  describe('with non-`null` `maxPathDepth`', () => {
+    test('accepts a short-enough file path', async () => {
+      const rf = await makeInstance({
+        maxPathDepth:         2,
+        filterResponseStatus: 599
+      });
+
+      const req    = makeRequest('get', '/florp/flop');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('accepts a short-enough directory path', async () => {
+      const rf = await makeInstance({
+        maxPathDepth:         2,
+        filterResponseStatus: 599
+      });
+
+      const req    = makeRequest('get', '/florp/flop/');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('filters out a too-long file path', async () => {
+      const rf = await makeInstance({
+        maxPathDepth:         2,
+        filterResponseStatus: 501
+      });
+
+      const req    = makeRequest('get', '/florp/flop/oopsie');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(501);
+    });
+
+    test('filters out a too-long directory path', async () => {
+      const rf = await makeInstance({
+        maxPathDepth:         2,
+        filterResponseStatus: 501
+      });
+
+      const req    = makeRequest('get', '/florp/flop/oopsie/');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(501);
+    });
+  });
+
+  describe('with non-`null` `maxPathLength`', () => {
+    test('accepts a short-enough file path', async () => {
+      const rf = await makeInstance({
+        maxPathLength:        20,
+        filterResponseStatus: 400
+      });
+
+      const req    = makeRequest('get', '/23456/8901/34/67890');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('accepts a short-enough directory path', async () => {
+      const rf = await makeInstance({
+        maxPathLength:        20,
+        filterResponseStatus: 400
+      });
+
+      const req    = makeRequest('get', '/23456/8901/34/6789/');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('filters out a too-long file path', async () => {
+      const rf = await makeInstance({
+        maxPathLength:        20,
+        filterResponseStatus: 400
+      });
+
+      const req    = makeRequest('get', '/23456/8901/34/678901');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(400);
+    });
+
+    test('filters out a too-long directory path', async () => {
+      const rf = await makeInstance({
+        maxPathLength:        20,
+        filterResponseStatus: 400
+      });
+
+      const req    = makeRequest('get', '/23456/8901/34/67890/');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(400);
+    });
+  });
 });
