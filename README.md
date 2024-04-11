@@ -37,20 +37,10 @@ applications.
   * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
     to HTTPS for clients that can't do HTTP2.)
 * JS-based configuration file format, which isn't actually that awful!
-* Several built-in applications:
-  * Three request routing applications, to cover most routing needs:
-    * `HostRouter`, which dispatches to an application depending on the `host`
-      (or equivalent) header of requests.
-    * `PathRouter`, which dispatches based on matching the path prefix in a
-      hierarchical fashion, falling back to less-specific path matches until
-      finding one which responds.
-    * `SerialRouter`, which dispatches to a list of applications in order,
-      stopping at the first one which responds. (This is the "classic" style of
-      routing as implemented by most popular Node web application frameworks.)
-  * Simple response server (approximately a single-file static server), which
-    can be used for both normal and error responses.
-  * Static file (directory tree) server.
-  * Redirect server.
+* Several built-in applications, including:
+  * Four request routing and filtering applications, to cover most routing
+    needs.
+  * Three "leaf" applications, for regular content responses and redirection.
   * More to come!
 * Several built-in services:
   * "Token bucket" / "leaky bucket" rate limiting for connections, requests,
