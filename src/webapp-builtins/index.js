@@ -11,6 +11,7 @@ export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
 export * from '#x/RateLimiter';
 export * from '#x/Redirector';
+export * from '#x/RequestFilter';
 export * from '#x/SerialRouter';
 export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';
