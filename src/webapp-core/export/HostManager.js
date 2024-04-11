@@ -51,8 +51,11 @@ export class HostManager extends BaseComponent {
    * @param {Array<NetworkHost>} [hosts] Host handler objects.
    */
   constructor(hosts = []) {
-    // TODO: This is probably too ad-hoc.
-    super({ name: 'hostManager' });
+    // TODO: The `name` is probably too ad-hoc.
+    super({
+      name:   'hostManager',
+      logTag: 'hosts'
+    });
 
     this.#allHosts = hosts;
 

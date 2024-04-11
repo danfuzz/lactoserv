@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, ControlContext } from '@this/compote';
+import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, MustBe } from '@this/typey';
 
@@ -49,10 +49,11 @@ export class ComponentManager extends BaseComponent {
   constructor(instances, options) {
     const {
       baseClass = null,
-      baseSublogger = null
+      baseSublogger = null,
+      logTag
     } = options;
 
-    super();
+    super({ logTag });
 
     this.#baseClass = (baseClass === null)
       ? BaseComponent
@@ -169,5 +170,14 @@ export class ComponentManager extends BaseComponent {
     if (!(component instanceof cls)) {
       throw new Error(`Wrong class for component: ${component.constructor.name}, expected ${cls.name}`);
     }
+  }
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static _impl_configClass() {
+    return BaseConfig;
   }
 }
