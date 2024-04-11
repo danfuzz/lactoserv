@@ -70,12 +70,12 @@ export class StatusResponse {
    *
    * @type {Map<number, StatusResponse>}
    */
-  #INSTANCES = new Map();
+  static #INSTANCES = new Map();
 
   /**
    * @returns {StatusResponse} The "not found" (`404`) instance.
    */
-  get NOT_FOUND() {
+  static get NOT_FOUND() {
     return this.fromStatus(404);
   }
 
@@ -86,7 +86,7 @@ export class StatusResponse {
    * @param {number} status The response status code.
    * @returns {StatusResponse} An instance of this class for the given status.
    */
-  fromStatus(status) {
+  static fromStatus(status) {
     const already = this.#INSTANCES.get(status);
 
     if (already) {

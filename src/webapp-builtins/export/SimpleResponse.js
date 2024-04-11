@@ -120,7 +120,7 @@ export class SimpleResponse extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseApplication.FilterConfig {
+  static #Config = class Config extends BaseApplication.Config {
     /**
      * Predefined status code of the response, or `null` to use the most
      * appropriate "success" status code (most typically `200`).
@@ -173,10 +173,7 @@ export class SimpleResponse extends BaseApplication {
      * @param {object} rawConfig Raw configuration object.
      */
     constructor(rawConfig) {
-      super({
-        acceptMethods: ['get', 'head'],
-        ...rawConfig
-      });
+      super(rawConfig);
 
       const {
         body         = null,

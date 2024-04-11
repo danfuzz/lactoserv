@@ -28,6 +28,7 @@ Breaking changes:
   * Renamed class `Warehouse` -- a name that @danfuzz never really liked -- to
     now be `WebappRoot`, which reflects both its high level role and the fact
     that it is the root component in its component hierarchy.
+  * Removed the "filtering for free" behavior on `BaseApplication`. (See below.)
 
 Other notable changes:
 * `fs-util`:
@@ -42,6 +43,8 @@ Other notable changes:
   * Loosened restrictions on path component syntax in `PathRouter`.
   * Added `bufferPeriod` configuration option to `AccessLogToFile` and
     `SyslogToFile`.
+  * New class `RequestFilter` to take over the duties of the former "filtering
+    for free" behavior of `BaseApplication`.
 
 ### v0.6.13 -- 2024-04-03
 

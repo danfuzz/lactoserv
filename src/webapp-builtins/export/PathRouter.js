@@ -94,7 +94,7 @@ export class PathRouter extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseApplication.FilterConfig {
+  static #Config = class Config extends BaseApplication.Config {
     /**
      * Like the outer `routeTree` except with names instead of handler
      * instances.

@@ -267,7 +267,7 @@ export class StaticFiles extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseApplication.FilterConfig {
+  static #Config = class Config extends BaseApplication.Config {
     /**
      * Path to the file to serve for a not-found result, or `null` if not-found
      * handling shouldn't be done.
@@ -304,14 +304,7 @@ export class StaticFiles extends BaseApplication {
      * @param {object} rawConfig Raw configuration object.
      */
     constructor(rawConfig) {
-      super({
-        acceptMethods: ['get', 'head'],
-        ...rawConfig,
-
-        // These are always disabled. See configuration docs for explanation.
-        redirectDirectories: false,
-        redirectFiles:       false
-      });
+      super(rawConfig);
 
       const {
         cacheControl = null,

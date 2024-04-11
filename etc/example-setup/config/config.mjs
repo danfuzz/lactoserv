@@ -5,7 +5,8 @@ import * as fs from 'node:fs/promises';
 
 import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
   MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, SerialRouter, SimpleResponse, StaticFiles, SyslogToFile }
+  Redirector, RequestFilter, SerialRouter, SimpleResponse, StaticFiles,
+  SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -166,9 +167,15 @@ const applications = [
     }
   },
   {
+    name:           'myFilter',
+    class:          RequestFilter,
+    maxQueryLength: 0
+  },
+  {
     name:  'mySeries',
     class: SerialRouter,
     applications: [
+      'myFilter',
       'myStaticFunNo404',
       'responseNotFound'
     ]
@@ -182,8 +189,7 @@ const applications = [
     siteDirectory:  filePath('../site'),
     notFoundPath:   filePath('../site-extra/not-found.html'),
     cacheControl:   { public: true, maxAge: '5 min' },
-    etag:           { dataOnly: true, hashLength: 20 },
-    maxQueryLength: 20
+    etag:           { dataOnly: true, hashLength: 20 }
   },
   {
     name:          'myStaticFunNo404',
@@ -193,12 +199,10 @@ const applications = [
     etag:          { dataOnly: true, hashLength: 20 }
   },
   {
-    name:                'responseEmptyBody',
-    class:               SimpleResponse,
-    filePath:            filePath('../site-extra/empty-file.txt'),
-    cacheControl:        'public, immutable, max-age=600',
-    maxPathLength:       2,
-    redirectDirectories: true
+    name:         'responseEmptyBody',
+    class:        SimpleResponse,
+    filePath:     filePath('../site-extra/empty-file.txt'),
+    cacheControl: 'public, immutable, max-age=600'
   },
   {
     name:        'responseNotFound',
@@ -209,11 +213,10 @@ const applications = [
     statusCode:  404
   },
   {
-    name:          'responseNoBody',
-    class:         SimpleResponse,
-    cacheControl:  { public: true, immutable: true, maxAge: '11 min' },
-    etag:          true,
-    maxPathLength: 2,
+    name:         'responseNoBody',
+    class:        SimpleResponse,
+    cacheControl: { public: true, immutable: true, maxAge: '11 min' },
+    etag:         true
   },
   {
     name:         'responseDirOnly',
