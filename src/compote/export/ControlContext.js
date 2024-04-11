@@ -30,6 +30,13 @@ export class ControlContext {
   #logger;
 
   /**
+   * Current component state.
+   *
+   * @type {string}
+   */
+  #state = 'stopped';
+
+  /**
    * Associated controllable instance. Is only ever `null` for the context of
    * the root instance itself, and only briefly while it gets bootstrapped.
    *
@@ -112,6 +119,16 @@ export class ControlContext {
   }
 
   /**
+   * @returns {string} Current component state. One of:
+   *
+   * * `stopped` -- Initialized but not running.
+   * * `running` -- Currently running.
+   */
+  get state() {
+    return this.#state;
+  }
+
+  /**
    * Gets a named component that has the same root as this instance, which must
    * also optionally be of a specific class (including a base class).
    *
@@ -170,5 +187,15 @@ export class ControlContext {
     }
 
     this.#associate = root;
+  }
+
+  /**
+   * Changes the {@link #state}. This is a module-private method, so that it can
+   * only be called by the `BaseComponent` lifecycle methods.
+   *
+   * @param {string} state The new state.
+   */
+  [ThisModule.SYM_setState](state) {
+    this.#state = state;
   }
 }

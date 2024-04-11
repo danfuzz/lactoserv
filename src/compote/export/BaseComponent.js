@@ -159,6 +159,20 @@ export class BaseComponent {
     return this.#config?.name ?? null;
   }
 
+  /**
+   * @returns {string} Current component state. One of:
+   *
+   * * `new` -- Not yet initialized, which also means not yet attached to a
+   *   hierarchy.
+   * * `stopped` -- Initialized but not running.
+   * * `running` -- Currently running.
+   */
+  get state() {
+    return this.#initialized
+      ? this.context.state
+      : 'new';
+  }
+
   /** @override */
   async init(context, isReload = false) {
     MustBe.instanceOf(context, ControlContext);
@@ -186,10 +200,13 @@ export class BaseComponent {
         throw new Error('No context was set up in constructor or `init()`.');
       }
       await this.init(this.#context.nascentRoot, isReload);
+    } else if (this.state !== 'stopped') {
+      throw new Error('Already running.');
     }
 
     BaseComponent.logStarting(this.logger, isReload);
     await this._impl_start(isReload);
+    this.#context[ThisModule.SYM_setState]('running');
     BaseComponent.logStarted(this.logger, isReload);
   }
 
@@ -197,8 +214,13 @@ export class BaseComponent {
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 
+    if (this.state !== 'running') {
+      throw new Error('Not running.');
+    }
+
     BaseComponent.logStopping(this.logger, willReload);
     await this._impl_stop(willReload);
+    this.#context[ThisModule.SYM_setState]('stopped');
     BaseComponent.logStopped(this.logger, willReload);
   }
 
