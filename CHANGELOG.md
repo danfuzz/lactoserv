@@ -10,6 +10,14 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.14 -- 2024-04-11
+
 Nearing stability: This _might_ (but will not necessarily) be the last unstable
 release in the v0.6 series, before declaring v0.6 stable.
 
