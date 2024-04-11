@@ -10,6 +10,9 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+Nearing stability: This _might_ (but will not necessarily) be the last unstable
+release in the v0.6 series, before declaring v0.6 stable.
+
 Breaking changes:
 * `async`:
   * Reworked the `Threadlet` class to not expose its innards quite so much. As
