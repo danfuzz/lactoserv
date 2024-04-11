@@ -89,7 +89,7 @@ export class Redirector extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseApplication.FilterConfig {
+  static #Config = class Config extends BaseApplication.Config {
     /**
      * The redirect status code to use.
      *
@@ -118,10 +118,7 @@ export class Redirector extends BaseApplication {
      * @param {object} rawConfig Raw configuration object.
      */
     constructor(rawConfig) {
-      super({
-        acceptMethods: ['delete', 'get', 'head', 'patch', 'post', 'put'],
-        ...rawConfig
-      });
+      super(rawConfig);
 
       const {
         cacheControl = null,

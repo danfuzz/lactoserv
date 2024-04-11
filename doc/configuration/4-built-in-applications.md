@@ -170,8 +170,6 @@ const applications = [
 An application which responds to all requests with an HTTP "redirect" response.
 This application accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; Common configuration option, but in this case the
-  default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
@@ -322,8 +320,6 @@ An application which only ever sends one particular response. It's approximately
 like `StaticFiles`, except just one file. This application accepts the following
 configuration bindings:
 
-* `acceptMethods` &mdash; Common configuration option, but in this case the
-  default is `['get', 'head']`.
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
 * `contentType` &mdash; Content type to report. This can be either a MIME type
@@ -403,8 +399,6 @@ reasonable demand:
 An application which serves static files from a local directory. This
 application accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; Common configuration option, but in this case the
-  default is `['get', 'head']`.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.
