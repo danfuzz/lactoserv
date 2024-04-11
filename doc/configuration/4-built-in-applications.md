@@ -10,68 +10,6 @@ indicate which (if any) apply.
 See also [Common Configuration](./2-common-configuration.md) for configuration
 details that apply to more than just applications.
 
-### Request Filtering
-
-Most built-in applications implement a set of common configuration options,
-which are generally about filtering out or automatically responding to certain
-kinds of requests. Exceptions to the use of these configurations are noted in
-the documentation of applications, as appropriate. Here are the options:
-
-* `acceptMethods` &mdash; Array of strings indicating which request methods to
-  accept. The array can include any of `connect`, `delete`, `get`, `head`,
-  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
-* `maxPathDepth` &mdash; Number indicating the maximum (inclusive) allowed
-  length _in path components_ of a dispatched request path not including the
-  mount point, and not including the empty path component at the end of a
-  directory path. `null` indicates "no limit." Defaults to `null`.
-* `maxPathLength` &mdash; Number indicating the maximum (inclusive) allowed
-  length of the dispatched request path _in octets_. `null` indicates "no
-  limit." `0` indicates that no additional path is ever accepted (including even
-  a directory slash). Defaults to `null`.
-* `maxQueryLength` &mdash; Number indicating the maximum (inclusive) allowed
-  length of the query (a/k/a "search") portion of a request URI _in octets_,
-  including the leading question mark (`?`). `null` indicates "no limit." `0`
-  indicates that queries are not ever accepted. Defaults to `null`.
-* `redirectDirectories` &mdash; Boolean indicating whether or not directory
-  paths (those ending with an empty path component) should be automatically
-  redirected to the file (non-directory) version of the path. Defaults to
-  `false`.
-* `redirectFiles` &mdash; Boolean indicating whether or not file paths (those
-  not ending with an empty path component) should be automatically redirected to
-  the directory version of the path. Defaults to `false`.
-
-With regards to the `redirect*` options:
-* It is an error to specify both as `true`.
-* The redirection (or not) is entirely based on the form of the path, not on any
-  file contents (for example). Notably, [`StaticFiles`](#staticfiles) does
-  _content_-driven redirection, which is different than what is done here.
-
-With regards to `maxPath*` options, note that these options are not meaningful
-for applications that are mounted at fixed paths (e.g. within a
-[`PathRouter`](#pathrouter) at a non-wildcard path).
-
-With regards to the other options, when a request is filtered out, the result is
-that the application simply _doesn't handle_ the request, meaning that the
-request will get re-dispatched to the next application in its routing chain (if
-any).
-
-```js
-import { BaseApplication } from '@lactoserv/webapp-core';
-
-class MyApplication extends BaseApplication {
-  // ... more ...
-}
-
-const applications = [
-  {
-    name:           'myCustomApp',
-    class:          MyApplication,
-    acceptMethods:  ['delete', 'put'],
-    maxQueryLength: 0
-  }
-];
-```
-
 ### Cache control configuration: `cacheControl`
 
 Applications and services that might generate `cache-control` headers accept
@@ -122,9 +60,8 @@ properties are recognized:
 ## `HostRouter`
 
 An application which can route requests to another application, based on the
-`host` (or equivalent) header in the requests. In addition to the
-[common application configuration](#common-application-configuration) options,
-it accepts the following bindings:
+`host` (or equivalent) header in the requests. This application accepts the
+following configuration bindings:
 
 * `hosts` &mdash; A plain object with possibly-wildcarded hostnames as keys, and
   the _names_ of other applications as values. A wildcard only covers the prefix
@@ -166,9 +103,8 @@ const applications = [
 ## `PathRouter`
 
 An application which can route requests to another application, based on the
-path of the requests. In addition to the
-[common application configuration](#common-application-configuration) options,
-it accepts the following bindings:
+path of the requests. This application accepts the following configuration
+bindings:
 
 * `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
   the _names_ of other applications as values. A wildcard only covers the suffix
@@ -232,9 +168,7 @@ const applications = [
 ## `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
-In addition to the
-[common application configuration](#common-application-configuration)
-options, it accepts the following bindings:
+This application accepts the following configuration bindings:
 
 * `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
@@ -350,9 +284,8 @@ const applications = [
 
 An application which routes requests to one of a list of applications, which are
 tried in order. (This is the default / built-in routing strategy of the most
-common Node web application frameworks.) In addition to the
-[common application configuration](#common-application-configuration) options,
-it accepts the following bindings:
+common Node web application frameworks.) This application accepts the following
+configuration bindings:
 
 * `applications` &mdash; An array listing the _names_ of other applications as
   values.
@@ -386,9 +319,8 @@ const applications = [
 ## `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
-like `StaticFiles`, except just one file. In addition to the
-[common application configuration](#common-application-configuration) options,
-it accepts the following configuration bindings:
+like `StaticFiles`, except just one file. This application accepts the following
+configuration bindings:
 
 * `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
@@ -468,11 +400,8 @@ reasonable demand:
 
 ## `StaticFiles`
 
-An application which serves static files from a local directory. In addition to
-most of the
-[common application configuration](#common-application-configuration) options
-(all but the `redirect*` options, which could cause chaos in this case), it
-accepts the following configuration bindings:
+An application which serves static files from a local directory. This
+application accepts the following configuration bindings:
 
 * `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
