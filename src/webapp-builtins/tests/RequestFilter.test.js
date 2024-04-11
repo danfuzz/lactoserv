@@ -229,4 +229,33 @@ describe('_impl_handleRequest()', () => {
       expect(result.status).toBe(400);
     });
   });
+
+  describe('with non-`null` `maxQueryLength`', () => {
+    test('accepts a short-enough query', async () => {
+      const rf = await makeInstance({
+        maxQueryLength:       8,
+        filterResponseStatus: 420
+      });
+
+      const req    = makeRequest('get', '/beep/boop/bop/biff?abcd=ef');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('filters out a too-long query', async () => {
+      const rf = await makeInstance({
+        maxPathLength:        8,
+        filterResponseStatus: 420
+      });
+
+      const req    = makeRequest('get', '/beep/boop/bop/biff?abcd=efg');
+      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(420);
+    });
+  });
 });
