@@ -260,6 +260,92 @@ const applications = [
 ];
 ```
 
+## `RequestFilter`
+
+An application which filters requests that match particular criteria, either by
+responding with a particular "not-found-ish" status, or by redirecting to a
+modified path.
+
+When a request matches one or more filter criteria, this application responds
+with a status code to indicate the filtering (by default `404`). When it
+redirects, it uses status `308` ("Permanent Redirect"). In other cases &mdash;
+that is, when the request is not filtered out &mdash; this application returns
+`null`, meaning that it did not handle the request. This is done so that a
+filter can be included early in the list of applications of a
+[`SerialRouter`](#serialrouter).
+
+This application accepts the following configuration bindings:
+
+* `acceptMethods` &mdash; Array of strings indicating which request methods to
+  accept. The array can include any of `connect`, `delete`, `get`, `head`,
+  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
+* `filterResponseStatus` &mdash; Status to report when a request has been
+  filtered out (as opposed to having been redirected). Defaults to `404` ("Not
+  Found").
+* `maxPathDepth` &mdash; Number indicating the maximum (inclusive) allowed
+  length _in path components_ of a dispatched request path not including the
+  mount point, and not including the empty path component at the end of a
+  directory path. `null` indicates "no limit." Defaults to `null`.
+* `maxPathLength` &mdash; Number indicating the maximum (inclusive) allowed
+  length of the dispatched request path _in octets_. `null` indicates "no
+  limit." `0` indicates that no additional path is ever accepted (including even
+  a directory slash). Defaults to `null`.
+* `maxQueryLength` &mdash; Number indicating the maximum (inclusive) allowed
+  length of the query (a/k/a "search") portion of a request URI _in octets_,
+  including the leading question mark (`?`). `null` indicates "no limit." `0`
+  indicates that queries are not ever accepted. Defaults to `null`.
+* `redirectDirectories` &mdash; Boolean indicating whether or not directory
+  paths (those ending with an empty path component) should be automatically
+  redirected to the file (non-directory) version of the path. Defaults to
+  `false`.
+* `redirectFiles` &mdash; Boolean indicating whether or not file paths (those
+  not ending with an empty path component) should be automatically redirected to
+  the directory version of the path. Defaults to `false`.
+* `rejectDirectories` &mdash; Boolean indicating whether or not directory paths
+  (those ending with an empty path component) should be filtered out. Defaults
+  to `false`.
+* `rejectFiles` &mdash; Boolean indicating whether or not file paths (those
+  not ending with an empty path component) should be filtered out. Defaults to
+  `false`.
+
+With regards to the `redirect*` and `reject*` options:
+* It is an error to specify more than one as `true`. (It basically makes no
+  sense to do so.)
+* A redirection (or not) is entirely based on the form of the path &mdash;
+  that is, whether or not it ends with a slash &mdash; and not on any other
+  test. Notably, as opposed to this class, [`StaticFiles`](#staticfiles)
+  performs _content_-driven redirection.
+
+With regards to `maxPath*` options, note that these options are not meaningful
+for applications that are mounted at fixed paths (e.g. within a
+[`PathRouter`](#pathrouter) at a non-wildcard path).
+
+With regards to the other options, when a request is filtered out, the result is
+that the application simply _doesn't handle_ the request, meaning that the
+request will get re-dispatched to the next application in its routing chain (if
+any).
+
+**Note:** This application is meant to cover a good handful of common use cases.
+It is _not_ meant to be a "kitchen sink" of filtering. For filtering cases
+beyond what's covered here, the best option is to define a custom application
+class. That said, feature requests to add filtering options to this class will
+be seriously considered, should they meet a bar of "reasonably useful across
+many use cases."
+
+```js
+import { RequestFilter } from '@lactoserv/webapp-core';
+
+const applications = [
+  {
+    name:                'myFilter',
+    class:               RequestFilter,
+    acceptMethods:       ['get', 'head'],
+    maxQueryLength:      0,
+    redirectDirectories: true
+  }
+];
+```
+
 ## `SerialRouter`
 
 An application which routes requests to one of a list of applications, which are
