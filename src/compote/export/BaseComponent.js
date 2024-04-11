@@ -129,10 +129,7 @@ export class BaseComponent {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
-  /**
-   * @returns {Array<function(new:object)>} Array of interface classes that this
-   * class claims to implement. Always a frozen object.
-   */
+  /** @override */
   get implementedInterfaces() {
     if (this.#implementedInterfaces === null) {
       const ifaces = this._impl_implementedInterfaces();
@@ -156,14 +153,7 @@ export class BaseComponent {
     return this.#config?.name ?? null;
   }
 
-  /**
-   * @returns {string} Current component state. One of:
-   *
-   * * `new` -- Not yet initialized, which also means not yet attached to a
-   *   hierarchy.
-   * * `stopped` -- Initialized but not running.
-   * * `running` -- Currently running.
-   */
+  /** @override */
   get state() {
     return this.#initialized
       ? this.context.state
