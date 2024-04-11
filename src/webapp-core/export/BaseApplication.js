@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseClassedConfig, BaseComponent } from '@this/compote';
+import { BaseClassedConfig, BaseComponent, RootControlContext }
+  from '@this/compote';
 import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
   StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
@@ -26,9 +27,12 @@ export class BaseApplication extends BaseComponent {
    * Constructs an instance.
    *
    * @param {object} rawConfig Raw configuration object.
+   * @param {?RootControlContext} [rootContext] Associated context if this
+   *   instance is to be the root of its control hierarchy, or `null` for any
+   *   other instance.
    */
-  constructor(rawConfig) {
-    super(rawConfig);
+  constructor(rawConfig, rootContext = null) {
+    super(rawConfig, rootContext);
 
     const { config } = this;
     this.#filterConfig =
