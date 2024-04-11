@@ -124,7 +124,10 @@ export class BaseComponent {
     return this.#config;
   }
 
-  /** @override */
+  /**
+   * @returns {?ControlContext} This instance's control context, or `null` if
+   * not yet set up.
+   */
   get context() {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
