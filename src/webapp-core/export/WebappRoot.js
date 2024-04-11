@@ -126,7 +126,7 @@ export class WebappRoot extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start(isReload = false) {
+  async _impl_start(isReload) {
     await this.#hostManager.start(isReload);
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
@@ -134,7 +134,7 @@ export class WebappRoot extends BaseComponent {
   }
 
   /** @override */
-  async _impl_stop(willReload = false) {
+  async _impl_stop(willReload) {
     const endpointsStopped = this.#endpointManager.stop(willReload);
 
     await PromiseUtil.race([
