@@ -48,7 +48,7 @@ export class ThreadlikeComponent extends BaseComponent {
      *
      * @type {IntfThreadlike}
      */
-    #threadlike;
+    #thread;
 
     /**
      * Constructs an instance.
@@ -58,14 +58,14 @@ export class ThreadlikeComponent extends BaseComponent {
     constructor(rawConfig) {
       super(rawConfig);
 
-      const { threadlike } = rawConfig;
+      const { thread } = rawConfig;
 
-      this.#threadlike = threadlike;
+      this.#thread = thread;
     }
 
     /** @returns {IntfThreadlike} The threadlike thing being managed. */
     get threadlike() {
-      return this.#threadlike;
+      return this.#thread;
     }
   };
 }
