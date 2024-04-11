@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 
 import { Duration } from '@this/data-values';
 import { StatsBase } from '@this/fs-util';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -129,6 +129,21 @@ export class HttpUtil {
     }
 
     return parts.join(', ');
+  }
+
+  /**
+   * Checks an alleged HTTP-ish response status value for validity.
+   *
+   * @param {*} value The alleged status value.
+   * @returns {number} `value` if it is indeed a valid status value.
+   * @throws {Error} Thrown if `value` is not valid.
+   */
+  static checkStatus(value) {
+    if (AskIf.number(value, { safeInteger: true, minInclusive: 100, maxInclusive: 599 })) {
+      return value;
+    }
+
+    throw new Error(`Not a valid status value: ${value}`);
   }
 
   /**

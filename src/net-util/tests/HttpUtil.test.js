@@ -28,6 +28,40 @@ describe('cacheControlHeader()', () => {
   });
 });
 
+describe('checkStatus()', () => {
+  // pass cases
+  test.each`
+  value
+  ${100}
+  ${200}
+  ${204}
+  ${300}
+  ${308}
+  ${400}
+  ${404}
+  ${500}
+  ${501}
+  ${599}
+  `('passes value $value', ({ value }) => {
+    expect(HttpUtil.checkStatus(value)).toBe(value);
+  });
+
+  // fail cases
+  test.each`
+  value
+  ${99}
+  ${0}
+  ${100.1}
+  ${NaN}
+  ${undefined}
+  ${false}
+  ${'123'}
+  ${[123]}
+  `('throws given value $value', ({ value }) => {
+    expect(() => HttpUtil.checkStatus(value)).toThrow();
+  });
+});
+
 describe('classicHeaderNameFrom()', () => {
   test.each`
   arg                | expected
