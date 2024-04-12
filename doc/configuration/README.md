@@ -173,8 +173,8 @@ import { ServiceClass } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
-    name:       'someService',
-    class:      ServiceClass,
+    name:  'someService',
+    class: ServiceClass,
     // ... class-specific configuration ...
   },
   // ... more ...
@@ -200,8 +200,8 @@ import { ApplicationClass } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
-    name:       'someApplication',
-    class:      ApplicationClass,
+    name:  'someApplication',
+    class: ApplicationClass,
     // ... class-specific configuration ...
   },
   // ... more ...
@@ -235,7 +235,7 @@ naming and configuring one of them. Each element has the following bindings:
   roles are recognized:
   * `accessLog` &mdash; A network access logger.
   * `rateLimiter` &mdash; A request/data rate limiter.
-* `application`: &mdash; The name of the application which this endpoint should
+* `application` &mdash; The name of the application which this endpoint should
   send requests to. **Note:** In order to serve multiple leaf applications, the
   one named here will have to be a routing application of some sort (such as
   [`PathRouter`](./4-built-in-applications.md#pathrouter), for example).
