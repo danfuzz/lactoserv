@@ -329,7 +329,7 @@ configuration bindings:
   `false`, every cacheable response comes with the specified header.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See
-  [ETag Configuration](#etag-configuration-etag)" for details.
+  [ETag Configuration](#etag-configuration-etag) for details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
 * `statusCode` &mdash; Optional fixed status code to report. If present and not
@@ -396,7 +396,7 @@ application accepts the following configuration bindings:
 
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See
-  [ETag Configuration](#etag-configuration-etag)" for details.
+  [ETag Configuration](#etag-configuration-etag) for details.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
   `false`, every cacheable response comes with the specified header.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
