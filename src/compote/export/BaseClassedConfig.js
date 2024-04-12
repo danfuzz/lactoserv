@@ -3,19 +3,20 @@
 
 import { MustBe } from '@this/typey';
 
-import { BaseNamedConfig } from '#x/BaseNamedConfig';
+import { BaseConfig } from '#x/BaseConfig';
 
 
 /**
  * Class for configuration representations of things that each have a
  * unique-to-its-domain name and a not-necessarily-unique class/type.
  *
- * Accepted configuration bindings (in the constructor). All are required:
+ * Accepted configuration bindings (in the constructor):
  *
- * * Bindings as defined by the superclass, {@link BaseNamedConfig}.
- * * `{function(new:object)} class` -- The class of the item to create.
+ * * Bindings as defined by the superclass, {@link BaseConfig}.
+ * * `{function(new:object)} class` -- The class of the item to create. This is
+ *   required.
  */
-export class BaseClassedConfig extends BaseNamedConfig {
+export class BaseClassedConfig extends BaseConfig {
   /**
    * The class of the item to create.
    *
@@ -28,9 +29,10 @@ export class BaseClassedConfig extends BaseNamedConfig {
    *
    * @param {object} rawConfig Raw configuration object. See class header for
    *   details.
+   * @param {boolean} [requireName] Is a `name` binding required?
    */
-  constructor(rawConfig) {
-    super(rawConfig);
+  constructor(rawConfig, requireName = false) {
+    super(rawConfig, requireName);
 
     const { class: cls } = rawConfig;
 

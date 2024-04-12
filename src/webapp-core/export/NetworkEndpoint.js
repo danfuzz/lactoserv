@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
+import { BaseComponent, BaseConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
@@ -149,7 +149,7 @@ export class NetworkEndpoint extends BaseComponent {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseNamedConfig {
+  static #Config = class Config extends BaseConfig {
     /**
      * Name of the application to send requests to.
      *
@@ -192,7 +192,7 @@ export class NetworkEndpoint extends BaseComponent {
      * @param {object} rawConfig Raw configuration object.
      */
     constructor(rawConfig) {
-      super(rawConfig);
+      super(rawConfig, true /* require `name` */);
 
       const {
         hostnames = '*',
