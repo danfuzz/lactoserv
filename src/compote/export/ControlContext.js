@@ -85,6 +85,10 @@ export class ControlContext {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // ...and it stays that way.
       this.#root      = this;
+      // Note: We can't call `#root.addDescendant()` here, because we're still
+      // in the middle of constructing `#root` _and_ we don't even have an
+      // `associate` yet. That all get resolved in `linkRoot()`, which happens
+      // soon after this instance is constructed.
     } else {
       // TODO: We should figure out how to type-check interfaces.
       this.#associate = associate;
@@ -196,6 +200,7 @@ export class ControlContext {
     }
 
     this.#associate = root;
+    this.#root[ThisModule.SYM_addDescendant](this);
   }
 
   /**

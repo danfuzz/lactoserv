@@ -77,7 +77,7 @@ export class RootControlContext extends ControlContext {
    */
   [ThisModule.SYM_addDescendant](descendant) {
     if (this.#descendants.has(descendant)) {
-      throw new Error('Cannot register same descendant twice.');
+      throw new Error('Cannot register same component twice.');
     }
 
     const associate = descendant.associate;
@@ -86,7 +86,7 @@ export class RootControlContext extends ControlContext {
     if (name !== null) {
       Names.checkName(name);
       if (this.#components.has(name)) {
-        throw new Error('Cannot register two different components with the same name.');
+        throw new Error(`Cannot register two components with the same name: ${name}`);
       }
       this.#components.set(name, descendant);
     }
