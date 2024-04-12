@@ -11,7 +11,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `compote`:
+  * Combined all the config base classes into the base-base class `BaseConfig`.
+    The other classes weren't really serving much of a purpose, and to the
+    extent that they were, it didn't help that they were separate from the main
+    base class.
 
 Other notable changes:
 * `compote`:
