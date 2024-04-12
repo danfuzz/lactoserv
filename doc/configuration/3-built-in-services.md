@@ -154,7 +154,7 @@ bindings:
   allowed to remain at or beyond the maximum before this service takes action,
   specified as a duration value as described in
   [Durations](./2-common-configuration.md#durations). `0` (or
-  `null`) to not have a grace period at all. Default `0`. **Note:**: When in the
+  `null`) to not have a grace period at all. Default `0`. **Note:** When in the
   middle of a grace period, the service will check memory usage more often than
   `checkPeriod` so as not to miss a significant dip.
 * `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
