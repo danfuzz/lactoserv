@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseConfig, BaseComponent } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compote';
 
 
 /**
