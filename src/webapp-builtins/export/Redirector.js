@@ -128,7 +128,7 @@ export class Redirector extends BaseApplication {
 
       this.#statusCode = statusCode
         ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })
-        : 301;
+        : 308;
 
       this.#target = UriUtil.checkBasicUri(target);
 

@@ -171,7 +171,7 @@ An application which responds to all requests with an HTTP "redirect" response.
 This application accepts the following configuration bindings:
 
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
-  specified, it defaults to `301` ("Moved Permanently").
+  specified, it defaults to `308` ("Permanent Redirect").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
   path of each request to form the final redirection URL.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
