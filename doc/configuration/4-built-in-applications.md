@@ -252,11 +252,6 @@ With regards to `maxPath*` options, note that these options are not meaningful
 for applications that are mounted at fixed paths (e.g. within a
 [`PathRouter`](#pathrouter) at a non-wildcard path).
 
-With regards to the other options, when a request is filtered out, the result is
-that the application simply _doesn't handle_ the request, meaning that the
-request will get re-dispatched to the next application in its routing chain (if
-any).
-
 **Note:** This application is meant to cover a good handful of common use cases.
 It is _not_ meant to be a "kitchen sink" of filtering. For filtering cases
 beyond what's covered here, the best option is to define a custom application
