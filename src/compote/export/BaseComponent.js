@@ -258,8 +258,8 @@ export class BaseComponent {
   }
 
   /**
-   * Adds a child to this instance. This is a protected method which is
-   * intended to only be called by an instance to modify itself.
+   * Adds a child to this instance. This is a protected method which is intended
+   * to only be called by an instance to modify itself.
    *
    * @param {BaseComponent} child Child component to add.
    * @param {boolean} [isReload] Is the system being reloaded?
