@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseClassedConfig, BaseComponent } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compote';
 import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
   StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
@@ -101,9 +101,6 @@ export class BaseApplication extends BaseComponent {
 
   /**
    * @returns {function(new:BaseApplication.Config)} The class {@link #Config}.
-   * This class _also_ defines a subclass of it, {@link #FilterConfig}, which
-   * can be used for automatic request filtering, but using it is entirely
-   * optional.
    *
    * @override
    */
@@ -113,14 +110,17 @@ export class BaseApplication extends BaseComponent {
 
   /**
    * Default configuration subclass for this (outer) class, which adds no
-   * options beyond `class`.
+   * configuration option and requires its instances to have `name`.
    *
-   * This class only really exists to be an easy target to use when subclasses
-   * want to define configuration classes in the usual way, without having to
-   * remember the persnickety detail of which actual class in the `compote`
-   * module is the most appropriate one to derive from.
+   * This class mostly exists to be an easy target to use when subclasses want
+   * to define configuration classes in the usual way, without having to
+   * remember the persnickety detail of which class in the `compote` module is
+   * the most appropriate one to derive from.
    */
-  static Config = class Config extends BaseClassedConfig {
-    // @defaultConstructor
+  static Config = class Config extends BaseConfig {
+    /** @override */
+    constructor(rawConfig) {
+      super(rawConfig, true /* require `name` */);
+    }
   };
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseClassedConfig, BaseComponent } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compote';
 
 
 /**
@@ -266,14 +266,17 @@ export class BaseService extends BaseComponent {
 
   /**
    * Default configuration subclass for this (outer) class, which adds no
-   * options beyond `class`.
+   * configuration option and requires its instances to have `name`.
    *
-   * This class only really exists to be an easy target to use when subclasses
-   * want to define configuration classes in the usual way, without having to
-   * remember the persnickety detail of which actual class in the `compote`
-   * module is the most appropriate one to derive from.
+   * This class mostly exists to be an easy target to use when subclasses want
+   * to define configuration classes in the usual way, without having to
+   * remember the persnickety detail of which class in the `compote` module is
+   * the most appropriate one to derive from.
    */
-  static Config = class Config extends BaseClassedConfig {
-    // @defaultConstructor
+  static Config = class Config extends BaseConfig {
+    /** @override */
+    constructor(rawConfig) {
+      super(rawConfig, true /* require `name` */);
+    }
   };
 }

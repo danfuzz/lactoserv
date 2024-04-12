@@ -4,8 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathMap } from '@this/collections';
-import { BaseComponent, BaseNamedConfig, ControlContext }
-  from '@this/compote';
+import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
@@ -242,6 +241,6 @@ export class HostManager extends BaseComponent {
 
   /** @override */
   static _impl_configClass() {
-    return BaseNamedConfig;
+    return BaseConfig;
   }
 }

@@ -258,8 +258,8 @@ export class BaseComponent {
   }
 
   /**
-   * Adds a child to this instance. This is a protected method which is
-   * intended to only be called by an instance to modify itself.
+   * Adds a child to this instance. This is a protected method which is intended
+   * to only be called by an instance to modify itself.
    *
    * @param {BaseComponent} child Child component to add.
    * @param {boolean} [isReload] Is the system being reloaded?
@@ -368,9 +368,10 @@ export class BaseComponent {
       } else if (item instanceof BaseComponent) {
         throw new Error('Item is not an instance of this class (or a subclass).');
       } else if ((item instanceof this.CONFIG_CLASS) || AskIf.plainObject(item)) {
-        if (AskIf.constructorFunction(item.class)) {
-          if (AskIf.subclassOf(item.class, this)) {
-            return new (item.class)(item);
+        const { class: cls } = item;
+        if (AskIf.constructorFunction(cls)) {
+          if (AskIf.subclassOf(cls, this)) {
+            return new cls(item);
           } else {
             throw new Error('Item\'s `.class` is not this class (or a subclass).');
           }
