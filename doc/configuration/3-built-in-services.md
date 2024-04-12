@@ -29,7 +29,7 @@ following bindings:
   only meaningful if `atSize` is also specified.
 * `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
   should be allowed, or `null` not to have a limit. The oldest files over the
-  limit get deleted after a rotation.Optional, and defaults to `null`.
+  limit get deleted after a rotation. Optional, and defaults to `null`.
 * `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
   `null` not to have a limit. The oldest files over the limit get deleted after
    a rotation. Optional, and defaults to `null`.
