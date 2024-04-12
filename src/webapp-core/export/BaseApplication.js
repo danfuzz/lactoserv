@@ -101,9 +101,6 @@ export class BaseApplication extends BaseComponent {
 
   /**
    * @returns {function(new:BaseApplication.Config)} The class {@link #Config}.
-   * This class _also_ defines a subclass of it, {@link #FilterConfig}, which
-   * can be used for automatic request filtering, but using it is entirely
-   * optional.
    *
    * @override
    */
