@@ -326,7 +326,9 @@ configuration bindings:
   an explicit `charset` is honored (e.g. `text/plain; charset=iso-8859-1`), but
   if not specified then `utf-8` is assumed for text types.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header.
+  `false`, every cacheable response comes with the specified header. See
+  [Cache control configuration](#cache-control-configuration-cacheControl) for
+  details.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
@@ -398,7 +400,9 @@ application accepts the following configuration bindings:
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header.
+  `false`, every cacheable response comes with the specified header. See
+  [Cache control configuration](#cache-control-configuration-cacheControl) for
+  details.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
   file/path is not found. The indicated file will get sent back along with a
   `404` ("Not Found") status code.
