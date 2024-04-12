@@ -3,9 +3,9 @@ Configuration Guide
 
 Chapters:
   * [1. Overview (below)](#overview)
-  * [2. Common Configuration](./doc/2-common-configuration.md)
-  * [3. Built-In Services](./doc/3-built-in-services.md)
-  * [4. Built-In Applications](./doc/4-built-in-applications.md)
+  * [2. Common Configuration](./2-common-configuration.md)
+  * [3. Built-In Services](./3-built-in-services.md)
+  * [4. Built-In Applications](./4-built-in-applications.md)
 
 ## Overview
 
