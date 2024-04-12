@@ -15,6 +15,12 @@ import { Names } from '#x/Names';
  *
  * The bindings recognized by this class are:
  *
+ * * `{?function(new:object)} class` -- The concrete class of the component to
+ *   create, or `null` if the class is (going to be) implied by context (such as
+ *   by passing an instance directly to the corresponding component
+ *   constructor). This binding isn't required in general, but it _is_ required
+ *   if the configuration instance gets used in a context where the concrete
+ *   component class is not in fact implied.
  * * `logTag` -- Optional string to use as a tag when logging. (TODO: This is
  *   going to be removed.)
  * * `name` -- Optional name for the component, for use when finding it in its
@@ -22,6 +28,14 @@ import { Names } from '#x/Names';
  *   syntax defined by {@link Names#checkName}.
  */
 export class BaseConfig {
+  /**
+   * The class of the item to create, or `null` if the class is expected to be
+   * implied by context whenever this instance is used.
+   *
+   * @type {?function(new:object)}
+   */
+  #class;
+
   /**
    * Log tag (name) to use for the configured instance, or `null` for this
    * instance to not have a predefined tag.
@@ -47,14 +61,24 @@ export class BaseConfig {
   constructor(rawConfig, requireName = false) {
     MustBe.plainObject(rawConfig);
 
-    const { logTag = null, name = null } = rawConfig;
+    const { class: cls = null, logTag = null, name = null } = rawConfig;
 
     if (requireName && (name === null)) {
       throw new Error('Missing `name` binding.');
     }
 
+    this.#class  = (cls === null)    ? null : MustBe.constructorFunction(cls);
     this.#logTag = (logTag === null) ? null : MustBe.string(logTag);
     this.#name   = (name === null)   ? null : Names.checkName(name);
+  }
+
+  /**
+   * @returns {?function(new:object)} The class of the item to create, or `null`
+   * if the class is expected to be implied by context whenever this instance is
+   * used.
+   */
+  get class() {
+    return this.#class;
   }
 
   /**
