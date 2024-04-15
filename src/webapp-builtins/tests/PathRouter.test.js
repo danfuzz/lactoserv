@@ -18,7 +18,7 @@ import { BaseApplication } from '@this/webapp-core';
  * Minimal concrete subclass of `BaseComponent`, which has no-op implementations
  * for all `_impl_*` methods.
  */
-export class NopControllable extends BaseComponent {
+export class NopComponent extends BaseComponent {
   // @defaultConstructor
 
   /** @override */
@@ -158,10 +158,10 @@ describe('constructor', () => {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopControllable({ name: 'root' }, new RootControlContext(null));
+    const root = new NopComponent({ name: 'root' }, new RootControlContext(null));
     await root.start();
 
-    const apps = new NopControllable({ name: 'application' });
+    const apps = new NopComponent({ name: 'application' });
     await root._prot_addChild(apps);
 
     for (let i = 1; i <= appCount; i++) {
