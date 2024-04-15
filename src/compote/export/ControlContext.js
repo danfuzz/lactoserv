@@ -25,11 +25,11 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class ControlContext {
   /**
-   * Logger to use, or `null` to not do any logging.
+   * Logger to use, `null` to not do any logging, or `false` if not yet set up.
    *
    * @type {?IntfLogger}
    */
-  #logger;
+  #logger = false;
 
   /**
    * Current component state.
@@ -80,8 +80,6 @@ export class ControlContext {
    *   logging.
    */
   constructor(associate, parent, logger = null) {
-    this.#logger = logger;
-
     if (associate === 'root') {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.
@@ -108,6 +106,16 @@ export class ControlContext {
 
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
+    if (this.#logger === false) {
+      let logger = this.#root.rootLogger ?? null;
+      if (logger) {
+        for (const k of this.#pathKey.path) {
+          logger = logger[k];
+        }
+      }
+      this.#logger = logger;
+    }
+
     return this.#logger;
   }
 

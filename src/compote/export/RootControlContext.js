@@ -16,6 +16,14 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class RootControlContext extends ControlContext {
   /**
+   * The "root" logger to use, or `null` if the hierarchy isn't doing logging at
+   * all.
+   *
+   * @type {?IntfLogger}
+   */
+  #rootLogger;
+
+  /**
    * Tree which maps each component path to its context instance.
    *
    * @type {TreePathMap<ControlContext>}
@@ -29,6 +37,17 @@ export class RootControlContext extends ControlContext {
    */
   constructor(logger) {
     super('root', null, logger);
+
+    this.#rootLogger = logger;
+  }
+
+  /**
+   * @returns {?IntfLogger} The "root" logger to use, that is, the logger from
+   * which all loggers in this hierarchy derive, or `null` if this whole
+   * hierarchy is _not_ doing logging at all.
+   */
+  get rootLogger() {
+    return this.#rootLogger;
   }
 
   /**
