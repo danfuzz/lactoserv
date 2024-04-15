@@ -77,7 +77,7 @@ export class ControlContext {
    * @param {?IntfComponent} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
    */
-  constructor(associate, parent, loggerObsolete = null) {
+  constructor(associate, parent) {
     if (associate === 'root') {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.

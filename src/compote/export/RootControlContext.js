@@ -3,7 +3,6 @@
 
 import { TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
-import { AskIf, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
 import { Names } from '#x/Names';
@@ -65,29 +64,20 @@ export class RootControlContext extends ControlContext {
       return null;
     }
 
-    MustBe.arrayOf(classes, AskIf.constructorFunction);
-
     const found = this.#contextTree.get(path)?.associate;
 
     if (!found) {
       return null;
+    } else if (found.instanceOfAll(...classes)) {
+      return found;
     }
 
-    if (classes.length !== 0) {
-      const ifaces = found.implementedInterfaces;
-      for (const cls of classes) {
-        if (!((found instanceof cls) || ifaces.includes(cls))) {
-          const errPrefix = `Component \`${Names.pathStringFrom(path)}\` not of expected`;
-          if (classes.length === 1) {
-            throw new Error(`${errPrefix} class: ${classes[0].name}`);
-          } else {
-            const names = `[${classes.map((c) => c.name).join(', ')}]`;
-            throw new Error(`${errPrefix} classes: ${names}`);
-          }
-        }
-      }
+    const errPrefix = `Component \`${Names.pathStringFrom(path)}\` not of expected`;
+    if (classes.length === 1) {
+      throw new Error(`${errPrefix} class: ${classes[0].name}`);
+    } else {
+      const names = `[${classes.map((c) => c.name).join(', ')}]`;
+      throw new Error(`${errPrefix} classes: ${names}`);
     }
-
-    return found;
   }
 }

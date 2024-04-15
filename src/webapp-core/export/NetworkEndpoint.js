@@ -11,7 +11,6 @@ import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
 import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseService } from '#x/BaseService';
 import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
@@ -88,7 +87,8 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload) {
-    const context = this.context;
+    const appManager     = this.root.applicationManager;
+    const serviceManager = this.root.serviceManager;
 
     const {
       application,
@@ -102,10 +102,10 @@ export class NetworkEndpoint extends BaseComponent {
     } = this.config;
 
     const rateLimiter = rateLimiterName
-      ? context.getComponent(['service', rateLimiterName], BaseService, IntfRateLimiter)
+      ? serviceManager.get(rateLimiterName, IntfRateLimiter)
       : null;
     const accessLog = accessLogName
-      ? context.getComponent(['service', accessLogName], BaseService, IntfAccessLog)
+      ? serviceManager.get(accessLogName, IntfAccessLog)
       : null;
 
     const hmOpt = {};
@@ -123,7 +123,7 @@ export class NetworkEndpoint extends BaseComponent {
       ...hmOpt
     };
 
-    this.#application = context.getComponent(['application', application], BaseApplication);
+    this.#application = appManager.get(application);
     this.#wrangler    = ProtocolWranglers.make(wranglerOptions);
 
     await this.#wrangler.init(this.logger, isReload);

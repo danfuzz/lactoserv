@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
-  from '@this/compote';
+import { BaseComponent, BaseConfig, RootControlContext } from '@this/compote';
 import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
   IntfRequestHandler, RequestContext }
   from '@this/net-util';
@@ -18,7 +17,7 @@ import { BaseApplication } from '@this/webapp-core';
  * Minimal concrete subclass of `BaseComponent`, which has no-op implementations
  * for all `_impl_*` methods.
  */
-export class NopControllable extends BaseComponent {
+export class NopComponent extends BaseComponent {
   // @defaultConstructor
 
   /** @override */
@@ -158,10 +157,16 @@ describe('constructor', () => {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopControllable({ name: 'root' }, new RootControlContext(null));
+    const root = new NopComponent({ name: 'root' }, new RootControlContext(null));
     await root.start();
 
-    const apps = new NopControllable({ name: 'application' });
+    root.applicationManager = {
+      get(name) {
+        return root.context.getComponent(['application', name]);
+      }
+    };
+
+    const apps = new NopComponent({ name: 'application' });
     await root._prot_addChild(apps);
 
     for (let i = 1; i <= appCount; i++) {
@@ -169,14 +174,12 @@ describe('_impl_handleRequest()', () => {
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await app.init(new ControlContext(app, apps));
-      await app.start();
+      await apps._prot_addChild(app);
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await pr.init(new ControlContext(pr, apps));
-    await pr.start();
+    await apps._prot_addChild(pr);
 
     return pr;
   }

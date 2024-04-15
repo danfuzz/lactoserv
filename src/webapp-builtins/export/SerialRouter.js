@@ -49,11 +49,11 @@ export class SerialRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
-    const context   = this.context;
-    const routeList = [];
+    const appManager = this.root.applicationManager;
+    const routeList  = [];
 
     for (const name of this.config.routeList) {
-      const app = context.getComponent(['application', name], BaseApplication);
+      const app = appManager.get(name);
       routeList.push(app);
     }
 

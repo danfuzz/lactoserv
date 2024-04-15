@@ -65,11 +65,11 @@ export class PathRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
-    const context   = this.context;
-    const routeTree = new TreePathMap();
+    const appManager = this.root.applicationManager;
+    const routeTree  = new TreePathMap();
 
     for (const [path, name] of this.config.routeTree) {
-      const app = context.getComponent(['application', name], BaseApplication);
+      const app = appManager.get(name);
       routeTree.add(path, app);
     }
 

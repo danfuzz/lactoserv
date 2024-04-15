@@ -192,6 +192,25 @@ export class BaseComponent {
   }
 
   /** @override */
+  instanceOfAll(...classes) {
+    MustBe.arrayOf(classes, AskIf.constructorFunction);
+
+    if (classes.length === 0) {
+      return true;
+    }
+
+    const ifaces = this.implementedInterfaces;
+
+    for (const cls of classes) {
+      if (!((this instanceof cls) || ifaces.includes(cls))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /** @override */
   async start(isReload = false) {
     MustBe.boolean(isReload);
 

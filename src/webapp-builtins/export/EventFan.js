@@ -74,11 +74,11 @@ export class EventFan extends BaseService {
     // the case that all of the referenced services have already been added when
     // that runs.
 
-    const context  = this.context;
-    const services = [];
+    const serviceManager = this.root.serviceManager;
+    const services       = [];
 
     for (const name of this.config.services) {
-      const service = context.getComponent(['service', name], BaseService);
+      const service = serviceManager.get(name);
       services.push(service);
     }
 

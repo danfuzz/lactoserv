@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
-import { AskIf, MustBe } from '@this/typey';
+import { BaseComponent, BaseConfig } from '@this/compote';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -58,9 +58,9 @@ export class ComponentManager extends BaseComponent {
    * Gets the {@link BaseComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseComponent)} [cls] Class that the named
-   *   component must be an instance of, or `null` to not have any restriction
-   *   (beyond the baseline class restriction of this instance).
+   * @param {?function(new:*)} [cls] Class that the named component must be an
+   *   instance of, or `null` to not have any restriction (beyond the baseline
+   *   class restriction of this instance).
    * @returns {BaseComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
@@ -91,8 +91,7 @@ export class ComponentManager extends BaseComponent {
     const instances = this.getAll();
 
     const results = instances.map((c) => {
-      const context = new ControlContext(c, this);
-      return c.init(context, isReload);
+      return this._prot_addChild(c, isReload);
     });
 
     await Promise.all(results);
@@ -138,21 +137,15 @@ export class ComponentManager extends BaseComponent {
    * restriction.
    *
    * @param {BaseComponent} component The instance to check.
-   * @param {?function(new:BaseComponent)} cls Class that `component` must be,
-   *   or `null` to not have any restriction.
+   * @param {?function(new:*)} cls Class that `component` must be, or `null` to
+   *   not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */
   #checkInstanceClass(component, cls) {
     if (cls === null) {
-      // No restriction per se, but it had still better match this instance's
-      // overall class restriction.
-      cls = this.#baseClass;
-    } else if (!AskIf.subclassOf(cls, this.#baseClass)) {
-      throw new Error(`Not an appropriate component class: ${cls.name}, expected ${this.#baseClass.name}`);
-    }
-
-    if (!(component instanceof cls)) {
+      return;
+    } else if (!component.instanceOfAll(cls)) {
       throw new Error(`Wrong class for component: ${component.constructor.name}, expected ${cls.name}`);
     }
   }
