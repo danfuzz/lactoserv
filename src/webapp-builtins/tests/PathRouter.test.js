@@ -161,6 +161,12 @@ describe('_impl_handleRequest()', () => {
     const root = new NopComponent({ name: 'root' }, new RootControlContext(null));
     await root.start();
 
+    root.applicationManager = {
+      get(name) {
+        return root.context.getComponent(['application', name]);
+      }
+    };
+
     const apps = new NopComponent({ name: 'application' });
     await root._prot_addChild(apps);
 
