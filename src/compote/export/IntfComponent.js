@@ -18,6 +18,7 @@ import { ControlContext } from '#x/ControlContext';
  */
 export class IntfComponent {
   /**
+   * @abstract
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
@@ -25,6 +26,7 @@ export class IntfComponent {
   }
 
   /**
+   * @abstract
    * @returns {Array<function(new:object)>} Array of interface classes that this
    * class claims to implement. Always a frozen object.
    */
@@ -32,17 +34,24 @@ export class IntfComponent {
     throw Methods.abstract();
   }
 
-  /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * @abstract
+   * @returns {?IntfLogger} Logger to use, or `null` to not do any logging.
+   */
   get logger() {
     throw Methods.abstract();
   }
 
-  /** @returns {string} Component name. */
+  /**
+   * @abstract
+   * @returns {string} Component name.
+   */
   get name() {
     throw Methods.abstract();
   }
 
   /**
+   * @abstract
    * @returns {IntfComponent} The root component of the hierarchy that this
    * instance is in.
    */
@@ -51,6 +60,7 @@ export class IntfComponent {
   }
 
   /**
+   * @abstract
    * @returns {string} Current component state. One of:
    *
    * * `new` -- Not yet initialized, which also means not yet attached to a
@@ -66,6 +76,7 @@ export class IntfComponent {
    * Initializes this instance, indicating it is now linked to the given
    * context.
    *
+   * @abstract
    * @param {ControlContext} context Context that indicates this instance's
    *   active environment.
    * @param {boolean} [isReload] Is this action due to an in-process reload?
@@ -78,6 +89,7 @@ export class IntfComponent {
    * Indicates whether this instance implements (or at least _claims_ to
    * implement) or is a subclass of all the given classes / interfaces.
    *
+   * @abstract
    * @param {...function(new:IntfComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
@@ -85,7 +97,7 @@ export class IntfComponent {
    *   `false` if not.
    */
   instanceOfAll(...classes) {
-    throw Methods.abstract();
+    throw Methods.abstract(classes);
   }
 
   /**
@@ -94,6 +106,7 @@ export class IntfComponent {
    * method will call {@link #init} itself before doing the start-per-se. It is
    * also only valid to call this method if the instance is not already running.
    *
+   * @abstract
    * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
   async start(isReload = false) {
@@ -104,6 +117,7 @@ export class IntfComponent {
    * Stops this this instance. This method returns when the instance is fully
    * stopped. It is only valid to call this method if it is already running.
    *
+   * @abstract
    * @param {boolean} [willReload] Is this action due to an in-process reload
    *   being requested?
    */
