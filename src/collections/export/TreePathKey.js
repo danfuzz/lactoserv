@@ -238,6 +238,29 @@ export class TreePathKey {
     return result.join('');
   }
 
+  /**
+   * Gets an instance just like this one, except with `wildcard` as specified.
+   * If this instance in fact already has the specified value for `wildcard`,
+   * this method returns this instance.
+   *
+   * @param {boolean} wildcard Value for `wildcard`.
+   * @returns {TreePathKey} An appropriately-constructed instance.
+   */
+  withWildcard(wildcard) {
+    MustBe.boolean(wildcard);
+
+    if (this.#wildcard === wildcard) {
+      return this;
+    }
+
+    const result = new TreePathKey(this.#path, wildcard);
+
+    // Avoid recalculating `charLength` if already known on the original.
+    result.#charLength = this.#charLength;
+
+    return result;
+  }
+
 
   //
   // Static members

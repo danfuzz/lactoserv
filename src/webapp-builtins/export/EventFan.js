@@ -78,7 +78,7 @@ export class EventFan extends BaseService {
     const services = [];
 
     for (const name of this.config.services) {
-      const service = context.getComponent(name, BaseService);
+      const service = context.getComponent(['service', name], BaseService);
       services.push(service);
     }
 

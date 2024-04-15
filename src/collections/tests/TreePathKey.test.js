@@ -514,6 +514,46 @@ describe('toString()', () => {
   });
 });
 
+describe('withWildcard()', () => {
+  test('returns the given instance if `wildcard` matches', () => {
+    const key1 = new TreePathKey(['beep'], false);
+    expect(key1.withWildcard(false)).toBe(key1);
+
+    const key2 = new TreePathKey(['beep', 'boop'], true);
+    expect(key2.withWildcard(true)).toBe(key2);
+  });
+
+  test('returns a new instance, with the same path, if `wildcard` does not match', () => {
+    const key1    = new TreePathKey(['beep'], false);
+    const result1 = key1.withWildcard(true);
+    expect(result1).not.toBe(key1);
+    expect(result1.wildcard).toBe(true);
+    expect(result1.path).toBe(key1.path);
+
+    const key2    = new TreePathKey(['beep', 'boop'], true);
+    const result2 = key2.withWildcard(false);
+    expect(result2).not.toBe(key2);
+    expect(result2.wildcard).toBe(false);
+    expect(result2.path).toBe(key2.path);
+  });
+
+  test('when returning a new instance, gets `charLength` right', () => {
+    const key1    = new TreePathKey(['abc', 'xyz', 'pdq'], false);
+    const clen1   = key1.charLength; // Makes sure it's cached by `key1`.
+    const result1 = key1.withWildcard(true).charLength;
+
+    expect(result1).toBe(clen1);
+
+    // No initial `.charLength` so that it should get calculated separately by
+    // each key.
+    const key2    = new TreePathKey(['foo', 'florp'], true);
+    const result2 = key2.withWildcard(false).charLength;
+
+    expect(result2).toBe(key2.charLength);
+  });
+});
+
+
 describe('checkArguments()', () => {
   test('rejects `path` which is a non-array', () => {
     expect(() => TreePathKey.checkArguments(null, false)).toThrow();

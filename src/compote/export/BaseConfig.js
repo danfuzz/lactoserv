@@ -21,8 +21,6 @@ import { Names } from '#x/Names';
  *   constructor). This binding isn't required in general, but it _is_ required
  *   if the configuration instance gets used in a context where the concrete
  *   component class is not in fact implied.
- * * `logTag` -- Optional string to use as a tag when logging. (TODO: This is
- *   going to be removed.)
  * * `name` -- Optional name for the component, for use when finding it in its
  *   hierarchy, and for use when logging. If non-`null`, it must adhere to the
  *   syntax defined by {@link Names#checkName}.
@@ -35,14 +33,6 @@ export class BaseConfig {
    * @type {?function(new:object)}
    */
   #class;
-
-  /**
-   * Log tag (name) to use for the configured instance, or `null` for this
-   * instance to not have a predefined tag.
-   *
-   * @type {?string}
-   */
-  #logTag;
 
   /**
    * The item's name, or `null` if it does not have a configured name.
@@ -61,15 +51,14 @@ export class BaseConfig {
   constructor(rawConfig, requireName = false) {
     MustBe.plainObject(rawConfig);
 
-    const { class: cls = null, logTag = null, name = null } = rawConfig;
+    const { class: cls = null, name = null } = rawConfig;
 
     if (requireName && (name === null)) {
       throw new Error('Missing `name` binding.');
     }
 
-    this.#class  = (cls === null)    ? null : MustBe.constructorFunction(cls);
-    this.#logTag = (logTag === null) ? null : MustBe.string(logTag);
-    this.#name   = (name === null)   ? null : Names.checkName(name);
+    this.#class  = (cls === null)  ? null : MustBe.constructorFunction(cls);
+    this.#name   = (name === null) ? null : Names.checkName(name);
   }
 
   /**
@@ -79,14 +68,6 @@ export class BaseConfig {
    */
   get class() {
     return this.#class;
-  }
-
-  /**
-   * @returns {?string} Log tag (name) to use for the configured instance, or
-   * `null` for this instance to not have a predefined tag.
-   */
-  get logTag() {
-    return this.#logTag;
   }
 
   /**
