@@ -43,7 +43,7 @@ export class HostManager extends BaseComponent {
    * @param {Array<NetworkHost>} [hosts] Host handler objects.
    */
   constructor(hosts = []) {
-    super({ name: 'hosts' });
+    super({ name: 'host' });
 
     this.#allHosts = hosts;
 
