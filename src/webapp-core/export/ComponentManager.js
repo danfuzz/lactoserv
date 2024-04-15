@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
-import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, MustBe } from '@this/typey';
 
 
