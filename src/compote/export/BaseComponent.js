@@ -191,6 +191,7 @@ export class BaseComponent {
     BaseComponent.logInitialized(this.logger);
   }
 
+  /** @override */
   instanceOfAll(...classes) {
     MustBe.arrayOf(classes, AskIf.constructorFunction);
 
