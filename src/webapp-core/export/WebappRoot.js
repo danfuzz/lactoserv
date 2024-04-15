@@ -63,7 +63,12 @@ export class WebappRoot extends BaseComponent {
   constructor(rawConfig) {
     // Note: `super()` is called with a second argument exactly because this
     // instance is the root of its hierarchy.
-    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('root')));
+    super(
+      {
+        ...rawConfig,
+        name: 'root'
+      },
+      new RootControlContext(ThisModule.subsystemLogger('root')));
 
     const { applications, endpoints, hosts, services } = this.config;
 

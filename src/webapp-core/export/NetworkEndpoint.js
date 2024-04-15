@@ -106,7 +106,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
-      const hostManager = this.context.getComponent('hostManager');
+      const hostManager = this.context.getComponent('root').hostManager;
       hmOpt.hostManager = hostManager.makeSubset(hostnames);
     }
 
