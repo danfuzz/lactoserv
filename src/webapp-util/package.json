@@ -14,7 +14,7 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocks": "*",
-    "@this/compote": "*",
+    "@this/compy": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/host": "*",

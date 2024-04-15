@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathMap } from '@this/collections';
-import { BaseComponent, BaseConfig } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compy';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
 

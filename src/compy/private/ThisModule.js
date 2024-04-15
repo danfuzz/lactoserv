@@ -11,19 +11,19 @@ export class ThisModule {
    *
    * @type {symbol}
    */
-  static SYM_contextTree = Symbol('compote.contextTree');
+  static SYM_contextTree = Symbol('compy.contextTree');
 
   /**
    * Symbol used for the module-private method `linkRoot`.
    *
    * @type {symbol}
    */
-  static SYM_linkRoot = Symbol('compote.linkRoot');
+  static SYM_linkRoot = Symbol('compy.linkRoot');
 
   /**
    * Symbol used for the module-private method `setState`.
    *
    * @type {symbol}
    */
-  static SYM_setState = Symbol('compote.setState');
+  static SYM_setState = Symbol('compy.setState');
 }
