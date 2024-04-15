@@ -124,8 +124,7 @@ export class HostManager extends BaseComponent {
     const hosts = this.getAll();
 
     const results = hosts.map((h) => {
-      const context = new ControlContext(h, this);
-      return h.init(context, isReload);
+      return this._prot_addChild(h);
     });
 
     await Promise.all(results);

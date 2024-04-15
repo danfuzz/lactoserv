@@ -91,8 +91,7 @@ export class ComponentManager extends BaseComponent {
     const instances = this.getAll();
 
     const results = instances.map((c) => {
-      const context = new ControlContext(c, this);
-      return c.init(context, isReload);
+      return this._prot_addChild(c);
     });
 
     await Promise.all(results);
