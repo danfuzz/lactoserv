@@ -87,10 +87,9 @@ export class ControlContext {
       this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
       this.#pathKey   = TreePathKey.EMPTY;
-      // Note: We can't call `#root.addDescendant()` here, because we're still
-      // in the middle of constructing `#root` _and_ we don't even have an
-      // `associate` yet. That all get resolved in `linkRoot()`, which happens
-      // soon after this instance is constructed.
+      // Note: We can't used `#root.contextTree` here, because we're still in
+      // the middle of constructing `#root`. That gets fixed in `linkRoot()`,
+      // which gets called soon after this instance is constructed.
     } else {
       // TODO: We should figure out how to type-check interfaces.
       this.#associate = associate;
@@ -99,7 +98,6 @@ export class ControlContext {
       this.#pathKey   = parent.context.#pathKeyForChild(associate);
 
       this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
-      this.#root[ThisModule.SYM_addDescendant](this);
     }
   }
 
@@ -211,7 +209,7 @@ export class ControlContext {
     }
 
     this.#associate = root;
-    this.#root[ThisModule.SYM_addDescendant](this);
+    this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
   }
 
   /**

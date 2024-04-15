@@ -15,22 +15,12 @@ import { ThisModule } from '#p/ThisModule';
  * hierarchy.
  */
 export class RootControlContext extends ControlContext {
+  /**
+   * Tree which maps each component path to its context instance.
+   *
+   * @type {TreePathMap<ControlContext>}
+   */
   #contextTree = new TreePathMap();
-
-  /**
-   * For each context which represents a _named_ component, a mapping from its
-   * name to the context. This represents a subset of all descendants.
-   *
-   * @type {Map<string, ControlContext>}
-   */
-  #components = new Map();
-
-  /**
-   * Set of all descendants.
-   *
-   * @type {Set<ControlContext>}
-   */
-  #descendants = new Set();
 
   /**
    * Constructs an instance. It initially has no `associate`.
@@ -80,29 +70,5 @@ export class RootControlContext extends ControlContext {
     }
 
     return found;
-  }
-
-  /**
-   * Registers a descendant with this instance.
-   *
-   * @param {ControlContext} descendant The descendant.
-   */
-  [ThisModule.SYM_addDescendant](descendant) {
-    if (this.#descendants.has(descendant)) {
-      throw new Error('Cannot register same component twice.');
-    }
-
-    const associate = descendant.associate;
-    const name      = associate.name;
-
-    if (name !== null) {
-      Names.checkName(name);
-      if (this.#components.has(name)) {
-        throw new Error(`Cannot register two components with the same name: ${name}`);
-      }
-      this.#components.set(name, descendant);
-    }
-
-    this.#descendants.add(descendant);
   }
 }

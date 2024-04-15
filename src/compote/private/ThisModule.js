@@ -7,13 +7,6 @@
  */
 export class ThisModule {
   /**
-   * Symbol used for the module-private method `addDescendant`.
-   *
-   * @type {symbol}
-   */
-  static SYM_addDescendant = Symbol('compote.addDescendant');
-
-  /**
    * Symbol used for the module-private getter `contextTree`.
    *
    * @type {symbol}
