@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseComponent, BaseConfig } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compy';
 
 
 /**
@@ -270,7 +270,7 @@ export class BaseService extends BaseComponent {
    *
    * This class mostly exists to be an easy target to use when subclasses want
    * to define configuration classes in the usual way, without having to
-   * remember the persnickety detail of which class in the `compote` module is
+   * remember the persnickety detail of which class in the `compy` module is
    * the most appropriate one to derive from.
    */
   static Config = class Config extends BaseConfig {

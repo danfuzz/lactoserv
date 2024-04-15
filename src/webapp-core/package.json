@@ -15,7 +15,7 @@
     "@this/async": "*",
     "@this/clocks": "*",
     "@this/collections": "*",
-    "@this/compote": "*",
+    "@this/compy": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",

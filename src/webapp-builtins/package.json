@@ -15,7 +15,7 @@
     "@this/async": "*",
     "@this/clocks": "*",
     "@this/collections": "*",
-    "@this/compote": "*",
+    "@this/compy": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/host": "*",

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseComponent, BaseConfig, Names } from '@this/compote';
+import { BaseComponent, BaseConfig, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
@@ -15,7 +15,7 @@ import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
 /**
- * Component (in the sense of `compote`) which completely handles a single
+ * Component (in the sense of `compy`) which completely handles a single
  * network endpoint. Instances of this class have a {@link ProtocolWrangler} to
  * deal with the lower-level networking details and a map from mount points to
  * {@link BaseApplication} instances. This class is the connection between these

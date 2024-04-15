@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Names } from '@this/compote';
+import { Names } from '@this/compy';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 

@@ -6,13 +6,13 @@ import * as tls from 'node:tls';
 
 import pem from 'pem';
 
-import { BaseComponent, BaseConfig } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compy';
 import { CertUtil, HostUtil } from '@this/net-util';
 import { MustBe, StringUtil } from '@this/typey';
 
 
 /**
- * Component (in the sense of `compote`) which represents one configured "host"
+ * Component (in the sense of `compy`) which represents one configured "host"
  * item, which can notably cover multiple different hostnames. This class is
  * mostly concerned with the mapping between hostnames and certificates, and as
  * such the class doesn't do _that_ much.
