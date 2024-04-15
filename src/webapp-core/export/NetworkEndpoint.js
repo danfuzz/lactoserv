@@ -88,7 +88,8 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload) {
-    const context = this.context;
+    const context        = this.context;
+    const serviceManager = this.root.serviceManager;
 
     const {
       application,
@@ -102,10 +103,10 @@ export class NetworkEndpoint extends BaseComponent {
     } = this.config;
 
     const rateLimiter = rateLimiterName
-      ? context.getComponent(['service', rateLimiterName], BaseService, IntfRateLimiter)
+      ? serviceManager.get(rateLimiterName, IntfRateLimiter)
       : null;
     const accessLog = accessLogName
-      ? context.getComponent(['service', accessLogName], BaseService, IntfAccessLog)
+      ? serviceManager.get(accessLogName, IntfAccessLog)
       : null;
 
     const hmOpt = {};
