@@ -63,7 +63,7 @@ export class HostRouter extends BaseApplication {
     const routeTree = new TreePathMap();
 
     for (const [host, name] of this.config.routeTree) {
-      const app = context.getComponent(name, BaseApplication);
+      const app = context.getComponent(['application', name], BaseApplication);
       routeTree.add(host, app);
     }
 

@@ -69,7 +69,7 @@ export class PathRouter extends BaseApplication {
     const routeTree = new TreePathMap();
 
     for (const [path, name] of this.config.routeTree) {
-      const app = context.getComponent(name, BaseApplication);
+      const app = context.getComponent(['application', name], BaseApplication);
       routeTree.add(path, app);
     }
 

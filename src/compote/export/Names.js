@@ -47,31 +47,78 @@ export class Names {
   }
 
   /**
-   * Parses an absolute component path from a slash-separated list of elements,
-   * which must begin with a slash.
+   * Parses an absolute component path into a key. This accepts all of:
    *
-   * @param {string} path The absolute path to parse.
+   * * a `TreePathKey` -- Returned directly if not a wildcard, otherwise returns
+   *   the non-wildcard version. Elements are checked for validity.
+   * * an array of strings -- Contructed into a non-wildcard-key, with elements
+   *   checked for validity.
+   * * a string -- Parsed as a slash--separated list of elements, which must
+   *   begin with a slash. Elements are checked for validity.
+   *
+   * @param {string|Array<string>|TreePathKey} path The absolute path to parse.
    * @returns {TreePathKey} The parsed path.
    */
   static parsePath(path) {
-    MustBe.string(path);
+    if (Array.isArray(path)) {
+      console.log('####### GOT', path);
+      path = new TreePathKey(path, false);
+    } else if (typeof path === 'string') {
+      const elements = path.split('/');
+      const len      = elements.length;
 
-    const elements = path.split('/');
-    const len      = elements.length;
+      if ((len < 2) || (elements[0] !== '')) {
+        throw new Error(`Not an absolute component path: ${path}`);
+      }
 
-    if ((len < 2) || (elements[0] !== '')) {
+      // Drop the initial empty element, and freeze so `TreePathKey` can avoid
+      // making a copy.
+      Object.freeze(elements.pop());
+
+      path = new TreePathKey(elements, false);
+    } else if (!(path instanceof TreePathKey)) {
       throw new Error(`Not an absolute component path: ${path}`);
     }
 
-    elements.pop(); // Drop the initial empty element.
-
-    for (const e of elements) {
-      if (!this.isName(e)) {
-        throw new Error(`Not an absolute component path: ${path}`);
+    for (const p of path.path) {
+      if (!this.isName(p)) {
+        throw new Error(`Not a valid component name: ${p}, in ${this.pathStringFrom(path)}`);
       }
     }
 
-    // `Object.freeze()` means `TreePathKey` can avoid making a copy.
-    return new TreePathKey(Object.freeze(elements), false);
+    return path.withWildcard(false);
+  }
+
+  /**
+   * Like {@link #parsePath}, but allows `null` and `undefined` which both
+   * cause the method to return `null`. Other invalid inputs still cause an
+   * error to be thrown.
+   *
+   * @param {?string|Array<string>|TreePathKey} path The absolute path to parse.
+   * @returns {?TreePathKey} The parsed path, or `null`.
+   */
+  static parsePathOrNull(path) {
+    if ((path === null) || (path === undefined)) {
+      return null;
+    } else {
+      return this.parsePath(path);
+    }
+  }
+
+  /**
+   * Returns the string form of an absolute name path key. That is, this is the
+   * reverse of {@link #parsePath}.
+   *
+   * @param {TreePathKey} key The absolute path key.
+   * @returns {string} The string form.
+   */
+  static pathStringFrom(key) {
+    MustBe.instanceOf(key, TreePathKey);
+
+    return key.toString({
+      prefix:    '/',
+      separator: '/',
+      suffix:    ''
+    });
   }
 }

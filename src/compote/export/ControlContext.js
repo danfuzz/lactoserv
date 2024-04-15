@@ -1,10 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { IntfComponent } from '#x/IntfComponent';
+import { Names } from '#x/Names';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -45,6 +47,13 @@ export class ControlContext {
   #associate;
 
   /**
+   * Key which indicates where this instance is in the component hierarchy.
+   *
+   * @type {TreePathKey}
+   */
+  #pathKey;
+
+  /**
    * Instance which represents the parent (container) of this instance's
    * associated controllable, or `null` if this instance has no parent (that is,
    * is the root of the containership hierarchy).
@@ -83,8 +92,9 @@ export class ControlContext {
 
     if (associate === 'root') {
       this.#associate = null; // Gets set in `linkRoot()`.
-      this.#parent    = null; // ...and it stays that way.
+      this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
+      this.#pathKey   = TreePathKey.EMPTY;
       // Note: We can't call `#root.addDescendant()` here, because we're still
       // in the middle of constructing `#root` _and_ we don't even have an
       // `associate` yet. That all get resolved in `linkRoot()`, which happens
@@ -94,7 +104,9 @@ export class ControlContext {
       this.#associate = associate;
       this.#parent    = MustBe.instanceOf(parent.context, ControlContext);
       this.#root      = MustBe.instanceOf(this.#parent.#root, /*Root*/ControlContext);
+      this.#pathKey   = parent.context.#pathKeyForChild(associate);
 
+      this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
       this.#parent.#addChild(this);
       this.#root[ThisModule.SYM_addDescendant](this);
     }
@@ -142,21 +154,28 @@ export class ControlContext {
   }
 
   /**
-   * Gets a named component that has the same root as this instance, which must
-   * also optionally be of a specific class (including a base class).
+   * Gets a the compoenent at the given path from the root of this instance,
+   * which optionally must be of a specific class (including a base class).
    *
-   * @param {string} name Name of the component.
+   * @param {Array<string>|TreePathKey|string} path Absolute path to the
+   *   component. If a string, must be parseable as a path by {@link
+   *   Names#parsePath}.
    * @param {...function(new:IntfComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
    * @returns {IntfComponent} Found instance.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
-  getComponent(name, ...classes) {
-    const result = this.#root.getComponentOrNull(name, ...classes);
+  getComponent(path, ...classes) {
+    const result = this.#root.getComponentOrNull(path, ...classes);
 
     if (result === null) {
-      throw new Error(`No such component: ${name}`);
+      path = Names.parsePathOrNull(path);
+      if (path === null) {
+        throw new Error('Non-`null` component path is required.');
+      } else {
+        throw new Error(`No such component: ${Names.pathStringFrom(path)}`);
+      }
     }
 
     return result;
@@ -164,20 +183,21 @@ export class ControlContext {
 
   /**
    * Like {@link #getComponent}, but returns `null` if there is no component
-   * with the indicated name or if `name` was passed as `null` or `undefined`.
-   * If there _is_ a component with the name but its class doesn't match, that's
+   * with the indicated path or if `path` was passed as `null` or `undefined`.
+   * If there _is_ a component at the path but its class doesn't match, that's
    * still an error.
    *
-   * @param {?string} name Name of the component, or `null`-ish to always
-   *   not-find an instance.
+   * @param {?Array<string>|TreePathKey|string} path Absolute path to the
+   *   component, or `null`-ish to always not-find an instance. If a string,
+   *   must be parseable as a path by {@link Names#parsePath}.
    * @param {...function(new:IntfComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
    * @returns {?IntfComponent} Found instance, or `null` if there was none.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
-  getComponentOrNull(name, ...classes) {
-    return this.#root.getComponentOrNull(name, ...classes);
+  getComponentOrNull(path, ...classes) {
+    return this.#root.getComponentOrNull(path, ...classes);
   }
 
   /**
@@ -220,5 +240,69 @@ export class ControlContext {
    */
   #addChild(context) {
     this.#children.add(context);
+  }
+
+  /**
+   * Gets the path key to use for the given component, which is to be a child
+   * of this one. If the component doesn't already have a name, this will
+   * synthesize one based on its class.
+   *
+   * @param {BaseComponent} component The will-be child component.
+   * @returns {TreePathKey} The key to use for it.
+   */
+  #pathKeyForChild(component) {
+    const { name } = component;
+    const thisKey  = this.#pathKey;
+
+    if (name) {
+      return thisKey.concat(name);
+    }
+
+    // The hard case: Find a unique name of the form `<lowerCamelClass><count>`.
+    // TODO: Perhaps this can be made more efficient, especially in that we're
+    // iterating down into tree levels that don't matter for the calculation.
+
+    const prefix   = ControlContext.#namePrefixFrom(component);
+    const matches  = new Set();
+    const matchKey = thisKey.withWildcard(true);
+    const ctxTree  = this.#root[ThisModule.SYM_contextTree];
+
+    for (const [key] of ctxTree.findSubtree(matchKey)) {
+      const lastComponent = key.path[key.path.length - 1];
+      if (lastComponent.startsWith(prefix)) {
+        matches.add(lastComponent.slice(prefix.length));
+      }
+    }
+
+    let count;
+    for (count = 1; /*empty*/; count++) {
+      if (!matches.has(`${count}`)) {
+        break;
+      }
+    }
+
+    return thisKey.concat(`${prefix}${count}`);
+  }
+
+  //
+  // Static members
+  //
+
+  /**
+   * Gets a component name prefix based on the name of the class of the given
+   * component.
+   *
+   * @param {BaseComponent} component The component in question.
+   * @returns {string} A reasonable prefix to use for its name.
+   */
+  static #namePrefixFrom(component) {
+    const className = component.constructor?.name;
+
+    if (!className) {
+      // Shouldn't happen, but this is better than crashing.
+      return 'strangeComponent';
+    }
+
+    return `${className[0].toLowerCase()}${className.slice(1)}`;
   }
 }

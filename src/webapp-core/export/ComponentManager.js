@@ -50,10 +50,10 @@ export class ComponentManager extends BaseComponent {
     const {
       baseClass = null,
       baseSublogger = null,
-      logTag
+      name
     } = options;
 
-    super({ logTag });
+    super({ name });
 
     this.#baseClass = (baseClass === null)
       ? BaseComponent

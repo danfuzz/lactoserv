@@ -101,12 +101,16 @@ export class NetworkEndpoint extends BaseComponent {
       }
     } = this.config;
 
-    const rateLimiter = context.getComponentOrNull(rateLimiterName, BaseService, IntfRateLimiter);
-    const accessLog   = context.getComponentOrNull(accessLogName,   BaseService, IntfAccessLog);
+    const rateLimiter = rateLimiterName
+      ? context.getComponent(['service', rateLimiterName], BaseService, IntfRateLimiter)
+      : null;
+    const accessLog = accessLogName
+      ? context.getComponent(['service', accessLogName], BaseService, IntfAccessLog)
+      : null;
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
-      const hostManager = this.context.getComponent('root').hostManager;
+      const hostManager = this.context.root.associate.hostManager;
       hmOpt.hostManager = hostManager.makeSubset(hostnames);
     }
 
@@ -119,7 +123,7 @@ export class NetworkEndpoint extends BaseComponent {
       ...hmOpt
     };
 
-    this.#application = context.getComponent(application, BaseApplication);
+    this.#application = context.getComponent(['application', application], BaseApplication);
     this.#wrangler    = ProtocolWranglers.make(wranglerOptions);
 
     await this.#wrangler.init(this.logger, isReload);

@@ -75,19 +75,19 @@ export class WebappRoot extends BaseComponent {
     this.#applicationManager = new ComponentManager(applications, {
       baseClass:     BaseApplication,
       baseSublogger: ThisModule.cohortLogger('app'),
-      logTag:        'apps'
+      name:          'application'
     });
 
     this.#serviceManager = new ComponentManager(services, {
       baseClass:     BaseService,
       baseSublogger: ThisModule.cohortLogger('service'),
-      logTag:        'services'
+      name:          'service'
     });
 
     this.#endpointManager = new ComponentManager(endpoints, {
       baseClass:     NetworkEndpoint,
       baseSublogger: ThisModule.cohortLogger('endpoint'),
-      logTag:        'endpoints'
+      name:          'endpoint'
     });
 
     this.#hostManager = new HostManager(hosts);

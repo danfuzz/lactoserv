@@ -53,7 +53,7 @@ export class SerialRouter extends BaseApplication {
     const routeList = [];
 
     for (const name of this.config.routeList) {
-      const app = context.getComponent(name, BaseApplication);
+      const app = context.getComponent(['application', name], BaseApplication);
       routeList.push(app);
     }
 
