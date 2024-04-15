@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `compote`:
+* `compy` / `compote`:
+  * Renamed module `compote` to `compy`, to harmonize with `loggy` and `typey`.
   * Combined all the config base classes into the base-base class `BaseConfig`.
     The other classes weren't really serving much of a purpose, and to the
     extent that they were, it didn't help that they were separate from the main
@@ -20,7 +21,7 @@ Breaking changes:
     `getComponent()` now takes absolute paths instead of simple names.
 
 Other notable changes:
-* `compote`:
+* `compy`:
   * New method `BaseComponent._prot_addChild()`, to simplify adding children.
 
 ### v0.6.14 -- 2024-04-11
