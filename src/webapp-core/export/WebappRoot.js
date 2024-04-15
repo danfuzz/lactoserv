@@ -73,21 +73,18 @@ export class WebappRoot extends BaseComponent {
     const { applications, endpoints, hosts, services } = this.config;
 
     this.#applicationManager = new ComponentManager(applications, {
-      baseClass:     BaseApplication,
-      baseSublogger: ThisModule.cohortLogger('app'),
-      name:          'application'
+      baseClass: BaseApplication,
+      name:      'application'
     });
 
     this.#serviceManager = new ComponentManager(services, {
-      baseClass:     BaseService,
-      baseSublogger: ThisModule.cohortLogger('service'),
-      name:          'service'
+      baseClass: BaseService,
+      name:      'service'
     });
 
     this.#endpointManager = new ComponentManager(endpoints, {
-      baseClass:     NetworkEndpoint,
-      baseSublogger: ThisModule.cohortLogger('endpoint'),
-      name:          'endpoint'
+      baseClass: NetworkEndpoint,
+      name:      'endpoint'
     });
 
     this.#hostManager = new HostManager(hosts);

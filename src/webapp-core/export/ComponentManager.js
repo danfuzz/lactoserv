@@ -21,14 +21,6 @@ export class ComponentManager extends BaseComponent {
   #baseClass;
 
   /**
-   * Base sublogger to use for instantiated components, or `null` not to do any
-   * logging.
-   *
-   * @type {?IntfLogger}
-   */
-  #baseSublogger;
-
-  /**
    * Map from each bound name to the corresponding instance.
    *
    * @type {Map<string, BaseComponent>}
@@ -43,13 +35,11 @@ export class ComponentManager extends BaseComponent {
    * @param {?function(new:BaseComponent)} [options.baseClass] Base class of all
    *   components to be managed by this instance. `null` (the default) is the
    *   same as passing `BaseComponent`.
-   * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
-   *   instantiated components, or `null` not to do any logging.
+   * @param {string} [options.name] Name of this instance, as a component.
    */
   constructor(instances, options) {
     const {
       baseClass = null,
-      baseSublogger = null,
       name
     } = options;
 
@@ -58,9 +48,6 @@ export class ComponentManager extends BaseComponent {
     this.#baseClass = (baseClass === null)
       ? BaseComponent
       : MustBe.subclassOf(baseClass, BaseComponent);
-    this.#baseSublogger = (baseSublogger === null)
-      ? null
-      : MustBe.instanceOf(baseSublogger, IntfLogger);
 
     MustBe.array(instances);
     for (const instance of instances) {
@@ -105,8 +92,7 @@ export class ComponentManager extends BaseComponent {
     const instances = this.getAll();
 
     const results = instances.map((c) => {
-      const logger  = this.#baseSublogger[c.name];
-      const context = new ControlContext(c, this, logger);
+      const context = new ControlContext(c, this);
       return c.init(context, isReload);
     });
 
