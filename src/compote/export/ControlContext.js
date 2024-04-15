@@ -83,7 +83,7 @@ export class ControlContext {
       this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
       this.#pathKey   = TreePathKey.EMPTY;
-      // Note: We can't used `#root.contextTree` here, because we're still in
+      // Note: We can't add to `#root.contextTree` here, because we're still in
       // the middle of constructing `#root`. That gets fixed in `linkRoot()`,
       // which gets called soon after this instance is constructed.
     } else {
