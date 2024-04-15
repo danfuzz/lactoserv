@@ -75,6 +75,20 @@ export class IntfComponent {
   }
 
   /**
+   * Indicates whether this instance implements (or at least _claims_ to
+   * implement) or is a subclass of all the given classes / interfaces.
+   *
+   * @param {...function(new:IntfComponent)} [classes] List of classes and/or
+   *   interfaces which the result must be an instance of or implement
+   *   (respectively).
+   * @returns {boolean} `true` if this instance matches the given criteria, or
+   *   `false` if not.
+   */
+  instanceOfAll(...classes) {
+    throw Methods.abstract();
+  }
+
+  /**
    * Starts this instance. It is only valid to call this after {@link #init} has
    * been called, _except_ if this instance is the root, in which case this
    * method will call {@link #init} itself before doing the start-per-se. It is
