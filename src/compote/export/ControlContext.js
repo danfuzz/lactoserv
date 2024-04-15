@@ -240,7 +240,7 @@ export class ControlContext {
    * of this one. If the component doesn't already have a name, this will
    * synthesize one based on its class.
    *
-   * @param {BaseComponent} component The will-be child component.
+   * @param {IntfComponent} component The will-be child component.
    * @returns {TreePathKey} The key to use for it.
    */
   #pathKeyForChild(component) {
@@ -285,7 +285,7 @@ export class ControlContext {
    * Gets a component name prefix based on the name of the class of the given
    * component.
    *
-   * @param {BaseComponent} component The component in question.
+   * @param {IntfComponent} component The component in question.
    * @returns {string} A reasonable prefix to use for its name.
    */
   static #namePrefixFrom(component) {
