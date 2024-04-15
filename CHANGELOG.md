@@ -16,13 +16,12 @@ Breaking changes:
     The other classes weren't really serving much of a purpose, and to the
     extent that they were, it didn't help that they were separate from the main
     base class.
+  * The component hierarchy is now tracked as a unified `TreePathMap`, and
+    `getComponent()` now takes absolute paths instead of simple names.
 
 Other notable changes:
 * `compote`:
-  * Components now track their children directly.
-  * New method `BaseComponent._prot_addChild()`, to simplify adding children,
-    though as of this version things are still more complicated than they would
-    ideally be.
+  * New method `BaseComponent._prot_addChild()`, to simplify adding children.
 
 ### v0.6.14 -- 2024-04-11
 
