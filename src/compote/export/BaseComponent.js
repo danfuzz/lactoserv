@@ -162,6 +162,11 @@ export class BaseComponent {
   }
 
   /** @override */
+  get root() {
+    return this.context.root.associate;
+  }
+
+  /** @override */
   get state() {
     return this.#initialized
       ? this.context.state

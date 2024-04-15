@@ -43,6 +43,14 @@ export class IntfComponent {
   }
 
   /**
+   * @returns {IntfComponent} The root component of the hierarchy that this
+   * instance is in.
+   */
+  get root() {
+    throw Methods.abstract();
+  }
+
+  /**
    * @returns {string} Current component state. One of:
    *
    * * `new` -- Not yet initialized, which also means not yet attached to a
