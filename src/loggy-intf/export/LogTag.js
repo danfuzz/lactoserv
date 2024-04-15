@@ -127,7 +127,7 @@ export class LogTag {
 
     if (!this.#humanStrings[objKey]) {
       const parts = [
-        colorize ? chalk.bold.dim(this.#main) : this.#main
+        colorize ? chalk.dim(this.#main) : this.#main
       ];
 
       const ctx = this.#context;
@@ -137,8 +137,10 @@ export class LogTag {
         let color = null;
         if (colorize) {
           switch (n) {
-            case 0: color = chalk.bold.green; break;
-            case 1: color = chalk.green;      break;
+            case 0: color = chalk.bold.dim;   break;
+            case 1: color = chalk.bold.green; break;
+            case 2: color = chalk.green;      break;
+            case 3: color = chalk.blue;       break;
           }
         }
 
