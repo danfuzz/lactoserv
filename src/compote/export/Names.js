@@ -61,7 +61,6 @@ export class Names {
    */
   static parsePath(path) {
     if (Array.isArray(path)) {
-      console.log('####### GOT', path);
       path = new TreePathKey(path, false);
     } else if (typeof path === 'string') {
       const elements = path.split('/');
