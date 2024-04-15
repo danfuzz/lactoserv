@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathMap } from '@this/collections';
-import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
+import { BaseComponent, BaseConfig } from '@this/compote';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
 
@@ -124,7 +124,7 @@ export class HostManager extends BaseComponent {
     const hosts = this.getAll();
 
     const results = hosts.map((h) => {
-      return this._prot_addChild(h);
+      return this._prot_addChild(h, isReload);
     });
 
     await Promise.all(results);

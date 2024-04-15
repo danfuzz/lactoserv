@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseConfig, ControlContext } from '@this/compote';
-import { AskIf, MustBe } from '@this/typey';
+import { BaseComponent, BaseConfig } from '@this/compote';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -91,7 +91,7 @@ export class ComponentManager extends BaseComponent {
     const instances = this.getAll();
 
     const results = instances.map((c) => {
-      return this._prot_addChild(c);
+      return this._prot_addChild(c, isReload);
     });
 
     await Promise.all(results);
