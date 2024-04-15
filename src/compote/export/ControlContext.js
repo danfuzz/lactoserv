@@ -76,10 +76,15 @@ export class ControlContext {
    *   the string `root` if this instance is to represent the root instance.
    * @param {?IntfComponent} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
-   * @param {?IntfLogger} [logger] Logger to use, or `null` to not do any
-   *   logging.
+   * @param {?IntfLogger} [loggerObsolete] Old unused logger argument. Throws an
+   *   error if used.
    */
-  constructor(associate, parent, logger = null) {
+  constructor(associate, parent, loggerObsolete = null) {
+    if (loggerObsolete !== null) {
+      // TODO: Remove this check once client code is believed to be fixed.
+      throw new Error('Stop passing a non-`null` logger.');
+    }
+
     if (associate === 'root') {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.
