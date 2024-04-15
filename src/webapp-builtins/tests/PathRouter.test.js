@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseComponent, ControlContext, RootControlContext }
+import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
   from '@this/compote';
 import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
   IntfRequestHandler, RequestContext }
@@ -34,6 +34,10 @@ export class NopControllable extends BaseComponent {
   /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
+  }
+
+  static _impl_configClass() {
+    return BaseConfig;
   }
 }
 
@@ -82,6 +86,10 @@ class MockApp extends BaseApplication {
   /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
+  }
+
+  static _impl_configClass() {
+    return BaseConfig;
   }
 }
 
@@ -150,21 +158,24 @@ describe('constructor', () => {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopControllable(null, new RootControlContext(null));
+    const root = new NopControllable({ name: 'root' }, new RootControlContext(null));
     await root.start();
+
+    const apps = new NopControllable({ name: 'application' });
+    await root._prot_addChild(apps);
 
     for (let i = 1; i <= appCount; i++) {
       const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await app.init(new ControlContext(app, root));
+      await app.init(new ControlContext(app, apps));
       await app.start();
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await pr.init(new ControlContext(pr, root));
+    await pr.init(new ControlContext(pr, apps));
     await pr.start();
 
     return pr;
