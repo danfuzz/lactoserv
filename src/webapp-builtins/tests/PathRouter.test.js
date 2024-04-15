@@ -158,13 +158,13 @@ describe('_impl_handleRequest()', () => {
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await app.init(new ControlContext(app, root, null));
+      await app.init(new ControlContext(app, root));
       await app.start();
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await pr.init(new ControlContext(pr, root, null));
+    await pr.init(new ControlContext(pr, root));
     await pr.start();
 
     return pr;
