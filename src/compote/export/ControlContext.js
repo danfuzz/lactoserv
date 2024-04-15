@@ -236,8 +236,8 @@ export class ControlContext {
   }
 
   /**
-   * Gets the path key to use for the given component, which is to be a child
-   * of this one. If the component doesn't already have a name, this will
+   * Gets the path key to use for the given component, which is to be a child of
+   * this one. If the component doesn't already have a name, this will
    * synthesize one based on its class.
    *
    * @param {IntfComponent} component The will-be child component.

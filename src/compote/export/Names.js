@@ -89,9 +89,9 @@ export class Names {
   }
 
   /**
-   * Like {@link #parsePath}, but allows `null` and `undefined` which both
-   * cause the method to return `null`. Other invalid inputs still cause an
-   * error to be thrown.
+   * Like {@link #parsePath}, but allows `null` and `undefined` which both cause
+   * the method to return `null`. Other invalid inputs still cause an error to
+   * be thrown.
    *
    * @param {?string|Array<string>|TreePathKey} path The absolute path to parse.
    * @returns {?TreePathKey} The parsed path, or `null`.
