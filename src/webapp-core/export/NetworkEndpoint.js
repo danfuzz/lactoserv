@@ -88,7 +88,7 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload) {
-    const context        = this.context;
+    const appManager     = this.root.applicationManager;
     const serviceManager = this.root.serviceManager;
 
     const {
@@ -124,7 +124,7 @@ export class NetworkEndpoint extends BaseComponent {
       ...hmOpt
     };
 
-    this.#application = context.getComponent(['application', application], BaseApplication);
+    this.#application = appManager.get(application);
     this.#wrangler    = ProtocolWranglers.make(wranglerOptions);
 
     await this.#wrangler.init(this.logger, isReload);
