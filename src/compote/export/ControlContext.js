@@ -63,14 +63,6 @@ export class ControlContext {
   #parent;
 
   /**
-   * Instances which represent the children of this instance's associated
-   * controllable.
-   *
-   * @type {Set<ControlContext>}
-   */
-  #children = new Set();
-
-  /**
    * Instance which represents the root of the containership hierarchy.
    *
    * @type {RootControlContext}
@@ -107,7 +99,6 @@ export class ControlContext {
       this.#pathKey   = parent.context.#pathKeyForChild(associate);
 
       this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
-      this.#parent.#addChild(this);
       this.#root[ThisModule.SYM_addDescendant](this);
     }
   }
@@ -231,15 +222,6 @@ export class ControlContext {
    */
   [ThisModule.SYM_setState](state) {
     this.#state = state;
-  }
-
-  /**
-   * Adds a child (direct descendant) to the set of children of this instance.
-   *
-   * @param {ControlContext} context The child context instance.
-   */
-  #addChild(context) {
-    this.#children.add(context);
   }
 
   /**
