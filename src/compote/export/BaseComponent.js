@@ -19,7 +19,9 @@ import { ThisModule } from '#p/ThisModule';
  *
  * **Note:** If a concrete subclass uses a configuration object with a `name`
  * property, then this class requires that that name honor the contract of
- * {@link Names#checkName}.
+ * {@link Names#checkName}. And if a concrete subclass _does not_ use a
+ * configuration object with a `name` property, then that subclass _also_ has
+ * to override {@link #name} to return a non-`null` name.
  *
  * @implements {IntfComponent}
  */
@@ -150,7 +152,13 @@ export class BaseComponent {
 
   /** @override */
   get name() {
-    return this.#config?.name ?? null;
+    const name = this.#config?.name;
+
+    if (name) {
+      return name;
+    } else {
+      throw new Error('Component must define `name`.');
+    }
   }
 
   /** @override */

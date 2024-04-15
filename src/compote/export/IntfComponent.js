@@ -37,7 +37,7 @@ export class IntfComponent {
     throw Methods.abstract();
   }
 
-  /** @returns {?string} Component name, or `null` if it does not have one. */
+  /** @returns {string} Component name. */
   get name() {
     throw Methods.abstract();
   }
