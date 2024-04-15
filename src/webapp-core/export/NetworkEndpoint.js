@@ -11,7 +11,6 @@ import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
 import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseService } from '#x/BaseService';
 import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
