@@ -36,7 +36,7 @@ export class RootControlContext extends ControlContext {
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(logger) {
-    super('root', null, logger);
+    super('root', null);
 
     this.#rootLogger = logger;
   }
