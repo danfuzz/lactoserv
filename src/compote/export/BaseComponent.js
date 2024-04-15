@@ -273,15 +273,9 @@ export class BaseComponent {
       throw new Error('Child already initialized; cannot add to different parent.');
     }
 
-    const { logger }       = this;
-    const { logTag, name } = child.config;
-
-    let subLogger = logger;
-    if (logTag) {
-      subLogger = logger?.[logTag];
-    } else if (name) {
-      subLogger = logger?.[name];
-    }
+    const { logger } = this;
+    const { name }   = child.config;
+    const subLogger  = logger?.[name];
 
     const context = new ControlContext(child, this, subLogger);
     await child.init(context, isReload);
