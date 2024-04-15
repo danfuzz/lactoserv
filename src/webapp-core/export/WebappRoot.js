@@ -68,7 +68,7 @@ export class WebappRoot extends BaseComponent {
         ...rawConfig,
         name: 'root'
       },
-      new RootControlContext(ThisModule.subsystemLogger('root')));
+      new RootControlContext(ThisModule.logger));
 
     const { applications, endpoints, hosts, services } = this.config;
 

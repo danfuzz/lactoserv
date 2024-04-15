@@ -38,13 +38,6 @@ export class HostManager extends BaseComponent {
   #items = new TreePathMap(HostUtil.hostnameStringFrom);
 
   /**
-   * Logger for this class, or `null` not to do any logging.
-   *
-   * @type {?IntfLogger}
-   */
-  #logger = ThisModule.subsystemLogger('hosts');
-
-  /**
    * Constructs an instance.
    *
    * @param {Array<NetworkHost>} [hosts] Host handler objects.
@@ -133,8 +126,7 @@ export class HostManager extends BaseComponent {
     const hosts = this.getAll();
 
     const results = hosts.map((h) => {
-      const logger  = ThisModule.cohortLogger('host')?.[h.name];
-      const context = new ControlContext(h, this, logger);
+      const context = new ControlContext(h, this);
       return h.init(context, isReload);
     });
 
@@ -171,7 +163,7 @@ export class HostManager extends BaseComponent {
       }
 
       this.#items.add(key, host);
-      this.#logger?.bound(name);
+      this.logger?.bound(name);
     }
   }
 
@@ -189,7 +181,7 @@ export class HostManager extends BaseComponent {
     const key = HostUtil.parseHostnameOrNull(name, allowWildcard);
 
     if (key === null) {
-      this.#logger?.invalidHostname(name);
+      this.logger?.invalidHostname(name);
       return null;
     }
 
@@ -216,16 +208,16 @@ export class HostManager extends BaseComponent {
     let   foundCtx = null;
 
     if (found) {
-      this.#logger?.found(serverName, found.config.hostnames);
+      this.logger?.found(serverName, found.config.hostnames);
       foundCtx = found.getSecureContext();
     } else {
-      this.#logger?.notFound(serverName);
+      this.logger?.notFound(serverName);
     }
 
     try {
       callback(null, foundCtx);
     } catch (e) {
-      this.#logger?.errorDuringCallback(e);
+      this.logger?.errorDuringCallback(e);
       callback(e, null);
     }
   }

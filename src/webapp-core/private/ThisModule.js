@@ -25,6 +25,14 @@ export class ThisModule {
   static #logger = Loggy.loggerFor('webapp');
 
   /**
+   * @returns {?IntfLogger} Root logger for this module's component hierarchies,
+   * or `null` not to do any logging.
+   */
+  static get logger() {
+    return this.#logger;
+  }
+
+  /**
    * Gets a logger for a particular cohort. A "cohort" is a set of similar items
    * of some sort, e.g. "applications" or "services."
    *
