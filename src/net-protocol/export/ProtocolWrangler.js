@@ -108,11 +108,11 @@ export class ProtocolWrangler {
 
 
   /**
-   * Is a system reload in progress (either during start or stop)?
+   * Is the system about to reload (after stopping)?
    *
    * @type {boolean}
    */
-  #reloading = false;
+  #willReload = false;
 
   /**
    * Constructs an instance.
@@ -181,11 +181,9 @@ export class ProtocolWrangler {
    *
    * @param {?IntfLogger} logger System logger to use, or `null` if to not do
    *   logging.
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async init(logger, isReload) {
-    this.#logger    = logger;
-    this.#reloading = isReload;
+  async init(logger) {
+    this.#logger = logger;
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
@@ -201,14 +199,9 @@ export class ProtocolWrangler {
    * high-level application. This method async-returns once the instance has
    * actually gotten started.
    *
-   * @param {boolean} isReload Is this action due to an in-process reload?
    * @throws {Error} Thrown if there was any trouble starting up.
    */
-  async start(isReload) {
-    if (isReload !== this.#reloading) {
-      throw new Error('`isReload` mismatch.');
-    }
-
+  async start() {
     this.#stopping = false;
     await this.#runner.start();
   }
@@ -224,8 +217,8 @@ export class ProtocolWrangler {
    * @throws {Error} Whatever problem occurred during running.
    */
   async stop(willReload) {
-    this.#reloading = willReload;
-    this.#stopping  = true;
+    this.#willReload = willReload;
+    this.#stopping   = true;
     await this.#runner.stop();
   }
 
@@ -254,10 +247,9 @@ export class ProtocolWrangler {
    * should only async-return once the stack really is ready.
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_serverStart(isReload) {
-    Methods.abstract(isReload);
+  async _impl_serverStart() {
+    Methods.abstract();
   }
 
   /**
@@ -278,10 +270,9 @@ export class ProtocolWrangler {
    * should only async-return once the socket is really listening.
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_socketStart(isReload) {
-    Methods.abstract(isReload);
+  async _impl_socketStart() {
+    Methods.abstract();
   }
 
   /**
@@ -565,8 +556,8 @@ export class ProtocolWrangler {
     // We do these in parallel, because there can be mutual dependencies, e.g.
     // the application might need to see the server stopping _and_ vice versa.
     await Promise.all([
-      this._impl_socketStop(this.#reloading),
-      this._impl_serverStop(this.#reloading)
+      this._impl_socketStop(this.#willReload),
+      this._impl_serverStop(this.#willReload)
     ]);
 
     if (this.#logger) {
@@ -583,8 +574,8 @@ export class ProtocolWrangler {
       this.#logger.starting(this._impl_infoForLog);
     }
 
-    await this._impl_serverStart(this.#reloading);
-    await this._impl_socketStart(this.#reloading);
+    await this._impl_serverStart();
+    await this._impl_socketStart();
 
     if (this.#logger) {
       this.#logger.started(this._impl_infoForLog);
