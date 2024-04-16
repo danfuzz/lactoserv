@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseComponent, BaseConfig, RootControlContext } from '@this/compy';
+import { BaseAggregateComponent, BaseConfig, RootControlContext } from '@this/compy';
 import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
   IntfRequestHandler, RequestContext }
   from '@this/net-util';
@@ -14,10 +14,10 @@ import { BaseApplication } from '@this/webapp-core';
 // extracted for reuse.
 
 /**
- * Minimal concrete subclass of `BaseComponent`, which has no-op implementations
- * for all `_impl_*` methods.
+ * Minimal concrete component class, which has no-op implementations for all
+ * `_impl_*` methods.
  */
-export class NopComponent extends BaseComponent {
+export class NopComponent extends BaseAggregateComponent {
   // @defaultConstructor
 
   /** @override */
@@ -167,19 +167,19 @@ describe('_impl_handleRequest()', () => {
     };
 
     const apps = new NopComponent({ name: 'application' });
-    await root._prot_addChild(apps);
+    await root.addChild(apps);
 
     for (let i = 1; i <= appCount; i++) {
       const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await apps._prot_addChild(app);
+      await apps.addChild(app);
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await apps._prot_addChild(pr);
+    await apps.addChild(pr);
 
     return pr;
   }
