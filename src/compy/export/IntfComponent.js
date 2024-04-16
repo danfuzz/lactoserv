@@ -45,7 +45,9 @@ export class IntfComponent {
 
   /**
    * @abstract
-   * @returns {string} Component name.
+   * @returns {?string} Component name, or `null` if this instance neither
+   * directly has a name nor is attached to a hierarchy (thereby granting it a
+   * synthetic name).
    */
   get name() {
     throw Methods.abstract();
