@@ -112,12 +112,12 @@ export class WebappRoot extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload) {
+  async _impl_init() {
     const results = [
-      this._prot_addChild(this.#serviceManager,     isReload),
-      this._prot_addChild(this.#applicationManager, isReload),
-      this._prot_addChild(this.#hostManager,        isReload),
-      this._prot_addChild(this.#endpointManager,    isReload)
+      this._prot_addChild(this.#serviceManager),
+      this._prot_addChild(this.#applicationManager),
+      this._prot_addChild(this.#hostManager),
+      this._prot_addChild(this.#endpointManager)
     ];
 
     await Promise.all(results);

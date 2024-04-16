@@ -177,12 +177,11 @@ export class BaseSystem extends BaseExposedThreadlet {
    * leaving the already-running system alone.
    *
    * @abstract
-   * @param {boolean} isReload Is the system being reloaded?
    * @returns {*} Value to pass to {@link #_impl_start}, once it is time to
    *   (re-)start the system.
    */
-  async _impl_init(isReload) {
-    Methods.abstract(isReload);
+  async _impl_init() {
+    Methods.abstract();
   }
 
   /**
