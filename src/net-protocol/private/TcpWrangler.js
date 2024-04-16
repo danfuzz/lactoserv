@@ -76,7 +76,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @override */
   async init(logger, isReload) {
-    this.#asyncServer = new AsyncServerSocket(...this.#asyncServerArgs, this.logger);
+    this.#asyncServer = new AsyncServerSocket(...this.#asyncServerArgs, logger);
 
     await super.init(logger, isReload);
   }
