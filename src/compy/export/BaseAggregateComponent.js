@@ -17,18 +17,21 @@ export class BaseAggregateComponent extends BaseComponent {
   // @defaultConstructor
 
   /**
-   * Adds a child to this instance.
+   * Adds one or more children to this instance.
    *
-   * @param {IntfComponent} child Component to add.
+   * @param {...IntfComponent} children Components to add.
    */
-  async addChild(child) {
-    if (!await this._impl_isChildAllowed(child)) {
-      throw new Error(`Child cannot be added: ${child}`);
+  async addChild(...children) {
+    for (const child of children) {
+      if (!await this._impl_isChildAllowed(child)) {
+        throw new Error(`Child cannot be added: ${child}`);
+      }
     }
 
-    await this._prot_addChild(child);
+    for (const child of children) {
+      await this._prot_addChild(child);
+    }
   }
-
 
   /**
    * Subclass-specific check for would-be child validity. Subclasses that want
