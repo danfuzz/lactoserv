@@ -181,6 +181,13 @@ export class BaseComponent {
   }
 
   /** @override */
+  *children() {
+    for (const ctx of this.context.children()) {
+      yield ctx.associate;
+    }
+  }
+
+  /** @override */
   async init(context, isReload = false) {
     MustBe.instanceOf(context, ControlContext);
     MustBe.boolean(isReload);

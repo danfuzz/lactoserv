@@ -86,6 +86,16 @@ export class IntfComponent {
   }
 
   /**
+   * Gets an iterator of all the _direct_ children of this instance.
+   *
+   * @abstract
+   * @yields {IntfComponent} A direct child.
+   */
+  *children() {
+    yield Methods.abstract();
+  }
+
+  /**
    * Initializes this instance, indicating it is now linked to the given
    * context.
    *
