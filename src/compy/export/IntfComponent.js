@@ -129,9 +129,8 @@ export class IntfComponent {
    * also only valid to call this method if the instance is not already running.
    *
    * @abstract
-   * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
-  async start(isReload = false) {
+  async start() {
     Methods.abstract(isReload);
   }
 

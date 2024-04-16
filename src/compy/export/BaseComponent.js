@@ -224,9 +224,7 @@ export class BaseComponent {
   }
 
   /** @override */
-  async start(isReload = false) {
-    MustBe.boolean(isReload);
-
+  async start() {
     if (!this.#initialized) {
       if (this.#context === null) {
         throw new Error('No context was set up in constructor or `init()`.');
@@ -237,7 +235,7 @@ export class BaseComponent {
     }
 
     BaseComponent.logStarting(this.logger);
-    await this._impl_start(isReload);
+    await this._impl_start();
     this.#context[ThisModule.SYM_setState]('running');
     BaseComponent.logStarted(this.logger);
   }
@@ -284,10 +282,9 @@ export class BaseComponent {
    * Subclass-specific implementation of {@link #start}.
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_start(isReload) {
-    Methods.abstract(isReload);
+  async _impl_start() {
+    Methods.abstract();
   }
 
   /**
@@ -322,7 +319,7 @@ export class BaseComponent {
 
     if (this.state === 'running') {
       // Get the child running, so as to match the parent.
-      await child.start(isReload);
+      await child.start();
     }
   }
 

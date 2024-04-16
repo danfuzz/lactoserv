@@ -131,11 +131,11 @@ export class WebappRoot extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start(isReload) {
-    await this.#hostManager.start(isReload);
-    await this.#serviceManager.start(isReload);
-    await this.#applicationManager.start(isReload);
-    await this.#endpointManager.start(isReload);
+  async _impl_start() {
+    await this.#hostManager.start();
+    await this.#serviceManager.start();
+    await this.#applicationManager.start();
+    await this.#endpointManager.start();
   }
 
   /** @override */

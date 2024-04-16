@@ -63,11 +63,11 @@ export class HostManager extends BaseAggregateComponent {
   }
 
   /** @override */
-  async _impl_start(isReload) {
+  async _impl_start() {
     this.#hostMap.logHostMap();
 
     const hosts   = [...this.children()];
-    const results = hosts.map((h) => h.start(isReload));
+    const results = hosts.map((h) => h.start());
 
     await Promise.all(results);
   }

@@ -44,10 +44,10 @@ export class SyslogToFile extends BaseFileService {
   }
 
   /** @override */
-  async _impl_start(isReload) {
+  async _impl_start() {
     await this._prot_createDirectoryIfNecessary();
     await this._prot_touchPath();
-    await this.#rotator?.start(isReload);
+    await this.#rotator?.start();
 
     const { bufferPeriod, format, name, path } = this.config;
     const earliestEvent = this.#findEarliestEventToLog(name);

@@ -66,9 +66,9 @@ export class ComponentManager extends BaseAggregateComponent {
   }
 
   /** @override */
-  async _impl_start(isReload) {
+  async _impl_start() {
     const instances = [...this.children()];
-    const results   = instances.map((c) => c.start(isReload));
+    const results   = instances.map((c) => c.start());
 
     await Promise.all(results);
   }
