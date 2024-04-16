@@ -83,7 +83,6 @@ const services = [
     rotate: {
       atSize:      2 * 1024 * 1024,
       onStart:     true,
-      onReload:    true,
       onStop:      true,
       maxOldBytes: 10 * 1024 * 1024,
       maxOldCount: 10,
