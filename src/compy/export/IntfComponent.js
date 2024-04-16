@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
@@ -47,6 +48,16 @@ export class IntfComponent {
    * @returns {string} Component name.
    */
   get name() {
+    throw Methods.abstract();
+  }
+
+  /**
+   * @abstract
+   * @returns {?TreePathKey} The absolute name-path of this instance, that is,
+   * where it is located in the hierarchy from its root component, or `null` if
+   * this instance is not currently attached to a hierarchy.
+   */
+  get namePath() {
     throw Methods.abstract();
   }
 

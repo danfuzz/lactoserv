@@ -162,6 +162,11 @@ export class BaseComponent {
   }
 
   /** @override */
+  get namePath() {
+    return this.context?.namePath ?? null;
+  }
+
+  /** @override */
   get root() {
     return this.context.root.associate;
   }

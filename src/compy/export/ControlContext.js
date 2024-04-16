@@ -118,6 +118,14 @@ export class ControlContext {
   }
 
   /**
+   * @returns {TreePathKey} The absolute name-path of this instance, that is,
+   * where it is located in the hierarchy from its root component.
+   */
+  get namePath() {
+    return this.#pathKey;
+  }
+
+  /**
    * @returns {?ControlContext} Instance which represents the parent of this
    * instance's {@link #associate}, or `null` if this instance represents the
    * root of the containership hierarchy.
