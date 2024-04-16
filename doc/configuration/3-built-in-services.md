@@ -35,8 +35,8 @@ following bindings:
    a rotation. Optional, and defaults to `null`.
 * `onStart` &mdash; If `true`, rotates when the system is first started or
   reloaded (restarted in-process). Optional, and defaults to `false`.
-* `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
-  Optional, and defaults to `false`.
+* `onStop` &mdash; If `true`, rotates when the system is about to be stopped or
+  reloaded (restarted in-process). Optional, and defaults to `false`.
 
 #### `save`
 
