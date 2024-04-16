@@ -47,11 +47,12 @@ export class ControlContext {
   #associate;
 
   /**
-   * Key which indicates where this instance is in the component hierarchy.
+   * Name-path of this instance, that is, a key which indicates where this
+   * instance is in the component hierarchy.
    *
    * @type {TreePathKey}
    */
-  #pathKey;
+  #namePath;
 
   /**
    * Instance which represents the parent (container) of this instance's
@@ -82,7 +83,7 @@ export class ControlContext {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
-      this.#pathKey   = TreePathKey.EMPTY;
+      this.#namePath  = TreePathKey.EMPTY;
       // Note: We can't add to `#root.contextTree` here, because we're still in
       // the middle of constructing `#root`. That gets fixed in `linkRoot()`,
       // which gets called soon after this instance is constructed.
@@ -91,9 +92,9 @@ export class ControlContext {
       this.#associate = associate;
       this.#parent    = MustBe.instanceOf(parent.context, ControlContext);
       this.#root      = MustBe.instanceOf(this.#parent.#root, /*Root*/ControlContext);
-      this.#pathKey   = parent.context.#pathKeyForChild(associate);
+      this.#namePath  = parent.context.#pathKeyForChild(associate);
 
-      this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
+      this.#root[ThisModule.SYM_contextTree].add(this.#namePath, this);
     }
   }
 
@@ -107,7 +108,7 @@ export class ControlContext {
     if (this.#logger === false) {
       let logger = this.#root.rootLogger ?? null;
       if (logger) {
-        for (const k of this.#pathKey.path) {
+        for (const k of this.#namePath.path) {
           logger = logger[k];
         }
       }
@@ -122,7 +123,7 @@ export class ControlContext {
    * where it is located in the hierarchy from its root component.
    */
   get namePath() {
-    return this.#pathKey;
+    return this.#namePath;
   }
 
   /**
@@ -163,7 +164,7 @@ export class ControlContext {
    * @yields {ControlContext} A direct child.
    */
   *children() {
-    const thisKey    = this.#pathKey;
+    const thisKey    = this.#namePath;
     const matchKey   = thisKey.withWildcard(true);
     const ctxTree    = this.#root[ThisModule.SYM_contextTree];
     const wantLength = thisKey.length + 1;
@@ -247,7 +248,7 @@ export class ControlContext {
     }
 
     this.#associate = root;
-    this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
+    this.#root[ThisModule.SYM_contextTree].add(this.#namePath, this);
   }
 
   /**
@@ -270,7 +271,7 @@ export class ControlContext {
    */
   #pathKeyForChild(component) {
     const { name } = component;
-    const thisKey  = this.#pathKey;
+    const thisKey  = this.#namePath;
 
     if (name) {
       return thisKey.concat(name);
