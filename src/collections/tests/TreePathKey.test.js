@@ -90,6 +90,26 @@ describe('.charLength', () => {
   });
 });
 
+describe('.last', () => {
+  test('returns `null` given an empty path', () => {
+    expect(TreePathKey.EMPTY.last).toBeNull();
+  });
+
+  for (let len = 1; len < 4; len++) {
+    for (let wild = 0; wild < 2; wild++) {
+      const wildcard = !!wild;
+      test(`works for length ${len}, wildcard ${wildcard}`, () => {
+        const path     = Array(len).fill('x');
+        const expected = `its-${len}`;
+        path[len - 1] = expected;
+
+        const key = new TreePathKey(path, wildcard);
+        expect(key.last).toBe(expected);
+      });
+    }
+  }
+});
+
 describe('.length', () => {
   for (let len = 0; len < 4; len++) {
     for (let wild = 0; wild < 2; wild++) {
