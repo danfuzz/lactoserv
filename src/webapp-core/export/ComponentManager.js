@@ -59,15 +59,6 @@ export class ComponentManager extends BaseAggregateComponent {
     return this.root.context.getComponent(namePath, ...classes);
   }
 
-  /**
-   * Gets a list of all component instances managed by this (manager) instance.
-   *
-   * @returns {Array<BaseComponent>} All the instances.
-   */
-  getAll() {
-    return [...this.children()];
-  }
-
   /** @override */
   async _impl_init(isReload_unused) {
     // @emptyBlock
@@ -75,7 +66,7 @@ export class ComponentManager extends BaseAggregateComponent {
 
   /** @override */
   async _impl_start(isReload) {
-    const instances = this.getAll();
+    const instances = [...this.children()];
     const results   = instances.map((c) => c.start(isReload));
 
     await Promise.all(results);
@@ -83,7 +74,7 @@ export class ComponentManager extends BaseAggregateComponent {
 
   /** @override */
   async _impl_stop(willReload) {
-    const instances = this.getAll();
+    const instances = [...this.children()];
     const results   = instances.map((c) => c.stop(willReload));
 
     await Promise.all(results);
