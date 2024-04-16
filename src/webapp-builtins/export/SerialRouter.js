@@ -40,7 +40,7 @@ export class SerialRouter extends BaseApplication {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    this.logger?.routes(this.config.routes);
+    this.logger?.routes(this.config.routeList);
   }
 
   /** @override */
