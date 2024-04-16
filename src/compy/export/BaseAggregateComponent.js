@@ -21,7 +21,7 @@ export class BaseAggregateComponent extends BaseComponent {
    *
    * @param {...IntfComponent} children Components to add.
    */
-  async addChild(...children) {
+  async addChildren(...children) {
     for (const child of children) {
       if (!await this._impl_isChildAllowed(child)) {
         throw new Error(`Child cannot be added: ${child}`);

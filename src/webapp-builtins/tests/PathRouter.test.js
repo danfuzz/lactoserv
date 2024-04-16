@@ -167,19 +167,19 @@ describe('_impl_handleRequest()', () => {
     };
 
     const apps = new NopComponent({ name: 'application' });
-    await root.addChild(apps);
+    await root.addChildren(apps);
 
     for (let i = 1; i <= appCount; i++) {
       const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await apps.addChild(app);
+      await apps.addChildren(app);
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await apps.addChild(pr);
+    await apps.addChildren(pr);
 
     return pr;
   }
