@@ -262,10 +262,13 @@ export class ControlContext {
     const ctxTree  = this.#root[ThisModule.SYM_contextTree];
 
     for (const [key] of ctxTree.findSubtree(matchKey)) {
-      const onePath       = key.path;
-      const lastComponent = onePath[onePath.length - 1];
-      if (lastComponent && lastComponent.startsWith(prefix)) {
-        matches.add(lastComponent.slice(prefix.length));
+      const onePath = key.path;
+
+      if (onePath.length === (matchKey.path.length + 1)) {
+        const lastComponent = onePath[onePath.length - 1];
+        if (lastComponent.startsWith(prefix)) {
+          matches.add(lastComponent.slice(prefix.length));
+        }
       }
     }
 

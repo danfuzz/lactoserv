@@ -60,5 +60,14 @@ describe('constructor', () => {
     expect(comp3.namePath.path).toEqual(['otherName2']);
     expect(comp4.namePath.path).toEqual(['otherName1']);
     expect(comp5.namePath.path).toEqual(['otherName3']);
+
+    const comp6 = new SomeName({});
+    const comp7 = new SomeName({});
+
+    await comp1.addChild(comp6);
+    await comp1.addChild(comp7);
+
+    expect(comp6.namePath.path).toEqual(['someName1', 'someName1']);
+    expect(comp7.namePath.path).toEqual(['someName1', 'someName2']);
   });
 })
