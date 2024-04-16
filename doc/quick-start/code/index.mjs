@@ -34,9 +34,9 @@ class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_start(isReload, initValue) {
+  async _impl_start(initValue) {
     this.#webapp = initValue;
-    await this.#webapp.start(isReload);
+    await this.#webapp.start();
   }
 
   /** @override */

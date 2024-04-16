@@ -144,7 +144,7 @@ export class BaseSystem extends BaseExposedThreadlet {
 
     this.#initValue     = this.#nextInitValue;
     this.#nextInitValue = null;
-    await this._impl_start(isReload, this.#initValue);
+    await this._impl_start(this.#initValue);
 
     this.#logger?.started(logArg);
   }
@@ -187,11 +187,10 @@ export class BaseSystem extends BaseExposedThreadlet {
   /**
    * Starts the system, in a subclass-specific way.
    *
-   * @param {boolean} isReload Is the system being reloaded?
    * @param {*} initValue Value previously returned from {@link #_impl_init}.
    */
-  async _impl_start(isReload, initValue) {
-    Methods.abstract(isReload, initValue);
+  async _impl_start(initValue) {
+    Methods.abstract(initValue);
   }
 
   /**
