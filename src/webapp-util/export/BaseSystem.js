@@ -171,10 +171,10 @@ export class BaseSystem extends BaseExposedThreadlet {
 
   /**
    * Initializes any concrete-subclass-related bits, in preparation for running
-   * the system. If `isReload` is passed as `true`, the system is _already_
-   * running, and care should be taken not to disturb that. In particular, this
-   * method is allowed to throw, and that will cause reloading to fail while
-   * leaving the already-running system alone.
+   * the system. Note that the system might be in the process of _reloading_,
+   * and care should be taken not to disturb that. In particular, this method is
+   * allowed to throw, and that will cause reloading to fail while leaving the
+   * already-running system alone.
    *
    * @abstract
    * @returns {*} Value to pass to {@link #_impl_start}, once it is time to

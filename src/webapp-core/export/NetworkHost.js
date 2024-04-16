@@ -97,12 +97,12 @@ export class NetworkHost extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     // @emptyBlock
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     const { config } = this;
     const { selfSigned } = config;
 

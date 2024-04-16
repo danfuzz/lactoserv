@@ -61,7 +61,7 @@ export class ComponentManager extends BaseAggregateComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     // @emptyBlock
   }
 

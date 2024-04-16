@@ -58,7 +58,7 @@ export class HostManager extends BaseAggregateComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     this.#hostMap = new HostManager.HostMap(this.logger);
   }
 

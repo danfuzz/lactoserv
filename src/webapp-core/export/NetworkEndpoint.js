@@ -71,7 +71,7 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     const {
       application,
       interface: iface,
@@ -86,7 +86,7 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     const appManager     = this.root.applicationManager;
     const serviceManager = this.root.serviceManager;
 
