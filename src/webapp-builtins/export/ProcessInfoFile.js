@@ -52,22 +52,20 @@ export class ProcessInfoFile extends BaseFileService {
   }
 
   /** @override */
-  async _impl_start(isReload) {
+  async _impl_start() {
     if (this.#saver) {
-      if (!isReload) {
-        await this.#fixOldFileIfNecessary();
-      }
+      await this.#fixOldFileIfNecessary();
 
       // Give the saver a chance to take action _before_ we start our runner
       // (which will quickly overwrite a pre-existing info file at the
       // un-infixed path).
-      await this.#saver.start(isReload);
+      await this.#saver.start();
     }
 
-    if (isReload) {
-      // This only matters if configured with `save: { onReload: true }`, in
-      // which case this gets included in the new file as a way of indicating
-      // continuity.
+    if (ProcessInfoFile.#INTENDED_TO_RELOAD) {
+      // This gets included in the new file as a way of indicating continuity,
+      // when an `onStart` or `onStop` action will have caused the file to get
+      // created without `earlierRuns`.
       this.#contents = {
         earlierRuns: [{
           disposition: 'inOtherInfoFiles'
@@ -126,7 +124,10 @@ export class ProcessInfoFile extends BaseFileService {
   async #makeContents() {
     const contents = {
       product: ProductInfo.allInfo,
-      ...ProcessInfo.allInfo
+      ...ProcessInfo.allInfo,
+      disposition: {
+        running: true
+      },
     };
 
     delete contents.uptime; // Ends up in `disposition`.
@@ -145,9 +146,9 @@ export class ProcessInfoFile extends BaseFileService {
         contents.earlierRuns = [fileContents];
       }
     } else if (this.#contents?.earlierRuns) {
-      // **Note:** `this.#contents` is only possibly non-empty if this instance
-      // was configured with `save: { onReload: true }`.
-      contents.earlierRuns = this.#contents.earlierRuns;
+     // **Note:** `this.#contents` is only possibly non-empty if this instance
+     // was configured with `onStart: true` or `onStop: true`.
+     contents.earlierRuns = this.#contents.earlierRuns;
     }
 
     if (contents.earlierRuns) {
@@ -249,6 +250,10 @@ export class ProcessInfoFile extends BaseFileService {
     }
 
     await this.#writeFile();
+
+    if (willReload) {
+      ProcessInfoFile.#INTENDED_TO_RELOAD = true;
+    }
   }
 
   /**
@@ -287,6 +292,14 @@ export class ProcessInfoFile extends BaseFileService {
   //
   // Static members
   //
+
+  /**
+   * Stashed indicator of whether the system ever indicated it was going to
+   * reload. Kindy ooky, but it gets the job done.
+   *
+   * @type {boolean}
+   */
+  static #INTENDED_TO_RELOAD = false;
 
   /** @override */
   static _impl_configClass() {

@@ -86,26 +86,16 @@ export class BaseFilePreserver {
    * Starts this instance. If this instance is configured to take any start-time
    * actions (e.g. and especially preserving an existing file), this method does
    * not async-return until those actions are complete.
-   *
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async start(isReload) {
+  async start() {
     this.#runner.start();
 
-    if (isReload) {
-      if (this.#config.save.onReload) {
-        this.#saveNow.value = true;
-        await this.#saveNow.whenFalse();
-      }
-    } else {
-      if (this.#config.save.onStart) {
-        this.#saveNow.value = true;
-        await this.#saveNow.whenFalse();
-      }
+    if (this.#config.save.onStart) {
+      this.#saveNow.value = true;
+      await this.#saveNow.whenFalse();
     }
 
-    const logArgs = isReload ? ['reload'] : [];
-    this.#logger?.started(...logArgs);
+    this.#logger?.started();
   }
 
   /**
@@ -115,7 +105,7 @@ export class BaseFilePreserver {
    *   being requested?
    */
   async stop(willReload) {
-    if (this.#config.save.onStop && !willReload) {
+    if (this.#config.save.onStop) {
       this.#saveNow.value = true;
       await this.#saveNow.whenFalse();
     }
