@@ -227,6 +227,14 @@ const disallowedFunctionality = {
     {
       selector: 'NewExpression[callee.name=\'Date\'][arguments.length!=1]',
       message:  'Use module `clocks` or class `data-values.Moment`.'
+    },
+    {
+      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_prot_/][object.type!=ThisExpression]',
+      message:  'Only access `_prot_*` (protected method) on `this`.'
+    },
+    {
+      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_impl_/][object.type!=ThisExpression]',
+      message:  'Only access `_impl_*` (subclass-implementation method) on `this`.'
     }
   ]
 };
