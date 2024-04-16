@@ -70,8 +70,6 @@ export class WebappRoot extends BaseComponent {
       },
       new RootControlContext(ThisModule.logger));
 
-    const { hosts } = this.config;
-
     this.#applicationManager = new ComponentManager({
       baseClass: BaseApplication,
       name:      'application'
@@ -87,7 +85,7 @@ export class WebappRoot extends BaseComponent {
       name:      'endpoint'
     });
 
-    this.#hostManager = new HostManager(hosts);
+    this.#hostManager = new HostManager({ name: 'host' });
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -124,9 +122,10 @@ export class WebappRoot extends BaseComponent {
 
     await Promise.all(results);
 
-    const { applications, endpoints, services } = this.config;
+    const { applications, hosts, endpoints, services } = this.config;
 
     await this.#applicationManager.addChild(...applications);
+    await this.#hostManager.addChild(...hosts);
     await this.#endpointManager.addChild(...endpoints);
     await this.#serviceManager.addChild(...services);
   }
