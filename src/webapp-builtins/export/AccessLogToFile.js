@@ -122,7 +122,7 @@ export class AccessLogToFile extends BaseFileService {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     const { config } = this;
     const { bufferPeriod, path, rotate } = config;
 

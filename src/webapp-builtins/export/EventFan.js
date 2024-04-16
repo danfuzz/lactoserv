@@ -64,12 +64,12 @@ export class EventFan extends BaseService {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     this.logger?.targets(this.config.services);
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     // Note: We can't do this setup in `_impl_init()` because it might not be
     // the case that all of the referenced services have already been added when
     // that runs.

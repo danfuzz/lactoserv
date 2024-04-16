@@ -131,7 +131,7 @@ export class IntfComponent {
    * @abstract
    */
   async start() {
-    Methods.abstract(isReload);
+    Methods.abstract();
   }
 
   /**
