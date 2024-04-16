@@ -303,9 +303,8 @@ export class BaseComponent {
    * to only be called by an instance to modify itself.
    *
    * @param {BaseComponent} child Child component to add.
-   * @param {boolean} [isReload] Is the system being reloaded?
    */
-  async _prot_addChild(child, isReload = false) {
+  async _prot_addChild(child) {
     MustBe.instanceOf(child, BaseComponent);
 
     if (!this.#initialized) {
