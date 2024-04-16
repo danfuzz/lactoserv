@@ -130,16 +130,13 @@ export class AsyncServerSocket {
   /**
    * Starts this instance.
    *
-   * @param {boolean} isReload Is this action due to an in-process reload?
+   * @param {boolean} isReload_unused Is this action due to an in-process
+   *   reload?
    */
-  async start(isReload) {
-    MustBe.boolean(isReload);
-
-    // In case of a reload, look for a stashed instance which is already set up
-    // the same way.
-    const found = isReload
-      ? AsyncServerSocket.#unstashInstance(this.#interface)
-      : null;
+  async start(isReload_unused) {
+    // To handle the case of an in-process system reload, look for a stashed
+    // instance which is already set up the same way as what is being requested.
+    const found = AsyncServerSocket.#unstashInstance(this.#interface);
 
     if (found?.#serverSocket) {
       // Inherit the "guts" of the now-unstashed instance.
