@@ -32,7 +32,7 @@ export class SyslogToFile extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     // Having a logger available is optional for most classes, but for this one
     // it is essential!
     if (!this.logger) {

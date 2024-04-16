@@ -46,7 +46,7 @@ export class ProcessInfoFile extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     const { config } = this;
     this.#saver = config.save ? new Saver(config, this.logger) : null;
   }
