@@ -32,7 +32,8 @@ export class BaseAggregateComponent extends BaseComponent {
 
   /**
    * Subclass-specific check for would-be child validity. Subclasses that want
-   * to perform checks should override this. By default, it always returns
+   * to perform checks should override this, and either return `false` or throw
+   * an error to indicate a problem. By default, this method always returns
    * `true`.
    *
    * @param {IntfComponent} child Would-be child component.
