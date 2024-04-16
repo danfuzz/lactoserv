@@ -4,6 +4,7 @@
 import { BaseAggregateComponent, BaseConfig, RootControlContext }
   from '@this/compy';
 
+
 /**
  * Fake component that implements just enough stuff for the tests here.
  */

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseAggregateComponent, BaseConfig, RootControlContext } from '@this/compy';
+import { BaseAggregateComponent, BaseConfig, RootControlContext }
+  from '@this/compy';
 import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
   IntfRequestHandler, RequestContext }
   from '@this/net-util';

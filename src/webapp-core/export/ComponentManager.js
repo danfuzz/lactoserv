@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, BaseComponent, BaseConfig } from '@this/compy';
+import { BaseAggregateComponent, BaseComponent, BaseConfig }
+  from '@this/compy';
 import { MustBe } from '@this/typey';
 
 
