@@ -29,8 +29,22 @@ export class BaseAggregateComponent extends BaseComponent {
     }
 
     for (const child of children) {
+      await this._impl_addChild(child);
       await this._prot_addChild(child);
     }
+  }
+
+  /**
+   * Subclass-specific behavior for adding a child. Subclasses that want to do
+   * anything extra when adding a child should override this. This method is
+   * called _after_ the call to {@link #_impl_isChildAllowed} and _before_
+   * the call to {@link _prot_addChild} on the base class. By default, this
+   * method does nothing.
+   *
+   * @param {IntfComponent} child Child component.
+   */
+  async _impl_addChild(child) { // eslint-disable-line no-unused-vars
+    // @emptyBlock
   }
 
   /**
