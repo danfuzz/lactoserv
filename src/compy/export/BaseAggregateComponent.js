@@ -38,7 +38,7 @@ export class BaseAggregateComponent extends BaseComponent {
    * Subclass-specific behavior for adding a child. Subclasses that want to do
    * anything extra when adding a child should override this. This method is
    * called _after_ the call to {@link #_impl_isChildAllowed} and _before_
-   * the call to {@link _prot_addChild} on the base class. By default, this
+   * the call to {@link #_prot_addChild} on the base class. By default, this
    * method does nothing.
    *
    * @param {IntfComponent} child Child component.
