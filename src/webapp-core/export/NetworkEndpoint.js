@@ -15,11 +15,11 @@ import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
 /**
- * Component (in the sense of `compy`) which completely handles a single
- * network endpoint. Instances of this class have a {@link ProtocolWrangler} to
- * deal with the lower-level networking details and a map from mount points to
- * {@link BaseApplication} instances. This class is the connection between these
- * two things.
+ * Component (in the sense of `compy`) which completely handles a single network
+ * endpoint. Instances of this class have a {@link ProtocolWrangler} to deal
+ * with the lower-level networking details and a map from mount points to {@link
+ * BaseApplication} instances. This class is the connection between these two
+ * things.
  *
  * @implements {IntfRequestHandler}
  */

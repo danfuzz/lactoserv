@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseConfig } from '@this/compy';
+import { BaseAggregateComponent, BaseComponent, BaseConfig }
+  from '@this/compy';
 import { MustBe } from '@this/typey';
 
 
@@ -11,7 +12,7 @@ import { MustBe } from '@this/typey';
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
-export class ComponentManager extends BaseComponent {
+export class ComponentManager extends BaseAggregateComponent {
   /**
    * Base class of all components to be managed by this instance.
    *
@@ -20,23 +21,15 @@ export class ComponentManager extends BaseComponent {
   #baseClass;
 
   /**
-   * Map from each bound name to the corresponding instance.
-   *
-   * @type {Map<string, BaseComponent>}
-   */
-  #instances = new Map();
-
-  /**
    * Constructs an instance.
    *
-   * @param {Array<BaseComponent>} instances All the instances to manage.
    * @param {object} options Instantiation options.
    * @param {?function(new:BaseComponent)} [options.baseClass] Base class of all
    *   components to be managed by this instance. `null` (the default) is the
    *   same as passing `BaseComponent`.
    * @param {string} [options.name] Name of this instance, as a component.
    */
-  constructor(instances, options) {
+  constructor(options) {
     const {
       baseClass = null,
       name
@@ -47,11 +40,6 @@ export class ComponentManager extends BaseComponent {
     this.#baseClass = (baseClass === null)
       ? BaseComponent
       : MustBe.subclassOf(baseClass, BaseComponent);
-
-    MustBe.array(instances);
-    for (const instance of instances) {
-      this.#addInstance(instance);
-    }
   }
 
   /**
@@ -66,40 +54,20 @@ export class ComponentManager extends BaseComponent {
    *   does not match the given `cls`.
    */
   get(name, cls = null) {
-    const instance = this.#instances.get(name);
+    const namePath = this.namePath.concat(name);
+    const classes  = cls ? [cls] : [];
 
-    if (!instance) {
-      throw new Error(`No such component: ${name}`);
-    }
-
-    this.#checkInstanceClass(instance, cls);
-
-    return instance;
-  }
-
-  /**
-   * Gets a list of all component instances managed by this (manager) instance.
-   *
-   * @returns {Array<BaseComponent>} All the instances.
-   */
-  getAll() {
-    return [...this.#instances.values()];
+    return this.root.context.getComponent(namePath, ...classes);
   }
 
   /** @override */
-  async _impl_init(isReload) {
-    const instances = this.getAll();
-
-    const results = instances.map((c) => {
-      return this._prot_addChild(c, isReload);
-    });
-
-    await Promise.all(results);
+  async _impl_init(isReload_unused) {
+    // @emptyBlock
   }
 
   /** @override */
   async _impl_start(isReload) {
-    const instances = this.getAll();
+    const instances = [...this.children()];
     const results   = instances.map((c) => c.start(isReload));
 
     await Promise.all(results);
@@ -107,48 +75,23 @@ export class ComponentManager extends BaseComponent {
 
   /** @override */
   async _impl_stop(willReload) {
-    const instances = this.getAll();
+    const instances = [...this.children()];
     const results   = instances.map((c) => c.stop(willReload));
 
     await Promise.all(results);
   }
 
-  /**
-   * Validates the given instance, and adds it to {@link #instances}.
-   *
-   * @param {BaseComponent} instance Instance to add.
-   */
-  #addInstance(instance) {
-    MustBe.instanceOf(instance, this.#baseClass);
+  /** @override */
+  _impl_isChildAllowed(child) {
+    const baseClass = this.#baseClass;
 
-    const name = instance.name;
-
-    if (!name) {
-      throw new Error('Component is missing `name`.');
-    } else if (this.#instances.has(name)) {
-      throw new Error(`Duplicate component: ${name}`);
+    if (baseClass) {
+      MustBe.instanceOf(child, this.#baseClass);
     }
 
-    this.#instances.set(name, instance);
+    return true;
   }
 
-  /**
-   * Checks that a {@link BaseComponent} instance fits the given class
-   * restriction.
-   *
-   * @param {BaseComponent} component The instance to check.
-   * @param {?function(new:*)} cls Class that `component` must be, or `null` to
-   *   not have any restriction.
-   * @throws {Error} Thrown if `component` is not an instance of an appropriate
-   *   class.
-   */
-  #checkInstanceClass(component, cls) {
-    if (cls === null) {
-      return;
-    } else if (!component.instanceOfAll(cls)) {
-      throw new Error(`Wrong class for component: ${component.constructor.name}, expected ${cls.name}`);
-    }
-  }
 
   //
   // Static members

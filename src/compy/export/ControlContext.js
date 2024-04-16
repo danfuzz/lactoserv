@@ -47,11 +47,12 @@ export class ControlContext {
   #associate;
 
   /**
-   * Key which indicates where this instance is in the component hierarchy.
+   * Name-path of this instance, that is, a key which indicates where this
+   * instance is in the component hierarchy.
    *
    * @type {TreePathKey}
    */
-  #pathKey;
+  #namePath;
 
   /**
    * Instance which represents the parent (container) of this instance's
@@ -82,7 +83,7 @@ export class ControlContext {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
-      this.#pathKey   = TreePathKey.EMPTY;
+      this.#namePath  = TreePathKey.EMPTY;
       // Note: We can't add to `#root.contextTree` here, because we're still in
       // the middle of constructing `#root`. That gets fixed in `linkRoot()`,
       // which gets called soon after this instance is constructed.
@@ -91,9 +92,9 @@ export class ControlContext {
       this.#associate = associate;
       this.#parent    = MustBe.instanceOf(parent.context, ControlContext);
       this.#root      = MustBe.instanceOf(this.#parent.#root, /*Root*/ControlContext);
-      this.#pathKey   = parent.context.#pathKeyForChild(associate);
+      this.#namePath  = parent.context.#pathKeyForChild(associate);
 
-      this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
+      this.#root[ThisModule.SYM_contextTree].add(this.#namePath, this);
     }
   }
 
@@ -107,7 +108,7 @@ export class ControlContext {
     if (this.#logger === false) {
       let logger = this.#root.rootLogger ?? null;
       if (logger) {
-        for (const k of this.#pathKey.path) {
+        for (const k of this.#namePath.path) {
           logger = logger[k];
         }
       }
@@ -115,6 +116,14 @@ export class ControlContext {
     }
 
     return this.#logger;
+  }
+
+  /**
+   * @returns {TreePathKey} The absolute name-path of this instance, that is,
+   * where it is located in the hierarchy from its root component.
+   */
+  get namePath() {
+    return this.#namePath;
   }
 
   /**
@@ -149,7 +158,31 @@ export class ControlContext {
   }
 
   /**
-   * Gets a the compoenent at the given path from the root of this instance,
+   * Gets an iterator of all the _direct_ children of this instance. The
+   * iterator yields context instances, not the component associates.
+   *
+   * @yields {ControlContext} A direct child.
+   */
+  *children() {
+    const thisKey    = this.#namePath;
+    const matchKey   = thisKey.withWildcard(true);
+    const ctxTree    = this.#root[ThisModule.SYM_contextTree];
+    const wantLength = thisKey.length + 1;
+
+    // TODO: Perhaps this can be made more efficient by adding a just-children
+    // iterator to `TreePathMap`.
+
+    for (const [key, context] of ctxTree.findSubtree(matchKey)) {
+      // The test is to ensure we only yield values for exactly one layer of
+      // hierarchy below this instance.
+      if (key.length === wantLength) {
+        yield context;
+      }
+    }
+  }
+
+  /**
+   * Gets a the component at the given path from the root of this instance,
    * which optionally must be of a specific class (including a base class).
    *
    * @param {Array<string>|TreePathKey|string} path Absolute path to the
@@ -215,7 +248,7 @@ export class ControlContext {
     }
 
     this.#associate = root;
-    this.#root[ThisModule.SYM_contextTree].add(this.#pathKey, this);
+    this.#root[ThisModule.SYM_contextTree].add(this.#namePath, this);
   }
 
   /**
@@ -238,25 +271,21 @@ export class ControlContext {
    */
   #pathKeyForChild(component) {
     const { name } = component;
-    const thisKey  = this.#pathKey;
+    const thisKey  = this.#namePath;
 
     if (name) {
       return thisKey.concat(name);
     }
 
     // The hard case: Find a unique name of the form `<lowerCamelClass><count>`.
-    // TODO: Perhaps this can be made more efficient, especially in that we're
-    // iterating down into tree levels that don't matter for the calculation.
 
-    const prefix   = ControlContext.#namePrefixFrom(component);
-    const matches  = new Set();
-    const matchKey = thisKey.withWildcard(true);
-    const ctxTree  = this.#root[ThisModule.SYM_contextTree];
+    const prefix  = ControlContext.#namePrefixFrom(component);
+    const matches = new Set();
 
-    for (const [key] of ctxTree.findSubtree(matchKey)) {
-      const lastComponent = key.path[key.path.length - 1];
-      if (lastComponent.startsWith(prefix)) {
-        matches.add(lastComponent.slice(prefix.length));
+    for (const ctx of this.children()) {
+      const lastName = ctx.namePath.last;
+      if (lastName.startsWith(prefix)) {
+        matches.add(lastName.slice(prefix.length));
       }
     }
 

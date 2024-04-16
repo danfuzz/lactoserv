@@ -19,9 +19,7 @@ import { ThisModule } from '#p/ThisModule';
  *
  * **Note:** If a concrete subclass uses a configuration object with a `name`
  * property, then this class requires that that name honor the contract of
- * {@link Names#checkName}. And if a concrete subclass _does not_ use a
- * configuration object with a `name` property, then that subclass _also_ has to
- * override {@link #name} to return a non-`null` name.
+ * {@link Names#checkName}.
  *
  * @implements {IntfComponent}
  */
@@ -156,9 +154,18 @@ export class BaseComponent {
 
     if (name) {
       return name;
-    } else {
-      throw new Error('Component must define `name`.');
     }
+
+    const path = this.namePath?.path;
+
+    return path
+      ? path[path.length - 1]
+      : null;
+  }
+
+  /** @override */
+  get namePath() {
+    return this.context?.namePath ?? null;
   }
 
   /** @override */
@@ -171,6 +178,13 @@ export class BaseComponent {
     return this.#initialized
       ? this.context.state
       : 'new';
+  }
+
+  /** @override */
+  *children() {
+    for (const ctx of this.context.children()) {
+      yield ctx.associate;
+    }
   }
 
   /** @override */

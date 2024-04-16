@@ -23,6 +23,10 @@ Breaking changes:
 Other notable changes:
 * `compy`:
   * New method `BaseComponent._prot_addChild()`, to simplify adding children.
+  * New abstract class `BaseAggregateComponent`, for components that _publicly_
+    allow children to be added.
+* `webapp-core`: Used `BaseAggregateComponent` to simplify the classes that are
+  in fact aggregate components.
 
 ### v0.6.14 -- 2024-04-11
 

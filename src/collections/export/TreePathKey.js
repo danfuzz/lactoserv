@@ -71,6 +71,17 @@ export class TreePathKey {
   }
 
   /**
+   * @returns {?string} The last element of {@link #path}, or `null` if this
+   * instance is empty (that is, if `length === 0`).
+   */
+  get last() {
+    const path   = this.#path;
+    const length = path.length;
+
+    return (length === 0) ? null : path[length - 1];
+  }
+
+  /**
    * @returns {number} The length of the path in components, that is, a
    * shorthand for `this.path.length`.
    */

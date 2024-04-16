@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
@@ -44,9 +45,21 @@ export class IntfComponent {
 
   /**
    * @abstract
-   * @returns {string} Component name.
+   * @returns {?string} Component name, or `null` if this instance neither
+   * directly has a name nor is attached to a hierarchy (thereby granting it a
+   * synthetic name).
    */
   get name() {
+    throw Methods.abstract();
+  }
+
+  /**
+   * @abstract
+   * @returns {?TreePathKey} The absolute name-path of this instance, that is,
+   * where it is located in the hierarchy from its root component, or `null` if
+   * this instance is not currently attached to a hierarchy.
+   */
+  get namePath() {
     throw Methods.abstract();
   }
 
@@ -70,6 +83,16 @@ export class IntfComponent {
    */
   get state() {
     throw Methods.abstract();
+  }
+
+  /**
+   * Gets an iterator of all the _direct_ children of this instance.
+   *
+   * @abstract
+   * @yields {IntfComponent} A direct child.
+   */
+  *children() {
+    yield Methods.abstract();
   }
 
   /**
