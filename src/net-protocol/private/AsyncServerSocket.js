@@ -138,6 +138,10 @@ export class AsyncServerSocket {
     // instance which is already set up the same way as what is being requested.
     const found = AsyncServerSocket.#unstashInstance(this.#interface);
 
+    if (found) {
+      this.#logger?.unstashed();
+    }
+
     if (found?.#serverSocket) {
       // Inherit the "guts" of the now-unstashed instance.
       this.#serverSocket = found.#serverSocket;
@@ -466,7 +470,6 @@ export class AsyncServerSocket {
 
     if (found) {
       this.#stashedInstances.delete(found);
-      found.#logger?.unstashed();
     }
 
     return found;
