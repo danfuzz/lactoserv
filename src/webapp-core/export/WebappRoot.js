@@ -70,19 +70,19 @@ export class WebappRoot extends BaseComponent {
       },
       new RootControlContext(ThisModule.logger));
 
-    const { applications, endpoints, hosts, services } = this.config;
+    const { hosts } = this.config;
 
-    this.#applicationManager = new ComponentManager(applications, {
+    this.#applicationManager = new ComponentManager({
       baseClass: BaseApplication,
       name:      'application'
     });
 
-    this.#serviceManager = new ComponentManager(services, {
+    this.#serviceManager = new ComponentManager({
       baseClass: BaseService,
       name:      'service'
     });
 
-    this.#endpointManager = new ComponentManager(endpoints, {
+    this.#endpointManager = new ComponentManager({
       baseClass: NetworkEndpoint,
       name:      'endpoint'
     });
@@ -123,6 +123,12 @@ export class WebappRoot extends BaseComponent {
     ];
 
     await Promise.all(results);
+
+    const { applications, endpoints, services } = this.config;
+
+    await this.#applicationManager.addChild(...applications);
+    await this.#endpointManager.addChild(...endpoints);
+    await this.#serviceManager.addChild(...services);
   }
 
   /** @override */
