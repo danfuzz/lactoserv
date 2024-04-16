@@ -157,7 +157,31 @@ export class ControlContext {
   }
 
   /**
-   * Gets a the compoenent at the given path from the root of this instance,
+   * Gets an iterator of all the _direct_ children of this instance. The
+   * iterator yields context instances, not the component associates.
+   *
+   * @yields {ControlContext} A direct child.
+   */
+  *children() {
+    const thisKey    = this.#pathKey;
+    const matchKey   = thisKey.withWildcard(true);
+    const ctxTree    = this.#root[ThisModule.SYM_contextTree];
+    const wantLength = thisKey.length + 1;
+
+    // TODO: Perhaps this can be made more efficient by adding a just-children
+    // iterator to `TreePathMap`.
+
+    for (const [key, context] of ctxTree.findSubtree(matchKey)) {
+      // The test is to ensure we only yield values for exactly one layer of
+      // hierarchy below this instance.
+      if (key.length === wantLength) {
+        yield context;
+      }
+    }
+  }
+
+  /**
+   * Gets a the component at the given path from the root of this instance,
    * which optionally must be of a specific class (including a base class).
    *
    * @param {Array<string>|TreePathKey|string} path Absolute path to the
@@ -253,22 +277,14 @@ export class ControlContext {
     }
 
     // The hard case: Find a unique name of the form `<lowerCamelClass><count>`.
-    // TODO: Perhaps this can be made more efficient, especially in that we're
-    // iterating down into tree levels that don't matter for the calculation.
 
-    const prefix   = ControlContext.#namePrefixFrom(component);
-    const matches  = new Set();
-    const matchKey = thisKey.withWildcard(true);
-    const ctxTree  = this.#root[ThisModule.SYM_contextTree];
+    const prefix  = ControlContext.#namePrefixFrom(component);
+    const matches = new Set();
 
-    for (const [key] of ctxTree.findSubtree(matchKey)) {
-      const onePath = key.path;
-
-      if (onePath.length === (matchKey.path.length + 1)) {
-        const lastComponent = onePath[onePath.length - 1];
-        if (lastComponent.startsWith(prefix)) {
-          matches.add(lastComponent.slice(prefix.length));
-        }
+    for (const ctx of this.children()) {
+      const lastName = ctx.namePath.last;
+      if (lastName.startsWith(prefix)) {
+        matches.add(lastName.slice(prefix.length));
       }
     }
 
