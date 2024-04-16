@@ -1,8 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, BaseConfig, ControlContext,
-  RootControlContext }
+import { BaseAggregateComponent, BaseConfig, RootControlContext }
   from '@this/compy';
 
 /**
@@ -70,4 +69,4 @@ describe('constructor', () => {
     expect(comp6.namePath.path).toEqual(['someName1', 'someName1']);
     expect(comp7.namePath.path).toEqual(['someName1', 'someName2']);
   });
-})
+});
