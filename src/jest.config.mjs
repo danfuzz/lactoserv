@@ -17,7 +17,8 @@ export default {
     collectCoverageFrom: [
       '**/code/node_modules/**',
       '!**/*.test.*',
-      '!**/Intf*.{js,cjs,mjs}'
+      '!**/Intf[A-Z]*.{js,cjs,mjs}',
+      '!**/Type[A-Z]*.{js,cjs,mjs}'
     ],
     coverageDirectory: `${OUT_DIR}/coverage`,
     coveragePathIgnorePatterns: [],
