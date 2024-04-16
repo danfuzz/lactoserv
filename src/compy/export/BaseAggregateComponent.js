@@ -39,7 +39,7 @@ export class BaseAggregateComponent extends BaseComponent {
    * @returns {boolean} `true` if `child` is acceptable as a child of this
    *   instance, or `false` if not.
    */
-  async _impl_isChildAllowed(child) {
+  async _impl_isChildAllowed(child) { // eslint-disable-line no-unused-vars
     return true;
   }
 }
