@@ -23,6 +23,8 @@ Breaking changes:
     related) methods.
 * `host` / `webapp-util`:
   * Moved `BaseSystem` from `webapp-util` to `host`.
+  * Reworked the `BaseSystem` subclass-implementation API to be a lot simpler.
+    This was made possible by the recent work on the `compy` module.
 
 Other notable changes:
 * `compy`:
