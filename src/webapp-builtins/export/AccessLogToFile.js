@@ -104,7 +104,7 @@ export class AccessLogToFile extends BaseFileService {
       origin,
       protocol,
       method,
-      url,
+      this.#urlToLog(url),
       statusCode,
       contentLengthStr,
       duration.toString({ spaces: false }),
@@ -140,6 +140,31 @@ export class AccessLogToFile extends BaseFileService {
   /** @override */
   async _impl_stop(willReload) {
     await this.#rotator?.stop(willReload);
+  }
+
+  /**
+   * Given a full URL-for-logging string, returns the actual string to log,
+   * which takes into account the configured maximum length (if any).
+   *
+   * @param {string} orig The original URL for logging.
+   * @returns {string} What to actually log.
+   */
+  #urlToLog(orig) {
+    const { maxUrlLength } = this.config;
+
+    if (!maxUrlLength) {
+      return orig;
+    }
+
+    const len = orig.length;
+
+    if (len <= maxUrlLength) {
+      return orig;
+    }
+
+    const prefix = orig.slice(0, Math.floor((maxUrlLength - 3) / 2));
+    const suffix = orig.slice(len - (maxUrlLength - prefix.length - 3));
+    return `${prefix}...${suffix}`;
   }
 
   /**
@@ -184,6 +209,13 @@ export class AccessLogToFile extends BaseFileService {
     #bufferPeriod;
 
     /**
+     * Maximum rendered URL length, or `null` for no maximum.
+     *
+     * @type {?number}
+     */
+    #maxUrlLength;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} rawConfig Raw configuration object.
@@ -191,7 +223,10 @@ export class AccessLogToFile extends BaseFileService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      const { bufferPeriod = null } = rawConfig;
+      const {
+        bufferPeriod = null,
+        maxUrlLength = null
+      } = rawConfig;
 
       if (bufferPeriod) {
         this.#bufferPeriod = Duration.parse(bufferPeriod, { minInclusive: 0 });
@@ -204,6 +239,10 @@ export class AccessLogToFile extends BaseFileService {
       } else {
         this.#bufferPeriod = MustBe.null(bufferPeriod);
       }
+
+      this.#maxUrlLength = maxUrlLength
+        ? MustBe.number(maxUrlLength, { safeInteger: true, minInclusive: 20 })
+        : MustBe.null(maxUrlLength);
     }
 
     /**
@@ -212,6 +251,13 @@ export class AccessLogToFile extends BaseFileService {
      */
     get bufferPeriod() {
       return this.#bufferPeriod;
+    }
+
+    /**
+     * @returns {number} Maximum rendered URL length, or `null` for no maximum.
+     */
+    get maxUrlLength() {
+      return this.#maxUrlLength;
     }
   };
 }
