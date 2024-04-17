@@ -19,6 +19,8 @@ Breaking changes:
     base class.
   * The component hierarchy is now tracked as a unified `TreePathMap`, and
     `getComponent()` now takes absolute paths instead of simple names.
+  * Got rid of the `isReload` argument to all the `init()` and `start()` (and
+    related) methods.
 
 Other notable changes:
 * `compy`:
