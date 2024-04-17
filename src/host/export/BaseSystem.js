@@ -18,13 +18,6 @@ import { KeepRunning } from '#x/KeepRunning';
  */
 export class BaseSystem extends BaseComponent {
   /**
-   * Initialized?
-   *
-   * @type {boolean}
-   */
-  #initDone = false;
-
-  /**
    * Was a reload requested?
    *
    * @type {Condition}
@@ -100,6 +93,9 @@ export class BaseSystem extends BaseComponent {
 
   /** @override */
   async _impl_start() {
+    Host.registerReloadCallback(() => this.#requestReload());
+    Host.registerShutdownCallback(() => this.stop());
+
     await this.#keepRunning.start();
     await this.#thread.start();
   }
@@ -108,20 +104,6 @@ export class BaseSystem extends BaseComponent {
   async _impl_stop(willReload_unused) {
     await this.#thread.stop();
     await this.#keepRunning.stop();
-  }
-
-  /**
-   * Performs pre-start initialization.
-   */
-  #init() {
-    if (this.#initDone) {
-      return;
-    }
-
-    Host.registerReloadCallback(() => this.#requestReload());
-    Host.registerShutdownCallback(() => this.stop());
-
-    this.#initDone = true;
   }
 
   /**
@@ -166,8 +148,6 @@ export class BaseSystem extends BaseComponent {
    * reloading.
    */
   async #startOrReload() {
-    this.#init();
-
     const isReload = (this.#rootComponent !== null);
 
     if (isReload) {
