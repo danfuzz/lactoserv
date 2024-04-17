@@ -5,7 +5,6 @@ export * from '#x/BaseAggregateComponent';
 export * from '#x/BaseComponent';
 export * from '#x/BaseConfig';
 export * from '#x/ControlContext';
-export * from '#x/IntfComponent';
 export * from '#x/Names';
 export * from '#x/RootControlContext';
 export * from '#x/ThreadlikeComponent';

@@ -21,14 +21,19 @@ Breaking changes:
     `getComponent()` now takes absolute paths instead of simple names.
   * Got rid of the `isReload` argument to all the `init()` and `start()` (and
     related) methods.
+  * Got rid of `IntfComponent` (merged its docs back into `BaseComponent`), as
+    it only ever existed to break a circular dependency, but that was better
+    achieved by using a forward-declaration `@typedef`.
 * `host` / `webapp-util`:
   * Moved `BaseSystem` from `webapp-util` to `host`.
   * Reworked the `BaseSystem` subclass-implementation API to be a lot simpler.
     This was made possible by the recent work on the `compy` module.
+  * Reworked `BaseSystem` to be a root component (not just some-random-object).
 
 Other notable changes:
 * `compy`:
   * New method `BaseComponent._prot_addChild()`, to simplify adding children.
+  * New method `BaseComponent.whenStopped()`.
   * New abstract class `BaseAggregateComponent`, for components that _publicly_
     allow children to be added.
 * `webapp-core`:

@@ -1,14 +1,22 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Condition } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
-import { IntfComponent } from '#x/IntfComponent';
 import { Names } from '#x/Names';
 import { ThisModule } from '#p/ThisModule';
 
+
+/**
+ * Forward declaration of this class, because `import`ing it would cause a
+ * circular dependency while loading.
+ *
+ * @typedef BaseComponent
+ * @type {object}
+ */
 
 /**
  * Forward declaration of this subclass, because `import`ing it would cause a
@@ -19,8 +27,8 @@ import { ThisModule } from '#p/ThisModule';
  */
 
 /**
- * "Context" in which a {@link IntfComponent} is situated. Instances of this
- * class are handed to controllables via {@link IntfComponent#init}, which gets
+ * "Context" in which a {@link BaseComponent} is situated. Instances of this
+ * class are handed to controllables via {@link BaseComponent#init}, which gets
  * called when they become hooked into a hierarchy of instances.
  */
 export class ControlContext {
@@ -39,10 +47,17 @@ export class ControlContext {
   #state = 'stopped';
 
   /**
+   * Condition which gets triggered whenever {@link #state} changes.
+   *
+   * @type {Condition}
+   */
+  #stateChangeCondition = new Condition();
+
+  /**
    * Associated controllable instance. Is only ever `null` for the context of
    * the root instance itself, and only briefly while it gets bootstrapped.
    *
-   * @type {?IntfComponent}
+   * @type {?BaseComponent}
    */
   #associate;
 
@@ -73,9 +88,9 @@ export class ControlContext {
   /**
    * Constructs an instance.
    *
-   * @param {IntfComponent|string} associate Associated component instance, or
+   * @param {BaseComponent|string} associate Associated component instance, or
    *   the string `root` if this instance is to represent the root instance.
-   * @param {?IntfComponent} parent Parent of `associate`, or `null` if this
+   * @param {?BaseComponent} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
    */
   constructor(associate, parent) {
@@ -98,7 +113,7 @@ export class ControlContext {
     }
   }
 
-  /** @returns {IntfComponent} Associated controllable instance. */
+  /** @returns {BaseComponent} Associated controllable instance. */
   get associate() {
     return this.#associate;
   }
@@ -188,10 +203,10 @@ export class ControlContext {
    * @param {Array<string>|TreePathKey|string} path Absolute path to the
    *   component. If a string, must be parseable as a path by {@link
    *   Names#parsePath}.
-   * @param {...function(new:IntfComponent)} [classes] List of classes and/or
+   * @param {...function(new:BaseComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
-   * @returns {IntfComponent} Found instance.
+   * @returns {BaseComponent} Found instance.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponent(path, ...classes) {
@@ -218,10 +233,10 @@ export class ControlContext {
    * @param {?Array<string>|TreePathKey|string} path Absolute path to the
    *   component, or `null`-ish to always not-find an instance. If a string,
    *   must be parseable as a path by {@link Names#parsePath}.
-   * @param {...function(new:IntfComponent)} [classes] List of classes and/or
+   * @param {...function(new:BaseComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
-   * @returns {?IntfComponent} Found instance, or `null` if there was none.
+   * @returns {?BaseComponent} Found instance, or `null` if there was none.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponentOrNull(path, ...classes) {
@@ -229,15 +244,29 @@ export class ControlContext {
   }
 
   /**
+   * Async-returns when {@link #state} becomes the given value. If it is
+   * _already_ the given value, it returns promptly.
+   *
+   * @param {string} state State to wait for.
+   */
+  async whenState(state) {
+    ControlContext.#checkState(state);
+
+    while (this.#state !== state) {
+      await this.#stateChangeCondition.whenTrue();
+    }
+  }
+
+  /**
    * Underlying implementation of the method `BaseComponent.linkRoot()`. This is
    * a module-private method, so that it can only be called when appropriate
    * (and thus avoid inconsistent state).
    *
-   * @param {IntfComponent} root The actual "root" instance.
+   * @param {BaseComponent} root The actual "root" instance.
    */
   [ThisModule.SYM_linkRoot](root) {
     // TODO: We should figure out how to type-check interfaces.
-    // MustBe.instanceOf(root, IntfComponent);
+    // MustBe.instanceOf(root, BaseComponent);
 
     if (this.#root !== this) {
       throw new Error('Not a root instance.');
@@ -258,7 +287,12 @@ export class ControlContext {
    * @param {string} state The new state.
    */
   [ThisModule.SYM_setState](state) {
-    this.#state = state;
+    ControlContext.#checkState(state);
+
+    if (state !== this.#state) {
+      this.#state = state;
+      this.#stateChangeCondition.onOff();
+    }
   }
 
   /**
@@ -266,7 +300,7 @@ export class ControlContext {
    * this one. If the component doesn't already have a name, this will
    * synthesize one based on its class.
    *
-   * @param {IntfComponent} component The will-be child component.
+   * @param {BaseComponent} component The will-be child component.
    * @returns {TreePathKey} The key to use for it.
    */
   #pathKeyForChild(component) {
@@ -304,10 +338,31 @@ export class ControlContext {
   //
 
   /**
+   * The set of valid values for {@link #state}.
+   *
+   * @type {Set<string>}
+   */
+  static #VALID_STATES = new Set(['running', 'stopped']);
+
+  /**
+   * Checks a state string for validity.
+   *
+   * @param {string} state State value to check.
+   * @throws {Error} Thrown if `state` is invalid.
+   */
+  static #checkState(state) {
+    MustBe.string(state);
+
+    if (!this.#VALID_STATES.has(state)) {
+      throw new Error(`Invalid state: ${state}`);
+    }
+  }
+
+  /**
    * Gets a component name prefix based on the name of the class of the given
    * component.
    *
-   * @param {IntfComponent} component The component in question.
+   * @param {BaseComponent} component The component in question.
    * @returns {string} A reasonable prefix to use for its name.
    */
   static #namePrefixFrom(component) {

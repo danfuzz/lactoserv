@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseExposedThreadlet, Condition } from '@this/async';
-import { BaseComponent } from '@this/compy';
+import { Condition, Threadlet } from '@this/async';
+import { BaseComponent, RootControlContext } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
@@ -16,14 +16,7 @@ import { KeepRunning } from '#x/KeepRunning';
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends BaseExposedThreadlet {
-  /**
-   * Initialized?
-   *
-   * @type {boolean}
-   */
-  #initDone = false;
-
+export class BaseSystem extends BaseComponent {
   /**
    * Was a reload requested?
    *
@@ -32,19 +25,19 @@ export class BaseSystem extends BaseExposedThreadlet {
   #reloadRequested = new Condition();
 
   /**
-   * Logger for this instance, or `null` not to do any logging.
-   *
-   * @type {?IntfLogger}
-   */
-  #logger = null;
-
-  /**
    * Thing that prevents the system from exiting, and logs occasionally about
    * that fact.
    *
    * @type {KeepRunning}
    */
   #keepRunning = new KeepRunning();
+
+  /**
+   * Threadlet that runs this instance.
+   *
+   * @type {Threadlet}
+   */
+  #thread = new Threadlet((runnerAccess) => this.#runThread(runnerAccess));
 
   /**
    * Current root component being managed. This is a return value from
@@ -60,113 +53,16 @@ export class BaseSystem extends BaseExposedThreadlet {
    * @param {?IntfLogger} logger The logger to use, if any.
    */
   constructor(logger) {
-    super();
-
-    this.#logger = logger;
+    super(null, new RootControlContext(logger));
   }
 
   /**
-   * Performs pre-start initialization.
+   * Runs the system. This async-returns once the system has shut down (either
+   * by request or because of an uncaught error).
    */
-  #init() {
-    if (this.#initDone) {
-      return;
-    }
-
-    Host.registerReloadCallback(() => this.#requestReload());
-    Host.registerShutdownCallback(() => this.stop());
-
-    this.#initDone = true;
-  }
-
-  /**
-   * Requests that the system be reloaded.
-   */
-  async #requestReload() {
-    if (this.isRunning()) {
-      this.#logger?.reload('requested');
-      this.#reloadRequested.value = true;
-    } else {
-      // Not actually running (probably in the middle of completely shutting
-      // down).
-      this.#logger?.reload('ignoring');
-    }
-  }
-
-  /**
-   * System start function. Called when starting from scratch as well as when
-   * reloading.
-   */
-  async #startOrReload() {
-    this.#init();
-
-    const isReload = (this.#rootComponent !== null);
-
-    if (isReload) {
-      this.#logger?.reloading();
-    } else {
-      this.#logger?.starting();
-    }
-
-    let nextRoot;
-
-    try {
-      nextRoot = await this._impl_makeHierarchy(this.#rootComponent);
-    } catch (e) {
-      // Failed to make the root component! E.g. and probably most likely, this
-      // was due to an error in the config file.
-      if (isReload) {
-        this.#logger?.errorDuringReload(e);
-        this.#logger?.notReloading();
-      } else {
-        this.#logger?.errorDuringLoad(e);
-      }
-      return;
-    }
-
-    if (isReload) {
-      await this.#stop(true);
-      this.#logger?.reloadContinuing();
-    } else {
-      await this.#keepRunning.start();
-    }
-
-    try {
-      this.#rootComponent = nextRoot;
-      await this.#rootComponent.start();
-    } catch (e) {
-      // There's no reasonable way to recover from a failed start, so just log
-      // and then throw (which will probably cause the process to exit
-      // entirely).
-      this.#logger?.errorDuringStart(e);
-      throw e;
-    }
-
-    if (isReload) {
-      this.#logger?.reloaded();
-    } else {
-      this.#logger?.started();
-    }
-  }
-
-  /**
-   * System stop function. Used when the system is shutting down on the way to
-   * exiting, and also used during requested reloads.
-   *
-   * @param {boolean} [willReload] Will the system be reloaded?
-   */
-  async #stop(willReload = false) {
-    const logArg = willReload ? 'forReload' : 'shutdown';
-
-    this.#logger?.stopping(logArg);
-    await this.#rootComponent.stop(willReload);
-    this.#logger?.stopped(logArg);
-
-    if (!willReload) {
-      await this.#keepRunning.stop();
-    }
-
-    this.#rootComponent = null;
+  async run() {
+    await this.start();
+    await this.whenStopped();
   }
 
   /**
@@ -191,7 +87,46 @@ export class BaseSystem extends BaseExposedThreadlet {
   }
 
   /** @override */
-  async _impl_threadRun(runnerAccess) {
+  async _impl_init() {
+    // @emptyBlock
+  }
+
+  /** @override */
+  async _impl_start() {
+    Host.registerReloadCallback(() => this.#requestReload());
+    Host.registerShutdownCallback(() => this.stop());
+
+    await this.#keepRunning.start();
+    await this.#thread.start();
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    await this.#thread.stop();
+    await this.#keepRunning.stop();
+  }
+
+  /**
+   * Requests that the system be reloaded.
+   */
+  async #requestReload() {
+    if (this.#thread.isRunning()) {
+      this.logger?.reload('requested');
+      this.#reloadRequested.value = true;
+    } else {
+      // Not actually running (probably in the middle of completely shutting
+      // down).
+      this.logger?.reload('ignoring');
+    }
+  }
+
+  /**
+   * Main action of this instance, which just starts the system, and then
+   * reloads whenever requested, and then shuts down also when requested.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
+   */
+  async #runThread(runnerAccess) {
     await this.#startOrReload();
 
     while (!runnerAccess.shouldStop()) {
@@ -206,5 +141,73 @@ export class BaseSystem extends BaseExposedThreadlet {
     }
 
     await this.#stop();
+  }
+
+  /**
+   * System start function. Called when starting from scratch as well as when
+   * reloading.
+   */
+  async #startOrReload() {
+    const isReload = (this.#rootComponent !== null);
+
+    if (isReload) {
+      this.logger?.reloading();
+    } else {
+      this.logger?.starting();
+    }
+
+    let nextRoot;
+
+    try {
+      nextRoot = await this._impl_makeHierarchy(this.#rootComponent);
+    } catch (e) {
+      // Failed to make the root component! E.g. and probably most likely, this
+      // was due to an error in the config file.
+      if (isReload) {
+        this.logger?.errorDuringReload(e);
+        this.logger?.notReloading();
+      } else {
+        this.logger?.errorDuringLoad(e);
+      }
+      return;
+    }
+
+    if (isReload) {
+      await this.#stop(true);
+      this.logger?.reloadContinuing();
+    }
+
+    try {
+      this.#rootComponent = nextRoot;
+      await this.#rootComponent.start();
+    } catch (e) {
+      // There's no reasonable way to recover from a failed start, so just log
+      // and then throw (which will probably cause the process to exit
+      // entirely).
+      this.logger?.errorDuringStart(e);
+      throw e;
+    }
+
+    if (isReload) {
+      this.logger?.reloaded();
+    } else {
+      this.logger?.started();
+    }
+  }
+
+  /**
+   * System stop function. Used when the system is shutting down on the way to
+   * exiting, and also used during requested reloads.
+   *
+   * @param {boolean} [willReload] Will the system be reloaded?
+   */
+  async #stop(willReload = false) {
+    const logArg = willReload ? 'forReload' : 'shutdown';
+
+    this.logger?.stopping(logArg);
+    await this.#rootComponent.stop(willReload);
+    this.logger?.stopped(logArg);
+
+    this.#rootComponent = null;
   }
 }

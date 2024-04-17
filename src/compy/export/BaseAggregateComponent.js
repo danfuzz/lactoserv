@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponent } from '#x/BaseComponent';
-import { IntfComponent } from '#x/IntfComponent';
 
 
 /**
@@ -20,7 +19,7 @@ export class BaseAggregateComponent extends BaseComponent {
    * Adds one or more children to this instance. Arguments can be either
    * component instances or _arrays_ of component instances.
    *
-   * @param {...IntfComponent|Array<IntfComponent>} children Components to add.
+   * @param {...BaseComponent|Array<BaseComponent>} children Components to add.
    */
   async addChildren(...children) {
     const flat = children.flat(1);
@@ -44,7 +43,7 @@ export class BaseAggregateComponent extends BaseComponent {
    * call to {@link #_prot_addChild} on the base class. By default, this method
    * does nothing.
    *
-   * @param {IntfComponent} child Child component.
+   * @param {BaseComponent} child Child component.
    */
   async _impl_addChild(child) { // eslint-disable-line no-unused-vars
     // @emptyBlock
@@ -56,7 +55,7 @@ export class BaseAggregateComponent extends BaseComponent {
    * an error to indicate a problem. By default, this method always returns
    * `true`.
    *
-   * @param {IntfComponent} child Would-be child component.
+   * @param {BaseComponent} child Would-be child component.
    * @returns {boolean} `true` if `child` is acceptable as a child of this
    *   instance, or `false` if not.
    */
