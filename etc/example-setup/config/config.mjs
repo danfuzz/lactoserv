@@ -90,10 +90,11 @@ const services = [
     }
   },
   {
-    name:  'accessFile',
-    class: AccessLogToFile,
-    path:  `${LOG_DIR}/access-log.txt`,
+    name:         'accessFile',
+    class:        AccessLogToFile,
+    path:         `${LOG_DIR}/access-log.txt`,
     bufferPeriod: '0.25 sec',
+    maxUrlLength: 120,
     rotate: {
       atSize:       10000,
       maxOldCount:  10,
