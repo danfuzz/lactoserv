@@ -15,7 +15,6 @@
     "@this/async": "*",
     "@this/clocks": "*",
     "@this/data-values": "*",
-    "@this/host": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/typey": "*"

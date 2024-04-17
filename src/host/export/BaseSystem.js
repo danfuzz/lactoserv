@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseExposedThreadlet, Condition } from '@this/async';
-import { Host, KeepRunning } from '@this/host';
+import { BaseComponent } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
+
+import { Host } from '#x/Host';
+import { KeepRunning } from '#x/KeepRunning';
 
 
 /**
