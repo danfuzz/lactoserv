@@ -21,6 +21,8 @@ Breaking changes:
     `getComponent()` now takes absolute paths instead of simple names.
   * Got rid of the `isReload` argument to all the `init()` and `start()` (and
     related) methods.
+* `host` / `webapp-util`:
+  * Moved `BaseSystem` from `webapp-util` to `host`.
 
 Other notable changes:
 * `compy`:
