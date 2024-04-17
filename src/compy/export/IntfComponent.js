@@ -123,10 +123,13 @@ export class IntfComponent {
   }
 
   /**
-   * Starts this instance. It is only valid to call this after {@link #init} has
-   * been called, _except_ if this instance is the root, in which case this
-   * method will call {@link #init} itself before doing the start-per-se. It is
-   * also only valid to call this method if the instance is not already running.
+   * Starts this instance. This method async-returns once the instance has
+   * started.
+   *
+   * It is only valid to call this after {@link #init} has been called, _except_
+   * if this instance is the root, in which case this method will call {@link
+   * #init} itself before doing the start-per-se. It is also only valid to call
+   * this method if the instance is not already running.
    *
    * @abstract
    */
@@ -135,8 +138,10 @@ export class IntfComponent {
   }
 
   /**
-   * Stops this this instance. This method returns when the instance is fully
-   * stopped. It is only valid to call this method if it is already running.
+   * Stops this this instance. This method async-returns when the instance is
+   * fully stopped.
+   *
+   * It is only valid to call this method if it is already running.
    *
    * @abstract
    * @param {boolean} [willReload] Is this action due to an in-process reload
