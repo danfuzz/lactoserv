@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseSystem } from '@this/host';
-import { WebappRoot } from '@this/webapp-core';
 
 import { MainArgs } from '#p/MainArgs';
 import { ThisModule } from '#p/ThisModule';
@@ -21,13 +20,6 @@ export class UsualSystem extends BaseSystem {
   #args;
 
   /**
-   * The web application, or `null` if not yet constructed.
-   *
-   * @type {?WebappRoot}
-   */
-  #webapp = null;
-
-  /**
    * Constructs an instance.
    *
    * @param {MainArgs} args Command-line arguments.
@@ -39,19 +31,7 @@ export class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_init() {
+  async _impl_makeHierarchy() {
     return await this.#args.webappMaker.make();
-  }
-
-  /** @override */
-  async _impl_start(initValue) {
-    this.#webapp = initValue;
-    await this.#webapp.start();
-  }
-
-  /** @override */
-  async _impl_stop(willReload, initValue_unused) {
-    await this.#webapp.stop(willReload);
-    this.#webapp = null;
   }
 }

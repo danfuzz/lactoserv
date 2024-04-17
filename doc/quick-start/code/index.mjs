@@ -3,7 +3,7 @@
 
 import { default as CONFIG } from './config-framework.mjs';
 
-import { BaseSystem, Host, KeepRunning } from '@this/host';
+import { BaseSystem, Host } from '@this/host';
 import { Loggy } from '@this/loggy';
 import { WebappRoot } from '@this/webapp-core';
 
@@ -14,13 +14,6 @@ import { WebappRoot } from '@this/webapp-core';
  */
 class UsualSystem extends BaseSystem {
   /**
-   * The web application, or `null` if not yet constructed.
-   *
-   * @type {?WebappRoot}
-   */
-  #webapp = null;
-
-  /**
    * Constructs an instance.
    */
   constructor() {
@@ -28,32 +21,17 @@ class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_init() {
+  async _impl_makeHierarchy() {
     return new WebappRoot(CONFIG);
-  }
-
-  /** @override */
-  async _impl_start(initValue) {
-    this.#webapp = initValue;
-    await this.#webapp.start();
-  }
-
-  /** @override */
-  async _impl_stop(willReload, initValue_unused) {
-    await this.#webapp.stop(willReload);
-    this.#webapp = null;
   }
 }
 
 Host.init();
 Host.logToStdout();
 
-const system      = new UsualSystem();
-const keepRunning = new KeepRunning();
+const system = new UsualSystem();
 
-keepRunning.run();
 await system.run();
-keepRunning.stop();
 
 // This `await` is not ever supposed to return.
 await Host.exit();

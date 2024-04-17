@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseExposedThreadlet, Condition } from '@this/async';
-import { Host, KeepRunning } from '@this/host';
+import { BaseComponent } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
+
+import { Host } from '#x/Host';
+import { KeepRunning } from '#x/KeepRunning';
 
 
 /**
@@ -44,19 +47,12 @@ export class BaseSystem extends BaseExposedThreadlet {
   #keepRunning = new KeepRunning();
 
   /**
-   * Value returned from {@link #_impl_init} which is currently being used.
+   * Current root component being managed. This is a return value from
+   * {@link #_impl_makeHierarchy.
    *
-   * @type {*}
+   * @type {BaseComponent}
    */
-  #initValue = null;
-
-  /**
-   * Value returned from {@link #_impl_init} which is to be used on the next
-   * start (including a restart).
-   *
-   * @type {*}
-   */
-  #nextInitValue = null;
+  #rootComponent = null;
 
   /**
    * Constructs an instance.
@@ -84,28 +80,6 @@ export class BaseSystem extends BaseExposedThreadlet {
   }
 
   /**
-   * Helper for {@link #_impl_threadRun}, which performs a system reload.
-   */
-  async #reload() {
-    this.#logger?.reloading();
-
-    try {
-      this.#nextInitValue = await this._impl_init(true);
-    } catch (e) {
-      // Can't reload! There's was a problem during re-initialization (e.g. an
-      // error in the config file).
-      this.#logger?.errorDuringReloaded(e);
-      this.#logger?.notReloading();
-      return;
-    }
-
-    await this.#stop(true);
-    await this.#start(true);
-
-    this.#logger?.reloaded();
-  }
-
-  /**
    * Requests that the system be reloaded.
    */
   async #requestReload() {
@@ -120,33 +94,59 @@ export class BaseSystem extends BaseExposedThreadlet {
   }
 
   /**
-   * System start function. Used as the thread start function and also during
-   * requested reloads.
-   *
-   * @param {boolean} [isReload] Is the system being reloaded?
+   * System start function. Called when starting from scratch as well as when
+   * reloading.
    */
-  async #start(isReload = false) {
-    const logArg = isReload ? 'reload' : 'init';
-
+  async #startOrReload() {
     this.#init();
 
-    this.#logger?.starting(logArg);
+    const isReload = (this.#rootComponent !== null);
 
-    if (!isReload) {
-      await this.#keepRunning.start();
-      try {
-        this.#nextInitValue = await this._impl_init(false);
-      } catch (e) {
-        this.#logger?.startAborted();
-        throw e;
-      }
+    if (isReload) {
+      this.#logger?.reloading();
+    } else {
+      this.#logger?.starting();
     }
 
-    this.#initValue     = this.#nextInitValue;
-    this.#nextInitValue = null;
-    await this._impl_start(this.#initValue);
+    let nextRoot;
 
-    this.#logger?.started(logArg);
+    try {
+      nextRoot = await this._impl_makeHierarchy(this.#rootComponent);
+    } catch (e) {
+      // Failed to make the root component! E.g. and probably most likely, this
+      // was due to an error in the config file.
+      if (isReload) {
+        this.#logger?.errorDuringReload(e);
+        this.#logger?.notReloading();
+      } else {
+        this.#logger?.errorDuringLoad(e);
+      }
+      return;
+    }
+
+    if (isReload) {
+      await this.#stop(true);
+      this.#logger?.reloadContinuing();
+    } else {
+      await this.#keepRunning.start();
+    }
+
+    try {
+      this.#rootComponent = nextRoot;
+      await this.#rootComponent.start();
+    } catch (e) {
+      // There's no reasonable way to recover from a failed start, so just log
+      // and then throw (which will probably cause the process to exit
+      // entirely).
+      this.#logger?.errorDuringStart(e);
+      throw e;
+    }
+
+    if (isReload) {
+      this.#logger?.reloaded();
+    } else {
+      this.#logger?.started();
+    }
   }
 
   /**
@@ -156,67 +156,47 @@ export class BaseSystem extends BaseExposedThreadlet {
    * @param {boolean} [willReload] Will the system be reloaded?
    */
   async #stop(willReload = false) {
-    const logArg = willReload ? 'willReload' : 'shutdown';
+    const logArg = willReload ? 'forReload' : 'shutdown';
 
     this.#logger?.stopping(logArg);
-    await this._impl_stop(willReload, this.#initValue);
+    await this.#rootComponent.stop(willReload);
     this.#logger?.stopped(logArg);
 
     if (!willReload) {
       await this.#keepRunning.stop();
     }
 
-    this.#initValue = null;
+    this.#rootComponent = null;
   }
 
   /**
-   * Initializes any concrete-subclass-related bits, in preparation for running
-   * the system. Note that the system might be in the process of _reloading_,
-   * and care should be taken not to disturb that. In particular, this method is
-   * allowed to throw, and that will cause reloading to fail while leaving the
-   * already-running system alone.
+   * Constructs the component hierarchy which this instance is to manage.
+   * Subclasses must override this method. Note that this is called both during
+   * initial startup and when the system is to be reloaded. In the latter case,
+   * it is called while the "senescent" system is still running, and care must
+   * be taken not to disturb it.
+   *
+   * If this method throws, then a non-running system will prompty exit with an
+   * error, or an already-running system will just keep using its old component
+   * hierarchy.
    *
    * @abstract
-   * @returns {*} Value to pass to {@link #_impl_start}, once it is time to
-   *   (re-)start the system.
+   * @param {?BaseComponent} oldRoot The root of the currently-running system,
+   *   if indeed the system is currently running, or `null` if this is a fresh
+   *   system start.
+   * @returns {BaseComponent} The root for the new system to run.
    */
-  async _impl_init() {
-    Methods.abstract();
-  }
-
-  /**
-   * Starts the system, in a subclass-specific way.
-   *
-   * @param {*} initValue Value previously returned from {@link #_impl_init}.
-   */
-  async _impl_start(initValue) {
-    Methods.abstract(initValue);
-  }
-
-  /**
-   * Stops the system, in a subclass-specific way.
-   *
-   * @param {boolean} [willReload] Will the system be reloaded?
-   * @param {*} initValue Value previously returned from {@link #_impl_init}.
-   */
-  async _impl_stop(willReload, initValue) {
-    Methods.abstract(willReload, initValue);
-  }
-
-  /** @override */
-  async _impl_threadStart() {
-    return this.#start();
+  async _impl_makeHierarchy(oldRoot) {
+    Methods.abstract(oldRoot);
   }
 
   /** @override */
   async _impl_threadRun(runnerAccess) {
-    if (this.#initValue === null) {
-      throw new Error('Shouldn\'t happen: No initialization value.');
-    }
+    await this.#startOrReload();
 
     while (!runnerAccess.shouldStop()) {
       if (this.#reloadRequested.value === true) {
-        await this.#reload();
+        await this.#startOrReload();
         this.#reloadRequested.value = false;
       }
 
