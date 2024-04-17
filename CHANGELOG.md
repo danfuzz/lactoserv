@@ -28,6 +28,7 @@ Breaking changes:
   * Moved `BaseSystem` from `webapp-util` to `host`.
   * Reworked the `BaseSystem` subclass-implementation API to be a lot simpler.
     This was made possible by the recent work on the `compy` module.
+  * Reworked `BaseSystem` to be a root component (not just some-random-object).
 
 Other notable changes:
 * `compy`:
