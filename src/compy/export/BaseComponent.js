@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, Methods, MustBe } from '@this/typey';
 
@@ -306,6 +307,18 @@ export class BaseComponent {
     await this._impl_stop(willReload);
     this.#context[ThisModule.SYM_setState]('stopped');
     BaseComponent.logStopped(this.logger, willReload);
+  }
+
+  /**
+   * Async-returns when this instance's {@link #state} becomes `stopped`. This
+   * cannot be used when `state === 'new'`.
+   */
+  async whenStopped() {
+    if (this.state === 'new') {
+      throw new Error('Not initialized.');
+    }
+
+    await this.#context.whenState('stopped');
   }
 
   /**

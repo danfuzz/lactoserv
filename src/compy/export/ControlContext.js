@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Condition } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
@@ -44,6 +45,13 @@ export class ControlContext {
    * @type {string}
    */
   #state = 'stopped';
+
+  /**
+   * Condition which gets triggered whenever {@link #state} changes.
+   *
+   * @type {Condition}
+   */
+  #stateChangeCondition = new Condition();
 
   /**
    * Associated controllable instance. Is only ever `null` for the context of
@@ -236,6 +244,20 @@ export class ControlContext {
   }
 
   /**
+   * Async-returns when {@link #state} becomes the given value. If it is
+   * _already_ the given value, it returns promptly.
+   *
+   * @param {string} state State to wait for.
+   */
+  async whenState(state) {
+    ControlContext.#checkState(state);
+
+    while (this.#state !== state) {
+      await this.#stateChangeCondition.whenTrue();
+    }
+  }
+
+  /**
    * Underlying implementation of the method `BaseComponent.linkRoot()`. This is
    * a module-private method, so that it can only be called when appropriate
    * (and thus avoid inconsistent state).
@@ -265,7 +287,12 @@ export class ControlContext {
    * @param {string} state The new state.
    */
   [ThisModule.SYM_setState](state) {
-    this.#state = state;
+    ControlContext.#checkState(state);
+
+    if (state !== this.#state) {
+      this.#state = state;
+      this.#stateChangeCondition.onOff();
+    }
   }
 
   /**
@@ -309,6 +336,27 @@ export class ControlContext {
   //
   // Static members
   //
+
+  /**
+   * The set of valid values for {@link #state}.
+   *
+   * @type {Set<string>}
+   */
+  static #VALID_STATES = new Set(['running', 'stopped']);
+
+  /**
+   * Checks a state string for validity.
+   *
+   * @param {string} state State value to check.
+   * @throws {Error} Thrown if `state` is invalid.
+   */
+  static #checkState(state) {
+    MustBe.string(state);
+
+    if (!this.#VALID_STATES.has(state)) {
+      throw new Error(`Invalid state: ${state}`);
+    }
+  }
 
   /**
    * Gets a component name prefix based on the name of the class of the given
