@@ -5,23 +5,19 @@ import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, Methods, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
-import { IntfComponent } from '#x/IntfComponent';
 import { Names } from '#x/Names';
 import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Abstract base class which implements {@link IntfComponent}. This class also
- * handles the possibility of configuring instances using a configuration class;
- * configuration is part of this base class specifically (not exposed by {@link
- * IntfComponent}).
+ * Abstract base class for controllable components which live in a tree-ish
+ * hierarchical arrangement with other such components. Beyond just that, this
+ * class defines a standardized configuration mechanism.
  *
  * **Note:** If a concrete subclass uses a configuration object with a `name`
  * property, then this class requires that that name honor the contract of
  * {@link Names#checkName}.
- *
- * @implements {IntfComponent}
  */
 export class BaseComponent {
   /**
@@ -124,12 +120,17 @@ export class BaseComponent {
     return this.#config;
   }
 
-  /** @override */
+  /**
+   * @returns {?ControlContext} Associated context, or `null` if not yet set up.
+   */
   get context() {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
-  /** @override */
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. Always a frozen object.
+   */
   get implementedInterfaces() {
     if (this.#implementedInterfaces === null) {
       const ifaces = this._impl_implementedInterfaces();
@@ -143,12 +144,16 @@ export class BaseComponent {
     return this.#implementedInterfaces;
   }
 
-  /** @override */
+  /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     return this.context?.logger ?? null;
   }
 
-  /** @override */
+  /**
+   * @returns {?string} Component name, or `null` if this instance neither
+   * directly has a name nor is attached to a hierarchy (thereby granting it a
+   * synthetic name).
+   */
   get name() {
     const name = this.#config?.name;
 
@@ -163,31 +168,55 @@ export class BaseComponent {
       : null;
   }
 
-  /** @override */
+  /**
+   * @returns {?TreePathKey} The absolute name-path of this instance, that is,
+   * where it is located in the hierarchy from its root component, or `null` if
+   * this instance is not currently attached to a hierarchy.
+   */
   get namePath() {
     return this.context?.namePath ?? null;
   }
 
-  /** @override */
+  /**
+   * @returns {BaseComponent} The root component of the hierarchy that this
+   * instance is in.
+   */
   get root() {
     return this.context.root.associate;
   }
 
-  /** @override */
+  /**
+   * @returns {string} Current component state. One of:
+   *
+   * * `new` -- Not yet initialized, which also means not yet attached to a
+   *   hierarchy.
+   * * `stopped` -- Initialized but not running.
+   * * `running` -- Currently running.
+   */
   get state() {
     return this.#initialized
       ? this.context.state
       : 'new';
   }
 
-  /** @override */
+  /**
+   * Gets an iterator of all the _direct_ children of this instance.
+   *
+   * @yields {BaseComponent} A direct child.
+   */
   *children() {
     for (const ctx of this.context.children()) {
       yield ctx.associate;
     }
   }
 
-  /** @override */
+  /**
+   * Initializes this instance, indicating it is now linked to the given
+   * context.
+   *
+   * @param {ControlContext} context Context that indicates this instance's
+   *   active environment.
+   */
   async init(context) {
     MustBe.instanceOf(context, ControlContext);
 
@@ -204,7 +233,16 @@ export class BaseComponent {
     BaseComponent.logInitialized(this.logger);
   }
 
-  /** @override */
+  /**
+   * Indicates whether this instance implements (or at least _claims_ to
+   * implement) or is a subclass of all the given classes / interfaces.
+   *
+   * @param {...function(new:BaseComponent)} [classes] List of classes and/or
+   *   interfaces which the result must be an instance of or implement
+   *   (respectively).
+   * @returns {boolean} `true` if this instance matches the given criteria, or
+   *   `false` if not.
+   */
   instanceOfAll(...classes) {
     MustBe.arrayOf(classes, AskIf.constructorFunction);
 
@@ -223,7 +261,15 @@ export class BaseComponent {
     return true;
   }
 
-  /** @override */
+  /**
+   * Starts this instance. This method async-returns once the instance has
+   * started.
+   *
+   * It is only valid to call this after {@link #init} has been called, _except_
+   * if this instance is the root, in which case this method will call {@link
+   * #init} itself before doing the start-per-se. It is also only valid to call
+   * this method if the instance is not already running.
+   */
   async start() {
     if (!this.#initialized) {
       if (this.#context === null) {
@@ -240,7 +286,15 @@ export class BaseComponent {
     BaseComponent.logStarted(this.logger);
   }
 
-  /** @override */
+  /**
+   * Stops this this instance. This method async-returns when the instance is
+   * fully stopped.
+   *
+   * It is only valid to call this method if it is already running.
+   *
+   * @param {boolean} [willReload] Is this action due to an in-process reload
+   *   being requested?
+   */
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 
