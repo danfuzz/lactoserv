@@ -48,7 +48,7 @@ export class BaseSystem extends BaseExposedThreadlet {
 
   /**
    * Current root component being managed. This is a return value from
-   * {@link #_impl_makeHierarchy.
+   * {@link #_impl_makeHierarchy}.
    *
    * @type {BaseComponent}
    */
