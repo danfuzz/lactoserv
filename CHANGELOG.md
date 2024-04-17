@@ -21,6 +21,9 @@ Breaking changes:
     `getComponent()` now takes absolute paths instead of simple names.
   * Got rid of the `isReload` argument to all the `init()` and `start()` (and
     related) methods.
+  * Got rid of `IntfComponent` (merged its docs back into `BaseComponent`), as
+    it only ever existed to break a circular dependency, but that was better
+    achieved by using a forward-declaration `@typedef`.
 * `host` / `webapp-util`:
   * Moved `BaseSystem` from `webapp-util` to `host`.
   * Reworked the `BaseSystem` subclass-implementation API to be a lot simpler.
