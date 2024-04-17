@@ -50,7 +50,7 @@ export class PathRouter extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     const routes = {};
     for (const [path, name] of this.config.routeTree) {
       routes[UriUtil.pathStringFrom(path)] = name;
@@ -60,7 +60,7 @@ export class PathRouter extends BaseApplication {
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     // Note: We can't do this setup in `_impl_init()` because it might not be
     // the case that all of the referenced apps have already been added when
     // that runs.

@@ -102,10 +102,9 @@ export class IntfComponent {
    * @abstract
    * @param {ControlContext} context Context that indicates this instance's
    *   active environment.
-   * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
-  async init(context, isReload = false) {
-    Methods.abstract(context, isReload);
+  async init(context) {
+    Methods.abstract(context);
   }
 
   /**
@@ -130,10 +129,9 @@ export class IntfComponent {
    * also only valid to call this method if the instance is not already running.
    *
    * @abstract
-   * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
-  async start(isReload = false) {
-    Methods.abstract(isReload);
+  async start() {
+    Methods.abstract();
   }
 
   /**

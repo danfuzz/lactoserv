@@ -75,10 +75,10 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async init(logger, isReload) {
-    this.#asyncServer = new AsyncServerSocket(...this.#asyncServerArgs, this.logger);
+  async init(logger) {
+    this.#asyncServer = new AsyncServerSocket(...this.#asyncServerArgs, logger);
 
-    await super.init(logger, isReload);
+    await super.init(logger);
   }
 
   /** @override */
@@ -100,9 +100,9 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async _impl_socketStart(isReload) {
+  async _impl_socketStart() {
     await this.#runner.start();
-    await this.#asyncServer.start(isReload);
+    await this.#asyncServer.start();
   }
 
   /** @override */

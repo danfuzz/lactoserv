@@ -71,7 +71,7 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     const {
       application,
       interface: iface,
@@ -86,7 +86,7 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start(isReload) {
+  async _impl_start() {
     const appManager     = this.root.applicationManager;
     const serviceManager = this.root.serviceManager;
 
@@ -126,8 +126,8 @@ export class NetworkEndpoint extends BaseComponent {
     this.#application = appManager.get(application);
     this.#wrangler    = ProtocolWranglers.make(wranglerOptions);
 
-    await this.#wrangler.init(this.logger, isReload);
-    await this.#wrangler.start(isReload);
+    await this.#wrangler.init(this.logger);
+    await this.#wrangler.start();
   }
 
   /**

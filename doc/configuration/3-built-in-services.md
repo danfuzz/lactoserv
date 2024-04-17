@@ -33,12 +33,10 @@ following bindings:
 * `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
   `null` not to have a limit. The oldest files over the limit get deleted after
    a rotation. Optional, and defaults to `null`.
-* `onReload` &mdash; If `true`, rotates when the system is reloaded (restarted
-  in-process). Optional, and defaults to `false`.
-* `onStart` &mdash; If `true`, rotates when the system is first started.
-  Optional, and defaults to `false`.
-* `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
-  Optional, and defaults to `false`.
+* `onStart` &mdash; If `true`, rotates when the system is first started or
+  reloaded (restarted in-process). Optional, and defaults to `false`.
+* `onStop` &mdash; If `true`, rotates when the system is about to be stopped or
+  reloaded (restarted in-process). Optional, and defaults to `false`.
 
 #### `save`
 
@@ -50,7 +48,6 @@ the ones that are used by `save`:
 
 * `maxOldBytes`
 * `maxOldCount`
-* `onReload`
 * `onStart`
 * `onStop`
 

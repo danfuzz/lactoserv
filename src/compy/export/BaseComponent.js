@@ -188,9 +188,8 @@ export class BaseComponent {
   }
 
   /** @override */
-  async init(context, isReload = false) {
+  async init(context) {
     MustBe.instanceOf(context, ControlContext);
-    MustBe.boolean(isReload);
 
     if (this.#initialized) {
       throw new Error('Already initialized.');
@@ -201,7 +200,7 @@ export class BaseComponent {
     this.#context = context;
 
     BaseComponent.logInitializing(this.logger);
-    await this._impl_init(isReload);
+    await this._impl_init();
     BaseComponent.logInitialized(this.logger);
   }
 
@@ -225,22 +224,20 @@ export class BaseComponent {
   }
 
   /** @override */
-  async start(isReload = false) {
-    MustBe.boolean(isReload);
-
+  async start() {
     if (!this.#initialized) {
       if (this.#context === null) {
         throw new Error('No context was set up in constructor or `init()`.');
       }
-      await this.init(this.#context.nascentRoot, isReload);
+      await this.init(this.#context.nascentRoot);
     } else if (this.state !== 'stopped') {
       throw new Error('Already running.');
     }
 
-    BaseComponent.logStarting(this.logger, isReload);
-    await this._impl_start(isReload);
+    BaseComponent.logStarting(this.logger);
+    await this._impl_start();
     this.#context[ThisModule.SYM_setState]('running');
-    BaseComponent.logStarted(this.logger, isReload);
+    BaseComponent.logStarted(this.logger);
   }
 
   /** @override */
@@ -276,20 +273,18 @@ export class BaseComponent {
    * connection) beyond "sensing" (e.g., reading a file).
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_init(isReload) {
-    Methods.abstract(isReload);
+  async _impl_init() {
+    Methods.abstract();
   }
 
   /**
    * Subclass-specific implementation of {@link #start}.
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_start(isReload) {
-    Methods.abstract(isReload);
+  async _impl_start() {
+    Methods.abstract();
   }
 
   /**
@@ -308,9 +303,8 @@ export class BaseComponent {
    * to only be called by an instance to modify itself.
    *
    * @param {BaseComponent} child Child component to add.
-   * @param {boolean} [isReload] Is the system being reloaded?
    */
-  async _prot_addChild(child, isReload = false) {
+  async _prot_addChild(child) {
     MustBe.instanceOf(child, BaseComponent);
 
     if (!this.#initialized) {
@@ -320,11 +314,11 @@ export class BaseComponent {
     }
 
     const context = new ControlContext(child, this);
-    await child.init(context, isReload);
+    await child.init(context);
 
     if (this.state === 'running') {
       // Get the child running, so as to match the parent.
-      await child.start(isReload);
+      await child.start();
     }
   }
 
@@ -427,20 +421,18 @@ export class BaseComponent {
    * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
-  static logInitialized(logger, isReload) {
-    logger?.initialized(isReload ? 'reload' : 'boot');
+  static logInitialized(logger) {
+    logger?.initialized();
   }
 
   /**
    * Logs a message about an item (component, etc.) starting an `init()` action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
-  static logInitializing(logger, isReload) {
-    logger?.initializing(isReload ? 'reload' : 'boot');
+  static logInitializing(logger) {
+    logger?.initializing();
   }
 
   /**
@@ -448,10 +440,9 @@ export class BaseComponent {
    * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
-  static logStarted(logger, isReload) {
-    logger?.started(isReload ? 'reload' : 'boot');
+  static logStarted(logger) {
+    logger?.started();
   }
 
   /**
@@ -459,10 +450,9 @@ export class BaseComponent {
    * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
-  static logStarting(logger, isReload) {
-    logger?.starting(isReload ? 'reload' : 'boot');
+  static logStarting(logger) {
+    logger?.starting();
   }
 
   /**

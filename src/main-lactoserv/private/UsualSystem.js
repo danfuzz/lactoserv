@@ -39,14 +39,14 @@ export class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     return await this.#args.webappMaker.make();
   }
 
   /** @override */
-  async _impl_start(isReload, initValue) {
+  async _impl_start(initValue) {
     this.#webapp = initValue;
-    await this.#webapp.start(isReload);
+    await this.#webapp.start();
   }
 
   /** @override */

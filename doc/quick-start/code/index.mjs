@@ -29,14 +29,14 @@ class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     return new WebappRoot(CONFIG);
   }
 
   /** @override */
-  async _impl_start(isReload, initValue) {
+  async _impl_start(initValue) {
     this.#webapp = initValue;
-    await this.#webapp.start(isReload);
+    await this.#webapp.start();
   }
 
   /** @override */

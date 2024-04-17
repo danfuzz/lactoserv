@@ -34,7 +34,7 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
-  async _impl_serverStart(isReload_unused) {
+  async _impl_serverStart() {
     // @emptyBlock
   }
 

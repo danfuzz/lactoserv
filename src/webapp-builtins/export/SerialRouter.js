@@ -39,12 +39,12 @@ export class SerialRouter extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
-    this.logger?.routes(this.config.routes);
+  async _impl_init() {
+    this.logger?.routes(this.config.routeList);
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     // Note: We can't do this setup in `_impl_init()` because it might not be
     // the case that all of the referenced apps have already been added when
     // that runs.

@@ -196,13 +196,6 @@ export class BaseFileService extends BaseService {
     #maxOldCount;
 
     /**
-     * Rotate when reloading the system?
-     *
-     * @type {boolean}
-     */
-    #onReload;
-
-    /**
      * Rotate when starting the system?
      *
      * @type {boolean}
@@ -227,7 +220,6 @@ export class BaseFileService extends BaseService {
       const {
         maxOldBytes = null,
         maxOldCount = null,
-        onReload    = false,
         onStart     = false,
         onStop      = false
       } = rawConfig;
@@ -238,7 +230,6 @@ export class BaseFileService extends BaseService {
       this.#maxOldCount = (maxOldCount === null)
         ? null
         : MustBe.number(maxOldCount, { finite: true, minInclusive: 1 });
-      this.#onReload = MustBe.boolean(onReload);
       this.#onStart  = MustBe.boolean(onStart);
       this.#onStop   = MustBe.boolean(onStop);
     }
@@ -257,11 +248,6 @@ export class BaseFileService extends BaseService {
      */
     get maxOldCount() {
       return this.#maxOldCount;
-    }
-
-    /** @returns {boolean} Rotate when reloading the system? */
-    get onReload() {
-      return this.#onReload;
     }
 
     /** @returns {boolean} Rotate when starting the system? */

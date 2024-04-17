@@ -144,7 +144,7 @@ export class BaseSystem extends BaseExposedThreadlet {
 
     this.#initValue     = this.#nextInitValue;
     this.#nextInitValue = null;
-    await this._impl_start(isReload, this.#initValue);
+    await this._impl_start(this.#initValue);
 
     this.#logger?.started(logArg);
   }
@@ -171,28 +171,26 @@ export class BaseSystem extends BaseExposedThreadlet {
 
   /**
    * Initializes any concrete-subclass-related bits, in preparation for running
-   * the system. If `isReload` is passed as `true`, the system is _already_
-   * running, and care should be taken not to disturb that. In particular, this
-   * method is allowed to throw, and that will cause reloading to fail while
-   * leaving the already-running system alone.
+   * the system. Note that the system might be in the process of _reloading_,
+   * and care should be taken not to disturb that. In particular, this method is
+   * allowed to throw, and that will cause reloading to fail while leaving the
+   * already-running system alone.
    *
    * @abstract
-   * @param {boolean} isReload Is the system being reloaded?
    * @returns {*} Value to pass to {@link #_impl_start}, once it is time to
    *   (re-)start the system.
    */
-  async _impl_init(isReload) {
-    Methods.abstract(isReload);
+  async _impl_init() {
+    Methods.abstract();
   }
 
   /**
    * Starts the system, in a subclass-specific way.
    *
-   * @param {boolean} isReload Is the system being reloaded?
    * @param {*} initValue Value previously returned from {@link #_impl_init}.
    */
-  async _impl_start(isReload, initValue) {
-    Methods.abstract(isReload, initValue);
+  async _impl_start(initValue) {
+    Methods.abstract(initValue);
   }
 
   /**

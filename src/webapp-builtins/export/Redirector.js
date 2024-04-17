@@ -62,12 +62,12 @@ export class Redirector extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init() {
     // @emptyBlock
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start() {
     // @emptyBlock
   }
 

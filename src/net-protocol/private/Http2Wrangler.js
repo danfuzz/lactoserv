@@ -79,7 +79,7 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  async _impl_serverStart(isReload_unused) {
+  async _impl_serverStart() {
     this.#runner.run();
   }
 
