@@ -127,7 +127,7 @@ export class ProcessInfoFile extends BaseFileService {
       ...ProcessInfo.allInfo,
       disposition: {
         running: true
-      },
+      }
     };
 
     delete contents.uptime; // Ends up in `disposition`.
@@ -146,9 +146,9 @@ export class ProcessInfoFile extends BaseFileService {
         contents.earlierRuns = [fileContents];
       }
     } else if (this.#contents?.earlierRuns) {
-     // **Note:** `this.#contents` is only possibly non-empty if this instance
-     // was configured with `onStart: true` or `onStop: true`.
-     contents.earlierRuns = this.#contents.earlierRuns;
+      // **Note:** `this.#contents` is only possibly non-empty if this instance
+      // was configured with `onStart: true` or `onStop: true`.
+      contents.earlierRuns = this.#contents.earlierRuns;
     }
 
     if (contents.earlierRuns) {
