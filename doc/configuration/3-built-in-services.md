@@ -65,6 +65,11 @@ _not_ configurable. It accepts the following configuration bindings:
   before writing them to the file, specified as a duration value as described in
   [Durations](./2-common-configuration.md#durations), or `null` to indicate
   "do not buffer." Optional and defaults to `null`.
+* `maxUrlLength` &mdash; Maximum length of a URL to log, or `null` to have no
+  upper bound. Anything longer than the maximum is represented as a prefix and
+  suffix concatenated together with `...` in the middle. Because it makes little
+  sense to have a very-small maximum, when non-`null` this must be at least
+  `20`.
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final
   path component.
