@@ -11,6 +11,18 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.15 -- 2024-04-17
+
+Are we there yet?: This release will _probably_ be declared stable, unless
+something surprising (and unfortunate) happens within a couple days of its
+release.
+
+Breaking changes:
 * `compy` / `compote`:
   * Renamed module `compote` to `compy`, to harmonize with `loggy` and `typey`.
   * Combined all the config base classes into the base-base class `BaseConfig`.
