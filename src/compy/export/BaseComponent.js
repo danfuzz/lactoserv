@@ -229,9 +229,9 @@ export class BaseComponent {
 
     this.#context = context;
 
-    BaseComponent.logInitializing(this.logger);
+    this.logger?.initializing();
     await this._impl_init();
-    BaseComponent.logInitialized(this.logger);
+    this.logger?.initialized();
   }
 
   /**
@@ -281,10 +281,10 @@ export class BaseComponent {
       throw new Error('Already running.');
     }
 
-    BaseComponent.logStarting(this.logger);
+    this.logger?.starting();
     await this._impl_start();
     this.#context[ThisModule.SYM_setState]('running');
-    BaseComponent.logStarted(this.logger);
+    this.logger?.started();
   }
 
   /**
@@ -481,45 +481,6 @@ export class BaseComponent {
     });
 
     return Object.freeze(result);
-  }
-
-  /**
-   * Logs a message about an item (component, etc.) completing an `init()`
-   * action.
-   *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   */
-  static logInitialized(logger) {
-    logger?.initialized();
-  }
-
-  /**
-   * Logs a message about an item (component, etc.) starting an `init()` action.
-   *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   */
-  static logInitializing(logger) {
-    logger?.initializing();
-  }
-
-  /**
-   * Logs a message about an item (component, etc.) completing a `start()`
-   * action.
-   *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   */
-  static logStarted(logger) {
-    logger?.started();
-  }
-
-  /**
-   * Logs a message about an item (component, etc.) initiating a `start()`
-   * action.
-   *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   */
-  static logStarting(logger) {
-    logger?.starting();
   }
 
   /**

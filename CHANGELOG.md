@@ -14,7 +14,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `compy`: Tiny bit of cleanup in `BaseComponent`.
 
 ### v0.6.15 -- 2024-04-17
 
