@@ -16,6 +16,16 @@ Breaking changes:
 Other notable changes:
 * None.
 
+### v0.7.0 -- 2024-04-22
+
+This is the same source tree as v0.6.16, other than the CHANGELOG file.
+
+Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
 ### v0.6.16 -- 2024-04-22 -- stable release
 
 First stable release of the v0.6.* series.
