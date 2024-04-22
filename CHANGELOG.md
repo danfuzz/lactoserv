@@ -14,6 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.6.16 -- 2024-04-22
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * `compy`: Tiny bit of cleanup in `BaseComponent`.
 
 ### v0.6.15 -- 2024-04-17
