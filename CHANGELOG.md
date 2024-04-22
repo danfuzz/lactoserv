@@ -16,7 +16,9 @@ Breaking changes:
 Other notable changes:
 * None.
 
-### v0.6.16 -- 2024-04-22
+### v0.6.16 -- 2024-04-22 -- stable release
+
+First stable release of the v0.6.* series.
 
 Breaking changes:
 * None.
