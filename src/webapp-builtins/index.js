@@ -15,4 +15,5 @@ export * from '#x/RequestFilter';
 export * from '#x/SerialRouter';
 export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';
+export * from '#x/SuffixRouter';
 export * from '#x/SyslogToFile';
