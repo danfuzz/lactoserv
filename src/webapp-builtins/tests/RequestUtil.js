@@ -32,4 +32,29 @@ export class RequestUtil {
       })
     });
   }
+
+  /**
+   * Makes a request with the given request method and path.
+   *
+   * @param {string} method The request method.
+   * @param {string} path The path.
+   * @returns {IncomingRequest} Corresponding request instance.
+   */
+  static makeRequest(method, path) {
+    return new IncomingRequest({
+      context: new RequestContext(
+        Object.freeze({ address: 'localhost', port: 12345 }),
+        Object.freeze({ address: 'awayhost',  port: 54321 })),
+      headers: new HttpHeaders({
+        'some-header': 'something'
+      }),
+      protocolName: 'http-2',
+      pseudoHeaders: new HttpHeaders({
+        authority: 'your.host',
+        method,
+        path,
+        scheme:    'https'
+      })
+    });
+  }
 }
