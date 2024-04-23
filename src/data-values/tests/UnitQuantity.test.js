@@ -85,9 +85,12 @@ describe('.value', () => {
   });
 });
 
+// This is for the bad-argument cases. There are separate `describe()`s for
+// success cases.
 describe.each`
 methodName
 ${'add'}
+${'compare'}
 ${'subtract'}
 `('$methodName()', ({ methodName }) => {
   test.each`
@@ -116,7 +119,13 @@ ${'subtract'}
     const uq2 = new UnitQuantity(1, 'yes', 'y');
     expect(() => uq1[methodName](uq2)).toThrow();
   });
+});
 
+describe.each`
+methodName
+${'add'}
+${'subtract'}
+`('$methodName()', ({ methodName }) => {
   test.each`
   v1     | v2    | add    | subtract
   ${100} | ${1}  | ${101} | ${99}
@@ -142,6 +151,25 @@ ${'subtract'}
     const result = uq1[methodName](uq2);
 
     expect(result).toBeInstanceOf(UqSub);
+  });
+});
+
+describe('compare()', () => {
+  test.each`
+  v1        | v2        | expected
+  ${0}      | ${0}      | ${0}
+  ${123.4}  | ${123.4}  | ${0}
+  ${-12}    | ${-11}    | ${-1}
+  ${7}      | ${123}    | ${-1}
+  ${7.6}    | ${5.4}    | ${1}
+  ${9999.3} | ${9999.2} | ${1}
+  `('returns $expected given ($v1, $v2)', ({ v1, v2, expected }) => {
+    const uq1    = new UnitQuantity(v1, 'x', 'y');
+    const uq2    = new UnitQuantity(v2, 'x', 'y');
+    const result = uq1.compare(uq2);
+
+    expect(result).toBeNumber();
+    expect(result).toBe(expected);
   });
 });
 
