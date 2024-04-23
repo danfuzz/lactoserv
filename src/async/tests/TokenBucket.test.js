@@ -3,8 +3,8 @@
 
 import { setImmediate } from 'node:timers/promises';
 
-import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
-import { IntfTimeSource, StdTimeSource } from '@this/clocks';
+import { PromiseState, TokenBucket } from '@this/async';
+import { IntfTimeSource, MockTimeSource, StdTimeSource } from '@this/clocks';
 import { Duration, Frequency, Moment } from '@this/data-values';
 
 
@@ -93,67 +93,6 @@ function checkTakeNow(grant, expected) {
       : expected.waitUntil;
 
     expect(grant.waitUntil.atSec).toBe(waitUntilSec);
-  }
-}
-
-/**
- * Mock implementation of `IntfTimeSource`.
- */
-class MockTimeSource extends IntfTimeSource {
-  #now;
-  #timeouts = [];
-  #ended    = false;
-
-  constructor(firstNow = 0) {
-    super();
-    this.#now = new Moment(firstNow);
-  }
-
-  now() {
-    if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
-    }
-
-    return this.#now;
-  }
-
-  async waitUntil(time) {
-    if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
-    }
-
-    if (time.atSec <= this.#now.atSec) {
-      return;
-    }
-
-    const mp = new ManualPromise();
-    this.#timeouts.push({
-      at:      time.atSec,
-      resolve: () => mp.resolve()
-    });
-
-    await mp.promise;
-  }
-
-  _end() {
-    for (const t of this.#timeouts) {
-      t.resolve();
-    }
-
-    this.#ended = true;
-  }
-
-  _setTime(nowSec) {
-    this.#now = new Moment(nowSec);
-    this.#timeouts.sort((a, b) => {
-      if (a.at < b.at) return -1;
-      if (a.at > b.at) return 1;
-      return 0;
-    });
-    while (this.#timeouts[0]?.at <= nowSec) {
-      this.#timeouts[0].resolve();
-      this.#timeouts.shift();
-    }
   }
 }
 
