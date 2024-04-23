@@ -108,7 +108,7 @@ export class SuffixRouter extends BaseApplication {
     /**
      * Regular expression which matches the longest handled suffix of a given
      * file name. This ends up having a form along the lines of
-     * `/(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
+     * `/(?<!^)(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
      *
      * @type {RegExp}
      */
@@ -160,7 +160,7 @@ export class SuffixRouter extends BaseApplication {
       }
 
       this.#routeMap      = routeMap;
-      this.#suffixMatcher = new RegExp(`(?:${regexParts.join('|')})$`);
+      this.#suffixMatcher = new RegExp(`(?<!^)(?:${regexParts.join('|')})$`);
     }
 
     /**

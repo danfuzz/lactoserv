@@ -250,4 +250,18 @@ describe('_impl_handleRequest()', () => {
     await expectApp(sr, '/zyx/zip_florp4',   'mockApp4');
     await expectApp(sr, '/ab/cd/ef/gh+num5', 'mockApp5');
   });
+
+  test('does not treat a just-a-suffix file name (no prefix) as a match', async () => {
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*.zorch': 'mockApp1'
+      }
+    });
+
+    await expectNull(sr, '/.zorch');
+    await expectNull(sr, '/x/.zorch');
+    await expectNull(sr, '/bip/bop/.zorch');
+    await expectNull(sr, '/flip/flop/floop/.zorch');
+  });
 });
