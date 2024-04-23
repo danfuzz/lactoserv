@@ -2,44 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseAggregateComponent, BaseConfig, RootControlContext }
-  from '@this/compy';
+import { BaseConfig, RootControlContext } from '@this/compy';
 import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
   IntfRequestHandler, RequestContext }
   from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
 import { BaseApplication } from '@this/webapp-core';
 
+import { NopComponent } from '#test/NopComponent';
 
 // TODO: This file contains a lot of mock implementation that should be
 // extracted for reuse.
-
-/**
- * Minimal concrete component class, which has no-op implementations for all
- * `_impl_*` methods.
- */
-export class NopComponent extends BaseAggregateComponent {
-  // @defaultConstructor
-
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
-  static _impl_configClass() {
-    return BaseConfig;
-  }
-}
 
 /**
  * @implements {IntfRequestHandler}
