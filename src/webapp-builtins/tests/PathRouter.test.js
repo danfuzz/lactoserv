@@ -2,69 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseConfig, RootControlContext } from '@this/compy';
-import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
-  IntfRequestHandler, RequestContext }
+import { RootControlContext } from '@this/compy';
+import { DispatchInfo, HttpHeaders, IncomingRequest, RequestContext }
   from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
-import { BaseApplication } from '@this/webapp-core';
 
+import { MockApp } from '#test/MockApp';
 import { NopComponent } from '#test/NopComponent';
 
-// TODO: This file contains a lot of mock implementation that should be
-// extracted for reuse.
-
-/**
- * @implements {IntfRequestHandler}
- */
-class MockApp extends BaseApplication {
-  static mockCalls = [];
-
-  // @defaultConstructor
-
-  /** @override */
-  async _impl_handleRequest(request, dispatch) {
-    let succeed = true;
-
-    const callInfo = { application: this, request, dispatch };
-    MockApp.mockCalls.push(callInfo);
-
-    if (this.mockHandler) {
-      const handlerResult = this.mockHandler(callInfo);
-      if (typeof handlerResult !== 'boolean') {
-        return handlerResult;
-      }
-      succeed = handlerResult;
-    }
-
-    if (succeed) {
-      const result = new FullResponse();
-      result.mockInfo = callInfo;
-      return result;
-    } else {
-      return null;
-    }
-  }
-
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
-  static _impl_configClass() {
-    return BaseConfig;
-  }
-}
 
 function makeRequest(path) {
   return new IncomingRequest({
