@@ -91,6 +91,34 @@ export class DispatchInfo {
   }
 
   /**
+   * @returns {?string} The last path component of the combination of
+   * `<base>/<extra>` if it is non-empty, the second-to-last if the last is
+   * empty, or `null` if neither of the previous two conditions are meaningful
+   * (becuase the total path length is less than `2`). The idea is that this is
+   * the "file name" of this instance, whether it represents a regular file _or_
+   * a directory.
+   */
+  get lastName() {
+    const length = this.fullPathLength;
+
+    switch (length) {
+      case 0: {
+        return null;
+      }
+      case 1: {
+        const name = this.getFullPathComponent(0);
+        return (name === '') ? null : name;
+      }
+      default: {
+        const last = this.getFullPathComponent(length - 1);
+        return (last === '')
+          ? this.getFullPathComponent(length - 2)
+          : last;
+      }
+    }
+  }
+
+  /**
    * @returns {object} Contents of this instance as a plain object with simple
    * data properties, suitable for logging. The result is slightly ambiguous in
    * the face of unusual input, because paths are rendered as slash-separated

@@ -113,16 +113,17 @@ function do-fix {
     pkg="$(jval <"${filePath}" --input=read \
         deps:json="${finalDeps}" '
     {
-        name: .name,
+        name:    .name,
         version: .version,
-        type: "module",
+        type:    "module",
         private: true,
         license: (.license // "UNLICENSED"),
         BLANK_LINE_1: "",
         exports: "./index.js",
         imports: {
-          "#x/*": "./export/*.js",
-          "#p/*": "./private/*.js"
+          "#x/*":    "./export/*.js",
+          "#p/*":    "./private/*.js",
+          "#test/*": "./tests/*.js"
         }
     }
     |

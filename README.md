@@ -38,7 +38,7 @@ applications.
     to HTTPS for clients that can't do HTTP2.)
 * JS-based configuration file format, which isn't actually that awful!
 * Several built-in applications, including:
-  * Four request routing and filtering applications, to cover most routing
+  * Five request routing and filtering applications, to cover most routing
     needs.
   * Three "leaf" applications, for regular content responses and redirection.
   * More to come!

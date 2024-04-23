@@ -3,31 +3,11 @@
 
 import { TreePathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
-import { DispatchInfo, HttpHeaders, IncomingRequest, RequestContext,
-  StatusResponse }
-  from '@this/net-util';
+import { DispatchInfo, StatusResponse } from '@this/net-util';
 import { RequestFilter } from '@this/webapp-builtins';
 
+import { RequestUtil } from '#test/RequestUtil';
 
-// TODO: Extract this function, which also has a variant in
-// `PathRouter.test.js`.
-function makeRequest(method, path) {
-  return new IncomingRequest({
-    context: new RequestContext(
-      Object.freeze({ address: 'localhost', port: 12345 }),
-      Object.freeze({ address: 'awayhost',  port: 54321 })),
-    headers: new HttpHeaders({
-      'some-header': 'something'
-    }),
-    protocolName: 'http-2',
-    pseudoHeaders: new HttpHeaders({
-      authority: 'your.host',
-      method,
-      path,
-      scheme:    'https'
-    })
-  });
-}
 
 describe('constructor', () => {
   test('accepts an omnibus valid set of options', () => {
@@ -96,7 +76,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 599
       });
 
-      const req    = makeRequest('get', '/florp');
+      const req    = RequestUtil.makeRequest('post', '/florp');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -109,7 +89,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 599
       });
 
-      const req    = makeRequest('get', '/florp');
+      const req    = RequestUtil.makeGet('/florp');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -125,7 +105,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 599
       });
 
-      const req    = makeRequest('get', '/florp/flop');
+      const req    = RequestUtil.makeGet('/florp/flop');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -138,7 +118,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 599
       });
 
-      const req    = makeRequest('get', '/florp/flop/');
+      const req    = RequestUtil.makeGet('/florp/flop/');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -151,7 +131,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 501
       });
 
-      const req    = makeRequest('get', '/florp/flop/oopsie');
+      const req    = RequestUtil.makeGet('/florp/flop/oopsie');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -165,7 +145,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 501
       });
 
-      const req    = makeRequest('get', '/florp/flop/oopsie/');
+      const req    = RequestUtil.makeGet('/florp/flop/oopsie/');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -181,7 +161,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 400
       });
 
-      const req    = makeRequest('get', '/23456/8901/34/67890');
+      const req    = RequestUtil.makeGet('/23456/8901/34/67890');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -194,7 +174,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 400
       });
 
-      const req    = makeRequest('get', '/23456/8901/34/6789/');
+      const req    = RequestUtil.makeGet('/23456/8901/34/6789/');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -207,7 +187,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 400
       });
 
-      const req    = makeRequest('get', '/23456/8901/34/678901');
+      const req    = RequestUtil.makeGet('/23456/8901/34/678901');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -221,7 +201,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 400
       });
 
-      const req    = makeRequest('get', '/23456/8901/34/67890/');
+      const req    = RequestUtil.makeGet('/23456/8901/34/67890/');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -237,7 +217,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 420
       });
 
-      const req    = makeRequest('get', '/beep/boop/bop/biff?abcd=ef');
+      const req    = RequestUtil.makeGet('/beep/boop/bop/biff?abcd=ef');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
@@ -250,7 +230,7 @@ describe('_impl_handleRequest()', () => {
         filterResponseStatus: 420
       });
 
-      const req    = makeRequest('get', '/beep/boop/bop/biff?abcd=efg');
+      const req    = RequestUtil.makeGet('/beep/boop/bop/biff?abcd=efg');
       const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 

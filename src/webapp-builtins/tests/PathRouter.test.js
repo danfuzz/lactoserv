@@ -2,114 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseAggregateComponent, BaseConfig, RootControlContext }
-  from '@this/compy';
-import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
-  IntfRequestHandler, RequestContext }
-  from '@this/net-util';
+import { RootControlContext } from '@this/compy';
+import { DispatchInfo } from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
-import { BaseApplication } from '@this/webapp-core';
 
+import { MockApp } from '#test/MockApp';
+import { NopComponent } from '#test/NopComponent';
+import { RequestUtil } from '#test/RequestUtil';
 
-// TODO: This file contains a lot of mock implementation that should be
-// extracted for reuse.
-
-/**
- * Minimal concrete component class, which has no-op implementations for all
- * `_impl_*` methods.
- */
-export class NopComponent extends BaseAggregateComponent {
-  // @defaultConstructor
-
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
-  static _impl_configClass() {
-    return BaseConfig;
-  }
-}
-
-/**
- * @implements {IntfRequestHandler}
- */
-class MockApp extends BaseApplication {
-  static mockCalls = [];
-
-  // @defaultConstructor
-
-  /** @override */
-  async _impl_handleRequest(request, dispatch) {
-    let succeed = true;
-
-    const callInfo = { application: this, request, dispatch };
-    MockApp.mockCalls.push(callInfo);
-
-    if (this.mockHandler) {
-      const handlerResult = this.mockHandler(callInfo);
-      if (typeof handlerResult !== 'boolean') {
-        return handlerResult;
-      }
-      succeed = handlerResult;
-    }
-
-    if (succeed) {
-      const result = new FullResponse();
-      result.mockInfo = callInfo;
-      return result;
-    } else {
-      return null;
-    }
-  }
-
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
-  static _impl_configClass() {
-    return BaseConfig;
-  }
-}
-
-function makeRequest(path) {
-  return new IncomingRequest({
-    context: new RequestContext(
-      Object.freeze({ address: 'localhost', port: 12345 }),
-      Object.freeze({ address: 'awayhost',  port: 54321 })),
-    headers: new HttpHeaders({
-      'some-header': 'something'
-    }),
-    protocolName: 'http-2',
-    pseudoHeaders: new HttpHeaders({
-      authority: 'your.host',
-      method:    'get',
-      path,
-      scheme:    'https'
-    })
-  });
-}
 
 describe('constructor', () => {
   test('accepts some syntactically valid `paths`', () => {
@@ -149,7 +49,7 @@ describe('constructor', () => {
   `('throws given path `$path`', ({ path }) => {
     const paths = {
       '/a': 'a',
-      ...path,
+      ...{ path },
       '/z': 'z'
     };
     expect(() => new PathRouter({ name: 'x', paths })).toThrow();
@@ -253,7 +153,7 @@ describe('_impl_handleRequest()', () => {
         { appName: 'mockApp1', basePath: [],              extraPath: ['x', 'y', 'z'] }
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
-        const request = makeRequest(requestPath);
+        const request = RequestUtil.makeGet(requestPath);
         const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
@@ -315,7 +215,7 @@ describe('_impl_handleRequest()', () => {
         { appName: 'mockApp2', basePath: ['x'],           extraPath: ['y', 'z'] }
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
-        const request = makeRequest(requestPath);
+        const request = RequestUtil.makeGet(requestPath);
         const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
@@ -342,7 +242,7 @@ describe('_impl_handleRequest()', () => {
 
     MockApp.mockCalls = [];
 
-    const request = makeRequest('/x/y/z');
+    const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
     expect(result).not.toBeNull();
@@ -354,7 +254,7 @@ describe('_impl_handleRequest()', () => {
 
   test('matches on `dispatch.extra` (not `request.pathname`)', async () => {
     const pr      = await makeInstance({ '/florp/floop/*': 'mockApp1' });
-    const request = makeRequest('/x/y/z');
+    const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request,
       new DispatchInfo(TreePathKey.EMPTY, new TreePathKey(['florp', 'floop', 'bop'], false)));
 
@@ -369,7 +269,7 @@ describe('_impl_handleRequest()', () => {
 
   test('forms new `dispatch` by shifting items from `extra` to `base`', async () => {
     const pr      = await makeInstance({ '/zonk/*': 'mockApp1' });
-    const request = makeRequest('/x/y/z');
+    const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request,
       new DispatchInfo(
         new TreePathKey(['beep'], false),
