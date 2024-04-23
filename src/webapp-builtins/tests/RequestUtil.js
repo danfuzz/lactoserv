@@ -16,21 +16,7 @@ export class RequestUtil {
    * @returns {IncomingRequest} Corresponding request instance.
    */
   static makeGet(path) {
-    return new IncomingRequest({
-      context: new RequestContext(
-        Object.freeze({ address: 'localhost', port: 12345 }),
-        Object.freeze({ address: 'awayhost',  port: 54321 })),
-      headers: new HttpHeaders({
-        'some-header': 'something'
-      }),
-      protocolName: 'http-2',
-      pseudoHeaders: new HttpHeaders({
-        authority: 'your.host',
-        method:    'get',
-        path,
-        scheme:    'https'
-      })
-    });
+    return this.makeRequest('get', path);
   }
 
   /**
