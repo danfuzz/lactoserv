@@ -456,8 +456,68 @@ reasonable demand:
 * The bodies of error and other non-content responses, other than `404`s, are
   not configurable.
 * No files under the `siteDirectory` are filtered out and treated as not found.
-  Notably, dotfiles &mdsah; that is, paths where the final component starts with
+  Notably, dotfiles &mdash; that is, paths where the final component starts with
   a dot (`.`) &mdash; are served when corresponding files are found.
+
+## `SuffixRouter`
+
+An application which can route requests to another application, based on the
+suffix of the final file or directory name in a request path. This application
+accepts the following configuration bindings:
+
+* `handleDirectories` &mdash; Boolean indicating whether directory paths should
+  be routed by this application. If `false`, this will not respond for directory
+  paths. Defaults to `false`.
+* `handleFiles` &mdash; Boolean indicating whether file (non-directory) paths
+  should be routed by this application. If `false`, this will not respond for
+  file paths. Defaults to `true`.
+* `suffixes` &mdash; A plain object with suffix specs as keys, and the _names_
+  of other applications as values.
+
+Allowed suffix specs are as follows:
+
+* `*` &mdash; Just a plain star, to indicate a full wildcard match. Use this if
+  you want to have the application always route to _something_. If not present
+  and a given request has no matching suffix, then the application will simply
+  not respond.
+* `*.suffix`, `*-suffix`, `*_suffix`, `*+suffix` &mdash; These all match the
+  given suffix literally, including the four characters that are allowed to
+  match the start of a suffix. The rest of the `suffix` is limited to being
+  ASCII alphanumerics or those same special characters (`.`, `-`, `_`, or `+`).
+
+**Note:** Unlike `PathRouter`, this application does not do fallback to
+less-and-less specific routes; it just finds (at most) one to route to.
+
+**Note:** The suffix spec syntax is intentionally on the more restrictive side.
+If there is reasonable demand, the syntax can be loosened up.
+
+```js
+import { SuffixRouter } from '@lactoserv/webapp-builtins';
+
+const applications = [
+  {
+    name:  'mySuffixes',
+    class: SuffixRouter,
+    hosts: {
+      '*':     'myCatchAllApp',
+      '*.xyz': 'myXyzApp',
+      '*.pdq': 'myPdqApp'
+    }
+  },
+  {
+    name: 'myCatchallApp',
+    // ... more ...
+  },
+  {
+    name: 'myXyzApp',
+    // ... more ...
+  },
+  {
+    name: 'myPdqApp',
+    // ... more ...
+  }
+];
+```
 
 - - - - - - - - - -
 ```
