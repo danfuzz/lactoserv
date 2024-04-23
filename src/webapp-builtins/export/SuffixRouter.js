@@ -11,7 +11,7 @@ import { BaseApplication } from '@this/webapp-core';
  * or more of a set of configured sub-apps. See docs for configuration object
  * details.
  */
-export class FileSuffixRouter extends BaseApplication {
+export class SuffixRouter extends BaseApplication {
   /**
    * Map which goes from a file name suffix (the actual suffix text, not the
    * spec with `*` prefix) to the handler (typically a {@link BaseApplication})
