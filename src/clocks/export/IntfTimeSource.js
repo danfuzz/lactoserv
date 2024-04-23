@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 import { Methods } from '@this/typey';
 
 
@@ -21,6 +21,24 @@ export class IntfTimeSource {
    */
   now() {
     return Methods.abstract();
+  }
+
+  /**
+   * Async-returns `null` after a specified amount of time, with the hope that
+   * the actual time waited will be reasonably close to the request.
+   *
+   * **Note:** This is meant to be a time-source-specific replacement for the
+   * various versions and bindings of `setTimeout()` provided by Node.
+   *
+   * @param {Duration} dur How much time to wait before this method is to
+   *   async-return. If zero or negative, this method simply does not wait
+   *   before returning.
+   * @param {object} [options] Timeout options. This is the same as with
+   *   `node:timers/promises.setTimeout()`.
+   * @returns {null} `null`, always.
+   */
+  static async waitFor(dur, options = undefined) {
+    return Methods.abstract(dur, options);
   }
 
   /**

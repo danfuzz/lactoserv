@@ -18,6 +18,11 @@ export class StdTimeSource extends IntfTimeSource {
   }
 
   /** @override */
+  async waitFor(dur, options = undefined) {
+    return WallClock.waitFor(dur, options);
+  }
+
+  /** @override */
   async waitUntil(time) {
     return WallClock.waitUntil(time);
   }
