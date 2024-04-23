@@ -81,12 +81,16 @@ describe('_impl_handleRequest()', () => {
     return sr;
   }
 
-  async function expectApp(sr, path, appName) {
+  async function expectApp(sr, path, appName, expectResponse = true) {
     MockApp.mockCalls = [];
 
     const request = RequestUtil.makeGet(path);
     const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
-    expect(result).toBeInstanceOf(FullResponse);
+    if (expectResponse) {
+      expect(result).toBeInstanceOf(FullResponse);
+    } else {
+      expect(result).toBeNull();
+    }
 
     const calls = MockApp.mockCalls;
     expect(calls.length).toBe(1);
@@ -101,7 +105,7 @@ describe('_impl_handleRequest()', () => {
     expect(result).toBeNull();
 
     const calls = MockApp.mockCalls;
-    expect(calls.length).toBe(0);
+    expect(calls).toEqual([]);
   }
 
   beforeEach(() => {
@@ -263,5 +267,20 @@ describe('_impl_handleRequest()', () => {
     await expectNull(sr, '/x/.zorch');
     await expectNull(sr, '/bip/bop/.zorch');
     await expectNull(sr, '/flip/flop/floop/.zorch');
+  });
+
+  test('does not do fallback to less-specific matches', async () => {
+    const handlerFunc = ({ application }) => application.name !== 'mockApp4';
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*':       'mockApp1',
+        '*.z':     'mockApp2',
+        '*.y.z':   'mockApp3',
+        '*.x.y.z': 'mockApp4',
+      }
+    }, { appCount: 4, handlerFunc });
+
+    await expectApp(sr, '/a/b/c/dee.x.y.z', 'mockApp4', false);
   });
 });
