@@ -81,6 +81,18 @@ describe('_impl_handleRequest()', () => {
     return sr;
   }
 
+  async function expectApp(sr, path, appName) {
+    MockApp.mockCalls = [];
+
+    const request = RequestUtil.makeGet(path);
+    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    expect(result).toBeInstanceOf(FullResponse);
+
+    const calls = MockApp.mockCalls;
+    expect(calls.length).toBe(1);
+    expect(calls[0].application.name).toBe(appName);
+  }
+
   beforeEach(() => {
     MockApp.mockCalls = [];
   });
@@ -106,13 +118,8 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request1 = RequestUtil.makeGet('/boop.beep');
-    const result1  = await sr.handleRequest(request1, new DispatchInfo(TreePathKey.EMPTY, request1.pathname));
-    expect(result1).toBeInstanceOf(FullResponse);
-
-    const request2 = RequestUtil.makeGet('/zonk/florp.beep');
-    const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
-    expect(result2).toBeInstanceOf(FullResponse);
+    await expectApp(sr, '/boop.beep',       'mockApp1');
+    await expectApp(sr, '/zonk/florp.beep', 'mockApp1');
   });
 
   test('handles directory paths when so configured', async () => {
@@ -124,13 +131,8 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request1 = RequestUtil.makeGet('/boop.beep/');
-    const result1  = await sr.handleRequest(request1, new DispatchInfo(TreePathKey.EMPTY, request1.pathname));
-    expect(result1).toBeInstanceOf(FullResponse);
-
-    const request2 = RequestUtil.makeGet('/zonk/florp.beep/');
-    const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
-    expect(result2).toBeInstanceOf(FullResponse);
+    await expectApp(sr, '/boop.beep/',       'mockApp1');
+    await expectApp(sr, '/zonk/florp.beep/', 'mockApp1');
   });
 
   test('handles both directories and files when so configured', async () => {
@@ -142,13 +144,10 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request1 = RequestUtil.makeGet('/abc.xyz');
-    const result1  = await sr.handleRequest(request1, new DispatchInfo(TreePathKey.EMPTY, request1.pathname));
-    expect(result1).toBeInstanceOf(FullResponse);
-
-    const request2 = RequestUtil.makeGet('/zonk/pdq.xyz/');
-    const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
-    expect(result2).toBeInstanceOf(FullResponse);
+    await expectApp(sr, '/abc.xyz',       'mockApp1');
+    await expectApp(sr, '/zonk/pdq.xyz',  'mockApp1');
+    await expectApp(sr, '/abc.xyz/',      'mockApp1');
+    await expectApp(sr, '/zonk/pdq.xyz/', 'mockApp1');
   });
 
   test('does not handle files when so configured', async () => {
@@ -197,10 +196,10 @@ describe('_impl_handleRequest()', () => {
       }
     }, { appCount: 2 });
 
-    const request = RequestUtil.makeGet('/boop.bop');
-    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
-    expect(result).toBeInstanceOf(FullResponse);
-    expect(MockApp.mockCalls[0].application.name).toBe('mockApp1');
+    await expectApp(sr, '/boop.bop',   'mockApp1');
+    await expectApp(sr, '/zonk',       'mockApp1');
+    await expectApp(sr, '/a/b/c/zonk', 'mockApp1');
+    await expectApp(sr, '/.bleep',     'mockApp1');
   });
 
   test('returns `null` when no suffix matches and there is no full-wildcard', async () => {
@@ -229,10 +228,7 @@ describe('_impl_handleRequest()', () => {
       }
     }, { appCount: 2 });
 
-    const request = RequestUtil.makeGet('/zippity.beep-bop');
-    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
-    expect(result).toBeInstanceOf(FullResponse);
-    expect(MockApp.mockCalls[0].application.name).toBe('mockApp1');
+    await expectApp(sr, '/zippity.beep-bop', 'mockApp1');
   });
 
   test('routes to different apps depending on suffix', async () => {
@@ -247,19 +243,10 @@ describe('_impl_handleRequest()', () => {
       }
     }, { appCount: 5 });
 
-    async function doOne(path, app) {
-      MockApp.mockCalls = [];
-
-      const request = RequestUtil.makeGet(path);
-      const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
-      expect(result).toBeInstanceOf(FullResponse);
-      expect(MockApp.mockCalls[0].application.name).toBe(app);
-    }
-
-    await doOne('/x/y/z.suf1',       'mockApp1');
-    await doOne('/stuff.yes2',       'mockApp2');
-    await doOne('/flip/flop-whee3',  'mockApp3');
-    await doOne('/zyx/zip_florp4',   'mockApp4');
-    await doOne('/ab/cd/ef/gh+num5', 'mockApp5');
+    await expectApp(sr, '/x/y/z.suf1',       'mockApp1');
+    await expectApp(sr, '/stuff.yes2',       'mockApp2');
+    await expectApp(sr, '/flip/flop-whee3',  'mockApp3');
+    await expectApp(sr, '/zyx/zip_florp4',   'mockApp4');
+    await expectApp(sr, '/ab/cd/ef/gh+num5', 'mockApp5');
   });
 });
