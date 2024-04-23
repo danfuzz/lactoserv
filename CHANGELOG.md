@@ -21,6 +21,7 @@ Other notable changes:
 * `data-values`:
   * Added comparison methods to `UnitQuantity`.
 * `webapp-builtins`:
+  * New application `RequestDelay`.
   * New application `SuffixRouter`.
 
 **Note:** v0.7.0 wasn't announced widely, because it was a "rebrand" of v0.6.16.
