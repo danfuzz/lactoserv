@@ -49,7 +49,7 @@ describe('constructor', () => {
   `('throws given path `$path`', ({ path }) => {
     const paths = {
       '/a': 'a',
-      ...path,
+      ...{ path },
       '/z': 'z'
     };
     expect(() => new PathRouter({ name: 'x', paths })).toThrow();
