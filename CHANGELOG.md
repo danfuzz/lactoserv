@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `webapp-builtins`:
+  * New application `SuffixRouter`.
 
 ### v0.7.0 -- 2024-04-22
 
