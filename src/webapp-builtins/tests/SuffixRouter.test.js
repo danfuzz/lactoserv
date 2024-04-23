@@ -186,4 +186,80 @@ describe('_impl_handleRequest()', () => {
     const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
     expect(result2).toBeNull();
   });
+
+  test('routes to the full-wildcard when no other suffix matches', async () => {
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*':       'mockApp1',
+        '*.x':     'mockApp2',
+        '*.blorp': 'mockApp2'
+      }
+    }, { appCount: 2 });
+
+    const request = RequestUtil.makeGet('/boop.bop');
+    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(MockApp.mockCalls[0].application.name).toBe('mockApp1');
+  });
+
+  test('returns `null` when no suffix matches and there is no full-wildcard', async () => {
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*.x':     'mockApp1',
+        '*.blorp': 'mockApp1'
+      }
+    });
+
+    const request = RequestUtil.makeGet('/boop.bop');
+    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    expect(result).toBeNull();
+  });
+
+  test('routes to the longest matching suffix when more than one matches', async () => {
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*':          'mockApp2',
+        '*.beep':     'mockApp2',
+        '*.beep-bop': 'mockApp1',
+        '*-bop':      'mockApp2',
+        '*.bop':      'mockApp2'
+      }
+    }, { appCount: 2 });
+
+    const request = RequestUtil.makeGet('/zippity.beep-bop');
+    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(MockApp.mockCalls[0].application.name).toBe('mockApp1');
+  });
+
+  test('routes to different apps depending on suffix', async () => {
+    const sr = await makeInstance({
+      handleFiles: true,
+      suffixes: {
+        '*.suf1':   'mockApp1',
+        '*.yes2':   'mockApp2',
+        '*-whee3':  'mockApp3',
+        '*_florp4': 'mockApp4',
+        '*+num5':   'mockApp5'
+      }
+    }, { appCount: 5 });
+
+    async function doOne(path, app) {
+      MockApp.mockCalls = [];
+
+      const request = RequestUtil.makeGet(path);
+      const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+      expect(result).toBeInstanceOf(FullResponse);
+      expect(MockApp.mockCalls[0].application.name).toBe(app);
+    }
+
+    await doOne('/x/y/z.suf1',       'mockApp1');
+    await doOne('/stuff.yes2',       'mockApp2');
+    await doOne('/flip/flop-whee3',  'mockApp3');
+    await doOne('/zyx/zip_florp4',   'mockApp4');
+    await doOne('/ab/cd/ef/gh+num5', 'mockApp5');
+  });
 });
