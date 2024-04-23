@@ -93,6 +93,17 @@ describe('_impl_handleRequest()', () => {
     expect(calls[0].application.name).toBe(appName);
   }
 
+  async function expectNull(sr, path) {
+    MockApp.mockCalls = [];
+
+    const request = RequestUtil.makeGet(path);
+    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    expect(result).toBeNull();
+
+    const calls = MockApp.mockCalls;
+    expect(calls.length).toBe(0);
+  }
+
   beforeEach(() => {
     MockApp.mockCalls = [];
   });
@@ -159,13 +170,8 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request1 = RequestUtil.makeGet('/boop.oof');
-    const result1  = await sr.handleRequest(request1, new DispatchInfo(TreePathKey.EMPTY, request1.pathname));
-    expect(result1).toBeNull();
-
-    const request2 = RequestUtil.makeGet('/zonk/florp.oof');
-    const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
-    expect(result2).toBeNull();
+    await expectNull(sr, '/boop.oof');
+    await expectNull(sr, '/zonk/florp.oof');
   });
 
   test('does not handle directories when so configured', async () => {
@@ -177,13 +183,8 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request1 = RequestUtil.makeGet('/boop.oof/');
-    const result1  = await sr.handleRequest(request1, new DispatchInfo(TreePathKey.EMPTY, request1.pathname));
-    expect(result1).toBeNull();
-
-    const request2 = RequestUtil.makeGet('/zonk/florp.oof/');
-    const result2  = await sr.handleRequest(request2, new DispatchInfo(TreePathKey.EMPTY, request2.pathname));
-    expect(result2).toBeNull();
+    await expectNull(sr, '/boop.oof/');
+    await expectNull(sr, '/zonk/florp.oof/');
   });
 
   test('routes to the full-wildcard when no other suffix matches', async () => {
@@ -200,6 +201,7 @@ describe('_impl_handleRequest()', () => {
     await expectApp(sr, '/zonk',       'mockApp1');
     await expectApp(sr, '/a/b/c/zonk', 'mockApp1');
     await expectApp(sr, '/.bleep',     'mockApp1');
+    await expectApp(sr, '/bleepy',     'mockApp1');
   });
 
   test('returns `null` when no suffix matches and there is no full-wildcard', async () => {
@@ -211,9 +213,8 @@ describe('_impl_handleRequest()', () => {
       }
     });
 
-    const request = RequestUtil.makeGet('/boop.bop');
-    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
-    expect(result).toBeNull();
+    await expectNull(sr, '/boop.bop');
+    await expectNull(sr, '/floop/flop');
   });
 
   test('routes to the longest matching suffix when more than one matches', async () => {
