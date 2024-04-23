@@ -158,6 +158,36 @@ export class UnitQuantity {
   }
 
   /**
+   * Shorthand for `.compare(other) == 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other == this`.
+   */
+  eq(other) {
+    return this.compare(other) === 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) >= 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other >= this`.
+   */
+  ge(other) {
+    return this.compare(other) >= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) > 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other > this`.
+   */
+  gt(other) {
+    return this.compare(other) > 0;
+  }
+
+  /**
    * Returns the inverse of this instance, that is, `1 / value`, with numerator
    * and denominator swapped.
    *
@@ -167,6 +197,36 @@ export class UnitQuantity {
     const resultClass = this[INVERSE_SYMBOL];
 
     return new resultClass(1 / this.#value, this.#denominatorUnit, this.#numeratorUnit);
+  }
+
+  /**
+   * Shorthand for `.compare(other) <= 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other <= this`.
+   */
+  le(other) {
+    return this.compare(other) <= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) < 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other < this`.
+   */
+  lt(other) {
+    return this.compare(other) < 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) != 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other != this`.
+   */
+  ne(other) {
+    return this.compare(other) !== 0;
   }
 
   /**

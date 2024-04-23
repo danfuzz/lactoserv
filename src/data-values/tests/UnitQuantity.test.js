@@ -154,22 +154,43 @@ ${'subtract'}
   });
 });
 
-describe('compare()', () => {
-  test.each`
-  v1        | v2        | expected
-  ${0}      | ${0}      | ${0}
-  ${123.4}  | ${123.4}  | ${0}
-  ${-12}    | ${-11}    | ${-1}
-  ${7}      | ${123}    | ${-1}
-  ${7.6}    | ${5.4}    | ${1}
-  ${9999.3} | ${9999.2} | ${1}
-  `('returns $expected given ($v1, $v2)', ({ v1, v2, expected }) => {
-    const uq1    = new UnitQuantity(v1, 'x', 'y');
-    const uq2    = new UnitQuantity(v2, 'x', 'y');
-    const result = uq1.compare(uq2);
+describe.each`
+methodName
+${'compare'}
+${'eq'}
+${'ge'}
+${'gt'}
+${'le'}
+${'lt'}
+${'ne'}
+`('$methodName()', ({ methodName }) => {
+  const F = false;
+  const T = true;
 
-    expect(result).toBeNumber();
-    expect(result).toBe(expected);
+  describe.each`
+  v1        | v2        | compare | eq   | ne   | lt   | le   | gt   | ge
+  ${0}      | ${0}      | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${T}
+  ${123.4}  | ${123.4}  | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${T}
+  ${-12}    | ${-11}    | ${-1}   | ${F} | ${T} | ${T} | ${T} | ${F} | ${F}
+  ${7}      | ${123}    | ${-1}   | ${F} | ${T} | ${T} | ${T} | ${F} | ${F}
+  ${7.6}    | ${5.4}    | ${1}    | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  ${9999.3} | ${9999.2} | ${1}    | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  `('given ($v1, $v2)', ({ v1, v2, ...expected }) => {
+    const exp = expected[methodName];
+
+    test(`returns ${exp}`, () => {
+      const uq1    = new UnitQuantity(v1, 'x', 'y');
+      const uq2    = new UnitQuantity(v2, 'x', 'y');
+      const result = uq1[methodName](uq2);
+
+      if (typeof exp === 'boolean') {
+        expect(result).toBeBoolean();
+      } else {
+        expect(result).toBeNumber();
+      }
+
+      expect(result).toBe(exp);
+    });
   });
 });
 
