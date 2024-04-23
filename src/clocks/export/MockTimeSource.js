@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ManualPromise } from '@this/async';
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 
 import { IntfTimeSource } from '#x/IntfTimeSource';
 
@@ -35,6 +35,13 @@ export class MockTimeSource extends IntfTimeSource {
   #ended = false;
 
   /**
+   * Result for {@link #_lastWaitFor}.
+   *
+   * @type {?Duration}
+   */
+  #lastWaitFor = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {number|Moment} firstNow Initial seconds-value for {@link #now}.
@@ -61,6 +68,8 @@ export class MockTimeSource extends IntfTimeSource {
     if (opts !== undefined) {
       throw new Error('Options not supported. Sorry!');
     }
+
+    this.#lastWaitFor = dur;
 
     return this.waitUntil(this.#now.add(dur));
   }
@@ -94,6 +103,15 @@ export class MockTimeSource extends IntfTimeSource {
     }
 
     this.#ended = true;
+  }
+
+  /**
+   * Mock control: Returns the most recent duration value passed to `waitFor()`.
+   *
+   * @returns {Duration} The duration.
+   */
+  _lastWaitFor() {
+    return this.#lastWaitFor;
   }
 
   /**
