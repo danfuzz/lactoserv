@@ -94,7 +94,10 @@ ${'subtract'}
   arg
   ${undefined}
   ${null}
+  ${false}
+  ${true}
   ${123}
+  ${123n}
   ${['x']}
   ${new Map()}
   `('throws given $arg', ({ arg }) => {
