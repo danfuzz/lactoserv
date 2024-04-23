@@ -21,7 +21,7 @@ export class MockTimeSource extends IntfTimeSource {
   #now;
 
   /**
-   * Array of pendning timeouts.
+   * Array of pending timeouts.
    *
    * @type {Array<{ atSec: number, resolve: function() }>}
    */
