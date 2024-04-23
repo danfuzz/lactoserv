@@ -42,7 +42,7 @@ export class SuffixRouter extends BaseApplication {
       return null;
     }
 
-    const application = this.#routeMap(suffix);
+    const application = this.#routeMap.get(suffix);
 
     request.logger?.dispatchingSuffix({
       application: application.name,
@@ -73,7 +73,7 @@ export class SuffixRouter extends BaseApplication {
 
     for (const [suffix, name] of this.config.routeMap) {
       const app = appManager.get(name);
-      routeMap.add(suffix, app);
+      routeMap.set(suffix, app);
     }
 
     this.#routeMap = routeMap;
@@ -155,7 +155,7 @@ export class SuffixRouter extends BaseApplication {
         if (routeMap.has(text)) {
           throw new Error(`Duplicate suffix spec: ${suffix}`);
         }
-        routeMap.add(text, name);
+        routeMap.set(text, name);
         regexParts.push(regex);
       }
 
