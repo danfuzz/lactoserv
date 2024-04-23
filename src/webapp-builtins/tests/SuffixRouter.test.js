@@ -277,7 +277,7 @@ describe('_impl_handleRequest()', () => {
         '*':       'mockApp1',
         '*.z':     'mockApp2',
         '*.y.z':   'mockApp3',
-        '*.x.y.z': 'mockApp4',
+        '*.x.y.z': 'mockApp4'
       }
     }, { appCount: 4, handlerFunc });
 
