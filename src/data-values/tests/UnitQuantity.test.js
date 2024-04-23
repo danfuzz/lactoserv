@@ -126,19 +126,27 @@ methodName
 ${'add'}
 ${'subtract'}
 `('$methodName()', ({ methodName }) => {
-  test.each`
-  v1     | v2    | add    | subtract
-  ${100} | ${1}  | ${101} | ${99}
-  ${5}   | ${20} | ${25}  | ${-15}
-  `('works for $v1 and $v2', ({ v1, v2, ...expected }) => {
-    const uq1    = new UnitQuantity(v1, 'x', 'y');
-    const uq2    = new UnitQuantity(v2, 'x', 'y');
-    const result = uq1[methodName](uq2);
+  describe.each`
+  v1       | v2       | add     | subtract
+  ${0}     | ${0}     | ${0}    | ${0}
+  ${12.25} | ${12.25} | ${24.5} | ${0}
+  ${100}   | ${1}     | ${101}  | ${99}
+  ${1}     | ${100}   | ${101}  | ${-99}
+  ${20}    | ${5}     | ${25}   | ${15}
+  ${5}     | ${20}    | ${25}   | ${-15}
+  `('given ($v1, $v2)', ({ v1, v2, ...expected }) => {
+    const exp = expected[methodName];
 
-    expect(result).toBeInstanceOf(UnitQuantity);
-    expect(result.numeratorUnit).toBe('x');
-    expect(result.denominatorUnit).toBe('y');
-    expect(result.value).toBe(expected[methodName]);
+    test(`returns ${exp}`, () => {
+      const uq1    = new UnitQuantity(v1, 'x', 'y');
+      const uq2    = new UnitQuantity(v2, 'x', 'y');
+      const result = uq1[methodName](uq2);
+
+      expect(result).toBeInstanceOf(UnitQuantity);
+      expect(result.numeratorUnit).toBe('x');
+      expect(result.denominatorUnit).toBe('y');
+      expect(result.value).toBe(expected[methodName]);
+    });
   });
 
   test('returns an instance of the same class as `this`', () => {
