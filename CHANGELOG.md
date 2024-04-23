@@ -14,6 +14,12 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `clocks`:
+  * Added `waitFor()` to the interface `IntfTimeSource`.
+  * Extracted `MockTimeSource` from `TokenBucket.test.js`, for use throughout
+    the system.
+* `data-values`:
+  * Added comparison methods to `UnitQuantity`.
 * `webapp-builtins`:
   * New application `SuffixRouter`.
 
