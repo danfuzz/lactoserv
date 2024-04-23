@@ -57,6 +57,15 @@ export class MockTimeSource extends IntfTimeSource {
   }
 
   /** @override */
+  async waitFor(dur, opts = undefined) {
+    if (opts !== undefined) {
+      throw new Error('Options not supported. Sorry!');
+    }
+
+    return this.waitUntil(this.#now.add(dur));
+  }
+
+  /** @override */
   async waitUntil(time) {
     if (this.#ended) {
       throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
