@@ -55,7 +55,7 @@ export class RequestDelay extends BaseApplication {
       const range      = maxDelay.sec - minVal;
       const resultMsec = Math.round(((Math.random() * range) + minVal) * 1000);
 
-      return new Duration(resultMsec);
+      return new Duration(resultMsec / 1000);
     }
   }
 
