@@ -1,8 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Condition, Threadlet } from '@this/async';
-import { BaseComponent, BaseConfig, BaseWrappedHierarchy, RootControlContext }
+import { Condition } from '@this/async';
+import { BaseComponent, BaseConfig, BaseThreadComponent, BaseWrappedHierarchy,
+  RootControlContext }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -18,7 +19,7 @@ import { KeepRunning } from '#x/KeepRunning';
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends BaseComponent {
+export class BaseSystem extends BaseThreadComponent {
   /**
    * List of registered callbacks.
    *
@@ -47,13 +48,6 @@ export class BaseSystem extends BaseComponent {
    * @type {BaseWrappedHierarchy}
    */
   #wrappedHierarchy = null;
-
-  /**
-   * Threadlet that runs this instance.
-   *
-   * @type {Threadlet}
-   */
-  #thread = new Threadlet((runnerAccess) => this.#runThread(runnerAccess));
 
   /**
    * Constructs an instance.
@@ -96,6 +90,8 @@ export class BaseSystem extends BaseComponent {
 
   /** @override */
   async _impl_init() {
+    super._impl_init();
+
     const makeHierarchy = (oldRoot) => this._impl_makeHierarchy(oldRoot);
 
     /**
@@ -125,59 +121,20 @@ export class BaseSystem extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start() {
+  async _impl_threadStart(runnerAccess_unused) {
+    // We do this first, so that if there was trouble starting the wrapped
+    // hierarchy, we don't bother trying to do anything else.
+    await this.#startOrReload();
+
     this.#callbacks.push(
       Host.registerReloadCallback(() => this.#requestReload()),
       Host.registerShutdownCallback(() => this.stop()));
 
-    // Note: The thread runner is responsible for starting and stopping the
-    // `wrappedHierarchy`.
-
-    await Promise.all([
-      this.#keepRunning.start(),
-      this.#thread.start()
-    ]);
+    await this.#keepRunning.start();
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
-    for (const cb of this.#callbacks) {
-      cb.unregister();
-    }
-    this.#callbacks = [];
-
-    // Note: The thread runner is responsible for starting and stopping the
-    // `wrappedHierarchy`.
-
-    await Promise.all([
-      this.#thread.stop(),
-      this.#keepRunning.stop()
-    ]);
-  }
-
-  /**
-   * Requests that the system be reloaded.
-   */
-  async #requestReload() {
-    if (this.#thread.isRunning()) {
-      this.logger?.reload('requested');
-      this.#reloadRequested.value = true;
-    } else {
-      // Not actually running (probably in the middle of completely shutting
-      // down).
-      this.logger?.reload('ignoring');
-    }
-  }
-
-  /**
-   * Main action of this instance, which just starts the system, and then
-   * reloads whenever requested, and then shuts down also when requested.
-   *
-   * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
-   */
-  async #runThread(runnerAccess) {
-    await this.#startOrReload();
-
+  async _impl_threadRun(runnerAccess) {
     while (!runnerAccess.shouldStop()) {
       if (this.#reloadRequested.value === true) {
         await this.#startOrReload();
@@ -189,7 +146,31 @@ export class BaseSystem extends BaseComponent {
       ]);
     }
 
-    await this.#wrappedHierarchy.stop();
+    // We're stopping.
+
+    await Promise.all([
+      this.#wrappedHierarchy.stop(),
+      this.#keepRunning.stop()
+    ]);
+
+    for (const cb of this.#callbacks) {
+      cb.unregister();
+    }
+    this.#callbacks = [];
+  }
+
+  /**
+   * Requests that the system be reloaded.
+   */
+  async #requestReload() {
+    if (this.state === 'running') {
+      this.logger?.reload('requested');
+      this.#reloadRequested.value = true;
+    } else {
+      // Not actually running (probably in the middle of completely shutting
+      // down).
+      this.logger?.reload('ignoring');
+    }
   }
 
   /**

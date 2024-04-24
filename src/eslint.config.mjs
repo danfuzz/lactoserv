@@ -233,7 +233,7 @@ const disallowedFunctionality = {
       message:  'Only access `_prot_*` (protected method) on `this`.'
     },
     {
-      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_impl_/][object.type!=ThisExpression]',
+      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_impl_/][object.type!=ThisExpression][object.type!=Super]',
       message:  'Only access `_impl_*` (subclass-implementation method) on `this`.'
     }
   ]
