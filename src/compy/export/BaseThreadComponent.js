@@ -10,6 +10,11 @@ import { BaseComponent } from '#x/BaseComponent';
  * Base class for components which want to have a thread-like implementation:
  * When the component is started or stopped, the internally-defined thread is
  * likewise started or stopped (respectively).
+ *
+ * If a subclass overrides any of the `BaseComponent` `_impl_*` methods, it must
+ * always call `super._impl_*`, in order for this class to operate correctly.
+ * That said, it should usually be the case that subclasses only need to
+ * implement {@link #_impl_threadStart} and {@link #_impl_threadRun}.
  */
 export class BaseThreadComponent extends BaseComponent {
   /**
