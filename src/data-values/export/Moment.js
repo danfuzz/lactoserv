@@ -82,6 +82,28 @@ export class Moment {
   }
 
   /**
+   * Compares the value of this instance to another, returning the usual values
+   * `-1`, `0`, or `1` depending on the result of comparison.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {number} Usual comparison result.
+   */
+  compare(other) {
+    MustBe.instanceOf(other, Moment);
+
+    const thisAt  = this.#atSec;
+    const otherAt = other.#atSec;
+
+    if (thisAt === otherAt) {
+      return 0;
+    } else if (thisAt < otherAt) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
+  /**
    * Indicates if this instance represents the same moment in time as the given
    * one.
    *

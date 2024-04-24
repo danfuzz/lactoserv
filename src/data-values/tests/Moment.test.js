@@ -61,19 +61,28 @@ ${'lt'}
   const F = false;
 
   describe.each`
-  m1          | m2          | eq   | gt   | lt
-  ${0}        | ${0}        | ${T} | ${F} | ${F}
-  ${0}        | ${1}        | ${F} | ${F} | ${T}
-  ${1}        | ${0}        | ${F} | ${T} | ${F}
-  ${100.9}    | ${100.9001} | ${F} | ${F} | ${T}
-  ${9999.999} | ${9999.998} | ${F} | ${T} | ${F}
-  ${12345678} | ${12345678} | ${T} | ${F} | ${F}
+  m1          | m2          | compare | eq   | gt   | lt
+  ${0}        | ${0}        | ${0}    | ${T} | ${F} | ${F}
+  ${12345678} | ${12345678} | ${0}    | ${T} | ${F} | ${F}
+  ${-123.45}  | ${-123.45}  | ${0}    | ${T} | ${F} | ${F}
+  ${0}        | ${1}        | ${-1}   | ${F} | ${F} | ${T}
+  ${12.34}    | ${98765}    | ${-1}   | ${F} | ${F} | ${T}
+  ${100.9}    | ${100.9001} | ${-1}   | ${F} | ${F} | ${T}
+  ${1}        | ${0}        | ${1}    | ${F} | ${T} | ${F}
+  ${19}       | ${2}        | ${1}    | ${F} | ${T} | ${F}
+  ${9999.999} | ${9999.998} | ${1}    | ${F} | ${T} | ${F}
   `('given ($m1, $m2)', ({ m1, m2, ...expected }) => {
     const exp = expected[methodName];
     test(`returns ${exp}`, () => {
       const mo1    = new Moment(m1);
       const mo2    = new Moment(m2);
       const result = mo1[methodName](mo2);
+
+      if (typeof exp === 'boolean') {
+        expect(result).toBeBoolean();
+      } else {
+        expect(result).toBeNumber();
+      }
 
       expect(result).toBe(exp);
     });
