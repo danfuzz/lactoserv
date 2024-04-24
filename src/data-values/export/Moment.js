@@ -104,38 +104,63 @@ export class Moment {
   }
 
   /**
-   * Indicates if this instance represents the same moment in time as the given
-   * one.
+   * Shorthand for `.compare(other) == 0`.
    *
-   * @param {*} other Instance to compare to.
-   * @returns {boolean} `true` iff this is a `Moment` with the same time as
-   *   `other`.
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other == this`.
    */
   eq(other) {
-    MustBe.instanceOf(other, Moment);
-    return this.#atSec === other.#atSec;
+    return this.compare(other) === 0;
   }
 
   /**
-   * Indicates if this instance represents a later time than the given one.
+   * Shorthand for `.compare(other) >= 0`.
    *
    * @param {Moment} other Instance to compare to.
-   * @returns {boolean} `true` iff this is later than `other`.
+   * @returns {boolean} `true` iff `other >= this`.
+   */
+  ge(other) {
+    return this.compare(other) >= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) > 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other > this`.
    */
   gt(other) {
-    MustBe.instanceOf(other, Moment);
-    return this.#atSec > other.#atSec;
+    return this.compare(other) > 0;
   }
 
   /**
-   * Indicates if this instance represents an earlier time than the given one.
+   * Shorthand for `.compare(other) <= 0`.
    *
    * @param {Moment} other Instance to compare to.
-   * @returns {boolean} `true` iff this is earlier than `other`.
+   * @returns {boolean} `true` iff `other <= this`.
+   */
+  le(other) {
+    return this.compare(other) <= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) < 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other < this`.
    */
   lt(other) {
-    MustBe.instanceOf(other, Moment);
-    return this.#atSec < other.#atSec;
+    return this.compare(other) < 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) != 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other != this`.
+   */
+  ne(other) {
+    return this.compare(other) !== 0;
   }
 
   /**
