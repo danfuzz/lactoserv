@@ -8,12 +8,14 @@
   "exports": "./index.js",
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js"
+    "#p/*": "./private/*.js",
+    "#test/*": "./tests/*.js"
   },
 
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
+    "@this/compy": "*",
     "@this/data-values": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
