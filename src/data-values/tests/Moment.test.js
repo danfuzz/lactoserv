@@ -53,12 +53,12 @@ describe('.atMsec', () => {
 
 describe.each`
 methodName
-${'equals'}
+${'eq'}
 ${'isAfter'}
 ${'isBefore'}
 `('$methodName()', ({ methodName }) => {
   test.each`
-  m1          | m2          | equals   | isAfter  | isBefore
+  m1          | m2          | eq       | isAfter  | isBefore
   ${0}        | ${0}        | ${true}  | ${false} | ${false}
   ${0}        | ${1}        | ${false} | ${false} | ${true}
   ${1}        | ${0}        | ${false} | ${true}  | ${false}

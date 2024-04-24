@@ -89,7 +89,7 @@ export class Moment {
    * @returns {boolean} `true` iff this is a `Moment` with the same time as
    *   `other`.
    */
-  equals(other) {
+  eq(other) {
     return (other instanceof Moment)
       && (this.#atSec === other.#atSec);
   }
