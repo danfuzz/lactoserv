@@ -44,9 +44,9 @@ export class TreeMap {
   /**
    * Constructs an empty instance.
    *
-   * @param {?function(PathKey): string} [keyStringFunc] The function to use
-   *   to render keys into strings. If `null`, this uses {@link
-   *   PathKey#toString} with no arguments.
+   * @param {?function(PathKey): string} [keyStringFunc] The function to use to
+   *   render keys into strings. If `null`, this uses {@link PathKey#toString}
+   *   with no arguments.
    */
   constructor(keyStringFunc = null) {
     this.#keyStringFunc = keyStringFunc
@@ -97,9 +97,9 @@ export class TreeMap {
   /**
    * Gets an iterator over the entries of this instance, analogously to the
    * standard JavaScript `Map.entries()` method. The keys are all instances of
-   * {@link PathKey}, more specifically the same instances that were used to
-   * add mappings to this instance. The result is both an iterator and an
-   * iterable (which, as with `Map.entries()`, returns itself).
+   * {@link PathKey}, more specifically the same instances that were used to add
+   * mappings to this instance. The result is both an iterator and an iterable
+   * (which, as with `Map.entries()`, returns itself).
    *
    * Unlike `Map`, this method does _not_ return an iterator which yields keys
    * in insertion order. Instead, iteration order is always preorder
@@ -118,8 +118,8 @@ export class TreeMap {
    * are no matching bindings.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The
-   *   most specific match, or `null` if there was no match at all.
+   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The most
+   *   specific match, or `null` if there was no match at all.
    */
   find(key) {
     return this.#rootNode.find(key);
@@ -161,10 +161,10 @@ export class TreeMap {
    * @param {TypePathKey} key Key to search for. If `.wildcard` is `true`, then
    *   this method will only find bindings which are wildcards, though they
    *   might be more general than the `.path` being looked for.
-   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One
-   *   result of the search.
-   *   * `{PathKey} key` -- The key that was matched; this is a wildcard key
-   *     if the match was in fact a wildcard match, and likewise it is a
+   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One result of the
+   *   search.
+   *   * `{PathKey} key` -- The key that was matched; this is a wildcard key if
+   *     the match was in fact a wildcard match, and likewise it is a
    *     non-wildcard key for an exact match. Furthermore, this is an object
    *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
    *     key).

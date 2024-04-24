@@ -200,9 +200,8 @@ export class ControlContext {
    * Gets a the component at the given path from the root of this instance,
    * which optionally must be of a specific class (including a base class).
    *
-   * @param {Array<string>|PathKey|string} path Absolute path to the
-   *   component. If a string, must be parseable as a path by {@link
-   *   Names#parsePath}.
+   * @param {Array<string>|PathKey|string} path Absolute path to the component.
+   *   If a string, must be parseable as a path by {@link Names#parsePath}.
    * @param {...function(new:BaseComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).
@@ -230,9 +229,9 @@ export class ControlContext {
    * If there _is_ a component at the path but its class doesn't match, that's
    * still an error.
    *
-   * @param {?Array<string>|PathKey|string} path Absolute path to the
-   *   component, or `null`-ish to always not-find an instance. If a string,
-   *   must be parseable as a path by {@link Names#parsePath}.
+   * @param {?Array<string>|PathKey|string} path Absolute path to the component,
+   *   or `null`-ish to always not-find an instance. If a string, must be
+   *   parseable as a path by {@link Names#parsePath}.
    * @param {...function(new:BaseComponent)} [classes] List of classes and/or
    *   interfaces which the result must be an instance of or implement
    *   (respectively).

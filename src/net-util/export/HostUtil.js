@@ -319,9 +319,9 @@ export class HostUtil {
   }
 
   /**
-   * Gets the string form of a {@link PathKey}, interpreted as a hostname,
-   * where the TLD is the initial path component. That is, the result renders
-   * the key in reverse.
+   * Gets the string form of a {@link PathKey}, interpreted as a hostname, where
+   * the TLD is the initial path component. That is, the result renders the key
+   * in reverse.
    *
    * @param {PathKey} key The key to convert.
    * @returns {string} The hostname string form.
@@ -338,9 +338,9 @@ export class HostUtil {
   }
 
   /**
-   * Parses a possibly-wildcarded hostname into a {@link PathKey}. This
-   * accepts both DNS names and IP addresses. In the case of an IP address, the
-   * result is a single-component path key.
+   * Parses a possibly-wildcarded hostname into a {@link PathKey}. This accepts
+   * both DNS names and IP addresses. In the case of an IP address, the result
+   * is a single-component path key.
    *
    * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
    * are at the front of a hostname not the back), the `.path` of the result

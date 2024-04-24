@@ -88,8 +88,8 @@ export class UriUtil {
   }
 
   /**
-   * Gets the string form of a {@link PathKey} as a URI path, that is, the
-   * part of a URI after the hostname. The result is in absolute form by default
+   * Gets the string form of a {@link PathKey} as a URI path, that is, the part
+   * of a URI after the hostname. The result is in absolute form by default
    * (prefixed with `/`), or is optionally in relative form (prefixed with
    * `./`). Empty components are represented as one might expect, with no
    * characters between two slashes for an empty component in the middle of a

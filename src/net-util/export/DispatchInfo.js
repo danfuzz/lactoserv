@@ -35,12 +35,12 @@ export class DispatchInfo {
   /**
    * Constructs an instance.
    *
-   * @param {PathKey} base The base path (that is, the path prefix) to which
-   *   the request is being dispatched. This is expected to already have `.` and
+   * @param {PathKey} base The base path (that is, the path prefix) to which the
+   *   request is being dispatched. This is expected to already have `.` and
    *   `..` components resolved away.
-   * @param {PathKey} extra The remaining suffix portion of the original
-   *   path, after removing `base`. This is expected to already have `.` and
-   *   `..` components resolved away.
+   * @param {PathKey} extra The remaining suffix portion of the original path,
+   *   after removing `base`. This is expected to already have `.` and `..`
+   *   components resolved away.
    */
   constructor(base, extra) {
     this.#base  = MustBe.instanceOf(base, PathKey);

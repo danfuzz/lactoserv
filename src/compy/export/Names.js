@@ -49,8 +49,8 @@ export class Names {
   /**
    * Parses an absolute component path into a key. This accepts all of:
    *
-   * * a `PathKey` -- Returned directly if not a wildcard, otherwise returns
-   *   the non-wildcard version. Elements are checked for validity.
+   * * a `PathKey` -- Returned directly if not a wildcard, otherwise returns the
+   *   non-wildcard version. Elements are checked for validity.
    * * an array of strings -- Contructed into a non-wildcard-key, with elements
    *   checked for validity.
    * * a string -- Parsed as a slash--separated list of elements, which must

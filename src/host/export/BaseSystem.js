@@ -40,8 +40,8 @@ export class BaseSystem extends BaseComponent {
   #thread = new Threadlet((runnerAccess) => this.#runThread(runnerAccess));
 
   /**
-   * Current root component being managed. This is a return value from
-   * {@link #_impl_makeHierarchy}.
+   * Current root component being managed. This is a return value from {@link
+   * #_impl_makeHierarchy}.
    *
    * @type {BaseComponent}
    */

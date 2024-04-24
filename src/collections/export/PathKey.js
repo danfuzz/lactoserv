@@ -10,8 +10,8 @@ import { TreeMap } from '#x/TreeMap';
 
 
 /**
- * Key for use with {@link TreeMap}. Instances are immutable, and contents
- * are strongly type-checked.
+ * Key for use with {@link TreeMap}. Instances are immutable, and contents are
+ * strongly type-checked.
  */
 export class PathKey {
   /**
@@ -115,8 +115,8 @@ export class PathKey {
    * as this one. If all of the given arguments are empty, this method returns
    * `this`.
    *
-   * @param {Array<string|Array<string>|PathKey>} others Values to
-   *   concatenate to `this`.
+   * @param {Array<string|Array<string>|PathKey>} others Values to concatenate
+   *   to `this`.
    * @returns {PathKey} Instance with all of `others` concatenated.
    */
   concat(...others) {

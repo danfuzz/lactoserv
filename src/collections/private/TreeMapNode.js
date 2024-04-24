@@ -54,9 +54,8 @@ export class TreeMapNode {
   // @defaultConstructor
 
   /**
-   * Underlying implementation of `TreeMap.add()`, see which for detailed
-   * docs. Note the different return-vs-throw behavior compared to the exposed
-   * method.
+   * Underlying implementation of `TreeMap.add()`, see which for detailed docs.
+   * Note the different return-vs-throw behavior compared to the exposed method.
    *
    * @param {TypePathKey} key Key to bind.
    * @param {*} value Value to bind at `key`.
@@ -107,8 +106,8 @@ export class TreeMapNode {
    * detailed docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @param {object} result Result to add to. (It's a `TreeMap`, but we
-   *   don't name the type here to avoid a circular dependency.)
+   * @param {object} result Result to add to. (It's a `TreeMap`, but we don't
+   *   name the type here to avoid a circular dependency.)
    */
   addSubtree(key, result) {
     const { path, wildcard } = key;
@@ -146,8 +145,8 @@ export class TreeMapNode {
   }
 
   /**
-   * Underlying implementation of `TreeMap.entries()`, see which for
-   * detailed docs.
+   * Underlying implementation of `TreeMap.entries()`, see which for detailed
+   * docs.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -156,24 +155,22 @@ export class TreeMapNode {
   }
 
   /**
-   * Underlying implementation of `TreeMap.find()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.find()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The
-   *   most specific match, or `null` if there was no match at all.
+   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The most
+   *   specific match, or `null` if there was no match at all.
    */
   find(key) {
     return this.findWithFallback(key).next().value ?? null;
   }
 
   /**
-   * Underlying implementation of `TreeMap.findWithFallback()`, see which
-   * for detailed docs.
+   * Underlying implementation of `TreeMap.findWithFallback()`, see which for
+   * detailed docs.
    *
    * @param {TypePathKey} keyToFind Key to search for.
-   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One
-   *   result.
+   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One result.
    */
   *findWithFallback(keyToFind) {
     const { path, wildcard } = keyToFind;
@@ -228,8 +225,7 @@ export class TreeMapNode {
   }
 
   /**
-   * Underlying implementation of `TreeMap.get()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.get()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to look up.
    * @param {*} ifNotFound What to return if a binding is not found.
@@ -260,8 +256,7 @@ export class TreeMapNode {
   }
 
   /**
-   * Underlying implementation of `TreeMap.has()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.has()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to look up.
    * @returns {boolean} `true` if this instance has a binding for `key`, or
