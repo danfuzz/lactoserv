@@ -9,7 +9,7 @@ import { TreePathMap } from '#x/TreePathMap';
  * Type for key parameters passed to methods of {@link TreePathMap}. Instances
  * of {@link TreePathKey} per se are used internally and are what is returned,
  * but it is generally okay to pass in plain objects with the expected
- * properties.
+ * properties. This type covers both possibilities.
  *
  * @typedef {TreePathKey|{ path: Array<string>, wildcard: boolean }} TypePathKey
  */
