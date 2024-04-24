@@ -85,16 +85,22 @@ describe('.value', () => {
   });
 });
 
+// This is for the bad-argument cases. There are separate `describe()`s for
+// success cases.
 describe.each`
 methodName
 ${'add'}
+${'compare'}
 ${'subtract'}
 `('$methodName()', ({ methodName }) => {
   test.each`
   arg
   ${undefined}
   ${null}
+  ${false}
+  ${true}
   ${123}
+  ${123n}
   ${['x']}
   ${new Map()}
   `('throws given $arg', ({ arg }) => {
@@ -113,20 +119,34 @@ ${'subtract'}
     const uq2 = new UnitQuantity(1, 'yes', 'y');
     expect(() => uq1[methodName](uq2)).toThrow();
   });
+});
 
-  test.each`
-  v1     | v2    | add    | subtract
-  ${100} | ${1}  | ${101} | ${99}
-  ${5}   | ${20} | ${25}  | ${-15}
-  `('works for $v1 and $v2', ({ v1, v2, ...expected }) => {
-    const uq1    = new UnitQuantity(v1, 'x', 'y');
-    const uq2    = new UnitQuantity(v2, 'x', 'y');
-    const result = uq1[methodName](uq2);
+describe.each`
+methodName
+${'add'}
+${'subtract'}
+`('$methodName()', ({ methodName }) => {
+  describe.each`
+  v1       | v2       | add     | subtract
+  ${0}     | ${0}     | ${0}    | ${0}
+  ${12.25} | ${12.25} | ${24.5} | ${0}
+  ${100}   | ${1}     | ${101}  | ${99}
+  ${1}     | ${100}   | ${101}  | ${-99}
+  ${20}    | ${5}     | ${25}   | ${15}
+  ${5}     | ${20}    | ${25}   | ${-15}
+  `('given ($v1, $v2)', ({ v1, v2, ...expected }) => {
+    const exp = expected[methodName];
 
-    expect(result).toBeInstanceOf(UnitQuantity);
-    expect(result.numeratorUnit).toBe('x');
-    expect(result.denominatorUnit).toBe('y');
-    expect(result.value).toBe(expected[methodName]);
+    test(`returns ${exp}`, () => {
+      const uq1    = new UnitQuantity(v1, 'x', 'y');
+      const uq2    = new UnitQuantity(v2, 'x', 'y');
+      const result = uq1[methodName](uq2);
+
+      expect(result).toBeInstanceOf(UnitQuantity);
+      expect(result.numeratorUnit).toBe('x');
+      expect(result.denominatorUnit).toBe('y');
+      expect(result.value).toBe(expected[methodName]);
+    });
   });
 
   test('returns an instance of the same class as `this`', () => {
@@ -139,6 +159,46 @@ ${'subtract'}
     const result = uq1[methodName](uq2);
 
     expect(result).toBeInstanceOf(UqSub);
+  });
+});
+
+describe.each`
+methodName
+${'compare'}
+${'eq'}
+${'ge'}
+${'gt'}
+${'le'}
+${'lt'}
+${'ne'}
+`('$methodName()', ({ methodName }) => {
+  const F = false;
+  const T = true;
+
+  describe.each`
+  v1        | v2        | compare | eq   | ne   | lt   | le   | gt   | ge
+  ${0}      | ${0}      | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${T}
+  ${123.4}  | ${123.4}  | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${T}
+  ${-12}    | ${-11}    | ${-1}   | ${F} | ${T} | ${T} | ${T} | ${F} | ${F}
+  ${7}      | ${123}    | ${-1}   | ${F} | ${T} | ${T} | ${T} | ${F} | ${F}
+  ${7.6}    | ${5.4}    | ${1}    | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  ${9999.3} | ${9999.2} | ${1}    | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  `('given ($v1, $v2)', ({ v1, v2, ...expected }) => {
+    const exp = expected[methodName];
+
+    test(`returns ${exp}`, () => {
+      const uq1    = new UnitQuantity(v1, 'x', 'y');
+      const uq2    = new UnitQuantity(v2, 'x', 'y');
+      const result = uq1[methodName](uq2);
+
+      if (typeof exp === 'boolean') {
+        expect(result).toBeBoolean();
+      } else {
+        expect(result).toBeNumber();
+      }
+
+      expect(result).toBe(exp);
+    });
   });
 });
 

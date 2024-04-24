@@ -126,17 +126,65 @@ export class UnitQuantity {
    * @returns {UnitQuantity} Summed result.
    */
   add(other) {
-    MustBe.instanceOf(other, UnitQuantity);
-
-    if (   (other.#numeratorUnit !== this.#numeratorUnit)
-        || (other.#denominatorUnit !== this.#denominatorUnit)) {
-      throw new Error('Mismatched units.');
-    }
+    this.#checkCompatibility(other);
 
     return new this.constructor(
       this.#value + other.#value,
       this.#numeratorUnit,
       this.#denominatorUnit);
+  }
+
+  /**
+   * Compares the value of this instance to another, returning the usual values
+   * `-1`, `0`, or `1` depending on the result of comparison. The other instance
+   * must have the same units as this one.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {number} Usual comparison result.
+   */
+  compare(other) {
+    this.#checkCompatibility(other);
+
+    const thisValue  = this.#value;
+    const otherValue = other.#value;
+
+    if (thisValue === otherValue) {
+      return 0;
+    } else if (thisValue < otherValue) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
+  /**
+   * Shorthand for `.compare(other) == 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other == this`.
+   */
+  eq(other) {
+    return this.compare(other) === 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) >= 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other >= this`.
+   */
+  ge(other) {
+    return this.compare(other) >= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) > 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other > this`.
+   */
+  gt(other) {
+    return this.compare(other) > 0;
   }
 
   /**
@@ -152,6 +200,36 @@ export class UnitQuantity {
   }
 
   /**
+   * Shorthand for `.compare(other) <= 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other <= this`.
+   */
+  le(other) {
+    return this.compare(other) <= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) < 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other < this`.
+   */
+  lt(other) {
+    return this.compare(other) < 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) != 0`.
+   *
+   * @param {UnitQuantity} other Instance to compare to.
+   * @returns {boolean} `true` iff `other != this`.
+   */
+  ne(other) {
+    return this.compare(other) !== 0;
+  }
+
+  /**
    * Subtracts the value of another instance from this one, returning a new
    * instance of the same (possibly sub-) class as this. The other instance must
    * have the same units as this one.
@@ -160,17 +238,28 @@ export class UnitQuantity {
    * @returns {UnitQuantity} Difference result.
    */
   subtract(other) {
-    MustBe.instanceOf(other, UnitQuantity);
-
-    if (   (other.#numeratorUnit !== this.#numeratorUnit)
-        || (other.#denominatorUnit !== this.#denominatorUnit)) {
-      throw new Error('Mismatched units.');
-    }
+    this.#checkCompatibility(other);
 
     return new this.constructor(
       this.#value - other.#value,
       this.#numeratorUnit,
       this.#denominatorUnit);
+  }
+
+  /**
+   * Throws an error if either the given value isn't an instance of this class
+   * or if its units don't match this class.
+   *
+   * @param {*} value Value in question.
+   * @throws {Error} Thrown if `value` isn't "compatible" with this instance.
+   */
+  #checkCompatibility(value) {
+    MustBe.instanceOf(value, UnitQuantity);
+
+    if (   (value.#numeratorUnit   !== this.#numeratorUnit)
+        || (value.#denominatorUnit !== this.#denominatorUnit)) {
+      throw new Error('Mismatched units.');
+    }
   }
 
   //

@@ -192,6 +192,35 @@ const applications = [
 ];
 ```
 
+## `RequestDelay`
+
+An application which simply causes a time delay. It never handles requests, but
+when asked to handle one, it delays before answering that it won't handle it.
+This is useful to place in the route list for a [`SerialRouter`](#serialrouter).
+
+* `delay` &mdash; The amount of time to delay every response, specified
+  as a duration value as described in
+  [Durations](./2-common-configuration.md#durations), or `null` if `minDelay`
+  and `maxDelay` will instead be specified.
+* `minDelay`, `maxDelay` &mdash; The minimum and maximum amount of time to delay
+  a response, inclusive on both ends, specified as duration values as described
+  in [Durations](./2-common-configuration.md#durations), or `null` if `delay` is
+  instead being specified. When used, the actual delay time of any given request
+  is picked randomly, quantized to milliseconds.
+* `timeSource` &mdash; An optional time source object. This is mainly useful for
+  testing.
+
+```js
+import { RequestDelay } from '@lactoserv/webapp-builtins';
+
+const applications = [
+  {
+    name:  'myDelay',
+    class: RequestDelay,
+    delay: '250 msec'
+];
+```
+
 ## `RequestFilter`
 
 An application which filters requests that match particular criteria, either by

@@ -5,8 +5,8 @@ import * as fs from 'node:fs/promises';
 
 import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
   MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, RequestFilter, SerialRouter, SimpleResponse, StaticFiles,
-  SyslogToFile }
+  Redirector, RequestDelay, RequestFilter, SerialRouter, SimpleResponse,
+  StaticFiles, SuffixRouter, SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -172,9 +172,23 @@ const applications = [
     maxQueryLength: 0
   },
   {
+    name: 'slowPoke',
+    class: RequestDelay,
+    minDelay: '0.5 sec',
+    maxDelay: '1 sec'
+  },
+  {
+    name: 'bonkers',
+    class: SuffixRouter,
+    suffixes: {
+      '*.bonk': 'slowPoke'
+    }
+  },
+  {
     name:  'mySeries',
     class: SerialRouter,
     applications: [
+      'bonkers',
       'myFilter',
       'myStaticFunNo404',
       'responseNotFound'

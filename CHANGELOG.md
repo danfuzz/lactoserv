@@ -14,7 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `clocks`:
+  * Added `waitFor()` to the interface `IntfTimeSource`.
+  * Extracted `MockTimeSource` from `TokenBucket.test.js`, for use throughout
+    the system.
+* `data-values`:
+  * Added comparison methods to `UnitQuantity`.
 * `webapp-builtins`:
+  * New application `RequestDelay`.
   * New application `SuffixRouter`.
 
 **Note:** v0.7.0 wasn't announced widely, because it was a "rebrand" of v0.6.16.

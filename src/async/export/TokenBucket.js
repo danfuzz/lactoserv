@@ -156,7 +156,7 @@ export class TokenBucket {
       maxQueueGrantSize = null,
       maxQueueSize      = null,
       partialTokens     = false,
-      timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
+      timeSource        = StdTimeSource.INSTANCE
     } = options;
 
     this.#flowRate = MustBe.instanceOf(flowRate, Frequency);
@@ -199,7 +199,7 @@ export class TokenBucket {
       ? null
       : this.#maxQueueSize;
 
-    const timeSource = (this.#timeSource === TokenBucket.#DEFAULT_TIME_SOURCE)
+    const timeSource = (this.#timeSource === StdTimeSource.INSTANCE)
       ? null
       : this.#timeSource;
 
@@ -627,16 +627,4 @@ export class TokenBucket {
       await this.#timeSource.waitUntil(time);
     }
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Default time source.
-   *
-   * @type {StdTimeSource}
-   */
-  static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }
