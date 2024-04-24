@@ -109,6 +109,7 @@ export class BaseSystem extends BaseComponent {
         return makeHierarchy(oldRoot);
       }
 
+      /** @override */
       static _impl_configClass() {
         return BaseConfig;
       }
