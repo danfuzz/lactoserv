@@ -3,6 +3,7 @@
 
 import { Converter, ConverterConfig, Struct } from '@this/data-values';
 
+import { CallbackList } from '#p/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ProductInfo } from '#x/ProductInfo';
@@ -81,10 +82,12 @@ export class Host {
    * maximum time to run before the system considers the procedure to be hung.
    *
    * @param {function()} callback Reload-time callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   static registerReloadCallback(callback) {
     this.init();
-    SignalHandler.registerReloadCallback(callback);
+    return SignalHandler.registerReloadCallback(callback);
   }
 
   /**
@@ -95,10 +98,12 @@ export class Host {
    * maximum time to run before the system considers the procedure to be hung.
    *
    * @param {function()} callback Shutdown-time callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   static registerShutdownCallback(callback) {
     this.init();
-    ShutdownHandler.registerCallback(callback);
+    return ShutdownHandler.registerCallback(callback);
   }
 
   /**
