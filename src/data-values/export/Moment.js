@@ -100,7 +100,7 @@ export class Moment {
    * @param {Moment} other Instance to compare to.
    * @returns {boolean} `true` iff this is later than `other`.
    */
-  isAfter(other) {
+  gt(other) {
     MustBe.instanceOf(other, Moment);
     return this.#atSec > other.#atSec;
   }
@@ -111,7 +111,7 @@ export class Moment {
    * @param {Moment} other Instance to compare to.
    * @returns {boolean} `true` iff this is earlier than `other`.
    */
-  isBefore(other) {
+  lt(other) {
     MustBe.instanceOf(other, Moment);
     return this.#atSec < other.#atSec;
   }
