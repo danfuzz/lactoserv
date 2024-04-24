@@ -3,6 +3,7 @@
 
 import process from 'node:process';
 
+import { WallClock } from '@this/clocky';
 import { Duration } from '@this/data-values';
 import { Loggy, TextFileSink } from '@this/loggy';
 
@@ -36,8 +37,16 @@ export class LoggingManager {
     this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event, bufferPeriod);
     this.#stdoutSink.run();
 
-    ShutdownHandler.registerCallback(() => {
-      this.#stdoutSink.drainAndStop();
+    ShutdownHandler.registerCallback(async () => {
+      // We want to try to log the stuff that's happening _during_ shutdown, so
+      // we (a) wait a moment before completing the callback, so that we're more
+      // likely to be one of the last to exit; and (b) only drain the log a
+      // moment _after_ the callback completes.
+      await WallClock.waitFor(bufferPeriod);
+      (async () => {
+        await WallClock.waitFor(bufferPeriod);
+        this.#stdoutSink.drainAndStop();
+      })();
     });
   }
 }
