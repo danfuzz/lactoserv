@@ -13,8 +13,6 @@
   },
 
   "dependencies": {
-    "@this/clocky": "*",
-    "@this/data-values": "*",
     "@this/typey": "*"
   }
 }
