@@ -57,14 +57,17 @@ ${'eq'}
 ${'gt'}
 ${'lt'}
 `('$methodName()', ({ methodName }) => {
+  const T = true;
+  const F = false;
+
   describe.each`
-  m1          | m2          | eq       | gt       | lt
-  ${0}        | ${0}        | ${true}  | ${false} | ${false}
-  ${0}        | ${1}        | ${false} | ${false} | ${true}
-  ${1}        | ${0}        | ${false} | ${true}  | ${false}
-  ${100.9}    | ${100.9001} | ${false} | ${false} | ${true}
-  ${9999.999} | ${9999.998} | ${false} | ${true}  | ${false}
-  ${12345678} | ${12345678} | ${true}  | ${false} | ${false}
+  m1          | m2          | eq   | gt   | lt
+  ${0}        | ${0}        | ${T} | ${F} | ${F}
+  ${0}        | ${1}        | ${F} | ${F} | ${T}
+  ${1}        | ${0}        | ${F} | ${T} | ${F}
+  ${100.9}    | ${100.9001} | ${F} | ${F} | ${T}
+  ${9999.999} | ${9999.998} | ${F} | ${T} | ${F}
+  ${12345678} | ${12345678} | ${T} | ${F} | ${F}
   `('given ($m1, $m2)', ({ m1, m2, ...expected }) => {
     const exp = expected[methodName];
     test(`returns ${exp}`, () => {
