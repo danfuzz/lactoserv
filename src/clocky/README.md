@@ -1,4 +1,4 @@
-@this/clocks
+@this/clocky
 ============
 
 Interface to real-world clocks. This is as opposed to simply the mechanics of

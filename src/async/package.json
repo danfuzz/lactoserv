@@ -8,11 +8,12 @@
   "exports": "./index.js",
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js"
+    "#p/*": "./private/*.js",
+    "#test/*": "./tests/*.js"
   },
 
   "dependencies": {
-    "@this/clocks": "*",
+    "@this/clocky": "*",
     "@this/data-values": "*",
     "@this/typey": "*"
   }

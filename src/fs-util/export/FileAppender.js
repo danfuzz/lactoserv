@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration } from '@this/data-values';
 import { MustBe } from '@this/typey';
 

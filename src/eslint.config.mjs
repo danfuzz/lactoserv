@@ -173,15 +173,15 @@ const disallowedFunctionality = {
     },
     {
       name:    'setInterval',
-      message: 'Use `clocks.WallClock` (or a different time source if appropriate).'
+      message: 'Use `clocky.WallClock` (or a different time source if appropriate).'
     },
     {
       name:    'setTimeout',
-      message: 'Use `clocks.WallClock` (or a different time source if appropriate).'
+      message: 'Use `clocky.WallClock` (or a different time source if appropriate).'
     },
     {
       name:    'timers',
-      message: 'Use `clocks` module from this project.'
+      message: 'Use module `clocky` from this project.'
     }
   ],
   'no-restricted-imports': [
@@ -191,17 +191,17 @@ const disallowedFunctionality = {
         {
           name:        'node:process',
           importNames: ['hrtime'],
-          message:     'Use module `clocks` from this project.'
+          message:     'Use module `clocky` from this project.'
         },
         {
           name:        'node:timers',
           importNames: ['clearTimeout', 'clearInterval', 'setTimeout', 'setInterval'],
-          message:     'Use module `clocks` from this project.'
+          message:     'Use module `clocky` from this project.'
         },
         {
           name:        'node:timers/promises',
           importNames: ['setTimeout', 'setInterval', 'scheduler'],
-          message:     'Use module `clocks` from this project.'
+          message:     'Use module `clocky` from this project.'
         }
       ],
       patterns: [
@@ -219,14 +219,14 @@ const disallowedFunctionality = {
     {
       object:   'Date',
       property: 'now',
-      message:  'Use module `clocks` from this project.'
+      message:  'Use module `clocky` from this project.'
     }
   ],
   'no-restricted-syntax': [
     'error',
     {
       selector: 'NewExpression[callee.name=\'Date\'][arguments.length!=1]',
-      message:  'Use module `clocks` or class `data-values.Moment`.'
+      message:  'Use module `clocky` or class `data-values.Moment`.'
     },
     {
       selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_prot_/][object.type!=ThisExpression]',

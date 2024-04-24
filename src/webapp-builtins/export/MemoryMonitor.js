@@ -4,7 +4,7 @@
 import { memoryUsage } from 'node:process';
 
 import { Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
 import { MustBe } from '@this/typey';

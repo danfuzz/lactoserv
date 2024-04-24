@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { PromiseState } from '@this/async';
-import { MockTimeSource } from '@this/clocks';
+import { MockTimeSource } from '@this/clocky';
 import { PathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
 import { Duration } from '@this/data-values';

@@ -4,7 +4,7 @@
 import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 

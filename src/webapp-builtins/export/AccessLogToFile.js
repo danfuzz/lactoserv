@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration, Moment } from '@this/data-values';
 import { FileAppender } from '@this/fs-util';
 import { FormatUtils } from '@this/loggy-intf';

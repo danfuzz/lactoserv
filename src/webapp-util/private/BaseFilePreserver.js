@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { Condition, Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';

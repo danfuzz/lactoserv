@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSource } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { StackTrace } from '@this/data-values';
 import { IdGenerator } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';

@@ -1,5 +1,5 @@
 {
-  "name": "@this/clocks",
+  "name": "@this/clocky",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -8,7 +8,8 @@
   "exports": "./index.js",
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js"
+    "#p/*": "./private/*.js",
+    "#test/*": "./tests/*.js"
   },
 
   "dependencies": {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PromiseUtil } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { BaseComponent, BaseConfig, RootControlContext }
   from '@this/compy';
 

@@ -11,6 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `clocky` / `clocks`:
+  * Renamed module to `clocky`, to harmonize with the other `*y` modules.
 * `collections`:
   * Renamed classes to be more sensible: `TreePathMap` -> `TreeMap`, and
     `TreePathKey` -> `PathKey`.
@@ -19,7 +21,7 @@ Breaking changes:
     added to `UnitQuantity` (see below).
 
 Other notable changes:
-* `clocks`:
+* `clocky`:
   * Added `waitFor()` to the interface `IntfTimeSource`.
   * Extracted `MockTimeSource` from `TokenBucket.test.js`, for use throughout
     the system.

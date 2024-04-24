@@ -6,7 +6,7 @@ import { Session } from 'node:inspector/promises';
 import path from 'node:path';
 
 import { EventPayload, EventSink, EventSource } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ThisModule } from '#p/ThisModule';
