@@ -57,7 +57,7 @@ ${'eq'}
 ${'isAfter'}
 ${'isBefore'}
 `('$methodName()', ({ methodName }) => {
-  test.each`
+  describe.each`
   m1          | m2          | eq       | isAfter  | isBefore
   ${0}        | ${0}        | ${true}  | ${false} | ${false}
   ${0}        | ${1}        | ${false} | ${false} | ${true}
@@ -65,12 +65,15 @@ ${'isBefore'}
   ${100.9}    | ${100.9001} | ${false} | ${false} | ${true}
   ${9999.999} | ${9999.998} | ${false} | ${true}  | ${false}
   ${12345678} | ${12345678} | ${true}  | ${false} | ${false}
-  `('works for ($m1, $m2)', ({ m1, m2, ...expected }) => {
-    const mo1    = new Moment(m1);
-    const mo2    = new Moment(m2);
-    const result = mo1[methodName](mo2);
+  `('given ($m1, $m2)', ({ m1, m2, ...expected }) => {
+    const exp = expected[methodName];
+    test(`returns ${exp}`, () => {
+      const mo1    = new Moment(m1);
+      const mo2    = new Moment(m2);
+      const result = mo1[methodName](mo2);
 
-    expect(result).toBe(expected[methodName]);
+      expect(result).toBe(exp);
+    });
   });
 });
 
@@ -84,7 +87,7 @@ ${'addSec'} | ${false}
   ${12345}      | ${0}       | ${12345}
   ${10000000}   | ${54321}   | ${10054321}
   ${1600000000} | ${-999888} | ${1599000112}
-  `('works given ($moment, $sec)', ({ moment, sec, expected }) => {
+  `('returns $expected given ($moment, $sec)', ({ moment, sec, expected }) => {
     const mobj   = new Moment(moment);
     const arg    = passDuration ? new Duration(sec) : sec;
     const result = mobj[methodName](arg);
@@ -99,7 +102,7 @@ describe('subtract()', () => {
   ${12345}    | ${12345}     | ${0}
   ${10000002} | ${10000001}  | ${1}
   ${10000001} | ${10000002}  | ${-1}
-  `('works given ($m1, $m2)', ({ m1, m2, expected }) => {
+  `('returns $expected given ($m1, $m2)', ({ m1, m2, expected }) => {
     const moment1 = new Moment(m1);
     const moment2 = new Moment(m2);
     const diff    = moment1.subtract(moment2);
