@@ -7,7 +7,6 @@ import { Duration, Frequency, Moment } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
-
 /**
  * Implementation of a "rate limiter with burstiness service", which is based on
  * the "token bucket" / "leaky bucket" algorithms. This actually implements
