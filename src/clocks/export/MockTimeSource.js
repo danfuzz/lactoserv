@@ -125,7 +125,7 @@ export class MockTimeSource extends IntfTimeSource {
       newNow = new Moment(newNow);
     }
 
-    if (newNow.isBefore(this.#now)) {
+    if (newNow.lt(this.#now)) {
       throw new Error('Cannot run time in reverse!');
     }
 

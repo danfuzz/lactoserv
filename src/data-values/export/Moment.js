@@ -82,38 +82,85 @@ export class Moment {
   }
 
   /**
-   * Indicates if this instance represents the same moment in time as the given
-   * one.
+   * Compares the value of this instance to another, returning the usual values
+   * `-1`, `0`, or `1` depending on the result of comparison.
    *
-   * @param {*} other Instance to compare to.
-   * @returns {boolean} `true` iff this is a `Moment` with the same time as
-   *   `other`.
+   * @param {Moment} other Instance to compare to.
+   * @returns {number} Usual comparison result.
    */
-  equals(other) {
-    return (other instanceof Moment)
-      && (this.#atSec === other.#atSec);
+  compare(other) {
+    MustBe.instanceOf(other, Moment);
+
+    const thisAt  = this.#atSec;
+    const otherAt = other.#atSec;
+
+    if (thisAt === otherAt) {
+      return 0;
+    } else if (thisAt < otherAt) {
+      return -1;
+    } else {
+      return 1;
+    }
   }
 
   /**
-   * Indicates if this instance represents a later time than the given one.
+   * Shorthand for `.compare(other) == 0`.
    *
    * @param {Moment} other Instance to compare to.
-   * @returns {boolean} `true` iff this is later than `other`.
+   * @returns {boolean} `true` iff `other == this`.
    */
-  isAfter(other) {
-    MustBe.instanceOf(other, Moment);
-    return this.#atSec > other.#atSec;
+  eq(other) {
+    return this.compare(other) === 0;
   }
 
   /**
-   * Indicates if this instance represents an earlier time than the given one.
+   * Shorthand for `.compare(other) >= 0`.
    *
    * @param {Moment} other Instance to compare to.
-   * @returns {boolean} `true` iff this is earlier than `other`.
+   * @returns {boolean} `true` iff `other >= this`.
    */
-  isBefore(other) {
-    MustBe.instanceOf(other, Moment);
-    return this.#atSec < other.#atSec;
+  ge(other) {
+    return this.compare(other) >= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) > 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other > this`.
+   */
+  gt(other) {
+    return this.compare(other) > 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) <= 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other <= this`.
+   */
+  le(other) {
+    return this.compare(other) <= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) < 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other < this`.
+   */
+  lt(other) {
+    return this.compare(other) < 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) != 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other != this`.
+   */
+  ne(other) {
+    return this.compare(other) !== 0;
   }
 
   /**

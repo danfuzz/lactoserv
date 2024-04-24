@@ -623,7 +623,7 @@ export class TokenBucket {
    * @param {Moment} time The time to wait until.
    */
   async #waitUntil(time) {
-    if (time.isAfter(this.#lastNow)) {
+    if (time.gt(this.#lastNow)) {
       await this.#timeSource.waitUntil(time);
     }
   }

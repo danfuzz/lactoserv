@@ -53,24 +53,54 @@ describe('.atMsec', () => {
 
 describe.each`
 methodName
-${'equals'}
-${'isAfter'}
-${'isBefore'}
+${'eq'}
+${'gt'}
+${'lt'}
 `('$methodName()', ({ methodName }) => {
   test.each`
-  m1          | m2          | equals   | isAfter  | isBefore
-  ${0}        | ${0}        | ${true}  | ${false} | ${false}
-  ${0}        | ${1}        | ${false} | ${false} | ${true}
-  ${1}        | ${0}        | ${false} | ${true}  | ${false}
-  ${100.9}    | ${100.9001} | ${false} | ${false} | ${true}
-  ${9999.999} | ${9999.998} | ${false} | ${true}  | ${false}
-  ${12345678} | ${12345678} | ${true}  | ${false} | ${false}
-  `('works for ($m1, $m2)', ({ m1, m2, ...expected }) => {
-    const mo1    = new Moment(m1);
-    const mo2    = new Moment(m2);
-    const result = mo1[methodName](mo2);
+  other
+  ${undefined}
+  ${null}
+  ${123}
+  ${123n}
+  ${'123'}
+  ${[123]}
+  ${{ a: 123 }}
+  ${new Map()}
+  `('throws given $other', ({ other }) => {
+    const mo = new Moment(12345);
+    expect(() => mo[methodName](other)).toThrow();
+  });
 
-    expect(result).toBe(expected[methodName]);
+  const T = true;
+  const F = false;
+
+  describe.each`
+  m1          | m2          | compare | eq   | ne   | gt   | ge   | lt   | le
+  ${0}        | ${0}        | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${F}
+  ${12345678} | ${12345678} | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${F}
+  ${-123.45}  | ${-123.45}  | ${0}    | ${T} | ${F} | ${F} | ${T} | ${F} | ${F}
+  ${0}        | ${1}        | ${-1}   | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  ${12.34}    | ${98765}    | ${-1}   | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  ${100.9}    | ${100.9001} | ${-1}   | ${F} | ${T} | ${F} | ${F} | ${T} | ${T}
+  ${1}        | ${0}        | ${1}    | ${F} | ${T} | ${T} | ${T} | ${F} | ${T}
+  ${19}       | ${2}        | ${1}    | ${F} | ${T} | ${T} | ${T} | ${F} | ${T}
+  ${9999.999} | ${9999.998} | ${1}    | ${F} | ${T} | ${T} | ${T} | ${F} | ${T}
+  `('given ($m1, $m2)', ({ m1, m2, ...expected }) => {
+    const exp = expected[methodName];
+    test(`returns ${exp}`, () => {
+      const mo1    = new Moment(m1);
+      const mo2    = new Moment(m2);
+      const result = mo1[methodName](mo2);
+
+      if (typeof exp === 'boolean') {
+        expect(result).toBeBoolean();
+      } else {
+        expect(result).toBeNumber();
+      }
+
+      expect(result).toBe(exp);
+    });
   });
 });
 
@@ -84,7 +114,7 @@ ${'addSec'} | ${false}
   ${12345}      | ${0}       | ${12345}
   ${10000000}   | ${54321}   | ${10054321}
   ${1600000000} | ${-999888} | ${1599000112}
-  `('works given ($moment, $sec)', ({ moment, sec, expected }) => {
+  `('returns $expected given ($moment, $sec)', ({ moment, sec, expected }) => {
     const mobj   = new Moment(moment);
     const arg    = passDuration ? new Duration(sec) : sec;
     const result = mobj[methodName](arg);
@@ -99,7 +129,7 @@ describe('subtract()', () => {
   ${12345}    | ${12345}     | ${0}
   ${10000002} | ${10000001}  | ${1}
   ${10000001} | ${10000002}  | ${-1}
-  `('works given ($m1, $m2)', ({ m1, m2, expected }) => {
+  `('returns $expected given ($m1, $m2)', ({ m1, m2, expected }) => {
     const moment1 = new Moment(m1);
     const moment2 = new Moment(m2);
     const diff    = moment1.subtract(moment2);
@@ -172,7 +202,7 @@ ${'toHttpString'}      | ${false}
   ${1004527353} | ${'Wed, 31 Oct 2001 11:22:33 GMT'}
   ${1004577804} | ${'Thu, 01 Nov 2001 01:23:24 GMT'}
   ${1007885236} | ${'Sun, 09 Dec 2001 08:07:16 GMT'}
-  `('with ($atSec)', ({ atSec, expected }) => {
+  `('returns $expected given ($atSec)', ({ atSec, expected }) => {
     const result = isStatic
       ? Moment[method](atSec)
       : new Moment(atSec)[method]();
@@ -217,7 +247,7 @@ ${'toString'}           | ${false}  | ${false}
   ${1673916141.1234}  | ${{ colons: true }}               | ${'20230117-00:42:21'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
-  `('with ($atSec, $options)', ({ atSec, options, expected }) => {
+  `('returns $expected given ($atSec, $options)', ({ atSec, options, expected }) => {
     const result = isStatic
       ? Moment[method](atSec, options)
       : new Moment(atSec)[method](options);
