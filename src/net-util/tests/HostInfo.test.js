@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { HostInfo } from '@this/net-util';
 
 
@@ -57,7 +57,7 @@ describe('.nameKey', () => {
     const hi  = new HostInfo(name, 123);
     const key = hi.nameKey;
 
-    expect(key).toBeInstanceOf(TreePathKey);
+    expect(key).toBeInstanceOf(PathKey);
     expect(key.wildcard).toBeFalse();
     expect(key.path).toBeArrayOfSize(parts.length);
     expect(key.path).toEqual(parts);

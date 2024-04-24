@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
@@ -296,7 +296,7 @@ export class IncomingRequest {
   }
 
   /**
-   * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
+   * @returns {?PathKey} Parsed path key form of {@link #pathnameString}, or
    * `null` if this instance doesn't represent a usual `origin` request.
    *
    * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
@@ -439,11 +439,11 @@ export class IncomingRequest {
       const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
 
       // `slice(1)` to avoid having an empty component as the first element. And
-      // freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      // freezing `parts` lets `new PathKey()` avoid making a copy.
       const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
 
       target.type           = 'origin';
-      target.pathname       = new TreePathKey(pathParts, false);
+      target.pathname       = new PathKey(pathParts, false);
       target.pathnameString = pathnameString;
       target.searchString   = urlObj.search;
     } else if (targetString === '*') {

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { AskIf, MustBe } from '@this/typey';
 
 import { HostUtil } from '#x/HostUtil';
@@ -43,7 +43,7 @@ export class HostInfo {
   /**
    * A path key representing {@link #nameString}.
    *
-   * @type {?TreePathKey}
+   * @type {?PathKey}
    */
   #nameKey = null;
 
@@ -71,7 +71,7 @@ export class HostInfo {
   }
 
   /**
-   * @returns {TreePathKey} A path key representing the {@link #nameString},
+   * @returns {PathKey} A path key representing the {@link #nameString},
    * parsed into components. The order of components is back-to-front (reverse
    * order from how it's written). If the hostname is actually a numeric IP
    * address, then the key just has that address as a single-component.
@@ -82,8 +82,8 @@ export class HostInfo {
         ? [this.#nameString]
         : this.#nameString.split('.').reverse();
 
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-      this.#nameKey = new TreePathKey(Object.freeze(parts), false);
+      // Freezing `parts` lets `new PathKey()` avoid making a copy.
+      this.#nameKey = new PathKey(Object.freeze(parts), false);
     }
 
     return this.#nameKey;

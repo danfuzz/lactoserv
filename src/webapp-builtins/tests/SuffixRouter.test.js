@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
 import { DispatchInfo, FullResponse } from '@this/net-util';
 import { SuffixRouter } from '@this/webapp-builtins';
@@ -85,7 +85,7 @@ describe('_impl_handleRequest()', () => {
     MockApp.mockCalls = [];
 
     const request = RequestUtil.makeGet(path);
-    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    const result  = await sr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
     if (expectResponse) {
       expect(result).toBeInstanceOf(FullResponse);
     } else {
@@ -101,7 +101,7 @@ describe('_impl_handleRequest()', () => {
     MockApp.mockCalls = [];
 
     const request = RequestUtil.makeGet(path);
-    const result  = await sr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    const result  = await sr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
     expect(result).toBeNull();
 
     const calls = MockApp.mockCalls;

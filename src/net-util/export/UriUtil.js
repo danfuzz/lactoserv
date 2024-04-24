@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { MustBe } from '@this/typey';
 
 
@@ -88,7 +88,7 @@ export class UriUtil {
   }
 
   /**
-   * Gets the string form of a {@link TreePathKey} as a URI path, that is, the
+   * Gets the string form of a {@link PathKey} as a URI path, that is, the
    * part of a URI after the hostname. The result is in absolute form by default
    * (prefixed with `/`), or is optionally in relative form (prefixed with
    * `./`). Empty components are represented as one might expect, with no
@@ -96,13 +96,13 @@ export class UriUtil {
    * path or with a trailing slash for an empty component at the end of the
    * path.
    *
-   * @param {TreePathKey} key The key to convert.
+   * @param {PathKey} key The key to convert.
    * @param {boolean} [relative] Make the result relative (with `./` as the
    *   prefix).
    * @returns {string} The string form.
    */
   static pathStringFrom(key, relative = false) {
-    MustBe.instanceOf(key, TreePathKey);
+    MustBe.instanceOf(key, PathKey);
 
     return key.toString({
       prefix:         relative ? '.' : '/',

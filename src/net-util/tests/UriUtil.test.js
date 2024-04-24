@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { UriUtil } from '@this/net-util';
 
 
@@ -65,7 +65,7 @@ describe('pathStringFrom()', () => {
     ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
     ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-      const key    = new TreePathKey(path, wildcard);
+      const key    = new PathKey(path, wildcard);
       const result = UriUtil.pathStringFrom(key, ...relArg);
 
       if (relArg[0] === true) {

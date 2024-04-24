@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { TreePathKey } from '#x/TreePathKey';
+import { PathKey } from '#x/PathKey';
 import { TreePathNode } from '#p/TreePathNode';
 import { TypePathKey } from '#x/TypePathKey';
 
@@ -37,16 +37,16 @@ export class TreePathMap {
   /**
    * Function which renders keys into strings.
    *
-   * @type {function(TreePathKey): string}
+   * @type {function(PathKey): string}
    */
   #keyStringFunc;
 
   /**
    * Constructs an empty instance.
    *
-   * @param {?function(TreePathKey): string} [keyStringFunc] The function to use
+   * @param {?function(PathKey): string} [keyStringFunc] The function to use
    *   to render keys into strings. If `null`, this uses {@link
-   *   TreePathKey#toString} with no arguments.
+   *   PathKey#toString} with no arguments.
    */
   constructor(keyStringFunc = null) {
     this.#keyStringFunc = keyStringFunc
@@ -97,7 +97,7 @@ export class TreePathMap {
   /**
    * Gets an iterator over the entries of this instance, analogously to the
    * standard JavaScript `Map.entries()` method. The keys are all instances of
-   * {@link TreePathKey}, more specifically the same instances that were used to
+   * {@link PathKey}, more specifically the same instances that were used to
    * add mappings to this instance. The result is both an iterator and an
    * iterable (which, as with `Map.entries()`, returns itself).
    *
@@ -118,7 +118,7 @@ export class TreePathMap {
    * are no matching bindings.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
+   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The
    *   most specific match, or `null` if there was no match at all.
    */
   find(key) {
@@ -161,14 +161,14 @@ export class TreePathMap {
    * @param {TypePathKey} key Key to search for. If `.wildcard` is `true`, then
    *   this method will only find bindings which are wildcards, though they
    *   might be more general than the `.path` being looked for.
-   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
+   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One
    *   result of the search.
-   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
+   *   * `{PathKey} key` -- The key that was matched; this is a wildcard key
    *     if the match was in fact a wildcard match, and likewise it is a
    *     non-wildcard key for an exact match. Furthermore, this is an object
    *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
    *     key).
-   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
+   *   * `{PathKey} keyRemainder` -- The portion of the originally-given
    *     `key.path` that was matched by the wildcard portion of the key, if this
    *     was in fact a wildcard match, in the form of a non-wildcard key. For
    *     non-wildcard matches, this is always an empty-path key.
@@ -212,7 +212,7 @@ export class TreePathMap {
    * Gets the string form of a key, as defined by the `keyStringFunc` passed in
    * (or implied by) the constructor call that created this instance.
    *
-   * @param {TreePathKey} key The key.
+   * @param {PathKey} key The key.
    * @returns {string} The string form.
    */
   stringFromKey(key) {
@@ -223,7 +223,7 @@ export class TreePathMap {
    * Returns an `Error` with a composed message, suitable for `throw`ing.
    *
    * @param {string} msg Basic message.
-   * @param {TreePathKey} key Key in question.
+   * @param {PathKey} key Key in question.
    * @returns {Error} `Error` instance with composed.
    */
   #makeError(msg, key) {

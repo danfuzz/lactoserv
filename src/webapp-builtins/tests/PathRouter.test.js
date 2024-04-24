@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
 import { DispatchInfo } from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
@@ -154,7 +154,7 @@ describe('_impl_handleRequest()', () => {
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
         const request = RequestUtil.makeGet(requestPath);
-        const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+        const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
         for (const ei of expectInfo) {
@@ -216,7 +216,7 @@ describe('_impl_handleRequest()', () => {
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
         const request = RequestUtil.makeGet(requestPath);
-        const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+        const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
         for (const ei of expectInfo) {
@@ -243,7 +243,7 @@ describe('_impl_handleRequest()', () => {
     MockApp.mockCalls = [];
 
     const request = RequestUtil.makeGet('/x/y/z');
-    const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
     expect(result).not.toBeNull();
     expect(result.mockInfo.application.name).toBe('mockApp2');
@@ -256,7 +256,7 @@ describe('_impl_handleRequest()', () => {
     const pr      = await makeInstance({ '/florp/floop/*': 'mockApp1' });
     const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request,
-      new DispatchInfo(TreePathKey.EMPTY, new TreePathKey(['florp', 'floop', 'bop'], false)));
+      new DispatchInfo(PathKey.EMPTY, new PathKey(['florp', 'floop', 'bop'], false)));
 
     expect(result).not.toBeNull();
 
@@ -272,8 +272,8 @@ describe('_impl_handleRequest()', () => {
     const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request,
       new DispatchInfo(
-        new TreePathKey(['beep'], false),
-        new TreePathKey(['zonk', 'zorch', 'florp'], false)));
+        new PathKey(['beep'], false),
+        new PathKey(['zonk', 'zorch', 'florp'], false)));
 
     expect(result).not.toBeNull();
 

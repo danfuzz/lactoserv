@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { TreePathKey } from '#x/TreePathKey';
+import { PathKey } from '#x/PathKey';
 import { TreePathMap } from '#x/TreePathMap';
 import { TypePathKey } from '#x/TypePathKey';
 
@@ -25,7 +25,7 @@ export class TreePathNode {
    * Non-wildcard key (from the root), if there is an empty-path binding to this
    * instance.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #emptyKey = null;
 
@@ -40,7 +40,7 @@ export class TreePathNode {
    * Wildcard key (from the root), if there is a wildcard binding to this
    * instance.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #wildcardKey = null;
 
@@ -66,7 +66,7 @@ export class TreePathNode {
   add(key, value) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
+    if (!(key instanceof PathKey)) {
       MustBe.arrayOfString(path);
       MustBe.boolean(wildcard);
     }
@@ -113,8 +113,8 @@ export class TreePathNode {
   addSubtree(key, result) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(key instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     if (!wildcard) {
@@ -160,7 +160,7 @@ export class TreePathNode {
    * docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
+   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The
    *   most specific match, or `null` if there was no match at all.
    */
   find(key) {
@@ -172,14 +172,14 @@ export class TreePathNode {
    * for detailed docs.
    *
    * @param {TypePathKey} keyToFind Key to search for.
-   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
+   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One
    *   result.
    */
   *findWithFallback(keyToFind) {
     const { path, wildcard } = keyToFind;
 
-    if (!(keyToFind instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(keyToFind instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     // In order to find the most-specific result, we end up having to find all
@@ -207,12 +207,12 @@ export class TreePathNode {
     if (at === path.length) {
       if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
-        addResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue, PathKey.EMPTY);
       }
 
       if (subtree.#emptyKey && !wildcard) {
         // There's an exact non-wildcard match for the path.
-        addResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+        addResult(subtree.#emptyKey, subtree.#emptyValue, PathKey.EMPTY);
       }
     }
 
@@ -221,7 +221,7 @@ export class TreePathNode {
       if (result.keyRemainder === null) {
         const foundAt       = result.key.path.length;
         const pathRemainder = Object.freeze(path.slice(foundAt));
-        result.keyRemainder = new TreePathKey(pathRemainder, false);
+        result.keyRemainder = new PathKey(pathRemainder, false);
       }
       yield result;
     }
@@ -239,8 +239,8 @@ export class TreePathNode {
   get(key, ifNotFound) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(key instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     let subtree = this;

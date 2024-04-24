@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
@@ -65,7 +65,7 @@ export class ControlContext {
    * Name-path of this instance, that is, a key which indicates where this
    * instance is in the component hierarchy.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #namePath;
 
@@ -98,7 +98,7 @@ export class ControlContext {
       this.#associate = null; // Gets set in `linkRoot()`.
       this.#parent    = null; // This will remain `null` forever.
       this.#root      = this;
-      this.#namePath  = TreePathKey.EMPTY;
+      this.#namePath  = PathKey.EMPTY;
       // Note: We can't add to `#root.contextTree` here, because we're still in
       // the middle of constructing `#root`. That gets fixed in `linkRoot()`,
       // which gets called soon after this instance is constructed.
@@ -134,7 +134,7 @@ export class ControlContext {
   }
 
   /**
-   * @returns {TreePathKey} The absolute name-path of this instance, that is,
+   * @returns {PathKey} The absolute name-path of this instance, that is,
    * where it is located in the hierarchy from its root component.
    */
   get namePath() {
@@ -200,7 +200,7 @@ export class ControlContext {
    * Gets a the component at the given path from the root of this instance,
    * which optionally must be of a specific class (including a base class).
    *
-   * @param {Array<string>|TreePathKey|string} path Absolute path to the
+   * @param {Array<string>|PathKey|string} path Absolute path to the
    *   component. If a string, must be parseable as a path by {@link
    *   Names#parsePath}.
    * @param {...function(new:BaseComponent)} [classes] List of classes and/or
@@ -230,7 +230,7 @@ export class ControlContext {
    * If there _is_ a component at the path but its class doesn't match, that's
    * still an error.
    *
-   * @param {?Array<string>|TreePathKey|string} path Absolute path to the
+   * @param {?Array<string>|PathKey|string} path Absolute path to the
    *   component, or `null`-ish to always not-find an instance. If a string,
    *   must be parseable as a path by {@link Names#parsePath}.
    * @param {...function(new:BaseComponent)} [classes] List of classes and/or
@@ -301,7 +301,7 @@ export class ControlContext {
    * synthesize one based on its class.
    *
    * @param {BaseComponent} component The will-be child component.
-   * @returns {TreePathKey} The key to use for it.
+   * @returns {PathKey} The key to use for it.
    */
   #pathKeyForChild(component) {
     const { name } = component;

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey, TreePathMap } from '@this/collections';
+import { PathKey, TreePathMap } from '@this/collections';
 import { Names } from '@this/compy';
 import { DispatchInfo, IntfRequestHandler, UriUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
@@ -138,7 +138,7 @@ export class PathRouter extends BaseApplication {
      * Parses a path.
      *
      * @param {string} path The path to parse.
-     * @returns {TreePathKey} The parsed form.
+     * @returns {PathKey} The parsed form.
      */
     static #parsePath(path) {
       const parts = path.split('/');
@@ -195,13 +195,13 @@ export class PathRouter extends BaseApplication {
 
       switch (lastSpecial) {
         case 'directory': {
-          return new TreePathKey([...parts, ''], false);
+          return new PathKey([...parts, ''], false);
         }
         case 'wildcard': {
-          return new TreePathKey([...parts], true);
+          return new PathKey([...parts], true);
         }
         default: {
-          return new TreePathKey(parts, false);
+          return new PathKey(parts, false);
         }
       }
     }

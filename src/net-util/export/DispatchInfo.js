@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
@@ -21,30 +21,30 @@ export class DispatchInfo {
   /**
    * The base path.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #base;
 
   /**
    * The remaining suffix portion of the path.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #extra;
 
   /**
    * Constructs an instance.
    *
-   * @param {TreePathKey} base The base path (that is, the path prefix) to which
+   * @param {PathKey} base The base path (that is, the path prefix) to which
    *   the request is being dispatched. This is expected to already have `.` and
    *   `..` components resolved away.
-   * @param {TreePathKey} extra The remaining suffix portion of the original
+   * @param {PathKey} extra The remaining suffix portion of the original
    *   path, after removing `base`. This is expected to already have `.` and
    *   `..` components resolved away.
    */
   constructor(base, extra) {
-    this.#base  = MustBe.instanceOf(base, TreePathKey);
-    this.#extra = MustBe.instanceOf(extra, TreePathKey);
+    this.#base  = MustBe.instanceOf(base, PathKey);
+    this.#extra = MustBe.instanceOf(extra, PathKey);
   }
 
   /**
@@ -58,7 +58,7 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {TreePathKey} The base path (that is, the path prefix) to which
+   * @returns {PathKey} The base path (that is, the path prefix) to which
    * the request is being dispatched.
    */
   get base() {
@@ -66,7 +66,7 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {TreePathKey} The remaining suffix portion of the path, after
+   * @returns {PathKey} The remaining suffix portion of the path, after
    * removing {@link #base}.
    */
   get extra() {

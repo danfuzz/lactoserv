@@ -13,7 +13,7 @@ import { TreePathMap } from '#x/TreePathMap';
  * Key for use with {@link TreePathMap}. Instances are immutable, and contents
  * are strongly type-checked.
  */
-export class TreePathKey {
+export class PathKey {
   /**
    * Path portion of the key.
    *
@@ -46,7 +46,7 @@ export class TreePathKey {
    *   related) things, depending on the context in which an instance is used.
    */
   constructor(path, wildcard) {
-    TreePathKey.checkArguments(path, wildcard);
+    PathKey.checkArguments(path, wildcard);
 
     this.#path     = Object.isFrozen(path) ? path : Object.freeze([...path]);
     this.#wildcard = wildcard;
@@ -106,7 +106,7 @@ export class TreePathKey {
    * @returns {Struct} The encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(TreePathKey, null, this.#path, this.#wildcard);
+    return new Struct(PathKey, null, this.#path, this.#wildcard);
   }
 
   /**
@@ -115,9 +115,9 @@ export class TreePathKey {
    * as this one. If all of the given arguments are empty, this method returns
    * `this`.
    *
-   * @param {Array<string|Array<string>|TreePathKey>} others Values to
+   * @param {Array<string|Array<string>|PathKey>} others Values to
    *   concatenate to `this`.
-   * @returns {TreePathKey} Instance with all of `others` concatenated.
+   * @returns {PathKey} Instance with all of `others` concatenated.
    */
   concat(...others) {
     const path = [...this.#path];
@@ -127,7 +127,7 @@ export class TreePathKey {
         path.push(o);
       } else if (Array.isArray(o)) {
         path.push(...o);
-      } else if (o instanceof TreePathKey) {
+      } else if (o instanceof PathKey) {
         path.push(...o.#path);
       } else {
         throw new Error('Invalid `other` argument.');
@@ -136,7 +136,7 @@ export class TreePathKey {
 
     return (path.length === this.#path.length)
       ? this
-      : new TreePathKey(Object.freeze(path), this.#wildcard);
+      : new PathKey(Object.freeze(path), this.#wildcard);
   }
 
   /**
@@ -177,7 +177,7 @@ export class TreePathKey {
    *
    * @param {number} start Start index, inclusive.
    * @param {number} [end] End index, exclusive. Defaults to {@link #length}.
-   * @returns {TreePathKey} The sliced-out value.
+   * @returns {PathKey} The sliced-out value.
    */
   slice(start, end = null) {
     const path   = this.#path;
@@ -190,7 +190,7 @@ export class TreePathKey {
 
     return ((start === 0) && (end === length) && !this.#wildcard)
       ? this
-      : new TreePathKey(Object.freeze(path.slice(start, end)), false);
+      : new PathKey(Object.freeze(path.slice(start, end)), false);
   }
 
   /**
@@ -255,7 +255,7 @@ export class TreePathKey {
    * this method returns this instance.
    *
    * @param {boolean} wildcard Value for `wildcard`.
-   * @returns {TreePathKey} An appropriately-constructed instance.
+   * @returns {PathKey} An appropriately-constructed instance.
    */
   withWildcard(wildcard) {
     MustBe.boolean(wildcard);
@@ -264,7 +264,7 @@ export class TreePathKey {
       return this;
     }
 
-    const result = new TreePathKey(this.#path, wildcard);
+    const result = new PathKey(this.#path, wildcard);
 
     // Avoid recalculating `charLength` if already known on the original.
     result.#charLength = this.#charLength;
@@ -280,11 +280,11 @@ export class TreePathKey {
   /**
    * A non-wildcard empty-path instance.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
-  static #EMPTY = Object.freeze(new TreePathKey(Object.freeze([]), false));
+  static #EMPTY = Object.freeze(new PathKey(Object.freeze([]), false));
 
-  /** @returns {TreePathKey} A non-wildcard empty-path instance. */
+  /** @returns {PathKey} A non-wildcard empty-path instance. */
   static get EMPTY() {
     return this.#EMPTY;
   }
@@ -297,7 +297,7 @@ export class TreePathKey {
    * @param {*} path The alleged key path.
    * @param {*} wildcard The alleged wildcard flag.
    * @throws {Error} Thrown iff the two arguments could not have been
-   *   successfully used to construct a {@link TreePathKey}.
+   *   successfully used to construct a {@link PathKey}.
    */
   static checkArguments(path, wildcard) {
     MustBe.arrayOfString(path);
