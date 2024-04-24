@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition, Threadlet } from '@this/async';
-import { BaseComponent, BaseConfig, BaseWrappedRoot, RootControlContext }
+import { BaseComponent, BaseConfig, BaseWrappedHierarchy, RootControlContext }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -44,7 +44,7 @@ export class BaseSystem extends BaseComponent {
   /**
    * The wrapped component hierarchy. Set up in {@link #_impl_init}.
    *
-   * @type {BaseWrappedRoot}
+   * @type {BaseWrappedHierarchy}
    */
   #wrappedHierarchy = null;
 
@@ -103,7 +103,7 @@ export class BaseSystem extends BaseComponent {
      *
      * TODO: There's gotta be a better way to do this.
      */
-    class SystemWrappedHierarchy extends BaseWrappedRoot {
+    class SystemWrappedHierarchy extends BaseWrappedHierarchy {
       /** @override */
       async _impl_makeHierarchy(oldRoot) {
         return makeHierarchy(oldRoot);

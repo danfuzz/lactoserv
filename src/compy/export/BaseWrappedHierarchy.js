@@ -11,7 +11,7 @@ import { BaseComponent } from '#x/BaseComponent';
  * this class provides a way to deal with a _different_ component hierarchy at
  * arm's length.
  */
-export class BaseWrappedRoot extends BaseComponent {
+export class BaseWrappedHierarchy extends BaseComponent {
   /**
    * Current root component being managed. This is a value which used to be in
    * {@link #nextRootComponent}.
