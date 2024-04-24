@@ -68,7 +68,7 @@ use the following comment in place of an intentionally omitted constructor:
 
 * `Base<Name>` &mdash; An abstract base class. Method bodies to be filled in
   by subclasses (see `_impl_<name>` below) should make calls to
-  `Methods.abstract(...)` to avoid improper subclassing.
+  `Methods.abstract(...)` to avoid incomplete subclassing.
 
 * `Intf<Name>` &mdash; An interface, just to be used with `@interface` and
   `@implements` annotations, and declared as the types of variables and
