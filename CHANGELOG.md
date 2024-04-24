@@ -11,7 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `data-values`:
+  * Filled out the comparison methods in `Moment`, and made them match the ones
+    added to `UnitQuantity` (see below).
 
 Other notable changes:
 * `clocks`:
