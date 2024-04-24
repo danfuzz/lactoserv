@@ -5,7 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 import { IntfLogger } from '@this/loggy-intf';
 
-import { CallbackList } from '#p/CallbackList';
+import { CallbackList } from '#x/CallbackList';
 import { HeapDump } from '#p/HeapDump';
 import { ProductInfo } from '#x/ProductInfo';
 import { ShutdownHandler } from '#p/ShutdownHandler';
@@ -77,9 +77,11 @@ export class SignalHandler {
    * Registers a callback to be invoked when the system is asked to "reload."
    *
    * @param {function()} callback Reload-time callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   static registerReloadCallback(callback) {
-    this.#reloadCallbacks.register(callback);
+    return this.#reloadCallbacks.register(callback);
   }
 
   /**

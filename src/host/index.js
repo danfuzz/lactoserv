@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseSystem';
+export * from '#x/CallbackList';
 export * from '#x/Dirs';
 export * from '#x/Host';
 export * from '#x/KeepRunning';

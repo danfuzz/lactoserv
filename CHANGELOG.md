@@ -29,6 +29,8 @@ Other notable changes:
   * Added `waitFor()` to the interface `IntfTimeSource`.
   * Extracted `MockTimeSource` from `TokenBucket.test.js`, for use throughout
     the system.
+* `compy`:
+  * New classes `BaseWrappedHierarchy` and `BaseThreadComponent`.
 * `data-values`:
   * Added comparison methods to `UnitQuantity`.
 * `webapp-builtins`:

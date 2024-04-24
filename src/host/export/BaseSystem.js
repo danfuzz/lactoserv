@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition, Threadlet } from '@this/async';
-import { BaseComponent, RootControlContext } from '@this/compy';
+import { BaseComponent, BaseConfig, BaseWrappedHierarchy, RootControlContext }
+  from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
+import { CallbackList } from '#x/CallbackList';
 import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
 
@@ -18,6 +20,13 @@ import { KeepRunning } from '#x/KeepRunning';
  */
 export class BaseSystem extends BaseComponent {
   /**
+   * List of registered callbacks.
+   *
+   * @type {Array<CallbackList.Callback>}
+   */
+  #callbacks = [];
+
+  /**
    * Was a reload requested?
    *
    * @type {Condition}
@@ -26,11 +35,18 @@ export class BaseSystem extends BaseComponent {
 
   /**
    * Thing that prevents the system from exiting, and logs occasionally about
-   * that fact.
+   * that fact. Set up in {@link #_impl_init}.
    *
-   * @type {KeepRunning}
+   * @type {?KeepRunning}
    */
-  #keepRunning = new KeepRunning();
+  #keepRunning = null;
+
+  /**
+   * The wrapped component hierarchy. Set up in {@link #_impl_init}.
+   *
+   * @type {BaseWrappedHierarchy}
+   */
+  #wrappedHierarchy = null;
 
   /**
    * Threadlet that runs this instance.
@@ -38,14 +54,6 @@ export class BaseSystem extends BaseComponent {
    * @type {Threadlet}
    */
   #thread = new Threadlet((runnerAccess) => this.#runThread(runnerAccess));
-
-  /**
-   * Current root component being managed. This is a return value from {@link
-   * #_impl_makeHierarchy}.
-   *
-   * @type {BaseComponent}
-   */
-  #rootComponent = null;
 
   /**
    * Constructs an instance.
@@ -88,22 +96,63 @@ export class BaseSystem extends BaseComponent {
 
   /** @override */
   async _impl_init() {
-    // @emptyBlock
+    const makeHierarchy = (oldRoot) => this._impl_makeHierarchy(oldRoot);
+
+    /**
+     * Wee subclass to hook up `_impl_makeHierarchy()`.
+     *
+     * TODO: There's gotta be a better way to do this.
+     */
+    class SystemWrappedHierarchy extends BaseWrappedHierarchy {
+      /** @override */
+      async _impl_makeHierarchy(oldRoot) {
+        return makeHierarchy(oldRoot);
+      }
+
+      /** @override */
+      static _impl_configClass() {
+        return BaseConfig;
+      }
+    }
+
+    this.#wrappedHierarchy = new SystemWrappedHierarchy({ name: 'hierarchy' });
+    this.#keepRunning      = new KeepRunning({ name: 'keepRunning' });
+
+    await Promise.all([
+      this._prot_addChild(this.#keepRunning),
+      this._prot_addChild(this.#wrappedHierarchy)
+    ]);
   }
 
   /** @override */
   async _impl_start() {
-    Host.registerReloadCallback(() => this.#requestReload());
-    Host.registerShutdownCallback(() => this.stop());
+    this.#callbacks.push(
+      Host.registerReloadCallback(() => this.#requestReload()),
+      Host.registerShutdownCallback(() => this.stop()));
 
-    await this.#keepRunning.start();
-    await this.#thread.start();
+    // Note: The thread runner is responsible for starting and stopping the
+    // `wrappedHierarchy`.
+
+    await Promise.all([
+      this.#keepRunning.start(),
+      this.#thread.start()
+    ]);
   }
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    await this.#thread.stop();
-    await this.#keepRunning.stop();
+    for (const cb of this.#callbacks) {
+      cb.unregister();
+    }
+    this.#callbacks = [];
+
+    // Note: The thread runner is responsible for starting and stopping the
+    // `wrappedHierarchy`.
+
+    await Promise.all([
+      this.#thread.stop(),
+      this.#keepRunning.stop()
+    ]);
   }
 
   /**
@@ -140,7 +189,7 @@ export class BaseSystem extends BaseComponent {
       ]);
     }
 
-    await this.#stop();
+    await this.#wrappedHierarchy.stop();
   }
 
   /**
@@ -148,66 +197,19 @@ export class BaseSystem extends BaseComponent {
    * reloading.
    */
   async #startOrReload() {
-    const isReload = (this.#rootComponent !== null);
-
-    if (isReload) {
-      this.logger?.reloading();
-    } else {
-      this.logger?.starting();
-    }
-
-    let nextRoot;
-
-    try {
-      nextRoot = await this._impl_makeHierarchy(this.#rootComponent);
-    } catch (e) {
-      // Failed to make the root component! E.g. and probably most likely, this
-      // was due to an error in the config file.
-      if (isReload) {
-        this.logger?.errorDuringReload(e);
-        this.logger?.notReloading();
-      } else {
-        this.logger?.errorDuringLoad(e);
-      }
+    if (this.#wrappedHierarchy.state !== 'running') {
+      await this.#wrappedHierarchy.start();
       return;
     }
 
-    if (isReload) {
-      await this.#stop(true);
-      this.logger?.reloadContinuing();
-    }
-
     try {
-      this.#rootComponent = nextRoot;
-      await this.#rootComponent.start();
-    } catch (e) {
-      // There's no reasonable way to recover from a failed start, so just log
-      // and then throw (which will probably cause the process to exit
-      // entirely).
-      this.logger?.errorDuringStart(e);
-      throw e;
+      await this.#wrappedHierarchy.prepareToRestart();
+    } catch {
+      // Ignore the error (the wrapper will have logged the problem), and just
+      // let the not-yet-stopped existing system keep running.
+      return;
     }
 
-    if (isReload) {
-      this.logger?.reloaded();
-    } else {
-      this.logger?.started();
-    }
-  }
-
-  /**
-   * System stop function. Used when the system is shutting down on the way to
-   * exiting, and also used during requested reloads.
-   *
-   * @param {boolean} [willReload] Will the system be reloaded?
-   */
-  async #stop(willReload = false) {
-    const logArg = willReload ? 'forReload' : 'shutdown';
-
-    this.logger?.stopping(logArg);
-    await this.#rootComponent.stop(willReload);
-    this.logger?.stopped(logArg);
-
-    this.#rootComponent = null;
+    await this.#wrappedHierarchy.restart();
   }
 }

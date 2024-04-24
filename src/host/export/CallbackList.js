@@ -4,6 +4,7 @@
 import { Condition } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
+import { MustBe } from '@this/typey';
 
 import { ThisModule } from '#p/ThisModule';
 
@@ -29,7 +30,7 @@ export class CallbackList {
   /**
    * Callbacks to invoke when requested.
    *
-   * @type {Array<function()>}
+   * @type {Array<CallbackList.Callback>}
    */
   #callbacks = [];
 
@@ -55,9 +56,14 @@ export class CallbackList {
    * Registers a callback.
    *
    * @param {function()} callback The callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   register(callback) {
-    this.#callbacks.push(callback);
+    const cbObj = new CallbackList.Callback(callback);
+
+    cbObj.register(this);
+    return cbObj;
   }
 
   /**
@@ -94,7 +100,7 @@ export class CallbackList {
     const abortCtrl = new AbortController();
 
     const callProm = (async () => {
-      const settled = Promise.allSettled(this.#callbacks.map(async (cb) => cb()));
+      const settled = Promise.allSettled(this.#callbacks.map(async (cb) => cb.run()));
 
       const results = await settled; // Wait for the result to be ready.
       abortCtrl.abort();             // Immediately cancel the timeout.
@@ -129,7 +135,7 @@ export class CallbackList {
 
       // Similar to above, throw an error to indicate timeout.
       this.#logger?.timedOut();
-      throw new Error(`Timed out during callback handler!`);
+      throw new Error('Timed out during callback handler!');
     })();
 
     // This waits for both blocks above to complete without error, or for one to
@@ -138,4 +144,88 @@ export class CallbackList {
     // or without error.
     await Promise.all([timeoutProm, callProm]);
   }
+
+  /**
+   * Registers a callback.
+   *
+   * @param {CallbackList.Callback} callback Instance to register.
+   */
+  #registerCallback(callback) {
+    this.#callbacks.push(callback);
+  }
+
+  /**
+   * Unregisters a callback.
+   *
+   * @param {CallbackList.Callback} callback Instance to unregister.
+   */
+  #unregisterCallback(callback) {
+    this.#callbacks = this.#callbacks.filter((cb) => cb !== callback);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Class which represents a callback, holding the actual function to call.
+   */
+  static Callback = class Callback {
+    /**
+     * The actual callback function.
+     *
+     * @type {function()}
+     */
+    #callback;
+
+    /**
+     * Outer instance this instance is currently registered with, if any.
+     *
+     * @type {?CallbackList}
+     */
+    #registeredWith = null;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {function()} callback The callback function.
+     */
+    constructor(callback) {
+      MustBe.callableFunction(callback);
+      this.#callback = callback;
+    }
+
+    /**
+     * Registers this instance. It is an error to register an instance which is
+     * already registered.
+     *
+     * @param {CallbackList} list Callback list to register with.
+     */
+    register(list) {
+      if (this.#registeredWith !== null) {
+        throw new Error('Already registered.');
+      }
+
+      list.#registerCallback(this);
+      this.#registeredWith = list;
+    }
+
+    /**
+     * Unregisters this instance from whatever it had been registered with.
+     */
+    unregister() {
+      if (this.#registeredWith !== null) {
+        this.#registeredWith.#unregisterCallback(this);
+        this.#registeredWith = null;
+      }
+    }
+
+    /**
+     * Runs the callback function.
+     */
+    async run() {
+      await this.#callback();
+    }
+  };
 }

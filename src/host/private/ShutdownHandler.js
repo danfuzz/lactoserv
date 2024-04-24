@@ -7,7 +7,7 @@ import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
 
-import { CallbackList } from '#p/CallbackList';
+import { CallbackList } from '#x/CallbackList';
 import { ProductInfo } from '#x/ProductInfo';
 import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';
@@ -110,9 +110,11 @@ export class ShutdownHandler {
    * shuts down.
    *
    * @param {function()} callback Shutdown-time callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   static registerCallback(callback) {
-    this.#callbacks.register(callback);
+    return this.#callbacks.register(callback);
   }
 
   /**
