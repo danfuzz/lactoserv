@@ -97,7 +97,7 @@ export class BaseSystem extends BaseComponent {
   /** @override */
   async _impl_init() {
     this.#keepRunning = new KeepRunning({ name: 'keepRunning' });
-    this._prot_addChild(this.#keepRunning);
+    await this._prot_addChild(this.#keepRunning);
   }
 
   /** @override */
@@ -106,19 +106,23 @@ export class BaseSystem extends BaseComponent {
       Host.registerReloadCallback(() => this.#requestReload()),
       Host.registerShutdownCallback(() => this.stop()));
 
-    await this.#keepRunning.start();
-    await this.#thread.start();
+    await Promise.all([
+      this.#keepRunning.start(),
+      this.#thread.start()
+    ]);
   }
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    await this.#thread.stop();
-    await this.#keepRunning.stop();
-
     for (const cb of this.#callbacks) {
       cb.unregister();
     }
     this.#callbacks = [];
+
+    await Promise.all([
+      this.#thread.stop(),
+      this.#keepRunning.stop()
+    ]);
   }
 
   /**
