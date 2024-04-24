@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseExposedThreadlet, Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ProcessInfo } from '#x/ProcessInfo';

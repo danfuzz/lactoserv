@@ -5,7 +5,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import * as http2 from 'node:http2';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 
 import { TcpWrangler } from '#p/TcpWrangler';
 import { WranglerContext } from '#p/WranglerContext';

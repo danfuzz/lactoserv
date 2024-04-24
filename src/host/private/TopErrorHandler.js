@@ -5,7 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import { setImmediate } from 'node:timers/promises';
 import * as util from 'node:util';
 
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ShutdownHandler } from '#p/ShutdownHandler';

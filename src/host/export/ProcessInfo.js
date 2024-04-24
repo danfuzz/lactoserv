@@ -4,7 +4,7 @@
 import { memoryUsage, pid as processPid, ppid as processPpid, uptime }
   from 'node:process';
 
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration, Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
 

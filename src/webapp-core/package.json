@@ -13,7 +13,7 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/clocks": "*",
+    "@this/clocky": "*",
     "@this/collections": "*",
     "@this/compy": "*",
     "@this/loggy": "*",

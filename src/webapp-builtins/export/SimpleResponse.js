@@ -3,7 +3,7 @@
 
 import fs from 'node:fs/promises';
 
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, FullResponse, HttpUtil, MimeTypes }
   from '@this/net-util';

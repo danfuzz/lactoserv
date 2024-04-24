@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventTracker, LinkedEvent } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration } from '@this/data-values';
 import { Loggy, TextFileSink } from '@this/loggy';
 import { MustBe } from '@this/typey';

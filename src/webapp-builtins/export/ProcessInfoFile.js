@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { Threadlet } from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }

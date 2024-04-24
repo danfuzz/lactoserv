@@ -5,7 +5,7 @@ import { Server, createServer as netCreateServer } from 'node:net';
 
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
-import { WallClock } from '@this/clocks';
+import { WallClock } from '@this/clocky';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
