@@ -11,6 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `collections`:
+  * Renamed classes to be more sensible: `TreePathMap` -> `TreeMap`, and
+    `TreePathKey` -> `PathKey`.
 * `data-values`:
   * Filled out the comparison methods in `Moment`, and made them match the ones
     added to `UnitQuantity` (see below).

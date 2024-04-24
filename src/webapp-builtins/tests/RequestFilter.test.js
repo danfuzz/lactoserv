@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
 import { DispatchInfo, StatusResponse } from '@this/net-util';
 import { RequestFilter } from '@this/webapp-builtins';
@@ -77,7 +77,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeRequest('post', '/florp');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -90,7 +90,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/florp');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);
@@ -106,7 +106,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/florp/flop');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -119,7 +119,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/florp/flop/');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -132,7 +132,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/florp/flop/oopsie');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);
@@ -146,7 +146,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/florp/flop/oopsie/');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);
@@ -162,7 +162,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/23456/8901/34/67890');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -175,7 +175,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/23456/8901/34/6789/');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -188,7 +188,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/23456/8901/34/678901');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);
@@ -202,7 +202,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/23456/8901/34/67890/');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);
@@ -218,7 +218,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/beep/boop/bop/biff?abcd=ef');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeNull();
@@ -231,7 +231,7 @@ describe('_impl_handleRequest()', () => {
       });
 
       const req    = RequestUtil.makeGet('/beep/boop/bop/biff?abcd=efg');
-      const disp   = new DispatchInfo(TreePathKey.EMPTY, req.pathname);
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
       const result = await rf.handleRequest(req, disp);
 
       expect(result).toBeInstanceOf(StatusResponse);

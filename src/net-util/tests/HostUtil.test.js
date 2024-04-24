@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { HostUtil } from '@this/net-util';
 
 
@@ -514,7 +514,7 @@ describe('hostnameStringFrom()', () => {
   ${['foo', 'bar', 'baz']} | ${false} | ${'baz.bar.foo'}
   ${['foo', 'bar', 'baz']} | ${true}  | ${'*.baz.bar.foo'}
   `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-    const key    = new TreePathKey(path, wildcard);
+    const key    = new PathKey(path, wildcard);
     const result = HostUtil.hostnameStringFrom(key);
 
     expect(result).toBe(expected);

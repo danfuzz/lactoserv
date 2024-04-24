@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { AskIf, MustBe } from '@this/typey';
 
 
@@ -319,15 +319,15 @@ export class HostUtil {
   }
 
   /**
-   * Gets the string form of a {@link TreePathKey}, interpreted as a hostname,
-   * where the TLD is the initial path component. That is, the result renders
-   * the key in reverse.
+   * Gets the string form of a {@link PathKey}, interpreted as a hostname, where
+   * the TLD is the initial path component. That is, the result renders the key
+   * in reverse.
    *
-   * @param {TreePathKey} key The key to convert.
+   * @param {PathKey} key The key to convert.
    * @returns {string} The hostname string form.
    */
   static hostnameStringFrom(key) {
-    MustBe.instanceOf(key, TreePathKey);
+    MustBe.instanceOf(key, PathKey);
 
     return key.toString({
       prefix:    '',
@@ -338,9 +338,9 @@ export class HostUtil {
   }
 
   /**
-   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}. This
-   * accepts both DNS names and IP addresses. In the case of an IP address, the
-   * result is a single-component path key.
+   * Parses a possibly-wildcarded hostname into a {@link PathKey}. This accepts
+   * both DNS names and IP addresses. In the case of an IP address, the result
+   * is a single-component path key.
    *
    * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
    * are at the front of a hostname not the back), the `.path` of the result
@@ -348,7 +348,7 @@ export class HostUtil {
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
-   * @returns {TreePathKey} Parsed key.
+   * @returns {PathKey} Parsed key.
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseHostname(name, allowWildcard = false) {
@@ -368,7 +368,7 @@ export class HostUtil {
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
-   * @returns {?TreePathKey} Parsed key, or `null` if `name` is invalid.
+   * @returns {?PathKey} Parsed key, or `null` if `name` is invalid.
    */
   static parseHostnameOrNull(name, allowWildcard = false) {
     MustBe.string(name);
@@ -376,7 +376,7 @@ export class HostUtil {
     // Handle IP address cases.
     const canonicalIp = this.checkIpAddressOrNull(name, false);
     if (canonicalIp) {
-      return new TreePathKey([canonicalIp], false);
+      return new PathKey([canonicalIp], false);
     }
 
     if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
@@ -388,12 +388,12 @@ export class HostUtil {
     if (path[path.length - 1] === '*') {
       if (allowWildcard) {
         path.pop();
-        return new TreePathKey(path, true);
+        return new PathKey(path, true);
       } else {
         return null;
       }
     } else {
-      return new TreePathKey(path, false);
+      return new PathKey(path, false);
     }
   }
 

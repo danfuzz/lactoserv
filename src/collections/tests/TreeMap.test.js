@@ -1,30 +1,30 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey, TreePathMap } from '@this/collections';
+import { PathKey, TreeMap } from '@this/collections';
 
 
 describe('constructor()', () => {
   test('does not throw', () => {
-    expect(() => new TreePathMap()).not.toThrow();
+    expect(() => new TreeMap()).not.toThrow();
   });
 });
 
 describe('.size', () => {
   const keys = [
-    new TreePathKey([], true),
-    new TreePathKey([], false),
-    new TreePathKey(['x'], false),
-    new TreePathKey(['x', 'y'], false),
-    new TreePathKey(['x', 'y'], true),
-    new TreePathKey(['a', 'b', 'c'], false),
-    new TreePathKey(['a', 'b', 'c', 'x'], true),
-    new TreePathKey(['a', 'b', 'c', 'x', 'y'], true)
+    new PathKey([], true),
+    new PathKey([], false),
+    new PathKey(['x'], false),
+    new PathKey(['x', 'y'], false),
+    new PathKey(['x', 'y'], true),
+    new PathKey(['a', 'b', 'c'], false),
+    new PathKey(['a', 'b', 'c', 'x'], true),
+    new PathKey(['a', 'b', 'c', 'x', 'y'], true)
   ];
 
   for (let i = 0; i < keys.length; i++) {
     test(`correctly returns ${i}`, () => {
-      const map = new TreePathMap();
+      const map = new TreeMap();
       for (let j = 0; j < i; j++) {
         map.add(keys[j], [`value-${j}`]);
       }
@@ -40,7 +40,7 @@ ${'[Symbol.iterator]'} | ${Symbol.iterator}
 ${'entries'}           | ${'entries'}
 `('$label()', ({ method }) => {
   test('returns an object with the right methods', () => {
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
     const result = map[method]();
     expect(result.next).toBeFunction();
@@ -48,23 +48,23 @@ ${'entries'}           | ${'entries'}
   });
 
   test('returns an object which returns itself when asked to iterate', () => {
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
     const result = map[method]();
     expect(result[Symbol.iterator]()).toBe(result);
   });
 
   test('succeeds in running a no-entry iteration', () => {
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
     const result = map[method]().next();
     expect(result).toStrictEqual({ value: undefined, done: true });
   });
 
   test('succeeds in running a one-entry iteration', () => {
-    const key   = new TreePathKey(['foo', 'bar'], false);
+    const key   = new PathKey(['foo', 'bar'], false);
     const value = ['florp'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key, value);
     const iter = map[method]();
@@ -82,30 +82,30 @@ ${'entries'}           | ${'entries'}
 });
 
 describe('add()', () => {
-  test('accepts a `TreePathKey`, which can then be found exactly', () => {
-    const key1  = new TreePathKey(['a'], true);
+  test('accepts a `PathKey`, which can then be found exactly', () => {
+    const key1  = new PathKey(['a'], true);
     const key2  = { path: ['a'], wildcard: true };
     const value = ['some value'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
     expect(() => map.add(key1, value)).not.toThrow();
     expect(map.get(key1)).toBe(value);
     expect(map.get(key2)).toBe(value);
   });
 
   test('accepts a key-like plain object, which can then be found exactly', () => {
-    const key1  = new TreePathKey(['x', 'y'], false);
+    const key1  = new PathKey(['x', 'y'], false);
     const key2  = { path: ['x', 'y'], wildcard: false };
     const value = ['some kinda value'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
     expect(() => map.add(key2, value)).not.toThrow();
     expect(map.get(key1)).toBe(value);
     expect(map.get(key2)).toBe(value);
   });
 
   test('allows a wildcard key to be added even when a same-path non-wildcard is already in the map', () => {
-    const keyNorm = new TreePathKey(['yes', 'maybe'], false);
-    const keyWild = new TreePathKey(['yes', 'maybe'], true);
-    const map     = new TreePathMap();
+    const keyNorm = new PathKey(['yes', 'maybe'], false);
+    const keyWild = new PathKey(['yes', 'maybe'], true);
+    const map     = new TreeMap();
 
     map.add(keyNorm, 'x');
     expect(() => map.add(keyWild, 'x')).not.toThrow();
@@ -113,9 +113,9 @@ describe('add()', () => {
   });
 
   test('allows a non-wildcard key to be added even when a same-path wildcard is already in the map', () => {
-    const keyNorm = new TreePathKey(['yes', 'maybe'], false);
-    const keyWild = new TreePathKey(['yes', 'maybe'], true);
-    const map     = new TreePathMap();
+    const keyNorm = new PathKey(['yes', 'maybe'], false);
+    const keyWild = new PathKey(['yes', 'maybe'], true);
+    const map     = new TreeMap();
 
     map.add(keyWild, 'x');
     expect(() => map.add(keyNorm, 'x')).not.toThrow();
@@ -123,8 +123,8 @@ describe('add()', () => {
   });
 
   test('fails to add a non-wildcard key that has already been added', () => {
-    const key = new TreePathKey(['hey what?'], false);
-    const map = new TreePathMap();
+    const key = new PathKey(['hey what?'], false);
+    const map = new TreeMap();
 
     map.add(key, 'x');
     expect(() => map.add(key, 'x')).toThrow();
@@ -132,8 +132,8 @@ describe('add()', () => {
   });
 
   test('fails to add a wildcard key that has already been added', () => {
-    const key = new TreePathKey(['hey what?'], true);
-    const map = new TreePathMap();
+    const key = new PathKey(['hey what?'], true);
+    const map = new TreeMap();
 
     map.add(key, 'x');
     expect(() => map.add(key, 'x')).toThrow();
@@ -142,24 +142,24 @@ describe('add()', () => {
 
   describe('error messages', () => {
     test('have the expected initial text', () => {
-      const key = new TreePathKey(['beep', 'boop'], true);
-      const map = new TreePathMap();
+      const key = new PathKey(['beep', 'boop'], true);
+      const map = new TreeMap();
 
       map.add(key, 'x');
       expect(() => map.add(key, 'x')).toThrow(/^Key already bound: /);
     });
 
     test('uses the default key renderer when none was specified upon construction', () => {
-      const key = new TreePathKey(['a', 'b'], false);
-      const map = new TreePathMap();
+      const key = new PathKey(['a', 'b'], false);
+      const map = new TreeMap();
 
       map.add(key, 'x');
       expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \[a, b\]$/);
     });
 
     test('uses the default key renderer when `null` was specified upon construction', () => {
-      const key = new TreePathKey(['a', 'b'], true);
-      const map = new TreePathMap(null);
+      const key = new PathKey(['a', 'b'], true);
+      const map = new TreeMap(null);
 
       map.add(key, 'x');
       expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \[a, b, \*\]$/);
@@ -172,8 +172,8 @@ describe('add()', () => {
         return 'zoinks';
       };
 
-      const key = new TreePathKey(['blorp'], false);
-      const map = new TreePathMap(theFunc);
+      const key = new PathKey(['blorp'], false);
+      const map = new TreeMap(theFunc);
 
       map.add(key, 'x');
       expect(() => map.add(key, 'x')).toThrow(/^[^:]+: zoinks$/);
@@ -186,24 +186,24 @@ describe('entries()', () => {
   test('handles a large-ish example', () => {
     // This is a "smokey" test.
     const bindings = new Map([
-      [new TreePathKey([], false), 'one'],
-      [new TreePathKey(['boop'], false), ['two']],
-      [new TreePathKey(['beep'], true), ['three', 3]],
-      [new TreePathKey(['z', 'y'], true), Symbol('four')],
-      [new TreePathKey(['z', 'y', 'z'], false), { five: 'five' }],
-      [new TreePathKey(['a'], true), 'six'],
-      [new TreePathKey(['a', 'b'], true), 'seven'],
-      [new TreePathKey(['c', 'd', 'c'], false), 'eight'],
-      [new TreePathKey(['c', 'd', 'cc'], false), 'nine'],
-      [new TreePathKey(['c', 'd', 'cc', 'd'], true), 'ten']
+      [new PathKey([], false), 'one'],
+      [new PathKey(['boop'], false), ['two']],
+      [new PathKey(['beep'], true), ['three', 3]],
+      [new PathKey(['z', 'y'], true), Symbol('four')],
+      [new PathKey(['z', 'y', 'z'], false), { five: 'five' }],
+      [new PathKey(['a'], true), 'six'],
+      [new PathKey(['a', 'b'], true), 'seven'],
+      [new PathKey(['c', 'd', 'c'], false), 'eight'],
+      [new PathKey(['c', 'd', 'cc'], false), 'nine'],
+      [new PathKey(['c', 'd', 'cc', 'd'], true), 'ten']
     ]);
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
     for (const [k, v] of bindings) {
       map.add(k, v);
     }
 
-    const resultMap = new TreePathMap();
+    const resultMap = new TreeMap();
     for (const [k, v] of map.entries()) {
       expect(bindings.has(k)).toBeTrue();
       expect(bindings.get(k)).toBe(v);
@@ -220,17 +220,17 @@ describe('entries()', () => {
   });
 
   test('yields non-wildcard before wildcard keys at the same depth', () => {
-    const map1 = new TreePathMap();
-    map1.add(new TreePathKey([], true), 'wild');
-    map1.add(new TreePathKey([], false), 'regular');
+    const map1 = new TreeMap();
+    map1.add(new PathKey([], true), 'wild');
+    map1.add(new PathKey([], false), 'regular');
 
     const entries1 = [...map1.entries()];
     expect(entries1[0][1]).toBe('regular');
     expect(entries1[1][1]).toBe('wild');
 
-    const map2 = new TreePathMap();
-    map2.add(new TreePathKey(['x', 'y'], false), 'woo-regular');
-    map2.add(new TreePathKey(['x', 'y'], true), 'woo-wild');
+    const map2 = new TreeMap();
+    map2.add(new PathKey(['x', 'y'], false), 'woo-regular');
+    map2.add(new PathKey(['x', 'y'], true), 'woo-wild');
 
     const entries2 = [...map2.entries()];
     expect(entries2[0][1]).toBe('woo-regular');
@@ -238,10 +238,10 @@ describe('entries()', () => {
   });
 
   test('yields less deep keys first', () => {
-    const map = new TreePathMap();
-    map.add(new TreePathKey([], false), 'one');
-    map.add(new TreePathKey(['a'], false), 'two');
-    map.add(new TreePathKey(['a', 'b'], false), 'three');
+    const map = new TreeMap();
+    map.add(new PathKey([], false), 'one');
+    map.add(new PathKey(['a'], false), 'two');
+    map.add(new PathKey(['a', 'b'], false), 'three');
 
     const entries = [...map.entries()];
     expect(entries[0][1]).toBe('one');
@@ -250,10 +250,10 @@ describe('entries()', () => {
   });
 
   test('yields siblings in sorted order', () => {
-    const map = new TreePathMap();
-    map.add(new TreePathKey(['c'], false), 'three');
-    map.add(new TreePathKey(['a'], false), 'one');
-    map.add(new TreePathKey(['b'], false), 'two');
+    const map = new TreeMap();
+    map.add(new PathKey(['c'], false), 'three');
+    map.add(new PathKey(['a'], false), 'one');
+    map.add(new PathKey(['b'], false), 'two');
 
     const entries = [...map.entries()];
     expect(entries[0][1]).toBe('one');
@@ -262,13 +262,13 @@ describe('entries()', () => {
   });
 
   test('yields subtrees in their entirety without interjecting sibling entries', () => {
-    const map = new TreePathMap();
-    map.add(new TreePathKey(['b'], false), 'yes-1');
-    map.add(new TreePathKey(['c'], false), 'nope');
-    map.add(new TreePathKey(['b', '1'], false), 'yes-2');
-    map.add(new TreePathKey(['a'], false), 'nope');
-    map.add(new TreePathKey(['b', '2'], false), 'yes-4');
-    map.add(new TreePathKey(['b', '1', 'x'], false), 'yes-3');
+    const map = new TreeMap();
+    map.add(new PathKey(['b'], false), 'yes-1');
+    map.add(new PathKey(['c'], false), 'nope');
+    map.add(new PathKey(['b', '1'], false), 'yes-2');
+    map.add(new PathKey(['a'], false), 'nope');
+    map.add(new PathKey(['b', '2'], false), 'yes-4');
+    map.add(new PathKey(['b', '1', 'x'], false), 'yes-3');
 
     const entries = [...map.entries()];
     expect(entries.length).toBe(6);
@@ -282,46 +282,46 @@ describe('entries()', () => {
 
 describe('find()', () => {
   describe('given a non-wildcard key', () => {
-    test('finds an already-added key, when an exact match is passed as a `TreePathKey`', () => {
-      const key   = new TreePathKey(['1', '2', '3'], false);
+    test('finds an already-added key, when an exact match is passed as a `PathKey`', () => {
+      const key   = new PathKey(['1', '2', '3'], false);
       const value = ['florp'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key, value);
       const result = map.find(key);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key);
-      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.keyRemainder).toBe(PathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
     test('finds an already-added key, when an exact match passed as a key-like plain object', () => {
-      const key1  = new TreePathKey(['1', '2', '3'], false);
+      const key1  = new PathKey(['1', '2', '3'], false);
       const key2  = { path: ['1', '2', '3'], wildcard: false };
       const value = ['florp'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
       const result = map.find(key2);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.keyRemainder).toBe(PathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
     test('finds an already-added wildcard, when a matching non-wildcard key is passed', () => {
-      const key1  = new TreePathKey(['one', 'two'], true);
-      const key2  = new TreePathKey(['one', 'two'], false);
-      const key3  = new TreePathKey(['one', 'two', 'three'], false);
+      const key1  = new PathKey(['one', 'two'], true);
+      const key2  = new PathKey(['one', 'two'], false);
+      const key3  = new PathKey(['one', 'two', 'three'], false);
       const value = ['boop'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
 
       const result1 = map.find(key2);
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
-      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result1.keyRemainder).toBe(PathKey.EMPTY);
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key3);
@@ -333,10 +333,10 @@ describe('find()', () => {
     });
 
     test('finds a wildcard binding at the exact key', () => {
-      const key1  = new TreePathKey(['i', 'love', 'muffins'], true);
-      const key2  = new TreePathKey(['i', 'love', 'muffins'], false);
+      const key1  = new PathKey(['i', 'love', 'muffins'], true);
+      const key2  = new PathKey(['i', 'love', 'muffins'], false);
       const value = ['blueberry'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
 
@@ -349,11 +349,11 @@ describe('find()', () => {
     });
 
     test('finds a wildcard binding "below" the key being looked up', () => {
-      const key1  = new TreePathKey(['top'], true);
-      const key2  = new TreePathKey(['top', 'middle'], false);
-      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const key1  = new PathKey(['top'], true);
+      const key2  = new PathKey(['top', 'middle'], false);
+      const key3  = new PathKey(['top', 'middle', 'bottom'], false);
       const value = ['florp'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
       map.add(key2, 'y');
@@ -367,11 +367,11 @@ describe('find()', () => {
     });
 
     test('finds the most specific wildcard binding "below" the key being looked up', () => {
-      const key1  = new TreePathKey(['top'], true);
-      const key2  = new TreePathKey(['top', 'middle'], true);
-      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const key1  = new PathKey(['top'], true);
+      const key2  = new PathKey(['top', 'middle'], true);
+      const key3  = new PathKey(['top', 'middle', 'bottom'], false);
       const value = ['florp', 'like'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, 'x');
       map.add(key2, value);
@@ -385,10 +385,10 @@ describe('find()', () => {
     });
 
     test('does not find a non-wildcard binding "below" the key being looked up', () => {
-      const key1 = new TreePathKey(['top'], false);
-      const key2 = new TreePathKey(['top', 'middle'], false);
-      const key3 = new TreePathKey(['top', 'middle', 'bottom'], false);
-      const map  = new TreePathMap();
+      const key1 = new PathKey(['top'], false);
+      const key2 = new PathKey(['top', 'middle'], false);
+      const key3 = new PathKey(['top', 'middle', 'bottom'], false);
+      const map  = new TreeMap();
 
       map.add(key1, 'x');
       map.add(key2, 'y');
@@ -399,18 +399,18 @@ describe('find()', () => {
   });
 
   describe('given a wildcard key', () => {
-    test('finds an already-added wildcard, when a matching key is passed as a `TreePathKey`', () => {
-      const key1  = new TreePathKey(['one', 'two'], true);
-      const key2  = new TreePathKey(['one', 'two', 'three'], true);
+    test('finds an already-added wildcard, when a matching key is passed as a `PathKey`', () => {
+      const key1  = new PathKey(['one', 'two'], true);
+      const key2  = new PathKey(['one', 'two', 'three'], true);
       const value = ['boop'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
 
       const result1 = map.find(key1);
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
-      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result1.keyRemainder).toBe(PathKey.EMPTY);
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key2);
@@ -422,24 +422,24 @@ describe('find()', () => {
     });
 
     test('finds an already-added wildcard, when a matching key is passed as a plain object', () => {
-      const key1  = new TreePathKey(['a', 'b', 'c'], true);
+      const key1  = new PathKey(['a', 'b', 'c'], true);
       const value = ['boop'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
 
       const result = map.find({ path: ['a', 'b', 'c'], wildcard: true });
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.keyRemainder).toBe(PathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
     test('does not find a non-wildcard binding "below" the key being looked up', () => {
-      const key1 = new TreePathKey(['top'], false);
-      const key2 = new TreePathKey(['top', 'middle'], false);
-      const key3 = new TreePathKey(['top', 'middle', 'bottom'], true);
-      const map  = new TreePathMap();
+      const key1 = new PathKey(['top'], false);
+      const key2 = new PathKey(['top', 'middle'], false);
+      const key3 = new PathKey(['top', 'middle', 'bottom'], true);
+      const map  = new TreeMap();
 
       map.add(key1, 'x');
       map.add(key2, 'y');
@@ -449,11 +449,11 @@ describe('find()', () => {
     });
 
     test('finds a wildcard binding "below" the key being looked up', () => {
-      const key1  = new TreePathKey(['top'], true);
-      const key2  = new TreePathKey(['top', 'middle'], false);
-      const key3  = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const key1  = new PathKey(['top'], true);
+      const key2  = new PathKey(['top', 'middle'], false);
+      const key3  = new PathKey(['top', 'middle', 'bottom'], true);
       const value = { beep: 'boop' };
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
       map.add(key2, 'y');
@@ -467,11 +467,11 @@ describe('find()', () => {
     });
 
     test('finds the most-specific wildcard binding "below" the key being looked up', () => {
-      const key1  = new TreePathKey(['top'], true);
-      const key2  = new TreePathKey(['top', 'middle'], true);
-      const key3  = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const key1  = new PathKey(['top'], true);
+      const key2  = new PathKey(['top', 'middle'], true);
+      const key3  = new PathKey(['top', 'middle', 'bottom'], true);
       const value = { zeep: 'zoop' };
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, 'x');
       map.add(key2, value);
@@ -485,10 +485,10 @@ describe('find()', () => {
     });
 
     test('does not find a non-wildcard, when a would-match wildcard key is passed', () => {
-      const key1  = new TreePathKey(['one', 'two'], false);
-      const key2  = new TreePathKey(['one', 'two'], true);
+      const key1  = new PathKey(['one', 'two'], false);
+      const key2  = new PathKey(['one', 'two'], true);
       const value = ['beep'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key1, value);
       expect(map.find(key2)).toBeNull();
@@ -505,11 +505,11 @@ describe('find()', () => {
       [[]],
       [{}]
     ])('for %p', (value) => {
-      const key1 = new TreePathKey(['a'], true);
-      const key2 = new TreePathKey(['a'], false);
+      const key1 = new PathKey(['a'], true);
+      const key2 = new PathKey(['a'], false);
 
       test('finds it when bound to a wildcard', () => {
-        const map = new TreePathMap();
+        const map = new TreeMap();
 
         map.add(key1, value);
 
@@ -523,7 +523,7 @@ describe('find()', () => {
       });
 
       test('finds it when bound to a non-wildcard', () => {
-        const map = new TreePathMap();
+        const map = new TreeMap();
 
         map.add(key2, value);
 
@@ -535,12 +535,12 @@ describe('find()', () => {
   });
 
   test('does not produce a `next` even with multiple matches', () => {
-    const key1 = new TreePathKey([], true);
-    const key2 = new TreePathKey(['x'], true);
-    const key3 = new TreePathKey(['x', 'y'], true);
-    const key4 = new TreePathKey(['x', 'y'], false);
+    const key1 = new PathKey([], true);
+    const key2 = new PathKey(['x'], true);
+    const key3 = new PathKey(['x', 'y'], true);
+    const key4 = new PathKey(['x', 'y'], false);
 
-    const map = new TreePathMap();
+    const map = new TreeMap();
     map.add(key1, 'a');
     map.add(key2, 'b');
     map.add(key3, 'c');
@@ -557,27 +557,27 @@ describe('find()', () => {
 describe('findSubtree()', () => {
   test('returns an instance with the same `keyStringFunc`.', () => {
     const ksf    = () => 'florp';
-    const key    = new TreePathKey(['x'], true);
-    const map    = new TreePathMap(ksf);
+    const key    = new PathKey(['x'], true);
+    const map    = new TreeMap(ksf);
     const result = map.findSubtree(key);
 
     expect(result.stringFromKey(key)).toBe('florp');
   });
 
   describe('given an empty-path wildcard key', () => {
-    const key = new TreePathKey([], true);
+    const key = new PathKey([], true);
 
     test('returns an empty (but different object) result if there are no bindings', () => {
-      const map    = new TreePathMap();
+      const map    = new TreeMap();
       const result = map.findSubtree(key);
       expect(result.size).toBe(0);
       expect(result).not.toBe(map);
     });
 
     test('returns a single top-level non-wildcard binding, if that is what is in the map', () => {
-      const key1   = new TreePathKey([], false);
+      const key1   = new PathKey([], false);
       const value1 = ['a value'];
-      const map    = new TreePathMap();
+      const map    = new TreeMap();
 
       map.add(key1, value1);
       const result = map.findSubtree(key);
@@ -587,7 +587,7 @@ describe('findSubtree()', () => {
 
     test('returns a single top-level wildcard binding, if that is what is in the map', () => {
       const value = ['still a value'];
-      const map   = new TreePathMap();
+      const map   = new TreeMap();
 
       map.add(key, value);
       const result = map.findSubtree(key);
@@ -597,9 +597,9 @@ describe('findSubtree()', () => {
 
     test('returns both wildcard and non-wildcard top-level bindings, if that is what is in the map', () => {
       const value1 = ['first value'];
-      const key2  = new TreePathKey([], false);
+      const key2  = new PathKey([], false);
       const value2 = ['second value'];
-      const map    = new TreePathMap();
+      const map    = new TreeMap();
 
       map.add(key, value1);
       map.add(key2, value2);
@@ -612,18 +612,18 @@ describe('findSubtree()', () => {
     test('returns all bindings in the map (but in a different object), generally', () => {
       // This is a "smokey" test.
       const bindings = new Map([
-        [new TreePathKey([], false), 'one'],
-        [new TreePathKey(['x'], false), 'two'],
-        [new TreePathKey(['x'], true), 'three'],
-        [new TreePathKey(['x', 'y'], true), 'four'],
-        [new TreePathKey(['x', 'y', 'z'], false), 'five'],
-        [new TreePathKey(['a'], true), 'six'],
-        [new TreePathKey(['a', 'b'], true), 'seven'],
-        [new TreePathKey(['a', 'b', 'c'], false), 'eight'],
-        [new TreePathKey(['a', 'b', 'cc'], false), 'nine'],
-        [new TreePathKey(['a', 'b', 'cc', 'd'], true), 'ten']
+        [new PathKey([], false), 'one'],
+        [new PathKey(['x'], false), 'two'],
+        [new PathKey(['x'], true), 'three'],
+        [new PathKey(['x', 'y'], true), 'four'],
+        [new PathKey(['x', 'y', 'z'], false), 'five'],
+        [new PathKey(['a'], true), 'six'],
+        [new PathKey(['a', 'b'], true), 'seven'],
+        [new PathKey(['a', 'b', 'c'], false), 'eight'],
+        [new PathKey(['a', 'b', 'cc'], false), 'nine'],
+        [new PathKey(['a', 'b', 'cc', 'd'], true), 'ten']
       ]);
-      const map = new TreePathMap();
+      const map = new TreeMap();
 
       for (const [k, v] of bindings) {
         map.add(k, v);
@@ -640,9 +640,9 @@ describe('findSubtree()', () => {
   });
 
   test('finds an exact non-wildcard match, given a non-wildcard key', () => {
-    const key   = new TreePathKey(['1', '2'], false);
+    const key   = new PathKey(['1', '2'], false);
     const value = 'value';
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key, value);
     const result = map.findSubtree(key);
@@ -651,10 +651,10 @@ describe('findSubtree()', () => {
   });
 
   test('finds an exact wildcard match, given a non-wildcard key', () => {
-    const key1  = new TreePathKey(['1', '2'], true);
-    const key2  = new TreePathKey(['1', '2'], false);
+    const key1  = new PathKey(['1', '2'], true);
+    const key2  = new PathKey(['1', '2'], false);
     const value = 'some-value';
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key1, value);
     const result = map.findSubtree(key2);
@@ -663,10 +663,10 @@ describe('findSubtree()', () => {
   });
 
   test('finds a wildcard match, given a non-wildcard key', () => {
-    const key1  = new TreePathKey(['1', '2'], true);
-    const key2  = new TreePathKey(['1', '2', '3', '4'], false);
+    const key1  = new PathKey(['1', '2'], true);
+    const key2  = new PathKey(['1', '2', '3', '4'], false);
     const value = 'some-other-value';
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key1, value);
     const result = map.findSubtree(key2);
@@ -676,30 +676,30 @@ describe('findSubtree()', () => {
 
   test('extracts a subtree, given a wildcard key', () => {
     // This is a "smokey" test.
-    const key      = new TreePathKey(['in', 'here'], true);
+    const key      = new PathKey(['in', 'here'], true);
     const bindings = new Map([
-      [new TreePathKey(['in', 'here'], false), 'one'],
-      [new TreePathKey(['in', 'here'], true), 'two'],
-      [new TreePathKey(['in', 'here', 'x'], true), 'three'],
-      [new TreePathKey(['in', 'here', 'x', 'y'], false), 'four'],
-      [new TreePathKey(['in', 'here', 'a', 'b', 'c'], false), 'five'],
-      [new TreePathKey(['in', 'here', 'a', 'b'], true), 'six'],
-      [new TreePathKey(['in', 'here', 'a', 'x', 'y'], false), 'seven'],
-      [new TreePathKey(['in', 'here', 'a', 'z'], true), 'eight']
+      [new PathKey(['in', 'here'], false), 'one'],
+      [new PathKey(['in', 'here'], true), 'two'],
+      [new PathKey(['in', 'here', 'x'], true), 'three'],
+      [new PathKey(['in', 'here', 'x', 'y'], false), 'four'],
+      [new PathKey(['in', 'here', 'a', 'b', 'c'], false), 'five'],
+      [new PathKey(['in', 'here', 'a', 'b'], true), 'six'],
+      [new PathKey(['in', 'here', 'a', 'x', 'y'], false), 'seven'],
+      [new PathKey(['in', 'here', 'a', 'z'], true), 'eight']
     ]);
     const extraBindings = new Map([
-      [new TreePathKey([], false), 'one'],
-      [new TreePathKey(['x'], false), 'two'],
-      [new TreePathKey(['x'], true), 'three'],
-      [new TreePathKey(['x', 'y'], true), 'four'],
-      [new TreePathKey(['x', 'y', 'z'], false), 'five'],
-      [new TreePathKey(['a'], true), 'six'],
-      [new TreePathKey(['a', 'b'], true), 'seven'],
-      [new TreePathKey(['a', 'b', 'c'], false), 'eight'],
-      [new TreePathKey(['a', 'b', 'cc'], false), 'nine'],
-      [new TreePathKey(['a', 'b', 'cc', 'd'], true), 'ten']
+      [new PathKey([], false), 'one'],
+      [new PathKey(['x'], false), 'two'],
+      [new PathKey(['x'], true), 'three'],
+      [new PathKey(['x', 'y'], true), 'four'],
+      [new PathKey(['x', 'y', 'z'], false), 'five'],
+      [new PathKey(['a'], true), 'six'],
+      [new PathKey(['a', 'b'], true), 'seven'],
+      [new PathKey(['a', 'b', 'c'], false), 'eight'],
+      [new PathKey(['a', 'b', 'cc'], false), 'nine'],
+      [new PathKey(['a', 'b', 'cc', 'd'], true), 'ten']
     ]);
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
     for (const [k, v] of [...bindings, ...extraBindings]) {
       map.add(k, v);
@@ -716,12 +716,12 @@ describe('findSubtree()', () => {
 
 describe('findWithFallback()', () => {
   test('finds multiple matches in the expected order', () => {
-    const key1 = new TreePathKey([], true);
-    const key2 = new TreePathKey(['x'], true);
-    const key3 = new TreePathKey(['x', 'y'], true);
-    const key4 = new TreePathKey(['x', 'y'], false);
+    const key1 = new PathKey([], true);
+    const key2 = new PathKey(['x'], true);
+    const key3 = new PathKey(['x', 'y'], true);
+    const key4 = new PathKey(['x', 'y'], false);
 
-    const map = new TreePathMap();
+    const map = new TreeMap();
     map.add(key1, 'a');
     map.add(key2, 'b');
     map.add(key3, 'c');
@@ -748,12 +748,12 @@ describe('findWithFallback()', () => {
   });
 
   test('correctly finds a single match', () => {
-    const key1 = new TreePathKey([], false);
-    const key2 = new TreePathKey(['x'], false);
-    const key3 = new TreePathKey(['x', 'y'], false);
-    const key4 = new TreePathKey(['x', 'y', 'z'], false);
+    const key1 = new PathKey([], false);
+    const key2 = new PathKey(['x'], false);
+    const key3 = new PathKey(['x', 'y'], false);
+    const key4 = new PathKey(['x', 'y', 'z'], false);
 
-    const map = new TreePathMap();
+    const map = new TreeMap();
     map.add(key1, 'a');
     map.add(key2, 'b');
     map.add(key3, 'c');
@@ -768,11 +768,11 @@ describe('findWithFallback()', () => {
   });
 
   test('returns an immediately `done` generator if there is no match', () => {
-    const key1 = new TreePathKey([], false);
-    const key2 = new TreePathKey(['x'], false);
-    const key3 = new TreePathKey(['x', 'y'], false);
+    const key1 = new PathKey([], false);
+    const key2 = new PathKey(['x'], false);
+    const key3 = new PathKey(['x', 'y'], false);
 
-    const map = new TreePathMap();
+    const map = new TreeMap();
     map.add(key1, 'a');
     map.add(key2, 'b');
 
@@ -783,11 +783,11 @@ describe('findWithFallback()', () => {
   });
 
   test('does not find a non-wildcard prefix match', () => {
-    const key1 = new TreePathKey([], true);
-    const key2 = new TreePathKey(['x'], false);
-    const key3 = new TreePathKey(['x', 'y'], true);
+    const key1 = new PathKey([], true);
+    const key2 = new PathKey(['x'], false);
+    const key3 = new PathKey(['x', 'y'], true);
 
-    const map = new TreePathMap();
+    const map = new TreeMap();
     map.add(key1, 'a');
     map.add(key2, 'b');
     map.add(key3, 'c');
@@ -829,11 +829,11 @@ ${'has'}   | ${true}
     }
   }
 
-  test('finds an already-added key, when passed as a `TreePathKey`', () => {
-    const key1  = new TreePathKey(['1', '2', '3'], false);
-    const key2  = new TreePathKey(['1', '2', '3'], false);
+  test('finds an already-added key, when passed as a `PathKey`', () => {
+    const key1  = new PathKey(['1', '2', '3'], false);
+    const key2  = new PathKey(['1', '2', '3'], false);
     const value = ['yes', 'a value'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key1, value);
     expectFound(map, key1, value);
@@ -844,7 +844,7 @@ ${'has'}   | ${true}
     const key1  = { path: ['yo', 'there'], wildcard: true };
     const key2  = { path: ['yo', 'there'], wildcard: true };
     const value = ['yeppers', 'still a value'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key1, value);
     expectFound(map, key1, value);
@@ -852,20 +852,20 @@ ${'has'}   | ${true}
   });
 
   test('does not find an added wildcard key, when passed a non-wildcard', () => {
-    const key1  = new TreePathKey(['1'], true);
-    const key2  = new TreePathKey(['1'], false);
+    const key1  = new PathKey(['1'], true);
+    const key2  = new PathKey(['1'], false);
     const value = ['yo there'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key1, value);
     expectNotFound(map, key2);
   });
 
   test('does not find an added non-wildcard key, when passed a wildcard', () => {
-    const key1  = new TreePathKey(['1'], true);
-    const key2  = new TreePathKey(['1'], false);
+    const key1  = new PathKey(['1'], true);
+    const key2  = new PathKey(['1'], false);
     const value = ['yo there'];
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
 
     map.add(key2, value);
     expectNotFound(map, key1);
@@ -874,14 +874,14 @@ ${'has'}   | ${true}
 
 describe('get()', () => {
   test('returns `null` when a key is not found, if `ifNotFound` was not passed', () => {
-    const map = new TreePathMap();
+    const map = new TreeMap();
     expect(map.get({ path: ['x'], wildcard: false })).toBeNull();
   });
 
   test('returns the `ifNotFound` value when a key is not found', () => {
-    const map   = new TreePathMap();
+    const map   = new TreeMap();
     const value = ['whatever'];
-    expect(map.get(new TreePathKey([], true), value)).toBe(value);
+    expect(map.get(new PathKey([], true), value)).toBe(value);
   });
 
   describe('nullish values', () => {
@@ -897,8 +897,8 @@ describe('get()', () => {
       const notFound = 'not-actually-there';
 
       test('finds it when bound to a wildcard', () => {
-        const map = new TreePathMap();
-        const key = new TreePathKey(['abc'], true);
+        const map = new TreeMap();
+        const key = new PathKey(['abc'], true);
 
         map.add(key, value);
 
@@ -907,8 +907,8 @@ describe('get()', () => {
       });
 
       test('finds it when bound to a non-wildcard', () => {
-        const map = new TreePathMap();
-        const key = new TreePathKey(['abc'], false);
+        const map = new TreeMap();
+        const key = new PathKey(['abc'], false);
 
         map.add(key, value);
 
@@ -931,8 +931,8 @@ describe('has()', () => {
       [{}]
     ])('for %p', (value) => {
       test('finds it when bound to a wildcard', () => {
-        const map = new TreePathMap();
-        const key = new TreePathKey(['abc'], true);
+        const map = new TreeMap();
+        const key = new PathKey(['abc'], true);
 
         map.add(key, value);
 
@@ -941,8 +941,8 @@ describe('has()', () => {
       });
 
       test('finds it when bound to a non-wildcard', () => {
-        const map = new TreePathMap();
-        const key = new TreePathKey(['abc'], false);
+        const map = new TreeMap();
+        const key = new PathKey(['abc'], false);
 
         map.add(key, value);
 
@@ -955,25 +955,25 @@ describe('has()', () => {
 
 describe('stringFromKey()', () => {
   test('uses the default function when not specified in the constructor', () => {
-    const map = new TreePathMap();
+    const map = new TreeMap();
 
-    const key1 = new TreePathKey([], true);
+    const key1 = new PathKey([], true);
     const s1   = map.stringFromKey(key1);
     expect(s1).toBe(key1.toString());
 
-    const key2 = new TreePathKey(['foo', 'bar'], false);
+    const key2 = new PathKey(['foo', 'bar'], false);
     const s2   = map.stringFromKey(key2);
     expect(s2).toBe(key2.toString());
   });
 
   test('uses the default function when `null` was specified in the constructor', () => {
-    const map = new TreePathMap(null);
+    const map = new TreeMap(null);
 
-    const key1 = new TreePathKey(['x', 'y', 'zonk'], true);
+    const key1 = new PathKey(['x', 'y', 'zonk'], true);
     const s1   = map.stringFromKey(key1);
     expect(s1).toBe(key1.toString());
 
-    const key2 = new TreePathKey(['florp'], false);
+    const key2 = new PathKey(['florp'], false);
     const s2   = map.stringFromKey(key2);
     expect(s2).toBe(key2.toString());
   });
@@ -985,9 +985,9 @@ describe('stringFromKey()', () => {
       return `yes-${gotArgs.length}`;
     };
 
-    const key1 = new TreePathKey(['x'], true);
-    const key2 = new TreePathKey(['y'], false);
-    const map = new TreePathMap(theFunc);
+    const key1 = new PathKey(['x'], true);
+    const key2 = new PathKey(['y'], false);
+    const map = new TreeMap(theFunc);
 
     const s1 = map.stringFromKey(key1);
     const s2 = map.stringFromKey(key2);

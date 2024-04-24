@@ -5,13 +5,14 @@ import { setImmediate } from 'node:timers/promises';
 
 import { PromiseState } from '@this/async';
 import { MockTimeSource } from '@this/clocks';
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { RootControlContext } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { DispatchInfo } from '@this/net-util';
 import { RequestDelay } from '@this/webapp-builtins';
 
 import { RequestUtil } from '#test/RequestUtil';
+
 
 /**
  * Convert the given number to thousandths, dealing with floating point error.
@@ -87,7 +88,7 @@ describe('_impl_handleRequest()', () => {
   test('delays by the configured `delay` amount', async () => {
     const rd      = await makeInstance({ delay: '1234_sec' });
     const request = RequestUtil.makeGet('/florp');
-    const result  = rd.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
+    const result  = rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
     await setImmediate();
     expect(PromiseState.isPending(result)).toBeTrue();
@@ -109,7 +110,7 @@ describe('_impl_handleRequest()', () => {
     const results = [];
 
     for (let i = 0; i < 200; i++) {
-      results.push(rd.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname)));
+      results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
       const dur     = timeSource._lastWaitFor().sec;
       const durMsec = toThousandths(dur);
 
@@ -127,7 +128,7 @@ describe('_impl_handleRequest()', () => {
     const waits   = [];
 
     for (let i = 0; i < 400; i++) {
-      results.push(rd.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname)));
+      results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
       const dur     = timeSource._lastWaitFor().sec;
       const durMsec = toThousandths(dur);
       expect(durMsec >= 20).toBeTrue();

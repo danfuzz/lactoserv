@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { BaseComponent, BaseConfig, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
@@ -50,7 +50,7 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async handleRequest(request, dispatch_unused) {
     const application = this.#application;
-    const dispatch    = new DispatchInfo(TreePathKey.EMPTY, request.pathname);
+    const dispatch    = new DispatchInfo(PathKey.EMPTY, request.pathname);
 
     try {
       const result = await application.handleRequest(request, dispatch);

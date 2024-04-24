@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey } from '@this/collections';
+import { PathKey } from '@this/collections';
 import { MustBe } from '@this/typey';
 
 
@@ -49,19 +49,19 @@ export class Names {
   /**
    * Parses an absolute component path into a key. This accepts all of:
    *
-   * * a `TreePathKey` -- Returned directly if not a wildcard, otherwise returns
-   *   the non-wildcard version. Elements are checked for validity.
+   * * a `PathKey` -- Returned directly if not a wildcard, otherwise returns the
+   *   non-wildcard version. Elements are checked for validity.
    * * an array of strings -- Contructed into a non-wildcard-key, with elements
    *   checked for validity.
    * * a string -- Parsed as a slash--separated list of elements, which must
    *   begin with a slash. Elements are checked for validity.
    *
-   * @param {string|Array<string>|TreePathKey} path The absolute path to parse.
-   * @returns {TreePathKey} The parsed path.
+   * @param {string|Array<string>|PathKey} path The absolute path to parse.
+   * @returns {PathKey} The parsed path.
    */
   static parsePath(path) {
     if (Array.isArray(path)) {
-      path = new TreePathKey(path, false);
+      path = new PathKey(path, false);
     } else if (typeof path === 'string') {
       const elements = path.split('/');
       const len      = elements.length;
@@ -70,12 +70,12 @@ export class Names {
         throw new Error(`Not an absolute component path: ${path}`);
       }
 
-      // Drop the initial empty element, and freeze so `TreePathKey` can avoid
+      // Drop the initial empty element, and freeze so `PathKey` can avoid
       // making a copy.
       Object.freeze(elements.pop());
 
-      path = new TreePathKey(elements, false);
-    } else if (!(path instanceof TreePathKey)) {
+      path = new PathKey(elements, false);
+    } else if (!(path instanceof PathKey)) {
       throw new Error(`Not an absolute component path: ${path}`);
     }
 
@@ -93,8 +93,8 @@ export class Names {
    * the method to return `null`. Other invalid inputs still cause an error to
    * be thrown.
    *
-   * @param {?string|Array<string>|TreePathKey} path The absolute path to parse.
-   * @returns {?TreePathKey} The parsed path, or `null`.
+   * @param {?string|Array<string>|PathKey} path The absolute path to parse.
+   * @returns {?PathKey} The parsed path, or `null`.
    */
   static parsePathOrNull(path) {
     if ((path === null) || (path === undefined)) {
@@ -108,11 +108,11 @@ export class Names {
    * Returns the string form of an absolute name path key. That is, this is the
    * reverse of {@link #parsePath}.
    *
-   * @param {TreePathKey} key The absolute path key.
+   * @param {PathKey} key The absolute path key.
    * @returns {string} The string form.
    */
   static pathStringFrom(key) {
-    MustBe.instanceOf(key, TreePathKey);
+    MustBe.instanceOf(key, PathKey);
 
     return key.toString({
       prefix:    '/',

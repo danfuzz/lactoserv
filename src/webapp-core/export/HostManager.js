@@ -3,7 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
-import { TreePathMap } from '@this/collections';
+import { TreeMap } from '@this/collections';
 import { BaseAggregateComponent, BaseConfig } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
@@ -122,9 +122,9 @@ export class HostManager extends BaseAggregateComponent {
      * Map from each componentized hostname to the {@link NetworkHost} that
      * should be used for it.
      *
-     * @type {TreePathMap<NetworkHost>}
+     * @type {TreeMap<NetworkHost>}
      */
-    #items = new TreePathMap(HostUtil.hostnameStringFrom);
+    #items = new TreeMap(HostUtil.hostnameStringFrom);
 
     /**
      * Constructs an instance.

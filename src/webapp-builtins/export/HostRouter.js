@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathMap } from '@this/collections';
+import { TreeMap } from '@this/collections';
 import { Names } from '@this/compy';
 import { HostUtil, IntfRequestHandler } from '@this/net-util';
 import { MustBe } from '@this/typey';
@@ -18,7 +18,7 @@ export class HostRouter extends BaseApplication {
    * BaseApplication}) which should handle that prefix. Gets set in {@link
    * #_impl_start}.
    *
-   * @type {?TreePathMap<IntfRequestHandler>}
+   * @type {?TreeMap<IntfRequestHandler>}
    */
   #routeTree = null;
 
@@ -60,7 +60,7 @@ export class HostRouter extends BaseApplication {
     // that runs.
 
     const appManager = this.root.applicationManager;
-    const routeTree  = new TreePathMap();
+    const routeTree  = new TreeMap();
 
     for (const [host, name] of this.config.routeTree) {
       const app = appManager.get(name);
@@ -93,7 +93,7 @@ export class HostRouter extends BaseApplication {
      * Like the outer `routeTree` except with names instead of handler
      * instances.
      *
-     * @type {TreePathMap<string>}
+     * @type {TreeMap<string>}
      */
     #routeTree;
 
@@ -109,7 +109,7 @@ export class HostRouter extends BaseApplication {
 
       MustBe.plainObject(hosts);
 
-      const routeTree = new TreePathMap();
+      const routeTree = new TreeMap();
 
       for (const [host, name] of Object.entries(hosts)) {
         Names.checkName(name);
@@ -121,7 +121,7 @@ export class HostRouter extends BaseApplication {
     }
 
     /**
-     * @returns {TreePathMap<string>} Like the outer `routeTree` except with
+     * @returns {TreeMap<string>} Like the outer `routeTree` except with
      * names instead of handler instances.
      */
     get routeTree() {

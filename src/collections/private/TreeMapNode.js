@@ -3,21 +3,21 @@
 
 import { MustBe } from '@this/typey';
 
-import { TreePathKey } from '#x/TreePathKey';
-import { TreePathMap } from '#x/TreePathMap';
+import { PathKey } from '#x/PathKey';
+import { TreeMap } from '#x/TreeMap';
 import { TypePathKey } from '#x/TypePathKey';
 
 
 /**
- * Node within a {@link TreePathMap}. This class contains practically all of the
+ * Node within a {@link TreeMap}. This class contains practically all of the
  * main tree manipulation and access logic for that class.
  */
-export class TreePathNode {
+export class TreeMapNode {
   /**
-   * Bindings from each initial path component to a {@link TreePathNode} which
+   * Bindings from each initial path component to a {@link TreeMapNode} which
    * contains mappings for that component.
    *
-   * @type {Map<string, TreePathNode>}
+   * @type {Map<string, TreeMapNode>}
    */
   #subtrees = new Map();
 
@@ -25,7 +25,7 @@ export class TreePathNode {
    * Non-wildcard key (from the root), if there is an empty-path binding to this
    * instance.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #emptyKey = null;
 
@@ -40,7 +40,7 @@ export class TreePathNode {
    * Wildcard key (from the root), if there is a wildcard binding to this
    * instance.
    *
-   * @type {TreePathKey}
+   * @type {PathKey}
    */
   #wildcardKey = null;
 
@@ -54,9 +54,8 @@ export class TreePathNode {
   // @defaultConstructor
 
   /**
-   * Underlying implementation of `TreePathMap.add()`, see which for detailed
-   * docs. Note the different return-vs-throw behavior compared to the exposed
-   * method.
+   * Underlying implementation of `TreeMap.add()`, see which for detailed docs.
+   * Note the different return-vs-throw behavior compared to the exposed method.
    *
    * @param {TypePathKey} key Key to bind.
    * @param {*} value Value to bind at `key`.
@@ -66,7 +65,7 @@ export class TreePathNode {
   add(key, value) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
+    if (!(key instanceof PathKey)) {
       MustBe.arrayOfString(path);
       MustBe.boolean(wildcard);
     }
@@ -78,7 +77,7 @@ export class TreePathNode {
     for (const p of path) {
       let nextSubtree = subtree.#subtrees.get(p);
       if (!nextSubtree) {
-        nextSubtree = new TreePathNode();
+        nextSubtree = new TreeMapNode();
         subtree.#subtrees.set(p, nextSubtree);
       }
       subtree = nextSubtree;
@@ -103,18 +102,18 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.findSubtree()`, see which for
+   * Underlying implementation of `TreeMap.findSubtree()`, see which for
    * detailed docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @param {object} result Result to add to. (It's a `TreePathMap`, but we
-   *   don't name the type here to avoid a circular dependency.)
+   * @param {object} result Result to add to. (It's a `TreeMap`, but we don't
+   *   name the type here to avoid a circular dependency.)
    */
   addSubtree(key, result) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(key instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     if (!wildcard) {
@@ -146,8 +145,8 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.entries()`, see which for
-   * detailed docs.
+   * Underlying implementation of `TreeMap.entries()`, see which for detailed
+   * docs.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -156,30 +155,28 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.find()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.find()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
-   *   most specific match, or `null` if there was no match at all.
+   * @returns {?{key: PathKey, keyRemainder: PathKey, value: *}} The most
+   *   specific match, or `null` if there was no match at all.
    */
   find(key) {
     return this.findWithFallback(key).next().value ?? null;
   }
 
   /**
-   * Underlying implementation of `TreePathMap.findWithFallback()`, see which
-   * for detailed docs.
+   * Underlying implementation of `TreeMap.findWithFallback()`, see which for
+   * detailed docs.
    *
    * @param {TypePathKey} keyToFind Key to search for.
-   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
-   *   result.
+   * @yields {{key: PathKey, keyRemainder: PathKey, value: *}} One result.
    */
   *findWithFallback(keyToFind) {
     const { path, wildcard } = keyToFind;
 
-    if (!(keyToFind instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(keyToFind instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     // In order to find the most-specific result, we end up having to find all
@@ -207,12 +204,12 @@ export class TreePathNode {
     if (at === path.length) {
       if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
-        addResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue, PathKey.EMPTY);
       }
 
       if (subtree.#emptyKey && !wildcard) {
         // There's an exact non-wildcard match for the path.
-        addResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+        addResult(subtree.#emptyKey, subtree.#emptyValue, PathKey.EMPTY);
       }
     }
 
@@ -221,15 +218,14 @@ export class TreePathNode {
       if (result.keyRemainder === null) {
         const foundAt       = result.key.path.length;
         const pathRemainder = Object.freeze(path.slice(foundAt));
-        result.keyRemainder = new TreePathKey(pathRemainder, false);
+        result.keyRemainder = new PathKey(pathRemainder, false);
       }
       yield result;
     }
   }
 
   /**
-   * Underlying implementation of `TreePathMap.get()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.get()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to look up.
    * @param {*} ifNotFound What to return if a binding is not found.
@@ -239,8 +235,8 @@ export class TreePathNode {
   get(key, ifNotFound) {
     const { path, wildcard } = key;
 
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
+    if (!(key instanceof PathKey)) {
+      PathKey.checkArguments(path, wildcard);
     }
 
     let subtree = this;
@@ -260,8 +256,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.has()`, see which for detailed
-   * docs.
+   * Underlying implementation of `TreeMap.has()`, see which for detailed docs.
    *
    * @param {TypePathKey} key Key to look up.
    * @returns {boolean} `true` if this instance has a binding for `key`, or

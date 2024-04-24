@@ -4,7 +4,8 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { PromiseState, TokenBucket } from '@this/async';
-import { IntfTimeSource, MockTimeSource, StdTimeSource } from '@this/clocks';
+import { IntfTimeSource, MockTimeSource, StdTimeSource }
+  from '@this/clocks';
 import { Duration, Frequency, Moment } from '@this/data-values';
 
 
