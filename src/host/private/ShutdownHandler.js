@@ -110,9 +110,11 @@ export class ShutdownHandler {
    * shuts down.
    *
    * @param {function()} callback Shutdown-time callback.
+   * @returns {CallbackList.Callback} Instance representing the registered
+   *   callback, which can be used for un-registration.
    */
   static registerCallback(callback) {
-    this.#callbacks.register(callback);
+    return this.#callbacks.register(callback);
   }
 
   /**
