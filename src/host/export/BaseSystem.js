@@ -6,6 +6,7 @@ import { BaseComponent, RootControlContext } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
+import { CallbackList } from '#x/CallbackList';
 import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
 
@@ -17,6 +18,13 @@ import { KeepRunning } from '#x/KeepRunning';
  * action.
  */
 export class BaseSystem extends BaseComponent {
+  /**
+   * List of registered callbacks.
+   *
+   * @type {Array<CallbackList.Callback>}
+   */
+  #callbacks = [];
+
   /**
    * Was a reload requested?
    *
@@ -93,8 +101,9 @@ export class BaseSystem extends BaseComponent {
 
   /** @override */
   async _impl_start() {
-    Host.registerReloadCallback(() => this.#requestReload());
-    Host.registerShutdownCallback(() => this.stop());
+    this.#callbacks.push(
+      Host.registerReloadCallback(() => this.#requestReload()),
+      Host.registerShutdownCallback(() => this.stop()));
 
     await this.#keepRunning.start();
     await this.#thread.start();
@@ -104,6 +113,11 @@ export class BaseSystem extends BaseComponent {
   async _impl_stop(willReload_unused) {
     await this.#thread.stop();
     await this.#keepRunning.stop();
+
+    for (const cb of this.#callbacks) {
+      cb.unregister();
+    }
+    this.#callbacks = [];
   }
 
   /**
