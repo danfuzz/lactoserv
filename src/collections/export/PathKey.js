@@ -6,11 +6,11 @@ import * as util from 'node:util';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { TreePathMap } from '#x/TreePathMap';
+import { TreeMap } from '#x/TreeMap';
 
 
 /**
- * Key for use with {@link TreePathMap}. Instances are immutable, and contents
+ * Key for use with {@link TreeMap}. Instances are immutable, and contents
  * are strongly type-checked.
  */
 export class PathKey {

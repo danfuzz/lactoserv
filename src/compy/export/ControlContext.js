@@ -185,7 +185,7 @@ export class ControlContext {
     const wantLength = thisKey.length + 1;
 
     // TODO: Perhaps this can be made more efficient by adding a just-children
-    // iterator to `TreePathMap`.
+    // iterator to `TreeMap`.
 
     for (const [key, context] of ctxTree.findSubtree(matchKey)) {
       // The test is to ensure we only yield values for exactly one layer of

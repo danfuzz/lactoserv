@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathMap } from '@this/collections';
+import { TreeMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ControlContext } from '#x/ControlContext';
@@ -25,9 +25,9 @@ export class RootControlContext extends ControlContext {
   /**
    * Tree which maps each component path to its context instance.
    *
-   * @type {TreePathMap<ControlContext>}
+   * @type {TreeMap<ControlContext>}
    */
-  #contextTree = new TreePathMap();
+  #contextTree = new TreeMap();
 
   /**
    * Constructs an instance. It initially has no `associate`.
@@ -50,7 +50,7 @@ export class RootControlContext extends ControlContext {
   }
 
   /**
-   * @returns {TreePathMap} The full tree of all descendant contexts.
+   * @returns {TreeMap} The full tree of all descendant contexts.
    */
   get [ThisModule.SYM_contextTree]() {
     return this.#contextTree;

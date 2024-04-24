@@ -17,7 +17,7 @@ import { TypePathKey } from '#x/TypePathKey';
  * This class implements several of the usual collection / map methods, in an
  * attempt to provide a useful and familiar interface.
  */
-export class TreePathMap {
+export class TreeMap {
   /**
    * The actual tree structure.
    *
@@ -141,10 +141,10 @@ export class TreePathMap {
    * bindings with keys at or under that path.
    *
    * @param {TypePathKey} key Key to search for.
-   * @returns {TreePathMap} Map of matched bindings.
+   * @returns {TreeMap} Map of matched bindings.
    */
   findSubtree(key) {
-    const result = new TreePathMap(this.#keyStringFunc);
+    const result = new TreeMap(this.#keyStringFunc);
 
     this.#rootNode.addSubtree(key, result);
 

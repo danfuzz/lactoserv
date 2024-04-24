@@ -2,5 +2,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/PathKey';
-export * from '#x/TreePathMap';
+export * from '#x/TreeMap';
 export * from '#x/TypePathKey';

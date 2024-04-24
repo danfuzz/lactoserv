@@ -4,12 +4,12 @@
 import { MustBe } from '@this/typey';
 
 import { PathKey } from '#x/PathKey';
-import { TreePathMap } from '#x/TreePathMap';
+import { TreeMap } from '#x/TreeMap';
 import { TypePathKey } from '#x/TypePathKey';
 
 
 /**
- * Node within a {@link TreePathMap}. This class contains practically all of the
+ * Node within a {@link TreeMap}. This class contains practically all of the
  * main tree manipulation and access logic for that class.
  */
 export class TreePathNode {
@@ -54,7 +54,7 @@ export class TreePathNode {
   // @defaultConstructor
 
   /**
-   * Underlying implementation of `TreePathMap.add()`, see which for detailed
+   * Underlying implementation of `TreeMap.add()`, see which for detailed
    * docs. Note the different return-vs-throw behavior compared to the exposed
    * method.
    *
@@ -103,11 +103,11 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.findSubtree()`, see which for
+   * Underlying implementation of `TreeMap.findSubtree()`, see which for
    * detailed docs.
    *
    * @param {TypePathKey} key Key to search for.
-   * @param {object} result Result to add to. (It's a `TreePathMap`, but we
+   * @param {object} result Result to add to. (It's a `TreeMap`, but we
    *   don't name the type here to avoid a circular dependency.)
    */
   addSubtree(key, result) {
@@ -146,7 +146,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.entries()`, see which for
+   * Underlying implementation of `TreeMap.entries()`, see which for
    * detailed docs.
    *
    * @returns {object} Iterator over the entries of this instance.
@@ -156,7 +156,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.find()`, see which for detailed
+   * Underlying implementation of `TreeMap.find()`, see which for detailed
    * docs.
    *
    * @param {TypePathKey} key Key to search for.
@@ -168,7 +168,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.findWithFallback()`, see which
+   * Underlying implementation of `TreeMap.findWithFallback()`, see which
    * for detailed docs.
    *
    * @param {TypePathKey} keyToFind Key to search for.
@@ -228,7 +228,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.get()`, see which for detailed
+   * Underlying implementation of `TreeMap.get()`, see which for detailed
    * docs.
    *
    * @param {TypePathKey} key Key to look up.
@@ -260,7 +260,7 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.has()`, see which for detailed
+   * Underlying implementation of `TreeMap.has()`, see which for detailed
    * docs.
    *
    * @param {TypePathKey} key Key to look up.
