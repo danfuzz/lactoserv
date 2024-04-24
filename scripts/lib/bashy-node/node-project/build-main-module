@@ -211,7 +211,7 @@ function copy-local-modules {
     local copyCmd
     copyCmd="$(
         jget --output=raw "${deps}" \
-            cmd='lib rsync-local' \
+            cmd='lib rsync-local --delete' \
             toDir="${moduleDestDir}" '
           .localDirs
         | to_entries
