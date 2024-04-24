@@ -12,12 +12,12 @@ import { TypePathKey } from '#x/TypePathKey';
  * Node within a {@link TreeMap}. This class contains practically all of the
  * main tree manipulation and access logic for that class.
  */
-export class TreePathNode {
+export class TreeMapNode {
   /**
-   * Bindings from each initial path component to a {@link TreePathNode} which
+   * Bindings from each initial path component to a {@link TreeMapNode} which
    * contains mappings for that component.
    *
-   * @type {Map<string, TreePathNode>}
+   * @type {Map<string, TreeMapNode>}
    */
   #subtrees = new Map();
 
@@ -78,7 +78,7 @@ export class TreePathNode {
     for (const p of path) {
       let nextSubtree = subtree.#subtrees.get(p);
       if (!nextSubtree) {
-        nextSubtree = new TreePathNode();
+        nextSubtree = new TreeMapNode();
         subtree.#subtrees.set(p, nextSubtree);
       }
       subtree = nextSubtree;

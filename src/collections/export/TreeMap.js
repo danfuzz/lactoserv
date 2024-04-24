@@ -4,7 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { PathKey } from '#x/PathKey';
-import { TreePathNode } from '#p/TreePathNode';
+import { TreeMapNode } from '#p/TreeMapNode';
 import { TypePathKey } from '#x/TypePathKey';
 
 
@@ -21,13 +21,13 @@ export class TreeMap {
   /**
    * The actual tree structure.
    *
-   * @type {TreePathNode}
+   * @type {TreeMapNode}
    */
-  #rootNode = new TreePathNode();
+  #rootNode = new TreeMapNode();
 
   /**
    * Total number of bindings. This defined here instead of on {@link
-   * TreePathNode}, because internal nodes don't need to keep track of their
+   * TreeMapNode}, because internal nodes don't need to keep track of their
    * overall size.
    *
    * @type {number}
