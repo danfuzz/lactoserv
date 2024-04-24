@@ -34,11 +34,11 @@ export class BaseSystem extends BaseComponent {
 
   /**
    * Thing that prevents the system from exiting, and logs occasionally about
-   * that fact.
+   * that fact. Set up in {@link #_impl_init}.
    *
-   * @type {KeepRunning}
+   * @type {?KeepRunning}
    */
-  #keepRunning = new KeepRunning();
+  #keepRunning = null;
 
   /**
    * Threadlet that runs this instance.
@@ -96,7 +96,8 @@ export class BaseSystem extends BaseComponent {
 
   /** @override */
   async _impl_init() {
-    // @emptyBlock
+    this.#keepRunning = new KeepRunning({ name: 'keepRunning' });
+    this._prot_addChild(this.#keepRunning);
   }
 
   /** @override */

@@ -1,12 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseExposedThreadlet, Threadlet } from '@this/async';
+import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { IntfLogger } from '@this/loggy-intf';
+import { BaseConfig, BaseThreadComponent } from '@this/compy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
-import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -15,14 +14,7 @@ import { ThisModule } from '#p/ThisModule';
  * any pending actions. However, some systems still want to be able to keep the
  * process up, for some reason or other.
  */
-export class KeepRunning extends BaseExposedThreadlet {
-  /**
-   * Logger for this class, or `null` not to do any logging.
-   *
-   * @type {?IntfLogger}
-   */
-  #logger = ThisModule.logger?.keepRunning;
-
+export class KeepRunning extends BaseThreadComponent {
   // @defaultConstructor
 
   /**
@@ -32,7 +24,7 @@ export class KeepRunning extends BaseExposedThreadlet {
    * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
   async _impl_threadRun(runnerAccess) {
-    this.#logger?.running();
+    this.logger?.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
@@ -42,10 +34,10 @@ export class KeepRunning extends BaseExposedThreadlet {
         WallClock.waitForMsec(KeepRunning.#MSEC_PER_DAY)
       ]);
 
-      this.#logger?.uptime(ProcessInfo.uptime);
+      this.logger?.uptime(ProcessInfo.uptime);
     }
 
-    this.#logger?.stopped();
+    this.logger?.stopped();
   }
 
 
@@ -59,4 +51,9 @@ export class KeepRunning extends BaseExposedThreadlet {
    * @type {number}
    */
   static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
+
+  /** @override */
+  static _impl_configClass() {
+    return BaseConfig;
+  }
 }
