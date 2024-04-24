@@ -11,6 +11,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `async` / `webapp-util`:
+  * Moved `TokenBucket` from `async` to `webapp-util`. It _was_ the only
+    not-particularly-simple class in `async`, and its placement in that module
+    had become the source of a module dependency cycle.
 * `clocky` / `clocks`:
   * Renamed module to `clocky`, to harmonize with the other `*y` modules.
 * `collections`:
