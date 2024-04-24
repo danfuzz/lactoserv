@@ -4,3 +4,4 @@
 export * from '#x/BaseFileService';
 export * from '#x/Rotator';
 export * from '#x/Saver';
+export * from '#x/TokenBucket';

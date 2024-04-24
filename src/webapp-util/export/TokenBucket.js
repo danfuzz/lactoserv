@@ -1,12 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { ManualPromise, Threadlet } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
 import { Duration, Frequency, Moment } from '@this/data-values';
 import { MustBe } from '@this/typey';
-
-import { ManualPromise } from '#x/ManualPromise';
-import { Threadlet } from '#x/Threadlet';
 
 
 /**
@@ -156,7 +154,7 @@ export class TokenBucket {
       maxQueueGrantSize = null,
       maxQueueSize      = null,
       partialTokens     = false,
-      timeSource        = StdTimeSource.INSTANCE
+      timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
     this.#flowRate = MustBe.instanceOf(flowRate, Frequency);
@@ -627,4 +625,16 @@ export class TokenBucket {
       await this.#timeSource.waitUntil(time);
     }
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Default time source.
+   *
+   * @type {StdTimeSource}
+   */
+  static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }

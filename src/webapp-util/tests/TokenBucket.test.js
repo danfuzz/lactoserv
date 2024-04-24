@@ -3,10 +3,11 @@
 
 import { setImmediate } from 'node:timers/promises';
 
-import { PromiseState, TokenBucket } from '@this/async';
+import { PromiseState } from '@this/async';
 import { IntfTimeSource, MockTimeSource, StdTimeSource }
   from '@this/clocky';
 import { Duration, Frequency, Moment } from '@this/data-values';
+import { TokenBucket } from '@this/webapp-util';
 
 
 /**
