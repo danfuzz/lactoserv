@@ -220,7 +220,7 @@ ${'toString'}           | ${false}  | ${false}
   ${1673916141.1234}  | ${{ colons: true }}               | ${'20230117-00:42:21'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
-  `('with ($atSec, $options)', ({ atSec, options, expected }) => {
+  `('returns $expected given ($atSec, $options)', ({ atSec, options, expected }) => {
     const result = isStatic
       ? Moment[method](atSec, options)
       : new Moment(atSec)[method](options);
