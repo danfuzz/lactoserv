@@ -57,6 +57,21 @@ ${'eq'}
 ${'gt'}
 ${'lt'}
 `('$methodName()', ({ methodName }) => {
+  test.each`
+  other
+  ${undefined}
+  ${null}
+  ${123}
+  ${123n}
+  ${'123'}
+  ${[123]}
+  ${{ a: 123 }}
+  ${new Map()}
+  `('throws given $other', ({ other }) => {
+    const mo = new Moment(12345);
+    expect(() => mo[methodName](other)).toThrow();
+  });
+
   const T = true;
   const F = false;
 

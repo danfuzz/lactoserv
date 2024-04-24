@@ -112,8 +112,8 @@ export class Moment {
    *   `other`.
    */
   eq(other) {
-    return (other instanceof Moment)
-      && (this.#atSec === other.#atSec);
+    MustBe.instanceOf(other, Moment);
+    return this.#atSec === other.#atSec;
   }
 
   /**
