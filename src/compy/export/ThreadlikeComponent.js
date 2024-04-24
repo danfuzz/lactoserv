@@ -21,12 +21,12 @@ export class ThreadlikeComponent extends BaseComponent {
 
   /** @override */
   async _impl_start() {
-    await this.config.threadlet.start();
+    await this.config.thread.start();
   }
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    await this.config.threadlet.stop();
+    await this.config.thread.stop();
   }
 
 
@@ -64,7 +64,7 @@ export class ThreadlikeComponent extends BaseComponent {
     }
 
     /** @returns {IntfThreadlike} The threadlike thing being managed. */
-    get threadlike() {
+    get thread() {
       return this.#thread;
     }
   };
