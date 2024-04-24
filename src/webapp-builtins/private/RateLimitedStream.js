@@ -5,9 +5,10 @@ import { Socket } from 'node:net';
 import { Duplex, Readable, Writable } from 'node:stream';
 import { setImmediate } from 'node:timers';
 
-import { ManualPromise, TokenBucket } from '@this/async';
+import { ManualPromise } from '@this/async';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
+import { TokenBucket } from '@this/webapp-util';
 
 
 /**

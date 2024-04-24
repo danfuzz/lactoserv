@@ -14,5 +14,4 @@ export * from '#x/Mutex';
 export * from '#x/PromiseState';
 export * from '#x/PromiseUtil';
 export * from '#x/Threadlet';
-export * from '#x/TokenBucket';
 export * from '#x/TypeEventPredicate';
