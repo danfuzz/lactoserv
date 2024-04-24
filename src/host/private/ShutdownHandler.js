@@ -7,7 +7,7 @@ import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
 
-import { CallbackList } from '#p/CallbackList';
+import { CallbackList } from '#x/CallbackList';
 import { ProductInfo } from '#x/ProductInfo';
 import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';

@@ -3,7 +3,7 @@
 
 import { Converter, ConverterConfig, Struct } from '@this/data-values';
 
-import { CallbackList } from '#p/CallbackList';
+import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ProductInfo } from '#x/ProductInfo';

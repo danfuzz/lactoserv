@@ -5,7 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 import { IntfLogger } from '@this/loggy-intf';
 
-import { CallbackList } from '#p/CallbackList';
+import { CallbackList } from '#x/CallbackList';
 import { HeapDump } from '#p/HeapDump';
 import { ProductInfo } from '#x/ProductInfo';
 import { ShutdownHandler } from '#p/ShutdownHandler';
