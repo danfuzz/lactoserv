@@ -45,7 +45,7 @@ export class LoggingManager {
       await WallClock.waitFor(bufferPeriod);
       (async () => {
         await WallClock.waitFor(bufferPeriod);
-        this.#stdoutSink.drainAndStop();
+        await this.#stdoutSink.drainAndStop();
       })();
     });
   }
