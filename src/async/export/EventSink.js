@@ -3,7 +3,6 @@
 
 import { MustBe } from '@this/typey';
 
-import { BaseExposedThreadlet } from '#x/BaseExposedThreadlet';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { LinkedEvent } from '#x/LinkedEvent';
 import { Threadlet } from '#x/Threadlet';
@@ -12,11 +11,17 @@ import { Threadlet } from '#x/Threadlet';
 /**
  * Event sink for {@link LinkedEvent}. Instances of this class "consume" events,
  * calling on a specified processing function for each. Instances can be started
- * and stopped (this class is a sublcass of {@link Threadlet}), and while
- * running they are always either processing existing events or waiting for new
- * events to be emitted on the chain they track.
+ * and stopped, and while running they are always either processing existing
+ * events or waiting for new events to be emitted on the chain they track.
  */
-export class EventSink extends BaseExposedThreadlet {
+export class EventSink {
+  /**
+   * Threadlet which runs this instance's event processing loop.
+   *
+   * @type {Threadlet}
+   */
+  #thread = new Threadlet((runnerAccess) => this.#run(runnerAccess));
+
   /**
    * Function to call, to process each event.
    *
@@ -48,8 +53,6 @@ export class EventSink extends BaseExposedThreadlet {
    *   processed by the instance, or promise for same.
    */
   constructor(processor, firstEvent) {
-    super();
-
     this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
   }
@@ -70,33 +73,54 @@ export class EventSink extends BaseExposedThreadlet {
    */
   async drainAndStop() {
     this.#draining = true;
-    await this.stop();
+    await this.#thread.stop();
   }
 
-  /** @override */
-  async _impl_threadRun() {
-    // Main thread body: Processes events as they become available, until a
-    // problem is encountered or we're requested to stop.
+  /**
+   * Indicates if this instance is currently processing events.
+   *
+   * @returns {boolean} `true` if this instance's event processing loop is
+   *   running, or `false` if not.
+   */
+  isRunning() {
+    return this.#thread.isRunning();
+  }
 
-    this.#draining = false;
+  /**
+   * Starts this instance processing events. It will continue to process them as
+   * they arrive, until told to stop. This method async-returns after the
+   * instance stops.
+   */
+  async run() {
+    await this.#thread.run();
+  }
 
-    for (;;) {
-      if (await this.#runStep()) {
-        break;
-      }
-    }
+  /**
+   * Starts this instance processing events. It will continue to process them as
+   * they arrive, until told to stop. This method async-returns once processing
+   * has started.
+   */
+  async start() {
+    await this.#thread.start();
+  }
+
+  /**
+   * Causes this instance to stop processing events immediately, even if there
+   * are events which are synchronously known to have been emitted.
+   */
+  async stop() {
+    await this.#thread.stop();
   }
 
   /**
    * Gets the current head event -- possibly waiting for it -- or returns `null`
    * if the instance has been asked to stop.
    *
+   * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
    * @returns {?LinkedEvent} The current head event.
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
-  async #headEvent() {
-    const runnerAccess = this._prot_runnerAccess();
-
+  async #headEvent(runnerAccess) {
     for (let pass = 1; pass <= 2; pass++) {
       if (pass === 2) {
         // On the second pass, wait for something salient to happen. (On the
@@ -120,19 +144,37 @@ export class EventSink extends BaseExposedThreadlet {
   }
 
   /**
-   * Helper for {@link #_impl_run}, which performs one iteration of the inner
-   * loop.
+   * Event processing loop. This is the main function run by {@link #thread}.
    *
+   * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
+   */
+  async #run(runnerAccess) {
+    // Main thread body: Processes events as they become available, until a
+    // problem is encountered or we're requested to stop.
+
+    this.#draining = false;
+
+    for (;;) {
+      if (await this.#runStep(runnerAccess)) {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Helper for {@link #run}, which performs one iteration of the inner loop.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
    * @returns {boolean} Done flag: if `true`, the caller of this method should
    *   itself return.
    */
-  async #runStep() {
+  async #runStep(runnerAccess) {
     // This is a separate method only because _not_ doing so can trigger a bug
     // in V8 (found in v10.8.168.25 as present in Node v19.7.0), wherein
     // attaching a debugger can cause a permanent leak of a local variable's
     // instantaneous value in a loop that uses `async`.
 
-    const event = await this.#headEvent();
+    const event = await this.#headEvent(runnerAccess);
     if (!event) {
       return true;
     }
