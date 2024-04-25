@@ -85,6 +85,91 @@ describe('.value', () => {
   });
 });
 
+describe('convertValue()', () => {
+  test('returns the original value given a valid no-unit conversion', () => {
+    const uq     =  new UnitQuantity(123, '', '');
+    const result = uq.convertValue(null, null);
+    expect(result).toBe(uq.value);
+  });
+
+  test('returns `null` on a no-numerator-unit instance when given `numeratorUnits`', () => {
+    const uq1     = new UnitQuantity(123, '', '');
+    const result1 = uq1.convertValue({ x: 10 }, null);
+    expect(result1).toBeNull();
+
+    const uq2     = new UnitQuantity(123, '', 'y');
+    const result2 = uq2.convertValue({ x: 10 }, { y: 1 });
+    expect(result2).toBeNull();
+  });
+
+  test('returns `null` on a no-denominator-unit instance when given `denominatorUnits`', () => {
+    const uq1     = new UnitQuantity(123, '', '');
+    const result1 = uq1.convertValue(null, { y: 10 });
+    expect(result1).toBeNull();
+
+    const uq2     = new UnitQuantity(123, 'x', '');
+    const result2 = uq2.convertValue({ x: 1 }, { y: 1 });
+    expect(result2).toBeNull();
+  });
+
+  test('converts a numerator-only instance as expected', () => {
+    const units = {
+      orig: 1,
+      half: 0.5,
+      ten:  10
+    };
+
+    const result1 = new UnitQuantity(50, 'orig', '').convertValue(units, null);
+    const result2 = new UnitQuantity(50, 'half', '').convertValue(units, null);
+    const result3 = new UnitQuantity(50, 'ten', '').convertValue(units, null);
+
+    expect(result1).toBe(50);
+    expect(result2).toBe(25);
+    expect(result3).toBe(500);
+  });
+
+  test('converts a denominator-only instance as expected', () => {
+    const units = {
+      orig: 1,
+      half: 0.5,
+      ten:  10
+    };
+
+    const result1 = new UnitQuantity(12, '', 'orig').convertValue(null, units);
+    const result2 = new UnitQuantity(12, '', 'half').convertValue(null, units);
+    const result3 = new UnitQuantity(12, '', 'ten').convertValue(null, units);
+
+    expect(result1).toBe(12);
+    expect(result2).toBe(6);
+    expect(result3).toBe(120);
+  });
+
+  test('converts a both-units instance as expected', () => {
+    const numUnits = {
+      origNum: 1,
+      half:    0.5,
+      ten:     10
+    };
+    const denUnits = {
+      origDen: 1,
+      tenth:   0.1,
+      seven:   7
+    };
+
+    const result1 = new UnitQuantity(34, 'origNum', 'origDen').convertValue(numUnits, denUnits);
+    const result2 = new UnitQuantity(34, 'half',    'origDen').convertValue(numUnits, denUnits);
+    const result3 = new UnitQuantity(70, 'origNum', 'tenth'  ).convertValue(numUnits, denUnits);
+    const result4 = new UnitQuantity(5,  'ten',     'seven'  ).convertValue(numUnits, denUnits);
+    const result5 = new UnitQuantity(60, 'half',    'tenth'  ).convertValue(numUnits, denUnits);
+
+    expect(result1).toBe(34);
+    expect(result2).toBe(17);
+    expect(result3).toBe(7);
+    expect(result4).toBe(350);
+    expect(result5).toBe(3);
+  });
+});
+
 // This is for the bad-argument cases. There are separate `describe()`s for
 // success cases.
 describe.each`

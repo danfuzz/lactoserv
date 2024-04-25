@@ -158,6 +158,50 @@ export class UnitQuantity {
   }
 
   /**
+   * Converts the value of this instance based on the given unit conversion
+   * tables. Returns `null` if the conversion cannot be performed (because of
+   * missing units or conversions). Each table has unit names as keys and
+   * multiplication factors as values.
+   *
+   * **Note:** The denominator unit conversions are multiplication factors per
+   * se, not divisors.
+   *
+   * @param {?object} numeratorUnits The allowed numerator units, or `null` if a
+   *   numerator unit must not be present in the original quantity.
+   * @param {?object} denominatorUnits The allowed denominator units, or `null`
+   *   if a denominator unit must not be present in the original quantity.
+   * @returns {?number} The converted value, or `null` if it could not be
+   *   converted.
+   */
+  convertValue(numeratorUnits, denominatorUnits) {
+    const numer = this.#numeratorUnit;
+    const denom = this.#denominatorUnit;
+    let   value = this.#value
+
+    if (numeratorUnits) {
+      const mult = numeratorUnits[numer];
+      if (mult === undefined) {
+        return null;
+      }
+      value *= mult;
+    } else if (numer) {
+      return null;
+    }
+
+    if (denominatorUnits) {
+      const mult = denominatorUnits[denom];
+      if (mult === undefined) {
+        return null;
+      }
+      value *= mult;
+    } else if (denom) {
+      return null;
+    }
+
+    return value;
+  }
+
+  /**
    * Shorthand for `.compare(other) == 0`.
    *
    * @param {UnitQuantity} other Instance to compare to.
