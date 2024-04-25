@@ -25,6 +25,9 @@ Breaking changes:
 * `data-values`:
   * Filled out the comparison methods in `Moment`, and made them match the ones
     added to `UnitQuantity` (see below).
+* `loggy-intf`:
+  * Removed `FormatUtils.byteStringFrom()` in favor of
+    `ByteCount.stringFromByteCount()` (see below).
 
 Other notable changes:
 * `clocky`:
@@ -35,6 +38,7 @@ Other notable changes:
   * New classes `BaseWrappedHierarchy` and `BaseThreadComponent`.
 * `data-values`:
   * Added comparison methods to `UnitQuantity`.
+  * New class `ByteCount` (a unit quantity).
 * `webapp-builtins`:
   * New application `RequestDelay`.
   * New application `SuffixRouter`.
