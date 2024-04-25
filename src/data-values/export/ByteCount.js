@@ -101,7 +101,8 @@ export class ByteCount extends UnitQuantity {
    * * `GiB` -- gibibytes (bytes * 1024^3)
    * * `TiB` -- tebibytes (bytes * 1024^4)
    *
-   * @param {string|ByteCount} value The value to parse, or the value itself.
+   * @param {string|ByteCount|UnitQuantity} valueToParse The value to parse, or
+   *   the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
@@ -116,23 +117,23 @@ export class ByteCount extends UnitQuantity {
    * @returns {?ByteCount} The parsed duration, or `null` if the value could
    *   not be parsed.
    */
-  static parse(value, options = null) {
-    const result = UnitQuantity.parse(value, {
+  static parse(valueToParse, options = null) {
+    let result = UnitQuantity.parse(valueToParse, {
       allowInstance: options?.allowInstance ?? true,
       requireUnit:   true
     });
 
-    if (!result) {
+    if (result === null) {
       return null;
+    } else if (!(result instanceof ByteCount)) {
+      const value = result?.convertValue(this.#BYTE_PER_UNIT) ?? null;
+      if (value === null) {
+        return null;
+      }
+      result = new ByteCount(value);
     }
 
-    const mult = this.#BYTE_PER_UNIT.get(result.unitString);
-
-    if (!mult) {
-      return null;
-    }
-
-    const resValue = result.value * mult;
+    const value = result.value;
 
     const {
       maxExclusive = null,
@@ -141,16 +142,14 @@ export class ByteCount extends UnitQuantity {
       minInclusive = null
     } = options ?? {};
 
-    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
-          && ((minInclusive === null) || (resValue >= minInclusive))
-          && ((maxExclusive === null) || (resValue <  maxExclusive))
-          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
+    if (!(   ((minExclusive === null) || (value >  minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value <  maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
       return null;
     }
 
-    return ((result === value) && (result instanceof ByteCount))
-      ? result
-      : new ByteCount(result.value * mult);
+    return result;
   }
 
   /**
