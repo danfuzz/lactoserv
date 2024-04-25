@@ -166,20 +166,22 @@ export class UnitQuantity {
    * **Note:** The denominator unit conversions are multiplication factors per
    * se, not divisors.
    *
-   * @param {?object} numeratorUnits The allowed numerator units, or `null` if a
-   *   numerator unit must not be present in the original quantity.
-   * @param {?object} denominatorUnits The allowed denominator units, or `null`
-   *   if a denominator unit must not be present in the original quantity.
+   * @param {?Map<string, number>} numeratorUnits The allowed numerator units,
+   *   or `null` if a numerator unit must not be present in the original
+   *   quantity.
+   * @param {?Map<string, number>} denominatorUnits The allowed denominator
+   *   units, or `null` if a denominator unit must not be present in the
+   *   original quantity.
    * @returns {?number} The converted value, or `null` if it could not be
    *   converted.
    */
   convertValue(numeratorUnits, denominatorUnits) {
     const numer = this.#numeratorUnit;
     const denom = this.#denominatorUnit;
-    let   value = this.#value
+    let   value = this.#value;
 
     if (numeratorUnits) {
-      const mult = numeratorUnits[numer];
+      const mult = numeratorUnits.get(numer);
       if (mult === undefined) {
         return null;
       }
@@ -189,7 +191,7 @@ export class UnitQuantity {
     }
 
     if (denominatorUnits) {
-      const mult = denominatorUnits[denom];
+      const mult = denominatorUnits.get(denom);
       if (mult === undefined) {
         return null;
       }
