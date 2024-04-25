@@ -39,7 +39,7 @@ export class ByteCount extends UnitQuantity {
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
-    return ByteCount.stringFromByte(this.byte, options);
+    return ByteCount.stringFromByteCount(this.byte, options);
   }
 
   /**
@@ -170,7 +170,7 @@ export class ByteCount extends UnitQuantity {
    *   the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */
-  static stringFromByte(byteCount, options = {}) {
+  static stringFromByteCount(byteCount, options = {}) {
     const { spaces = true } = options;
     const spaceyChar        = spaces ? ' ' : '_';
     const neg               = (byteCount < 0) ? '-' : '';

@@ -5,8 +5,7 @@ import { memoryUsage, pid as processPid, ppid as processPpid, uptime }
   from 'node:process';
 
 import { WallClock } from '@this/clocky';
-import { Duration, Moment } from '@this/data-values';
-import { FormatUtils } from '@this/loggy-intf';
+import { ByteCount, Duration, Moment } from '@this/data-values';
 
 import { ThisModule } from '#p/ThisModule';
 
@@ -50,7 +49,7 @@ export class ProcessInfo {
   static get ephemeralInfo() {
     const memoryInfo = memoryUsage();
     for (const [key, value] of Object.entries(memoryInfo)) {
-      memoryInfo[key] = FormatUtils.byteCountString(value);
+      memoryInfo[key] = ByteCount.stringFromByteCount(value);
     }
 
     const uptimeInfo = this.uptime.toPlainObject();

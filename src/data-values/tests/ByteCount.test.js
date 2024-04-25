@@ -58,9 +58,9 @@ describe('inverse()', () => {
 });
 
 describe.each`
-method                  | isStatic
-${'stringFromByte'}     | ${true}
-${'toString'}           | ${false}
+method                   | isStatic
+${'stringFromByteCount'} | ${true}
+${'toString'}            | ${false}
 `('$method()', ({ method, isStatic }) => {
   test.each`
   byte                   | string
@@ -117,7 +117,7 @@ ${'toString'}           | ${false}
 
 // A couple extra cases for this method (after the above), to check the `null`
 // and `options` behavior.
-describe('stringFromByte()', () => {
+describe('stringFromByteCount()', () => {
   test.each`
   byte             | options              | string
   ${null}          | ${undefined}         | ${'<none>'}
@@ -127,7 +127,7 @@ describe('stringFromByte()', () => {
   ${123}           | ${{ spaces: true }}  | ${'123 B'}
   ${123}           | ${{ spaces: false }} | ${'123_B'}
   `('returns $string given ($byte, $options)', ({ byte, options, string }) => {
-    const result = ByteCount.stringFromByte(byte, options);
+    const result = ByteCount.stringFromByteCount(byte, options);
     expect(result).toBe(string);
   });
 });
