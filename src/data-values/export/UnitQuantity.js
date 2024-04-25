@@ -273,7 +273,7 @@ export class UnitQuantity {
       maxExclusive = null,
       maxInclusive = null,
       minExclusive = null,
-      minInclusive = null,
+      minInclusive = null
     } = options;
 
     const value = this.#value;

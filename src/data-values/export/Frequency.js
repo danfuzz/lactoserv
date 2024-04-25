@@ -86,8 +86,8 @@ export class Frequency extends UnitQuantity {
    * * `/h` or `/hr` -- per hour
    * * `/d` or `/day` -- per day (defined as exactly once per 24 hours)
    *
-   * @param {string|Frequency|UnitQuantity} value The value to parse, or the
-   *   value itself.
+   * @param {string|Frequency|UnitQuantity} valueToParse The value to parse, or
+   *   the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
