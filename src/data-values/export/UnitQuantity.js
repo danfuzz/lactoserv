@@ -61,11 +61,11 @@ export class UnitQuantity {
     this.#value = MustBe.number(value, { finite: true });
 
     if (numeratorUnit !== null) {
-      this.#numeratorUnit = MustBe.string(numeratorUnit);
+      this.#numeratorUnit = MustBe.string(numeratorUnit, /./);
     }
 
     if (denominatorUnit !== null) {
-      this.#denominatorUnit = MustBe.string(denominatorUnit);
+      this.#denominatorUnit = MustBe.string(denominatorUnit, /./);
     }
 
     Object.freeze(this);
@@ -160,43 +160,51 @@ export class UnitQuantity {
   /**
    * Converts the value of this instance based on the given unit conversion
    * tables. Returns `null` if the conversion cannot be performed (because of
-   * missing units or conversions). Each table has unit names as keys and
-   * multiplication factors as values.
+   * missing units or conversions).
    *
-   * **Note:** The denominator unit conversions are multiplication factors per
-   * se, not divisors.
+   * In order to convert, this instance must have a unit (numerator or
+   * denominator) that corresponds to each of the given tables. Each table has
+   * numerator or denominator names (including possibly a mix) as keys, and
+   * multiplication factors as values. A numerator key is a unit name with a
+   * slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name with a
+   * slash (`/`) prefix (e.g., '/sec').
    *
-   * @param {?Map<string, number>} numeratorUnits The allowed numerator units,
-   *   or `null` if a numerator unit must not be present in the original
-   *   quantity.
-   * @param {?Map<string, number>} denominatorUnits The allowed denominator
-   *   units, or `null` if a denominator unit must not be present in the
-   *   original quantity.
+   * @param {...Map<string, number>} unitMaps One map for each set of required
+   *   units.
    * @returns {?number} The converted value, or `null` if it could not be
    *   converted.
    */
-  convertValue(numeratorUnits, denominatorUnits) {
-    const numer = this.#numeratorUnit;
-    const denom = this.#denominatorUnit;
-    let   value = this.#value;
+  convertValue(...unitMaps) {
+    const numerUnit = this.#numeratorUnit;
+    const denomUnit = this.#denominatorUnit;
+    const unitSet   = new Set();
+    let   value     = this.#value;
 
-    if (numeratorUnits) {
-      const mult = numeratorUnits.get(numer);
-      if (mult === undefined) {
-        return null;
+    if (numerUnit !== null) {
+      unitSet.add(`${numerUnit}/`);
+    }
+
+    if (denomUnit !== null) {
+      unitSet.add(`/${denomUnit}`);
+    }
+
+    outer:
+    for (const oneMap of unitMaps) {
+      for (const u of unitSet) {
+        const mult = oneMap.get(u);
+        if (mult !== undefined) {
+          value *= mult;
+          unitSet.delete(u);
+          continue outer;
+        }
       }
-      value *= mult;
-    } else if (numer) {
+
+      // Didn't find a match for this `unitMaps` argument.
       return null;
     }
 
-    if (denominatorUnits) {
-      const mult = denominatorUnits.get(denom);
-      if (mult === undefined) {
-        return null;
-      }
-      value *= mult;
-    } else if (denom) {
+    if (unitSet.size !== 0) {
+      // Didn't find matches for all units in this instance.
       return null;
     }
 

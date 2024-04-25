@@ -244,6 +244,9 @@ describe('parse()', () => {
   ${'1e1- sec'}
   ${'1e1+1 sec'}
   ${'1e1-1 sec'}
+  ${new UnitQuantity(123, 'x', null)}      // Unknown units in instances.
+  ${new UnitQuantity(123, 'sec', 'florp')}
+  ${new UnitQuantity(123, null, 'sec')}
   `('returns `null` given $value', ({ value }) => {
     expect(Duration.parse(value)).toBeNull();
   });

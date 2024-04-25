@@ -87,47 +87,47 @@ describe('.value', () => {
 
 describe('convertValue()', () => {
   test('returns the original value given a valid no-unit conversion', () => {
-    const uq     =  new UnitQuantity(123, '', '');
-    const result = uq.convertValue(null, null);
+    const uq     =  new UnitQuantity(123, null, null);
+    const result = uq.convertValue();
     expect(result).toBe(uq.value);
   });
 
-  test('returns `null` on a no-numerator-unit instance when given `numeratorUnits`', () => {
-    const units1 = new Map(Object.entries({ x: 10 }));
-    const units2 = new Map(Object.entries({ y: 1 }));
+  test('returns `null` on a no-numerator-unit instance when given numerator units', () => {
+    const units1 = new Map(Object.entries({ 'x/': 10 }));
+    const units2 = new Map(Object.entries({ '/y': 1 }));
 
-    const uq1     = new UnitQuantity(123, '', '');
-    const result1 = uq1.convertValue(units1, null);
+    const uq1     = new UnitQuantity(123, null, null);
+    const result1 = uq1.convertValue(units1);
     expect(result1).toBeNull();
 
-    const uq2     = new UnitQuantity(123, '', 'y');
+    const uq2     = new UnitQuantity(1234, null, 'y');
     const result2 = uq2.convertValue(units1, units2);
     expect(result2).toBeNull();
   });
 
-  test('returns `null` on a no-denominator-unit instance when given `denominatorUnits`', () => {
-    const units1 = new Map(Object.entries({ x: 1 }));
-    const units2 = new Map(Object.entries({ y: 10 }));
+  test('returns `null` on a no-denominator-unit instance when given denominator units', () => {
+    const units1 = new Map(Object.entries({ 'x/': 1 }));
+    const units2 = new Map(Object.entries({ '/y': 10 }));
 
-    const uq1     = new UnitQuantity(123, '', '');
-    const result1 = uq1.convertValue(null, units2);
+    const uq1     = new UnitQuantity(123, null, null);
+    const result1 = uq1.convertValue(units2);
     expect(result1).toBeNull();
 
-    const uq2     = new UnitQuantity(123, 'x', '');
+    const uq2     = new UnitQuantity(1234, 'x', null);
     const result2 = uq2.convertValue(units1, units2);
     expect(result2).toBeNull();
   });
 
   test('converts a numerator-only instance as expected', () => {
     const units = new Map(Object.entries({
-      orig: 1,
-      half: 0.5,
-      ten:  10
+      'orig/': 1,
+      'half/': 0.5,
+      'ten/':  10
     }));
 
-    const result1 = new UnitQuantity(50, 'orig', '').convertValue(units, null);
-    const result2 = new UnitQuantity(50, 'half', '').convertValue(units, null);
-    const result3 = new UnitQuantity(50, 'ten', '').convertValue(units, null);
+    const result1 = new UnitQuantity(50, 'orig', null).convertValue(units);
+    const result2 = new UnitQuantity(50, 'half', null).convertValue(units);
+    const result3 = new UnitQuantity(50, 'ten', null).convertValue(units);
 
     expect(result1).toBe(50);
     expect(result2).toBe(25);
@@ -136,14 +136,14 @@ describe('convertValue()', () => {
 
   test('converts a denominator-only instance as expected', () => {
     const units = new Map(Object.entries({
-      orig: 1,
-      half: 0.5,
-      ten:  10
+      '/orig': 1,
+      '/half': 0.5,
+      '/ten':  10
     }));
 
-    const result1 = new UnitQuantity(12, '', 'orig').convertValue(null, units);
-    const result2 = new UnitQuantity(12, '', 'half').convertValue(null, units);
-    const result3 = new UnitQuantity(12, '', 'ten').convertValue(null, units);
+    const result1 = new UnitQuantity(12, null, 'orig').convertValue(units);
+    const result2 = new UnitQuantity(12, null, 'half').convertValue(units);
+    const result3 = new UnitQuantity(12, null, 'ten').convertValue(units);
 
     expect(result1).toBe(12);
     expect(result2).toBe(6);
@@ -152,14 +152,14 @@ describe('convertValue()', () => {
 
   test('converts a both-units instance as expected', () => {
     const numUnits = new Map(Object.entries({
-      origNum: 1,
-      half:    0.5,
-      ten:     10
+      'origNum/': 1,
+      'half/':    0.5,
+      'ten/':     10
     }));
     const denUnits = new Map(Object.entries({
-      origDen: 1,
-      tenth:   0.1,
-      seven:   7
+      '/origDen': 1,
+      '/tenth':   0.1,
+      '/seven':   7
     }));
 
     const result1 = new UnitQuantity(34, 'origNum', 'origDen').convertValue(numUnits, denUnits);
