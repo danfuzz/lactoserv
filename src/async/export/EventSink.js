@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { EventOrPromise } from '#p/EventOrPromise';
+import { IntfThread } from '#x/IntfThread';
 import { LinkedEvent } from '#x/LinkedEvent';
 import { Threadlet } from '#x/Threadlet';
 
@@ -13,6 +14,8 @@ import { Threadlet } from '#x/Threadlet';
  * calling on a specified processing function for each. Instances can be started
  * and stopped, and while running they are always either processing existing
  * events or waiting for new events to be emitted on the chain they track.
+ *
+ * @implements {IntfThread}
  */
 export class EventSink {
   /**
@@ -76,40 +79,37 @@ export class EventSink {
     await this.#thread.stop();
   }
 
-  /**
-   * Indicates if this instance is currently processing events.
-   *
-   * @returns {boolean} `true` if this instance's event processing loop is
-   *   running, or `false` if not.
-   */
+  /** @override */
   isRunning() {
     return this.#thread.isRunning();
   }
 
-  /**
-   * Starts this instance processing events. It will continue to process them as
-   * they arrive, until told to stop. This method async-returns after the
-   * instance stops.
-   */
+  /** @override */
   async run() {
     await this.#thread.run();
   }
 
-  /**
-   * Starts this instance processing events. It will continue to process them as
-   * they arrive, until told to stop. This method async-returns once processing
-   * has started.
-   */
+  /** @override */
   async start() {
     await this.#thread.start();
   }
 
   /**
-   * Causes this instance to stop processing events immediately, even if there
-   * are events which are synchronously known to have been emitted.
+   * As a clarification to the interface's contract for this method, this method
+   * causes this instance to stop processing events immediately, even if there
+   * are events which are synchronously known to have been emitted. Use
+   * {@link #drainAndStop} to let synchronously-known events to get processed
+   * before stopping.
+   *
+   * @override
    */
   async stop() {
     await this.#thread.stop();
+  }
+
+  /** @override */
+  async whenStarted() {
+    return this.#thread.whenStarted();
   }
 
   /**
