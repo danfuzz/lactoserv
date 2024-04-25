@@ -541,6 +541,13 @@ describe('parse()', () => {
     });
   });
 
+  describe('with `{ allowInstance: false }`', () => {
+    test('does not accept an instance', () => {
+      const uq = new UnitQuantity(123, 'x', null);
+      expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
+    });
+  });
+
   // Success cases, no options.
   test.each`
   value                   | expected
@@ -589,42 +596,5 @@ describe('parse()', () => {
     expect(result.value).toBe(expected[0]);
     expect(result.numeratorUnit).toBe(expected[1]);
     expect(result.denominatorUnit).toBe(expected[2]);
-  });
-
-  // Success and failure cases, with range options.
-  test.each`
-  value               | options                | expected
-  ${'0 z'}            | ${{ minInclusive: 0 }} | ${0}
-  ${'-.001 z'}        | ${{ minInclusive: 0 }} | ${null}
-  ${'0 z'}            | ${{ minExclusive: 0 }} | ${null}
-  ${'0.001 z'}        | ${{ minExclusive: 0 }} | ${0.001}
-  ${'0 z'}            | ${{ maxInclusive: 0 }} | ${0}
-  ${'-0.1 z'}         | ${{ maxInclusive: 0 }} | ${-0.1}
-  ${'0 z'}            | ${{ maxExclusive: 0 }} | ${null}
-  ${'-.001 z'}        | ${{ maxExclusive: 0 }} | ${-0.001}
-  ${[0, 'a', 'b']}    | ${{ minInclusive: 0 }} | ${'same'}
-  ${[-0.1, 'a', 'b']} | ${{ minInclusive: 0 }} | ${null}
-  ${[0, 'a', 'b']}    | ${{ minExclusive: 0 }} | ${null}
-  ${[0.1, 'a', 'b']}  | ${{ minExclusive: 0 }} | ${'same'}
-  ${[0, 'a', 'b']}    | ${{ maxInclusive: 0 }} | ${'same'}
-  ${[-0.1, 'a', 'b']} | ${{ maxInclusive: 0 }} | ${'same'}
-  ${[0, 'a', 'b']}    | ${{ maxExclusive: 0 }} | ${null}
-  ${[-0.1, 'a', 'b']} | ${{ maxExclusive: 0 }} | ${'same'}
-  `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
-    if (Array.isArray(value)) {
-      value = new UnitQuantity(...value);
-    }
-
-    const result = UnitQuantity.parse(value, options);
-
-    if (expected === null) {
-      expect(result).toBeNull();
-    } else if (expected === 'same') {
-      expect(result).toBe(value);
-    } else {
-      expect(result).not.toBeNull();
-      expect(result).toBeInstanceOf(UnitQuantity);
-      expect(result.value).toBe(expected);
-    }
   });
 });

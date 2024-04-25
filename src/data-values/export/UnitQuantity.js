@@ -386,21 +386,11 @@ export class UnitQuantity {
    *   unitless instance.
    * * The unit name `per` is not allowed, as it is reserved as the
    *   word-equivalent of `/`.
-   * * The range restriction options are only useful if the caller ends up
-   *   requiring particular units.
    *
    * @param {string|UnitQuantity} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value. That is,
-   *   require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value. That is,
-   *   require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value. That is,
-   *   require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value. That is,
-   *   require `value >= minInclusive`.
    * @param {?boolean} [options.requireUnit] Require a unit of some sort?
    *   Defaults to `true`.
    * @returns {?UnitQuantity} The parsed duration, or `null` if the value could
@@ -422,23 +412,10 @@ export class UnitQuantity {
     }
 
     const {
-      maxExclusive = null,
-      maxInclusive = null,
-      minExclusive = null,
-      minInclusive = null,
       requireUnit  = true
     } = options ?? {};
 
     if (requireUnit && !(result.numeratorUnit || result.denominatorUnit)) {
-      return null;
-    }
-
-    const resValue = result.value;
-
-    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
-          && ((minInclusive === null) || (resValue >= minInclusive))
-          && ((maxExclusive === null) || (resValue <  maxExclusive))
-          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
       return null;
     }
 
