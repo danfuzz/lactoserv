@@ -118,8 +118,12 @@ export class ByteCount extends UnitQuantity {
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
+    options ??= {
+      allowInstance: true
+    };
+
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options?.allowInstance ?? true
+      allowInstance: options.allowInstance
     });
 
     if (result === null) {
@@ -132,23 +136,7 @@ export class ByteCount extends UnitQuantity {
       result = new ByteCount(value);
     }
 
-    const value = result.value;
-
-    const {
-      maxExclusive = null,
-      maxInclusive = null,
-      minExclusive = null,
-      minInclusive = null
-    } = options ?? {};
-
-    if (!(   ((minExclusive === null) || (value >  minExclusive))
-          && ((minInclusive === null) || (value >= minInclusive))
-          && ((maxExclusive === null) || (value <  maxExclusive))
-          && ((maxInclusive === null) || (value <= maxInclusive)))) {
-      return null;
-    }
-
-    return result;
+    return result.isInRange(options) ? result : null;
   }
 
   /**
