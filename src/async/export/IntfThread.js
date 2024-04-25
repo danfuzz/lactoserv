@@ -10,7 +10,7 @@ import { Methods } from '@this/typey';
  *
  * @interface
  */
-export class IntfThreadlike {
+export class IntfThread {
   /**
    * Indicates if this instance is currently running.
    *

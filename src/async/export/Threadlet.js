@@ -4,7 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
-import { IntfThreadlike } from '#x/IntfThreadlike';
+import { IntfThread } from '#x/IntfThread';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
@@ -17,7 +17,7 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * this by using the methods {@link #shouldStop} and {@link #whenStopRequested}
  * on the instance of this class that it is called with.
  *
- * @implements {IntfThreadlike}
+ * @implements {IntfThread}
  */
 export class Threadlet {
   /**
