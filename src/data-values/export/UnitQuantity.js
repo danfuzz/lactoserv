@@ -387,39 +387,24 @@ export class UnitQuantity {
    * * The unit name `per` is not allowed, as it is reserved as the
    *   word-equivalent of `/`.
    *
-   * @param {string|UnitQuantity} value The value to parse, or the value itself.
+   * @param {string|UnitQuantity} valueToParse The value to parse, or the value
+   *   itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?boolean} [options.requireUnit] Require a unit of some sort?
-   *   Defaults to `true`.
-   * @returns {?UnitQuantity} The parsed duration, or `null` if the value could
+   * @returns {?UnitQuantity} The parsed instance, or `null` if the value could
    *   not be parsed.
    */
-  static parse(value, options = null) {
-    let result = null;
-
-    if (value instanceof UnitQuantity) {
+  static parse(valueToParse, options = null) {
+    if (valueToParse instanceof UnitQuantity) {
       if (options?.allowInstance ?? true) {
-        result = value;
+        return valueToParse;
+      } else {
+        return null;
       }
     } else {
-      result = this.#parseString(value);
+      return this.#parseString(valueToParse);
     }
-
-    if (result === null) {
-      return null;
-    }
-
-    const {
-      requireUnit  = true
-    } = options ?? {};
-
-    if (requireUnit && !(result.numeratorUnit || result.denominatorUnit)) {
-      return null;
-    }
-
-    return result;
   }
 
   /**
@@ -432,10 +417,17 @@ export class UnitQuantity {
   static #parseString(value) {
     MustBe.string(value);
 
+    // Trim away spaces on either end of `value`.
+    value = value.match(/^ *(?<v>.*[^ ]) *$/)?.groups.v ?? null;
+
+    if (!value) {
+      return null;
+    }
+
     // This matches both the number and possibly-combo unit, but in both cases
     // with loose matching which gets tightened up below.
     const overallMatch =
-      value.match(/^ *(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _])) *$/v);
+      value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _]))$/v);
 
     if (!overallMatch) {
       return null;

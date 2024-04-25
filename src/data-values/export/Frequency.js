@@ -104,8 +104,7 @@ export class Frequency extends UnitQuantity {
    */
   static parse(valueToParse, options = null) {
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options?.allowInstance ?? true,
-      requireUnit:   true
+      allowInstance: options?.allowInstance ?? true
     });
 
     if (result === null) {
