@@ -16,6 +16,7 @@ Breaking changes:
     not-particularly-simple class in `async`, and its placement in that module
     had become the source of a module dependency cycle.
   * Renamed `IntfThreadlike` to `IntfThread`.
+  * Make `EventSink` implement `IntfThread`.
 * `clocky` / `clocks`:
   * Renamed module to `clocky`, to harmonize with the other `*y` modules.
 * `collections`:
