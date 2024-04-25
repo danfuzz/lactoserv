@@ -114,7 +114,7 @@ export class ByteCount extends UnitQuantity {
    *   bytes. That is, require `value > minExclusive`.
    * @param {?number} [options.minInclusive] Inclusive minimum value, in
    *   bytes. That is, require `value >= minInclusive`.
-   * @returns {?ByteCount} The parsed duration, or `null` if the value could
+   * @returns {?ByteCount} The parsed byte count, or `null` if the value could
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
