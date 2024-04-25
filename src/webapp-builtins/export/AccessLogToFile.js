@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { WallClock } from '@this/clocky';
-import { Duration, Moment } from '@this/data-values';
+import { ByteCount, Duration, Moment } from '@this/data-values';
 import { FileAppender } from '@this/fs-util';
-import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog } from '@this/net-protocol';
 import { IncomingRequest } from '@this/net-util';
 import { MustBe } from '@this/typey';
@@ -97,7 +96,7 @@ export class AccessLogToFile extends BaseFileService {
     const codeStr          = ok ? 'ok' : errorCodes.join(',');
     const contentLengthStr = (contentLength === null)
       ? 'no-body'
-      : FormatUtils.byteCountString(contentLength, { spaces: false });
+      : ByteCount.stringFromByteCount(contentLength, { spaces: false });
 
     const requestLogLine = [
       endTime.toString({ decimals: 4 }),
