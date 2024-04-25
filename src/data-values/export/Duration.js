@@ -96,20 +96,20 @@ export class Duration extends UnitQuantity {
    * @type {Map<string, number>}
    */
   static #SEC_PER_UNIT = new Map(Object.entries({
-    ns:   (1 / 1_000_000_000),
-    nsec: (1 / 1_000_000_000),
-    us:   (1 / 1_000_000),
-    usec: (1 / 1_000_000),
-    ms:   (1 / 1_000),
-    msec: (1 / 1_000),
-    s:    1,
-    sec:  1,
-    m:    60,
-    min:  60,
-    h:    (60 * 60),
-    hr:   (60 * 60),
-    d:    (60 * 60 * 24),
-    day:  (60 * 60 * 24)
+    'ns/':   (1 / 1_000_000_000),
+    'nsec/': (1 / 1_000_000_000),
+    'us/':   (1 / 1_000_000),
+    'usec/': (1 / 1_000_000),
+    'ms/':   (1 / 1_000),
+    'msec/': (1 / 1_000),
+    's/':    1,
+    'sec/':  1,
+    'm/':    60,
+    'min/':  60,
+    'h/':    (60 * 60),
+    'hr/':   (60 * 60),
+    'd/':    (60 * 60 * 24),
+    'day/':  (60 * 60 * 24)
   }));
 
   /**
@@ -146,11 +146,11 @@ export class Duration extends UnitQuantity {
       requireUnit:   true
     });
 
-    if (!result || result.denominatorUnit) {
+    if (!result) {
       return null;
     }
 
-    const mult = this.#SEC_PER_UNIT.get(result.numeratorUnit);
+    const mult = this.#SEC_PER_UNIT.get(result.unitString);
 
     if (!mult) {
       return null;

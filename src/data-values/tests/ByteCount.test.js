@@ -161,6 +161,7 @@ describe('parse()', () => {
   ${'123'}     // No unit.
   ${'byte'}    // No number.
   ${'1 x'}     // Unknown unit.
+  ${'1 per B'} // Unknown unit (no inverses).
   ${'1 b_yte'} // Unknown unit.
   ${'1 kb'}    // Unknown unit (case sensitive).
   ${'1z B'}    // Invalid character in number.

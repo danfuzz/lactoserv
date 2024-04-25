@@ -74,16 +74,16 @@ export class ByteCount extends UnitQuantity {
    * @type {Map<string, number>}
    */
   static #BYTE_PER_UNIT = new Map(Object.entries({
-    byte: 1,
-    B:    1,
-    kB:   1000,
-    KiB:  1024,
-    MB:   1000 ** 2,
-    MiB:  1024 ** 2,
-    GB:   1000 ** 3,
-    GiB:  1024 ** 3,
-    TB:   1000 ** 4,
-    TiB:  1024 ** 4
+    'byte/': 1,
+    'B/':    1,
+    'kB/':   1000,
+    'KiB/':  1024,
+    'MB/':   1000 ** 2,
+    'MiB/':  1024 ** 2,
+    'GB/':   1000 ** 3,
+    'GiB/':  1024 ** 3,
+    'TB/':   1000 ** 4,
+    'TiB/':  1024 ** 4
   }));
 
   /**
@@ -122,11 +122,11 @@ export class ByteCount extends UnitQuantity {
       requireUnit:   true
     });
 
-    if (!result || result.denominatorUnit) {
+    if (!result) {
       return null;
     }
 
-    const mult = this.#BYTE_PER_UNIT.get(result.numeratorUnit);
+    const mult = this.#BYTE_PER_UNIT.get(result.unitString);
 
     if (!mult) {
       return null;
