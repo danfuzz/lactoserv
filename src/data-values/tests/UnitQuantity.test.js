@@ -176,6 +176,53 @@ describe('convertValue()', () => {
   });
 });
 
+describe('isInRange()', () => {
+  test.each`
+  value           | options                  | expected
+  ${-.001}        | ${{ minInclusive: 0 }}   | ${false}
+  ${0}            | ${{ minInclusive: 0 }}   | ${true}
+  ${0.001}        | ${{ minInclusive: 0 }}   | ${true}
+  ${100}          | ${{ minInclusive: 101 }} | ${false}
+  ${101}          | ${{ minInclusive: 101 }} | ${true}
+  ${1001}         | ${{ minInclusive: 101 }} | ${true}
+  ${-.001}        | ${{ minExclusive: 0 }}   | ${false}
+  ${0}            | ${{ minExclusive: 0 }}   | ${false}
+  ${0.001}        | ${{ minExclusive: 0 }}   | ${true}
+  ${-0.1}         | ${{ maxInclusive: 0 }}   | ${true}
+  ${0}            | ${{ maxInclusive: 0 }}   | ${true}
+  ${0.1}          | ${{ maxInclusive: 0 }}   | ${false}
+  ${10}           | ${{ maxInclusive: 11 }}  | ${true}
+  ${-.001}        | ${{ maxExclusive: 0 }}   | ${true}
+  ${0}            | ${{ maxExclusive: 0 }}   | ${false}
+  ${0.001}        | ${{ maxExclusive: 0 }}   | ${false}
+  ------
+  ${10}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  ------
+  ${19.99999}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  ------
+  ${20}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${true}
+  ------
+  ${30}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${true}
+  ------
+  ${30.000001}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
+    const uq     = new UnitQuantity(value, null, null);
+    const result = uq.isInRange(options);
+
+    expect(result).toBe(expected);
+  });
+});
+
 // This is for the bad-argument cases. There are separate `describe()`s for
 // success cases.
 describe.each`

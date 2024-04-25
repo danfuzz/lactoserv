@@ -254,6 +254,41 @@ export class UnitQuantity {
   }
 
   /**
+   * Checks to see if this instance's value is within a given range.
+   *
+   * @param {object} options Options which define the range.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value. That is,
+   *   require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value. That is,
+   *   require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value. That is,
+   *   require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value. That is,
+   *   require `value >= minInclusive`.
+   * @returns {boolean} `true` if the range restrictions are satisfied, or
+   *   `false` if not.
+   */
+  isInRange(options) {
+    const {
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null,
+    } = options;
+
+    const value = this.#value;
+
+    if (!(   ((minExclusive === null) || (value >  minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value <  maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Shorthand for `.compare(other) <= 0`.
    *
    * @param {UnitQuantity} other Instance to compare to.
