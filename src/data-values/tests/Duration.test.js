@@ -201,6 +201,7 @@ describe('parse()', () => {
   ${'123'}       // No unit.
   ${'hr'}        // No number.
   ${'1 x'}       // Unknown unit.
+  ${'1 /sec'}    // Unknown unit (this is a rate, not a duration).
   ${'1 s_ec'}    // Unknown unit.
   ${'1z sec'}    // Invalid character in number.
   ${'$1 sec'}    // Ditto.

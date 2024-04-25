@@ -83,6 +83,7 @@ describe('parse()', () => {
   ${'/sec'}      // Ditto.
   ${'per sec'}   // Ditto.
   ${'1 x'}       // Unknown unit.
+  ${'1 sec'}     // Unknown unit (this is a duration, not a frequency).
   ${'1 per x'}   // Ditto.
   ${'_1 /sec'}   // Leading underscore not allowed.
   `('returns `null` given $value', ({ value }) => {
