@@ -10,11 +10,12 @@ import { Methods } from '@this/typey';
  *
  * @interface
  */
-export class IntfThreadlike {
+export class IntfThread {
   /**
-   * Is this instance currently running?
+   * Indicates if this instance is currently running.
    *
-   * @returns {boolean} The answer.
+   * @returns {boolean} `true` if this instance is currently running, or `false`
+   *   if not.
    */
   isRunning() {
     throw Methods.abstract();

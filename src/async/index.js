@@ -1,13 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-export * from '#x/BaseExposedThreadlet';
 export * from '#x/Condition';
 export * from '#x/EventPayload';
 export * from '#x/EventSink';
 export * from '#x/EventSource';
 export * from '#x/EventTracker';
-export * from '#x/IntfThreadlike';
+export * from '#x/IntfThread';
 export * from '#x/LinkedEvent';
 export * from '#x/ManualPromise';
 export * from '#x/Mutex';
