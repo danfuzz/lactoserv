@@ -371,7 +371,7 @@ export class UnitQuantity {
    * name. The number is allowed to be any regular floating point value
    * (including exponents), with underscores allowed in the middle of it (for
    * ease of reading, as with normal JavaScript constants). The unit names are
-   * restricted to alphabetic characters (case sensitive) up to 20 characters in
+   * restricted to alphabetic characters (case sensitive) up to 50 characters in
    * length, and can either be a simple unit name taken to be a numerator, a
    * compound numerator-denominator in the form `num/denom` or `num per denom`
    * (literal `per`), or a denominator-only in the form `/denom` or `per denom`.
