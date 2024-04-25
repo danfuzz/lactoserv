@@ -86,6 +86,7 @@ describe('parse()', () => {
   ${'1 sec'}     // Unknown unit (this is a duration, not a frequency).
   ${'1 per x'}   // Ditto.
   ${'_1 /sec'}   // Leading underscore not allowed.
+  ${'-0.1 /sec'} // Negative value not allowed.
   `('returns `null` given $value', ({ value }) => {
     expect(Frequency.parse(value)).toBeNull();
   });
@@ -142,7 +143,8 @@ describe('parse()', () => {
   test.each`
   value               | options                     | expected
   ${'0 /s'}           | ${{ minInclusive: 0 }}      | ${0}
-  ${'-.001 /usec'}    | ${{ minInclusive: 0 }}      | ${null}
+  ${'1.99 /sec'}      | ${{ minInclusive: 2 }}      | ${null}
+  ${'1.99 /msec'}     | ${{ minInclusive: 2 }}      | ${1990}
   ${'0 per s'}        | ${{ minExclusive: 0 }}      | ${null}
   ${'0.001 / s'}      | ${{ minExclusive: 0 }}      | ${0.001}
   ${'2.01 /s'}        | ${{ maxInclusive: 2 }}      | ${null}
