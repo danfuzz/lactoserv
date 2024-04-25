@@ -83,50 +83,54 @@ describe('parse()', () => {
   ${'/sec'}      // Ditto.
   ${'per sec'}   // Ditto.
   ${'1 x'}       // Unknown unit.
+  ${'1 sec'}     // Unknown unit (this is a duration, not a frequency).
   ${'1 per x'}   // Ditto.
   ${'_1 /sec'}   // Leading underscore not allowed.
+  ${'-0.1 /sec'} // Negative value not allowed.
   `('returns `null` given $value', ({ value }) => {
     expect(Frequency.parse(value)).toBeNull();
   });
 
   // Success cases, no options.
   test.each`
-  value                     | expected
-  ${new Frequency(12345)}   | ${12345}
-  ${'0 /nsec'}              | ${0}
-  ${'0 /ns'}                | ${0}
-  ${'0 /usec'}              | ${0}
-  ${'0 /us'}                | ${0}
-  ${'0 /msec'}              | ${0}
-  ${'0 /ms'}                | ${0}
-  ${'0 /sec'}               | ${0}
-  ${'0 /s'}                 | ${0}
-  ${'0 hertz'}              | ${0}
-  ${'0 hz'}                 | ${0}
-  ${'0 /min'}               | ${0}
-  ${'0 /m'}                 | ${0}
-  ${'0 per hr'}             | ${0}
-  ${'0 per h'}              | ${0}
-  ${'0 per_day'}            | ${0}
-  ${'0 per_d'}              | ${0}
-  ${'0 /sec'}               | ${0}
-  ${'0.000_000_001 /nsec'}  | ${1}
-  ${'0.000_000_001 per ns'} | ${1}
-  ${'0.000_001 /usec'}      | ${1}
-  ${'0.000_001 per us'}     | ${1}
-  ${'0.001 /msec'}          | ${1}
-  ${'0.001 per ms'}         | ${1}
-  ${'1 /sec'}               | ${1}
-  ${'1 per s'}              | ${1}
-  ${'1 /min'}               | ${1/60}
-  ${'1 per m'}              | ${1/60}
-  ${'1 /hr'}                | ${1/3600}
-  ${'1 per h'}              | ${1/3600}
-  ${'1 /day'}               | ${1/86400}
-  ${'1 per d'}              | ${1/86400}
-  ${'234.567_per_sec'}      | ${234.567}
-  ${'234.567 /msec'}        | ${1000 * 234.567}
-  ${'234.567 per day '}     | ${234.567 / 86400}
+  value                               | expected
+  ${new Frequency(12345)}             | ${12345}
+  ${new UnitQuantity(2, null, 'sec')} | ${2}
+  ${new UnitQuantity(60, null, 'm')}  | ${1}
+  ${'0 /nsec'}                        | ${0}
+  ${'0 /ns'}                          | ${0}
+  ${'0 /usec'}                        | ${0}
+  ${'0 /us'}                          | ${0}
+  ${'0 /msec'}                        | ${0}
+  ${'0 /ms'}                          | ${0}
+  ${'0 /sec'}                         | ${0}
+  ${'0 /s'}                           | ${0}
+  ${'0 hertz'}                        | ${0}
+  ${'0 hz'}                           | ${0}
+  ${'0 /min'}                         | ${0}
+  ${'0 /m'}                           | ${0}
+  ${'0 per hr'}                       | ${0}
+  ${'0 per h'}                        | ${0}
+  ${'0 per_day'}                      | ${0}
+  ${'0 per_d'}                        | ${0}
+  ${'0 /sec'}                         | ${0}
+  ${'0.000_000_001 /nsec'}            | ${1}
+  ${'0.000_000_001 per ns'}           | ${1}
+  ${'0.000_001 /usec'}                | ${1}
+  ${'0.000_001 per us'}               | ${1}
+  ${'0.001 /msec'}                    | ${1}
+  ${'0.001 per ms'}                   | ${1}
+  ${'1 /sec'}                         | ${1}
+  ${'1 per s'}                        | ${1}
+  ${'1 /min'}                         | ${1/60}
+  ${'1 per m'}                        | ${1/60}
+  ${'1 /hr'}                          | ${1/3600}
+  ${'1 per h'}                        | ${1/3600}
+  ${'1 /day'}                         | ${1/86400}
+  ${'1 per d'}                        | ${1/86400}
+  ${'234.567_per_sec'}                | ${234.567}
+  ${'234.567 /msec'}                  | ${1000 * 234.567}
+  ${'234.567 per day '}               | ${234.567 / 86400}
   `('returns $expected given $value', ({ value, expected }) => {
     const result = Frequency.parse(value);
 
@@ -139,7 +143,8 @@ describe('parse()', () => {
   test.each`
   value               | options                     | expected
   ${'0 /s'}           | ${{ minInclusive: 0 }}      | ${0}
-  ${'-.001 /usec'}    | ${{ minInclusive: 0 }}      | ${null}
+  ${'1.99 /sec'}      | ${{ minInclusive: 2 }}      | ${null}
+  ${'1.99 /msec'}     | ${{ minInclusive: 2 }}      | ${1990}
   ${'0 per s'}        | ${{ minExclusive: 0 }}      | ${null}
   ${'0.001 / s'}      | ${{ minExclusive: 0 }}      | ${0.001}
   ${'2.01 /s'}        | ${{ maxInclusive: 2 }}      | ${null}

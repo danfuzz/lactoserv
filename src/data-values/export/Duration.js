@@ -96,20 +96,20 @@ export class Duration extends UnitQuantity {
    * @type {Map<string, number>}
    */
   static #SEC_PER_UNIT = new Map(Object.entries({
-    ns:   (1 / 1_000_000_000),
-    nsec: (1 / 1_000_000_000),
-    us:   (1 / 1_000_000),
-    usec: (1 / 1_000_000),
-    ms:   (1 / 1_000),
-    msec: (1 / 1_000),
-    s:    1,
-    sec:  1,
-    m:    60,
-    min:  60,
-    h:    (60 * 60),
-    hr:   (60 * 60),
-    d:    (60 * 60 * 24),
-    day:  (60 * 60 * 24)
+    'ns/':   (1 / 1_000_000_000),
+    'nsec/': (1 / 1_000_000_000),
+    'us/':   (1 / 1_000_000),
+    'usec/': (1 / 1_000_000),
+    'ms/':   (1 / 1_000),
+    'msec/': (1 / 1_000),
+    's/':    1,
+    'sec/':  1,
+    'm/':    60,
+    'min/':  60,
+    'h/':    (60 * 60),
+    'hr/':   (60 * 60),
+    'd/':    (60 * 60 * 24),
+    'day/':  (60 * 60 * 24)
   }));
 
   /**
@@ -125,7 +125,8 @@ export class Duration extends UnitQuantity {
    * * `h` or `hr` -- hours
    * * `d` or `day` -- days (defined as exactly 24 hours)
    *
-   * @param {string|Duration} value The value to parse, or the value itself.
+   * @param {string|Duration|UnitQuantity} valueToParse The value to parse, or
+   *   the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
@@ -140,23 +141,22 @@ export class Duration extends UnitQuantity {
    * @returns {?Duration} The parsed duration, or `null` if the value could not
    *   be parsed.
    */
-  static parse(value, options = null) {
-    const result = UnitQuantity.parse(value, {
-      allowInstance: options?.allowInstance ?? true,
-      requireUnit:   true
+  static parse(valueToParse, options = null) {
+    let result = UnitQuantity.parse(valueToParse, {
+      allowInstance: options?.allowInstance ?? true
     });
 
-    if (!result || result.denominatorUnit) {
+    if (result === null) {
       return null;
+    } else if (!(result instanceof Duration)) {
+      const value = result?.convertValue(this.#SEC_PER_UNIT) ?? null;
+      if (value === null) {
+        return null;
+      }
+      result = new Duration(value);
     }
 
-    const mult = this.#SEC_PER_UNIT.get(result.numeratorUnit);
-
-    if (!mult) {
-      return null;
-    }
-
-    const resValue = result.value * mult;
+    const value = result.value;
 
     const {
       maxExclusive = null,
@@ -165,16 +165,14 @@ export class Duration extends UnitQuantity {
       minInclusive = null
     } = options ?? {};
 
-    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
-          && ((minInclusive === null) || (resValue >= minInclusive))
-          && ((maxExclusive === null) || (resValue <  maxExclusive))
-          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
+    if (!(   ((minExclusive === null) || (value >  minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value <  maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
       return null;
     }
 
-    return ((result === value) && (result instanceof Duration))
-      ? result
-      : new Duration(result.value * mult);
+    return result;
   }
 
   /**

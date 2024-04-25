@@ -61,11 +61,11 @@ export class UnitQuantity {
     this.#value = MustBe.number(value, { finite: true });
 
     if (numeratorUnit !== null) {
-      this.#numeratorUnit = MustBe.string(numeratorUnit);
+      this.#numeratorUnit = MustBe.string(numeratorUnit, /./);
     }
 
     if (denominatorUnit !== null) {
-      this.#denominatorUnit = MustBe.string(denominatorUnit);
+      this.#denominatorUnit = MustBe.string(denominatorUnit, /./);
     }
 
     Object.freeze(this);
@@ -158,6 +158,60 @@ export class UnitQuantity {
   }
 
   /**
+   * Converts the value of this instance based on the given unit conversion
+   * tables. Returns `null` if the conversion cannot be performed (because of
+   * missing units or conversions).
+   *
+   * In order to convert, this instance must have a unit (numerator or
+   * denominator) that corresponds to each of the given tables. Each table has
+   * numerator or denominator names (including possibly a mix) as keys, and
+   * multiplication factors as values. A numerator key is a unit name with a
+   * slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name with a
+   * slash (`/`) prefix (e.g., '/sec').
+   *
+   * @param {...Map<string, number>} unitMaps One map for each set of required
+   *   units.
+   * @returns {?number} The converted value, or `null` if it could not be
+   *   converted.
+   */
+  convertValue(...unitMaps) {
+    const numerUnit = this.#numeratorUnit;
+    const denomUnit = this.#denominatorUnit;
+    const unitSet   = new Set();
+    let   value     = this.#value;
+
+    if (numerUnit !== null) {
+      unitSet.add(`${numerUnit}/`);
+    }
+
+    if (denomUnit !== null) {
+      unitSet.add(`/${denomUnit}`);
+    }
+
+    outer:
+    for (const oneMap of unitMaps) {
+      for (const u of unitSet) {
+        const mult = oneMap.get(u);
+        if (mult !== undefined) {
+          value *= mult;
+          unitSet.delete(u);
+          continue outer;
+        }
+      }
+
+      // Didn't find a match for this `unitMaps` argument.
+      return null;
+    }
+
+    if (unitSet.size !== 0) {
+      // Didn't find matches for all units in this instance.
+      return null;
+    }
+
+    return value;
+  }
+
+  /**
    * Shorthand for `.compare(other) == 0`.
    *
    * @param {UnitQuantity} other Instance to compare to.
@@ -197,6 +251,41 @@ export class UnitQuantity {
     const resultClass = this[INVERSE_SYMBOL];
 
     return new resultClass(1 / this.#value, this.#denominatorUnit, this.#numeratorUnit);
+  }
+
+  /**
+   * Checks to see if this instance's value is within a given range.
+   *
+   * @param {object} options Options which define the range.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value. That is,
+   *   require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value. That is,
+   *   require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value. That is,
+   *   require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value. That is,
+   *   require `value >= minInclusive`.
+   * @returns {boolean} `true` if the range restrictions are satisfied, or
+   *   `false` if not.
+   */
+  isInRange(options) {
+    const {
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null
+    } = options;
+
+    const value = this.#value;
+
+    if (!(   ((minExclusive === null) || (value >  minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value <  maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -297,63 +386,25 @@ export class UnitQuantity {
    *   unitless instance.
    * * The unit name `per` is not allowed, as it is reserved as the
    *   word-equivalent of `/`.
-   * * The range restriction options are only useful if the caller ends up
-   *   requiring particular units.
    *
-   * @param {string|UnitQuantity} value The value to parse, or the value itself.
+   * @param {string|UnitQuantity} valueToParse The value to parse, or the value
+   *   itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value. That is,
-   *   require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value. That is,
-   *   require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value. That is,
-   *   require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value. That is,
-   *   require `value >= minInclusive`.
-   * @param {?boolean} [options.requireUnit] Require a unit of some sort?
-   *   Defaults to `true`.
-   * @returns {?UnitQuantity} The parsed duration, or `null` if the value could
+   * @returns {?UnitQuantity} The parsed instance, or `null` if the value could
    *   not be parsed.
    */
-  static parse(value, options = null) {
-    let result = null;
-
-    if (value instanceof UnitQuantity) {
+  static parse(valueToParse, options = null) {
+    if (valueToParse instanceof UnitQuantity) {
       if (options?.allowInstance ?? true) {
-        result = value;
+        return valueToParse;
+      } else {
+        return null;
       }
     } else {
-      result = this.#parseString(value);
+      return this.#parseString(valueToParse);
     }
-
-    if (result === null) {
-      return null;
-    }
-
-    const {
-      maxExclusive = null,
-      maxInclusive = null,
-      minExclusive = null,
-      minInclusive = null,
-      requireUnit  = true
-    } = options ?? {};
-
-    if (requireUnit && !(result.numeratorUnit || result.denominatorUnit)) {
-      return null;
-    }
-
-    const resValue = result.value;
-
-    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
-          && ((minInclusive === null) || (resValue >= minInclusive))
-          && ((maxExclusive === null) || (resValue <  maxExclusive))
-          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
-      return null;
-    }
-
-    return result;
   }
 
   /**
@@ -366,10 +417,17 @@ export class UnitQuantity {
   static #parseString(value) {
     MustBe.string(value);
 
+    // Trim away spaces on either end of `value`.
+    value = value.match(/^ *(?<v>.*[^ ]) *$/)?.groups.v ?? null;
+
+    if (!value) {
+      return null;
+    }
+
     // This matches both the number and possibly-combo unit, but in both cases
     // with loose matching which gets tightened up below.
     const overallMatch =
-      value.match(/^ *(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _])) *$/v);
+      value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _]))$/v);
 
     if (!overallMatch) {
       return null;

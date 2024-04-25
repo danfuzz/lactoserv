@@ -38,41 +38,6 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a human-friendly byte-count string, representing the value with one
-   * of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the return
-   * value uses two digits after a decimal point unless the value is an exact
-   * integer. The dividing line between `B` and `kB` is at 99999/100000 bytes.
-   * The dividing line between `kB` and `MB` is at 9999/10000 kilobytes.
-   *
-   * @param {?number} byteCount The byte count length. If passed as `null`, this
-   *   method returns `<none>`.
-   * @param {object} [options] Formatting options.
-   * @param {boolean} [options.spaces] Use spaces to separate the number from
-   *   the units? If `false` an underscore is used.
-   * @returns {string} The friendly form.
-   */
-  static byteCountString(byteCount, options = {}) {
-    const { spaces = true } = options;
-    const spaceyChar        = spaces ? ' ' : '_';
-
-    if (byteCount === null) {
-      return '<none>';
-    } else if (byteCount < 100000) {
-      return `${byteCount}${spaceyChar}B`;
-    } else if (byteCount < (10000 * 1024)) {
-      const kilobytes = byteCount / 1024;
-      return Number.isInteger(kilobytes)
-        ? `${kilobytes}${spaceyChar}kB`
-        : `${kilobytes.toFixed(2)}${spaceyChar}kB`;
-    } else {
-      const megabytes = byteCount / (1024 * 1024);
-      return Number.isInteger(megabytes)
-        ? `${megabytes}${spaceyChar}MB`
-        : `${megabytes.toFixed(2)}${spaceyChar}MB`;
-    }
-  }
-
-  /**
    * Makes a human-friendly network interface specification string. The given
    * object is expected to either bind `address` and `port` (with `port`
    * possibly being `null` but _not_ `undefined`), _or_ bind `fd`.

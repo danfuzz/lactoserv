@@ -86,7 +86,8 @@ export class Frequency extends UnitQuantity {
    * * `/h` or `/hr` -- per hour
    * * `/d` or `/day` -- per day (defined as exactly once per 24 hours)
    *
-   * @param {string|Frequency} value The value to parse, or the value itself.
+   * @param {string|Frequency|UnitQuantity} valueToParse The value to parse, or
+   *   the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
@@ -101,23 +102,22 @@ export class Frequency extends UnitQuantity {
    * @returns {?Frequency} The parsed frequency, or `null` if the value could
    *   not be parsed.
    */
-  static parse(value, options = null) {
-    const result = UnitQuantity.parse(value, {
-      allowInstance: options?.allowInstance ?? true,
-      requireUnit:   true
+  static parse(valueToParse, options = null) {
+    let result = UnitQuantity.parse(valueToParse, {
+      allowInstance: options?.allowInstance ?? true
     });
 
-    if (!result) {
+    if (result === null) {
       return null;
+    } else if (!(result instanceof Frequency)) {
+      const value = result?.convertValue(this.#UNIT_PER_SEC) ?? null;
+      if ((value === null) || (value < 0)) {
+        return null;
+      }
+      result = new Frequency(value);
     }
 
-    const mult = this.#UNIT_PER_SEC.get(result.unitString);
-
-    if (!mult) {
-      return null;
-    }
-
-    const resValue = result.value * mult;
+    const value = result.value;
 
     const {
       maxExclusive = null,
@@ -126,15 +126,13 @@ export class Frequency extends UnitQuantity {
       minInclusive = null
     } = options ?? {};
 
-    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
-          && ((minInclusive === null) || (resValue >= minInclusive))
-          && ((maxExclusive === null) || (resValue <  maxExclusive))
-          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
+    if (!(   ((minExclusive === null) || (value >  minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value <  maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
       return null;
     }
 
-    return ((result === value) && (result instanceof Frequency))
-      ? result
-      : new Frequency(result.value * mult);
+    return result;
   }
 }

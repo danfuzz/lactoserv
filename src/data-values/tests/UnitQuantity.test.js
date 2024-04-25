@@ -85,6 +85,144 @@ describe('.value', () => {
   });
 });
 
+describe('convertValue()', () => {
+  test('returns the original value given a valid no-unit conversion', () => {
+    const uq     =  new UnitQuantity(123, null, null);
+    const result = uq.convertValue();
+    expect(result).toBe(uq.value);
+  });
+
+  test('returns `null` on a no-numerator-unit instance when given numerator units', () => {
+    const units1 = new Map(Object.entries({ 'x/': 10 }));
+    const units2 = new Map(Object.entries({ '/y': 1 }));
+
+    const uq1     = new UnitQuantity(123, null, null);
+    const result1 = uq1.convertValue(units1);
+    expect(result1).toBeNull();
+
+    const uq2     = new UnitQuantity(1234, null, 'y');
+    const result2 = uq2.convertValue(units1, units2);
+    expect(result2).toBeNull();
+  });
+
+  test('returns `null` on a no-denominator-unit instance when given denominator units', () => {
+    const units1 = new Map(Object.entries({ 'x/': 1 }));
+    const units2 = new Map(Object.entries({ '/y': 10 }));
+
+    const uq1     = new UnitQuantity(123, null, null);
+    const result1 = uq1.convertValue(units2);
+    expect(result1).toBeNull();
+
+    const uq2     = new UnitQuantity(1234, 'x', null);
+    const result2 = uq2.convertValue(units1, units2);
+    expect(result2).toBeNull();
+  });
+
+  test('converts a numerator-only instance as expected', () => {
+    const units = new Map(Object.entries({
+      'orig/': 1,
+      'half/': 0.5,
+      'ten/':  10
+    }));
+
+    const result1 = new UnitQuantity(50, 'orig', null).convertValue(units);
+    const result2 = new UnitQuantity(50, 'half', null).convertValue(units);
+    const result3 = new UnitQuantity(50, 'ten', null).convertValue(units);
+
+    expect(result1).toBe(50);
+    expect(result2).toBe(25);
+    expect(result3).toBe(500);
+  });
+
+  test('converts a denominator-only instance as expected', () => {
+    const units = new Map(Object.entries({
+      '/orig': 1,
+      '/half': 0.5,
+      '/ten':  10
+    }));
+
+    const result1 = new UnitQuantity(12, null, 'orig').convertValue(units);
+    const result2 = new UnitQuantity(12, null, 'half').convertValue(units);
+    const result3 = new UnitQuantity(12, null, 'ten').convertValue(units);
+
+    expect(result1).toBe(12);
+    expect(result2).toBe(6);
+    expect(result3).toBe(120);
+  });
+
+  test('converts a both-units instance as expected', () => {
+    const numUnits = new Map(Object.entries({
+      'origNum/': 1,
+      'half/':    0.5,
+      'ten/':     10
+    }));
+    const denUnits = new Map(Object.entries({
+      '/origDen': 1,
+      '/tenth':   0.1,
+      '/seven':   7
+    }));
+
+    const result1 = new UnitQuantity(34, 'origNum', 'origDen').convertValue(numUnits, denUnits);
+    const result2 = new UnitQuantity(34, 'half',    'origDen').convertValue(numUnits, denUnits);
+    const result3 = new UnitQuantity(70, 'origNum', 'tenth'  ).convertValue(numUnits, denUnits);
+    const result4 = new UnitQuantity(5,  'ten',     'seven'  ).convertValue(numUnits, denUnits);
+    const result5 = new UnitQuantity(60, 'half',    'tenth'  ).convertValue(numUnits, denUnits);
+
+    expect(result1).toBe(34);
+    expect(result2).toBe(17);
+    expect(result3).toBe(7);
+    expect(result4).toBe(350);
+    expect(result5).toBe(3);
+  });
+});
+
+describe('isInRange()', () => {
+  test.each`
+  value           | options                  | expected
+  ${-0.001}       | ${{ minInclusive: 0 }}   | ${false}
+  ${0}            | ${{ minInclusive: 0 }}   | ${true}
+  ${0.001}        | ${{ minInclusive: 0 }}   | ${true}
+  ${100}          | ${{ minInclusive: 101 }} | ${false}
+  ${101}          | ${{ minInclusive: 101 }} | ${true}
+  ${1001}         | ${{ minInclusive: 101 }} | ${true}
+  ${-0.001}       | ${{ minExclusive: 0 }}   | ${false}
+  ${0}            | ${{ minExclusive: 0 }}   | ${false}
+  ${0.001}        | ${{ minExclusive: 0 }}   | ${true}
+  ${-0.1}         | ${{ maxInclusive: 0 }}   | ${true}
+  ${0}            | ${{ maxInclusive: 0 }}   | ${true}
+  ${0.1}          | ${{ maxInclusive: 0 }}   | ${false}
+  ${10}           | ${{ maxInclusive: 11 }}  | ${true}
+  ${-0.001}       | ${{ maxExclusive: 0 }}   | ${true}
+  ${0}            | ${{ maxExclusive: 0 }}   | ${false}
+  ${0.001}        | ${{ maxExclusive: 0 }}   | ${false}
+  ------
+  ${10}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  ------
+  ${19.99999}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  ------
+  ${20}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${true}
+  ------
+  ${30}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${true}
+  ------
+  ${30.000001}
+  ${{ minInclusive: 20, maxInclusive: 30 }}
+  ${false}
+  `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
+    const uq     = new UnitQuantity(value, null, null);
+    const result = uq.isInRange(options);
+
+    expect(result).toBe(expected);
+  });
+});
+
 // This is for the bad-argument cases. There are separate `describe()`s for
 // success cases.
 describe.each`
@@ -267,9 +405,6 @@ describe('parse()', () => {
   test.each`
   value
   ${''}
-  ${'123'}       // No unit. (Units are required by default.)
-  ${' 123 '}     // Ditto.
-  ${'1 bop/bop'} // Ditto. (Identical units cancel out.)
   ${'a'}         // No number.
   ${'1z abc'}    // Invalid character in number.
   ${'$1 xyz'}    // Ditto.
@@ -383,23 +518,36 @@ describe('parse()', () => {
     expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
   });
 
-  describe('with `{ requireUnit: false }`', () => {
-    test('allows unitless input', () => {
-      const uq = UnitQuantity.parse('123', { requireUnit: false });
+  test('allows unitless input', () => {
+    const uq1 = UnitQuantity.parse('123');
 
-      expect(uq).toBeInstanceOf(UnitQuantity);
-      expect(uq.value).toBe(123);
-      expect(uq.numeratorUnit).toBeNull();
-      expect(uq.denominatorUnit).toBeNull();
-    });
+    expect(uq1).toBeInstanceOf(UnitQuantity);
+    expect(uq1.value).toBe(123);
+    expect(uq1.numeratorUnit).toBeNull();
+    expect(uq1.denominatorUnit).toBeNull();
 
-    test('returns a unitless instance when given identical numerator and denominator', () => {
-      const uq = UnitQuantity.parse('0.987 bop/bop', { requireUnit: false });
+    // Spaces around the number are allowed.
+    const uq2 = UnitQuantity.parse(' 999 ');
 
-      expect(uq).toBeInstanceOf(UnitQuantity);
-      expect(uq.value).toBe(0.987);
-      expect(uq.numeratorUnit).toBeNull();
-      expect(uq.denominatorUnit).toBeNull();
+    expect(uq2).toBeInstanceOf(UnitQuantity);
+    expect(uq2.value).toBe(999);
+    expect(uq2.numeratorUnit).toBeNull();
+    expect(uq2.denominatorUnit).toBeNull();
+  });
+
+  test('returns a unitless instance when given identical numerator and denominator', () => {
+    const uq = UnitQuantity.parse('0.987 bop/bop');
+
+    expect(uq).toBeInstanceOf(UnitQuantity);
+    expect(uq.value).toBe(0.987);
+    expect(uq.numeratorUnit).toBeNull();
+    expect(uq.denominatorUnit).toBeNull();
+  });
+
+  describe('with `{ allowInstance: false }`', () => {
+    test('does not accept an instance', () => {
+      const uq = new UnitQuantity(123, 'x', null);
+      expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
     });
   });
 
@@ -451,42 +599,5 @@ describe('parse()', () => {
     expect(result.value).toBe(expected[0]);
     expect(result.numeratorUnit).toBe(expected[1]);
     expect(result.denominatorUnit).toBe(expected[2]);
-  });
-
-  // Success and failure cases, with range options.
-  test.each`
-  value               | options                | expected
-  ${'0 z'}            | ${{ minInclusive: 0 }} | ${0}
-  ${'-.001 z'}        | ${{ minInclusive: 0 }} | ${null}
-  ${'0 z'}            | ${{ minExclusive: 0 }} | ${null}
-  ${'0.001 z'}        | ${{ minExclusive: 0 }} | ${0.001}
-  ${'0 z'}            | ${{ maxInclusive: 0 }} | ${0}
-  ${'-0.1 z'}         | ${{ maxInclusive: 0 }} | ${-0.1}
-  ${'0 z'}            | ${{ maxExclusive: 0 }} | ${null}
-  ${'-.001 z'}        | ${{ maxExclusive: 0 }} | ${-0.001}
-  ${[0, 'a', 'b']}    | ${{ minInclusive: 0 }} | ${'same'}
-  ${[-0.1, 'a', 'b']} | ${{ minInclusive: 0 }} | ${null}
-  ${[0, 'a', 'b']}    | ${{ minExclusive: 0 }} | ${null}
-  ${[0.1, 'a', 'b']}  | ${{ minExclusive: 0 }} | ${'same'}
-  ${[0, 'a', 'b']}    | ${{ maxInclusive: 0 }} | ${'same'}
-  ${[-0.1, 'a', 'b']} | ${{ maxInclusive: 0 }} | ${'same'}
-  ${[0, 'a', 'b']}    | ${{ maxExclusive: 0 }} | ${null}
-  ${[-0.1, 'a', 'b']} | ${{ maxExclusive: 0 }} | ${'same'}
-  `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
-    if (Array.isArray(value)) {
-      value = new UnitQuantity(...value);
-    }
-
-    const result = UnitQuantity.parse(value, options);
-
-    if (expected === null) {
-      expect(result).toBeNull();
-    } else if (expected === 'same') {
-      expect(result).toBe(value);
-    } else {
-      expect(result).not.toBeNull();
-      expect(result).toBeInstanceOf(UnitQuantity);
-      expect(result.value).toBe(expected);
-    }
   });
 });
