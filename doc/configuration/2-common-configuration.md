@@ -16,44 +16,70 @@ _actual_ file names by inserting something in between the prefix and suffix
 (such as a date stamp and/or a sequence number), or in some cases just used
 as-is.
 
-## Specifying durations and frequencies/rates
+## Real-world units
 
-Several configurations are specified as either time durations or
-frequencies/rates. These can be specified as instances of the utility classes
-`data-values.Duration` and `data-values.Frequency` (respectively), or they can
-be specified as unit quantity strings, which include a number and a unit name,
-e.g. durations `1 day` or `1_000ms`, or frequencies `123 per sec` or `5/day`.
+Several configurations are specified as real-world units, including for example
+time durations and data quantities. Each type of unit has a corresponding class,
+and can be specified in a configuration file using that class directly or by
+providing a string that can be parsed into an instance of that class. The
+classes are all in the `data-values` module.
 
-For the string form, the numeric portion is allowed to be any usual-format
-floating point number, including exponents, and including internal underscores
-for readability. The number and unit can be separated with either a space or an
-underscore, or they can just be directly next to each other. The frequency units
-can be indicated either with a leading slash (e.g., `5 / min`) or with the word
-`per` (e.g. `72 per hr`).
+When using a string, the accepted syntax is a number in the usual JavaScript
+form (including exponents and internal underscores), followed by the unit
+name(s). The number and unit name are allowed to be separated by a single space
+or underscore, as is the slash (`/`) between numerator and denominator units.
+The slash can be replaced with the word `per` (which _must_ be separated from
+the units with a space or underscore).
 
-### Durations
+Examples:
 
-The available units for durations are:
+* `1 day`
+* `1_000ms`
+* `123_per_sec`
+* `5/hour`
+* `120 GiB per day`
+
+### `ByteCount`
+
+Amounts of data are specified using the class `ByteCount`. The available units
+are:
+
+* `byte` or `B` &mdash; Bytes.
+* `kB`, `MB`, `GB`, or `TB` &mdash; Standard decimal powers-of-1000 bytes.
+* `KiB`, `MiB`, `GiB`, or `TiB` &mdash; Standard binary powers-of-1024 bytes.
+
+### `ByteRate`
+
+Rates of data flow are specified using the class `ByteRate`. The available units
+are the same as with `ByteCount` for the numerator and the same as with
+`Frequency` for the denominator (except that `hertz` / `hz` isn't allowed).
+
+### `Duration`
+
+Durations are specified using the class `Duration`. The available units are:
 
 * `nsec` or `ns` &mdash; Nanoseconds.
 * `usec` or `us` &mdash; Microseconds.
 * `msec` or `ms` &mdash; Milliseconds.
-* `sec` or `s` &mdash; Seconds.
-* `min` or `m` &mdash; Minutes.
-* `hr` or `h` &mdash; Hours.
+* `second` or `sec` or `s` &mdash; Seconds.
+* `minute` or `min` or `m` &mdash; Minutes.
+* `hour` or `hr` or `h` &mdash; Hours.
 * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
 
-### Frequencies
+### `Frequency`
 
-The available units for frequencies are:
+Frequencies are specified using the class `Frequency`. The available units are:
 
 * `/nsec` or `/ns` &mdash; Per nanosecond.
 * `/usec` or `/us` &mdash; Per microsecond.
 * `/msec` or `/ms` &mdash; Per millisecond.
-* `/sec` or `/s` &mdash; Per second.
-* `/min` or `/m` &mdash; Per minute.
-* `/hr` or `/h` &mdash; Per hour.
+* `/second` or `/sec` or `/s` &mdash; Per second.
+* `/minute` or `/min` or `/m` &mdash; Per minute.
+* `/hour` or `/hr` or `/h` &mdash; Per hour.
 * `/day` or `/d` &mdash; Per (24-hour) day.
+
+As a rarely-useful addition, the _numerator_ unit `hertz` or `hz` is allowed as
+an equivalent to `/sec`.
 
 - - - - - - - - - -
 ```

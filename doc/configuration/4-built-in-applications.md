@@ -28,7 +28,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 * For present-vs-absent header values, such as `public` and `no-cache`:
   * A `boolean`, in which case `true` includes the value and `false` omits it.
 * For duration values:
-  * A duration as described in [Durations](./2-common-configuration.md#durations).
+  * A duration as described in [`Duration`](./2-common-configuration.md#duration).
 
 ### ETag Configuration: `etag`
 
@@ -200,11 +200,11 @@ This is useful to place in the route list for a [`SerialRouter`](#serialrouter).
 
 * `delay` &mdash; The amount of time to delay every response, specified
   as a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` if `minDelay`
+  [`Duration`](./2-common-configuration.md#duration), or `null` if `minDelay`
   and `maxDelay` will instead be specified.
 * `minDelay`, `maxDelay` &mdash; The minimum and maximum amount of time to delay
   a response, inclusive on both ends, specified as duration values as described
-  in [Durations](./2-common-configuration.md#durations), or `null` if `delay` is
+  in [`Duration`](./2-common-configuration.md#duration), or `null` if `delay` is
   instead being specified. When used, the actual delay time of any given request
   is picked randomly, quantized to milliseconds.
 * `timeSource` &mdash; An optional time source object. This is mainly useful for

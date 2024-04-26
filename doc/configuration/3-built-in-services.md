@@ -23,7 +23,7 @@ following bindings:
   on size.
 * `checkPeriod` &mdash; How often to check for a rotation condition, specified
   as a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` to
+  [`Duration`](./2-common-configuration.md#duration), or `null` to
   indicate "never check." Optional and defaults to `5 min`. If specified, the
   value must be at least one second (so as to prevent excessive churn). This is
   only meaningful if `atSize` is also specified.
@@ -63,7 +63,7 @@ _not_ configurable. It accepts the following configuration bindings:
 
 * `bufferPeriod` &mdash; Duration indicating how long to buffer up log entries
   before writing them to the file, specified as a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` to indicate
+  [`Duration`](./2-common-configuration.md#duration), or `null` to indicate
   "do not buffer." Optional and defaults to `null`.
 * `maxUrlLength` &mdash; Maximum length of a URL to log, or `null` to have no
   upper bound. Anything longer than the maximum is represented as a prefix and
@@ -149,13 +149,13 @@ bindings:
 
 * `checkPeriod` &mdash; How often to check for memory usage being over the
   defined limit, specified as a duration value as described in
-  [Durations](./2-common-configuration.md#durations). Optional. Minimum `1 sec`
+  [`Duration`](./2-common-configuration.md#duration). Optional. Minimum `1 sec`
   (which is frankly way too often). Default `5 min` (that is, once every five
   minutes).
 * `gracePeriod` &mdash; Once a memory limit has been reached, how long it is
   allowed to remain at or beyond the maximum before this service takes action,
   specified as a duration value as described in
-  [Durations](./2-common-configuration.md#durations). `0` (or
+  [`Duration`](./2-common-configuration.md#duration). `0` (or
   `null`) to not have a grace period at all. Default `0`. **Note:** When in the
   middle of a grace period, the service will check memory usage more often than
   `checkPeriod` so as not to miss a significant dip.
@@ -199,7 +199,7 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   still running.
 * `updatePeriod` &mdash; How long to wait between each file update, specified as
   a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` to
+  [`Duration`](./2-common-configuration.md#duration), or `null` to
   indicate "never." Optional and defaults to `null`. If specified, the value
   must be at least one second (so as to prevent excessive churn). This value is
   only meaningfully used when `multiprocess` is `true`.
@@ -230,7 +230,7 @@ configuration bindings:
   infixing the process ID.
 * `updatePeriod` &mdash; How long to wait between each file update while the
   system is running, specified as a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` to indicate
+  [`Duration`](./2-common-configuration.md#duration), or `null` to indicate
   "never." Optional and defaults
   to `null`. If specified, the value must be at least one second (so as to
   prevent excessive churn).
@@ -268,7 +268,8 @@ object with the following bindings:
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
   exhausted, specified as a frequency value as described in
-  [Frequencies](./2-common-configuration.md#frequencies).
+  [Frequency](./2-common-configuration.md#frequency). The rate must be
+  positive.
 * `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
   rate-limiting takes effect.
 * `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
@@ -306,7 +307,7 @@ form, to a (filesystem) file. It accepts the following configuration bindings:
 
 * `bufferPeriod` &mdash; Duration indicating how long to buffer up log entries
   before writing them to the file, specified as a duration value as described in
-  [Durations](./2-common-configuration.md#durations), or `null` to indicate
+  [`Duration`](./2-common-configuration.md#duration), or `null` to indicate
   "never check." Optional and defaults to `null`.
 * `format` &mdash; Either `human` or `json`.
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a

@@ -4,6 +4,7 @@
 export * from '#x/BaseConverter';
 export * from '#x/BaseDataClass';
 export * from '#x/ByteCount';
+export * from '#x/ByteRate';
 export * from '#x/Converter';
 export * from '#x/ConverterConfig';
 export * from '#x/Duration';

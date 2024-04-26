@@ -35,7 +35,7 @@ export class ByteCount extends UnitQuantity {
    * of the value.
    *
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   *   #stringFromByteCount}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
@@ -135,7 +135,7 @@ export class ByteCount extends UnitQuantity {
   /**
    * Makes a human-friendly byte-count string. The result string represents a
    * rounded value, in a format which varies based on the magnitude of the
-   * duration. The result uses either `B` to denote bytes or one of the
+   * count. The result uses either `B` to denote bytes or one of the
    * binary-count prefixes `KiB`, `MiB`, `GiB`, or `TiB`. In the latter cases
    * the return value uses two digits after a decimal point unless the value is
    * an exact integer. The dividing line between `B` and `kB` is at 99999/100000
