@@ -449,10 +449,9 @@ export class UnitQuantity {
       }
     } else {
       result = this.#parseString(valueToParse);
-    }
-
-    if (result === null) {
-      return null;
+      if (result === null) {
+        return null;
+      }
     }
 
     if (convert) {
