@@ -211,12 +211,12 @@ export class MemoryMonitor extends BaseService {
         maxRssBytes  = null
       } = rawConfig;
 
-      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { minInclusive: 1 });
+      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { range: { minInclusive: 1 } });
       if (!this.#checkPeriod) {
         throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
       }
 
-      this.#gracePeriod = Duration.parse(gracePeriod ?? '0 sec', { minInclusive: 0 });
+      this.#gracePeriod = Duration.parse(gracePeriod ?? '0 sec', { range: { minInclusive: 0 } });
       if (!this.#gracePeriod) {
         throw new Error(`Could not parse \`gracePeriod\`: ${gracePeriod}`);
       }

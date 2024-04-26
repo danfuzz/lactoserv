@@ -296,7 +296,7 @@ export class BaseFileService extends BaseService {
         ? null
         : MustBe.number(atSize, { finite: true, minInclusive: 1 });
 
-      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { minInclusive: 1 });
+      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { range: { minInclusive: 1 } });
       if (!this.#checkPeriod) {
         throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
       }

@@ -252,7 +252,7 @@ export class ProcessIdFile extends BaseFileService {
         : MustBe.null(multiprocess);
 
       if (updatePeriod) {
-        this.#updatePeriod = Duration.parse(updatePeriod, { minInclusive: 1 });
+        this.#updatePeriod = Duration.parse(updatePeriod, { range: { minInclusive: 1 } });
         if (!this.#updatePeriod) {
           throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
         }

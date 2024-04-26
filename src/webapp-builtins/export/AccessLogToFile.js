@@ -228,7 +228,7 @@ export class AccessLogToFile extends BaseFileService {
       } = rawConfig;
 
       if (bufferPeriod) {
-        this.#bufferPeriod = Duration.parse(bufferPeriod, { minInclusive: 0 });
+        this.#bufferPeriod = Duration.parse(bufferPeriod, { range: { minInclusive: 0 } });
         if (!this.#bufferPeriod) {
           throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
         }

@@ -169,7 +169,7 @@ export class RequestDelay extends BaseApplication {
      * @returns {Duration} The parsed value.
      */
     static #parseDelay(value) {
-      return Duration.parse(value, { minInclusive: 0 });
+      return Duration.parse(value, { range: { minInclusive: 0 } });
     }
   };
 }
