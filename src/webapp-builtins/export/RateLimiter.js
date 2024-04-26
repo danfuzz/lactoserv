@@ -230,12 +230,10 @@ export class RateLimiter extends BaseService {
         MustBe.number(maxQueueSize, { minInclusive: 0, maxInclusive: 1e100 });
       }
 
-      const flowRate = Frequency.parse(origFlowRate);
+      const flowRate = Frequency.parse(origFlowRate, { range: { minExclusive: 0 } });
 
       if (flowRate === null) {
         throw new Error(`Could not parse \`flowRate\`: ${origFlowRate}`);
-      } else if (flowRate.hertz === 0) {
-        throw new Error('`flowRate` must be positive');
       }
 
       return Object.freeze({

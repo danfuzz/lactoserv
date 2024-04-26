@@ -268,7 +268,8 @@ object with the following bindings:
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
   exhausted, specified as a frequency value as described in
-  [Frequencies](./2-common-configuration.md#frequencies).
+  [Frequencies](./2-common-configuration.md#frequencies). The rate must be
+  positive.
 * `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
   rate-limiting takes effect.
 * `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
