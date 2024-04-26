@@ -16,7 +16,7 @@ _actual_ file names by inserting something in between the prefix and suffix
 (such as a date stamp and/or a sequence number), or in some cases just used
 as-is.
 
-## Specifying real-world units.
+## Specifying real-world units
 
 Several configurations are specified as real-world units, including for example
 time durations and data quantities. Each type of unit has a corresponding class,
