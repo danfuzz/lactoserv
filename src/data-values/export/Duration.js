@@ -143,7 +143,7 @@ export class Duration extends UnitQuantity {
     } = options ?? {};
 
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: allowInstance,
+      allowInstance,
       convert: {
         resultUnit: 'sec',
         unitMaps:   [this.#SEC_PER_UNIT]
