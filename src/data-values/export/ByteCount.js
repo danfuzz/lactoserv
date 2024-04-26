@@ -35,7 +35,7 @@ export class ByteCount extends UnitQuantity {
    * of the value.
    *
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   *   #stringFromByteCount}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
