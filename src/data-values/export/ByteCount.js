@@ -123,17 +123,17 @@ export class ByteCount extends UnitQuantity {
     };
 
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options.allowInstance
+      allowInstance: options.allowInstance,
+      convert: {
+        resultUnit: 'byte',
+        unitMaps:   [this.#BYTE_PER_UNIT]
+      }
     });
 
     if (result === null) {
       return null;
     } else if (!(result instanceof ByteCount)) {
-      const value = result?.convertValue(this.#BYTE_PER_UNIT) ?? null;
-      if (value === null) {
-        return null;
-      }
-      result = new ByteCount(value);
+      result = new ByteCount(result.value);
     }
 
     return result.isInRange(options) ? result : null;

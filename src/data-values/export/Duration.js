@@ -147,17 +147,17 @@ export class Duration extends UnitQuantity {
     };
 
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options.allowInstance
+      allowInstance: options.allowInstance,
+      convert: {
+        resultUnit: 'sec',
+        unitMaps:   [this.#SEC_PER_UNIT]
+      }
     });
 
     if (result === null) {
       return null;
     } else if (!(result instanceof Duration)) {
-      const value = result?.convertValue(this.#SEC_PER_UNIT) ?? null;
-      if (value === null) {
-        return null;
-      }
-      result = new Duration(value);
+      result = new Duration(result.value);
     }
 
     return result.isInRange(options) ? result : null;

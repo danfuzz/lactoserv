@@ -108,14 +108,18 @@ export class Frequency extends UnitQuantity {
     };
 
     let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options.allowInstance
+      allowInstance: options.allowInstance,
+      convert: {
+        resultUnit: '/sec',
+        unitMaps:   [this.#UNIT_PER_SEC]
+      }
     });
 
     if (result === null) {
       return null;
     } else if (!(result instanceof Frequency)) {
-      const value = result?.convertValue(this.#UNIT_PER_SEC) ?? null;
-      if ((value === null) || (value < 0)) {
+      const { value } = result;
+      if (value < 0) {
         return null;
       }
       result = new Frequency(value);
