@@ -54,7 +54,7 @@ export class ByteRate extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return new Struct(ByteCount, null, this.bytePerSec, str);
+    return new Struct(ByteRate, null, this.bytePerSec, str);
   }
 
 
@@ -136,7 +136,7 @@ export class ByteRate extends UnitQuantity {
     const result = UnitQuantity.parse(valueToParse, {
       allowInstance,
       convert: {
-        resultUnit: 'byte',
+        resultUnit: 'byte/sec',
         unitMaps:   [this.#BYTE_PER_UNIT, this.#UNIT_PER_SEC]
       },
       ...(range ? { range } : null)
