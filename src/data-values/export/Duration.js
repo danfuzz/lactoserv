@@ -130,37 +130,30 @@ export class Duration extends UnitQuantity {
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value, in
-   *   seconds. That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value, in
-   *   seconds. That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value, in
-   *   seconds. That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value, in
-   *   seconds. That is, require `value >= minInclusive`.
+   * @param {?object} [options.range] Optional range restrictions, in the form
+   *   of the argument required by {@link UnitQuantity#isInRange}. If present,
+   *   the result of a parse is `null` when the range is not satisfied.
    * @returns {?Duration} The parsed duration, or `null` if the value could not
    *   be parsed.
    */
   static parse(valueToParse, options = null) {
-    options ??= {
-      allowInstance: true
-    };
+    const {
+      allowInstance = true,
+      range         = null
+    } = options ?? {};
 
-    let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options.allowInstance
+    const result = UnitQuantity.parse(valueToParse, {
+      allowInstance,
+      convert: {
+        resultUnit: 'sec',
+        unitMaps:   [this.#SEC_PER_UNIT]
+      },
+      ...(range ? { range } : null)
     });
 
-    if (result === null) {
-      return null;
-    } else if (!(result instanceof Duration)) {
-      const value = result?.convertValue(this.#SEC_PER_UNIT) ?? null;
-      if (value === null) {
-        return null;
-      }
-      result = new Duration(value);
-    }
-
-    return result.isInRange(options) ? result : null;
+    return ((result === null) || (result instanceof Duration))
+      ? result
+      : new Duration(result.value);
   }
 
   /**

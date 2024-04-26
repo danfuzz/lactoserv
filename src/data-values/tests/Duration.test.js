@@ -323,17 +323,17 @@ describe('parse()', () => {
 
   // Success and failure cases, with options.
   test.each`
-  value              | options                     | expected
-  ${'0 s'}           | ${{ minInclusive: 0 }}      | ${0}
-  ${'-.001 usec'}    | ${{ minInclusive: 0 }}      | ${null}
-  ${'0 s'}           | ${{ minExclusive: 0 }}      | ${null}
-  ${'0.001 s'}       | ${{ minExclusive: 0 }}      | ${0.001}
-  ${'0 s'}           | ${{ maxInclusive: 0 }}      | ${0}
-  ${'-0.1 sec'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
-  ${'0 s'}           | ${{ maxExclusive: 0 }}      | ${null}
-  ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
-  ${'10 msec'}       | ${{ maxExclusive: 1 }}      | ${0.01}
-  ${new Duration(1)} | ${{ allowInstance: false }} | ${null}
+  value              | options                                | expected
+  ${'0 s'}           | ${{ range: { minInclusive: 0 } }}      | ${0}
+  ${'-.001 usec'}    | ${{ range: { minInclusive: 0 } }}      | ${null}
+  ${'0 s'}           | ${{ range: { minExclusive: 0 } }}      | ${null}
+  ${'0.001 s'}       | ${{ range: { minExclusive: 0 } }}      | ${0.001}
+  ${'0 s'}           | ${{ range: { maxInclusive: 0 } }}      | ${0}
+  ${'-0.1 sec'}      | ${{ range: { maxInclusive: 0 } }}      | ${-0.1}
+  ${'0 s'}           | ${{ range: { maxExclusive: 0 } }}      | ${null}
+  ${'-.001 s'}       | ${{ range: { maxExclusive: 0 } }}      | ${-0.001}
+  ${'10 msec'}       | ${{ range: { maxExclusive: 1 } }}      | ${0.01}
+  ${new Duration(1)} | ${{ allowInstance: false }}            | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
     const result = Duration.parse(value, options);
 

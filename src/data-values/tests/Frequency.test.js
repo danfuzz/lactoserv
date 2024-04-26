@@ -74,7 +74,7 @@ describe('parse()', () => {
     expect(() => Frequency.parse(arg)).toThrow();
   });
 
-  // Error: Syntax error / unknown unit.
+  // Error: Syntax error / unknown unit / bad value.
   test.each`
   value
   ${''}
@@ -141,18 +141,18 @@ describe('parse()', () => {
 
   // Success and failure cases, with options.
   test.each`
-  value               | options                     | expected
-  ${'0 /s'}           | ${{ minInclusive: 0 }}      | ${0}
-  ${'1.99 /sec'}      | ${{ minInclusive: 2 }}      | ${null}
-  ${'1.99 /msec'}     | ${{ minInclusive: 2 }}      | ${1990}
-  ${'0 per s'}        | ${{ minExclusive: 0 }}      | ${null}
-  ${'0.001 / s'}      | ${{ minExclusive: 0 }}      | ${0.001}
-  ${'2.01 /s'}        | ${{ maxInclusive: 2 }}      | ${null}
-  ${'2 per sec'}      | ${{ maxInclusive: 2 }}      | ${2}
-  ${'2 /s'}           | ${{ maxExclusive: 2 }}      | ${null}
-  ${'1.99 /s'}        | ${{ maxExclusive: 2 }}      | ${1.99}
-  ${'10 per day'}     | ${{ maxExclusive: 100 }}    | ${(1 / 86400) * 10}
-  ${new Frequency(1)} | ${{ allowInstance: false }} | ${null}
+  value               | options                                | expected
+  ${'0 /s'}           | ${{ range: { minInclusive: 0 } }}      | ${0}
+  ${'1.99 /sec'}      | ${{ range: { minInclusive: 2 } }}      | ${null}
+  ${'1.99 /msec'}     | ${{ range: { minInclusive: 2 } }}      | ${1990}
+  ${'0 per s'}        | ${{ range: { minExclusive: 0 } }}      | ${null}
+  ${'0.001 / s'}      | ${{ range: { minExclusive: 0 } }}      | ${0.001}
+  ${'2.01 /s'}        | ${{ range: { maxInclusive: 2 } }}      | ${null}
+  ${'2 per sec'}      | ${{ range: { maxInclusive: 2 } }}      | ${2}
+  ${'2 /s'}           | ${{ range: { maxExclusive: 2 } }}      | ${null}
+  ${'1.99 /s'}        | ${{ range: { maxExclusive: 2 } }}      | ${1.99}
+  ${'10 per day'}     | ${{ range: { maxExclusive: 100 } }}    | ${(1 / 86400) * 10}
+  ${new Frequency(1)} | ${{ allowInstance: false }}            | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
     const result = Frequency.parse(value, options);
 

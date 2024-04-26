@@ -226,11 +226,18 @@ describe('isInRange()', () => {
 // This is for the bad-argument cases. There are separate `describe()`s for
 // success cases.
 describe.each`
-methodName
-${'add'}
-${'compare'}
-${'subtract'}
-`('$methodName()', ({ methodName }) => {
+methodName        | acceptsDifferentUnits
+${'add'}          | ${false}
+${'compare'}      | ${false}
+${'eq'}           | ${false}
+${'ge'}           | ${false}
+${'gt'}           | ${false}
+${'hasSameUnits'} | ${true}
+${'le'}           | ${false}
+${'lt'}           | ${false}
+${'ne'}           | ${false}
+${'subtract'}     | ${false}
+`('$methodName()', ({ methodName, acceptsDifferentUnits }) => {
   test.each`
   arg
   ${undefined}
@@ -246,17 +253,19 @@ ${'subtract'}
     expect(() => uq[methodName](arg)).toThrow();
   });
 
-  test('throws if the numerator units do not match', () => {
-    const uq1 = new UnitQuantity(1, 'a', 'yes');
-    const uq2 = new UnitQuantity(1, 'b', 'yes');
-    expect(() => uq1[methodName](uq2)).toThrow();
-  });
+  if (!acceptsDifferentUnits) {
+    test('throws if the numerator units do not match', () => {
+      const uq1 = new UnitQuantity(1, 'a', 'yes');
+      const uq2 = new UnitQuantity(1, 'b', 'yes');
+      expect(() => uq1[methodName](uq2)).toThrow();
+    });
 
-  test('throws if the denominator units do not match', () => {
-    const uq1 = new UnitQuantity(1, 'yes', 'x');
-    const uq2 = new UnitQuantity(1, 'yes', 'y');
-    expect(() => uq1[methodName](uq2)).toThrow();
-  });
+    test('throws if the denominator units do not match', () => {
+      const uq1 = new UnitQuantity(1, 'yes', 'x');
+      const uq2 = new UnitQuantity(1, 'yes', 'y');
+      expect(() => uq1[methodName](uq2)).toThrow();
+    });
+  }
 });
 
 describe.each`
@@ -336,6 +345,77 @@ ${'ne'}
       }
 
       expect(result).toBe(exp);
+    });
+  });
+});
+
+describe('hasSameUnits()', () => {
+  class UqSub1 extends UnitQuantity {
+    // @emptyBlock
+  }
+
+  class UqSub2 extends UnitQuantity {
+    // @emptyBlock
+  }
+
+  describe.each`
+  label                             | thisClass       | otherClass
+  ${'both are direct instances'}    | ${UnitQuantity} | ${UnitQuantity}
+  ${'`this` is a subclass'}         | ${UqSub1}       | ${UnitQuantity}
+  ${'`other` is a subclass'}        | ${UnitQuantity} | ${UqSub1}
+  ${'both are the same subclass'}   | ${UqSub1}       | ${UqSub2}
+  ${'each is a different subclass'} | ${UqSub1}       | ${UqSub2}
+  `('$label', ({ thisClass, otherClass }) => {
+    function makeInstances(unit1, unit2) {
+      return [
+        new thisClass(123, ...unit1),
+        new otherClass(456, ...unit2)
+      ];
+    }
+
+    test('returns `true` for two unitless instances', () => {
+      const [uq1, uq2] = makeInstances([null, null], [null, null]);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two same-numerator no-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', null], ['x', null]);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two same-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', 'y'], ['x', 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two no-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances([null, 'y'], [null, 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `false` for two different-numerator no-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', null], ['y', null]);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two no-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances([null, 'x'], [null, 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two same-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', 'a'], ['x', 'b']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two different-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['a', 'x'], ['b', 'x']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two different-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['a', 'x'], ['b', 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
     });
   });
 });
@@ -429,14 +509,10 @@ describe('parse()', () => {
   ${'1 per x*'}
 
   // Denominator problems, with slashes.
-  ${'1 /'}       // No "naked" slash.
-  ${'1/'}        // Ditto.
   ${'1 b/c/d'}   // Only one slash in unit.
   ${'1 b/c/'}    // Ditto.
   ${'1 /c/'}     // Ditto.
-  ${'1 b/'}      // No slash at end.
-  ${'1 b/ '}     // Ditto.
-  ${'1 b/_'}     // Ditto.
+  ${'1 b/_'}     // No trailing underscore (even with slash).
   ${'1 b  /c'}   // No more than one space on either side of slash.
   ${'1 b/  c'}   // Ditto.
   ${'1 b__/c'}   // No more than one underscore on either side of slash.
@@ -447,16 +523,10 @@ describe('parse()', () => {
   ${'1 b/ _c'}   // Ditto.
 
   // Like the slash tests above, but with "per".
-  ${'1 per'}
-  ${'1per'}
-  ${'1per '}
   ${'1per_'}
-  ${'1_per'}
   ${'1 b per c per d'}
   ${'1 b per c per'}
   ${'1 per c per'}
-  ${'1 b per'}
-  ${'1 b per '}
   ${'1 b per_'}
   ${'1 b  per c'}
   ${'1 b per  c'}
@@ -470,7 +540,7 @@ describe('parse()', () => {
   ${'1 /per'}
   ${'1 per/'}
 
-  // Generally invalid number syntax, as are all the rest...
+  // Generally invalid number syntax.
   ${'. z'}
   ${'..1 z'}
   ${'1.. z'}
@@ -501,7 +571,7 @@ describe('parse()', () => {
   ${'1e1+1 z'}
   ${'1e1-1 z'}
   ${'_123 z'}
-  `('returns `null` given $value', ({ value }) => {
+  `('returns `null` given `$value`', ({ value }) => {
     expect(UnitQuantity.parse(value)).toBeNull();
   });
 
@@ -518,37 +588,290 @@ describe('parse()', () => {
     expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
   });
 
-  test('allows unitless input', () => {
-    const uq1 = UnitQuantity.parse('123');
-
-    expect(uq1).toBeInstanceOf(UnitQuantity);
-    expect(uq1.value).toBe(123);
-    expect(uq1.numeratorUnit).toBeNull();
-    expect(uq1.denominatorUnit).toBeNull();
-
-    // Spaces around the number are allowed.
-    const uq2 = UnitQuantity.parse(' 999 ');
-
-    expect(uq2).toBeInstanceOf(UnitQuantity);
-    expect(uq2.value).toBe(999);
-    expect(uq2.numeratorUnit).toBeNull();
-    expect(uq2.denominatorUnit).toBeNull();
-  });
-
-  test('returns a unitless instance when given identical numerator and denominator', () => {
-    const uq = UnitQuantity.parse('0.987 bop/bop');
-
-    expect(uq).toBeInstanceOf(UnitQuantity);
-    expect(uq.value).toBe(0.987);
-    expect(uq.numeratorUnit).toBeNull();
-    expect(uq.denominatorUnit).toBeNull();
-  });
-
   describe('with `{ allowInstance: false }`', () => {
     test('does not accept an instance', () => {
       const uq = new UnitQuantity(123, 'x', null);
       expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
     });
+  });
+
+  describe('with `{ range: ... }`', () => {
+    test('accepts a value that falls within the range', () => {
+      const opt = {
+        range: {
+          minInclusive: 1,
+          maxInclusive: 10
+        }
+      };
+
+      const uq1  = UnitQuantity.parse('1 x', opt);
+      const uq10 = UnitQuantity.parse('10 x', opt);
+
+      expect(uq1.value).toBe(1);
+      expect(uq10.value).toBe(10);
+    });
+
+    test('returns `null` given a value that falls outside the range', () => {
+      const opt = {
+        range: {
+          minExclusive: 1,
+          maxExclusive: 10
+        }
+      };
+
+      const uq1  = UnitQuantity.parse('1 x', opt);
+      const uq10 = UnitQuantity.parse('10 x', opt);
+
+      expect(uq1).toBeNull();
+      expect(uq10).toBeNull();
+    });
+  });
+
+  describe('with `{ convert: ... }`', () => {
+    describe('without `unitMaps` or `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        expect(UnitQuantity.parse('12 34 56!', { convert: {} })).toBeNull();
+      });
+
+      test('returns `null` given a unit-ful value', () => {
+        expect(UnitQuantity.parse('12 x', { convert: {} })).toBeNull();
+      });
+
+      test('parses a unitless value', () => {
+        const uq = UnitQuantity.parse('34', { convert: {} });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(34);
+        expect(uq.unitString).toBe('/');
+      });
+    });
+
+    describe('with `resultUnit` but not `unitMaps`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('zonk 126!', {
+          convert: {
+            resultUnit: 'a/b'
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('returns `null` given a unit-ful value with non-matching units', () => {
+        const uq = UnitQuantity.parse('12 x per y', {
+          convert: {
+            resultUnit: 'a/b'
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('throws given a syntactically invalid `resultUnit`', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'hey what is happening today?'
+          }
+        };
+
+        expect(() => UnitQuantity.parse('123', opts)).toThrow();
+      });
+
+      test('parses a value with matching units', () => {
+        const uq = UnitQuantity.parse('99 x / y', {
+          convert: {
+            resultUnit: 'x per y'
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(99);
+        expect(uq.unitString).toBe('x/y');
+      });
+
+      test('parses a unitless value when `resultUnit` is unitless', () => {
+        const uq = UnitQuantity.parse('1221', {
+          convert: {
+            resultUnit: '/'
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(1221);
+        expect(uq.unitString).toBe('/');
+      });
+    });
+
+    describe('with `unitMaps` but not `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('beep boop bop', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('uses a single-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('12 x', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(24);
+        expect(uq.unitString).toBe('/');
+      });
+
+      test('uses a two-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('7 x per y', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(42);
+        expect(uq.unitString).toBe('/');
+      });
+
+      test('returns `null` given a value with non-fully-matched units', () => {
+        const opts = {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        };
+
+        expect(UnitQuantity.parse('7', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
+    });
+
+    describe('with `unitMaps` and `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('flippity flop 999', {
+          convert: {
+            resultUnit: 'x/y',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('uses a two-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('7 x per y', {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(42);
+        expect(uq.unitString).toBe('a/b');
+      });
+
+      test('returns `null` given a value with non-fully-matched units', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        };
+
+        expect(UnitQuantity.parse('7', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
+
+      test('returns the given actual-instance argument if it came in with the right units', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'a/': 1, 'aa/': 10 })),
+              new Map(Object.entries({ '/b': 1, '/bb': 20 }))
+            ]
+          }
+        };
+
+        const uq = new UnitQuantity(914, 'a', 'b');
+        expect(UnitQuantity.parse(uq, opts)).toBe(uq);
+      });
+
+      test('uses `convert` before checking `range`', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a',
+            unitMaps: [
+              new Map(Object.entries({ 'a/': 1, 'aaa/': 1000 }))
+            ]
+          },
+          range: {
+            minInclusive: 1000
+          }
+        };
+
+        const uq = UnitQuantity.parse('5 aaa', opts);
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(5000);
+        expect(uq.unitString).toBe('a/');
+      });
+    });
+  });
+
+  // Success cases that result in unitless instances.
+  test.each`
+  value            | expected
+  ${'123'}         | ${123}
+  ${'999 '}        | ${999}
+  ${' 888'}        | ${888}
+  ${' 777 '}       | ${777}
+  ${'0/'}          | ${0}
+  ${'1 /'}         | ${1}
+  ${'2_/'}         | ${2}
+  ${'3 / '}        | ${3}
+  ${'4_/ '}        | ${4}
+  ${'5per'}        | ${5}
+  ${'6 per'}       | ${6}
+  ${'7_per'}       | ${7}
+  ${'8 per '}      | ${8}
+  ${'9_per '}      | ${9}
+  ${'789 ab/ab'}   | ${789} // Units cancel out.
+  ${'789 x per x'} | ${789}
+  `('returns unitless $expected given `$value`', ({ value, expected }) => {
+    const uq = UnitQuantity.parse(value);
+
+    expect(uq).toBeInstanceOf(UnitQuantity);
+    expect(uq.value).toBe(expected);
+    expect(uq.numeratorUnit).toBeNull();
+    expect(uq.denominatorUnit).toBeNull();
   });
 
   // Success cases, no options.
@@ -577,6 +900,9 @@ describe('parse()', () => {
   ${'1.2 z'}              | ${[1.2, 'z', null]}
   ${'0.2 z'}              | ${[0.2, 'z', null]}
   ${'.2 z'}               | ${[0.2, 'z', null]}
+  ${'123 zz/'}            | ${[123, 'zz', null]}
+  ${'4.5 zz /'}           | ${[4.5, 'zz', null]}
+  ${'.6 zz per'}          | ${[0.6, 'zz', null]}
   ${'1234567890 zonk'}    | ${[1234567890, 'zonk', null]}
   ${'-1 a/b'}             | ${[-1, 'a', 'b']}
   ${'+1 a/b'}             | ${[1, 'a', 'b']}
@@ -599,5 +925,147 @@ describe('parse()', () => {
     expect(result.value).toBe(expected[0]);
     expect(result.numeratorUnit).toBe(expected[1]);
     expect(result.denominatorUnit).toBe(expected[2]);
+  });
+});
+
+describe('parseUnitSpec()', () => {
+  // Error: Wrong argument type.
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${123}
+  ${['123s']}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => UnitQuantity.parseUnitSpec(arg)).toThrow();
+  });
+
+  // Syntax errors.
+  test.each`
+  value
+  ${'1/a'}           // Invalid character in unit name.
+  ${'a/1'}
+  ${'a1b/'}
+  ${'/a1b'}
+  ${'a per 1'}
+  ${'1 per a'}
+  ${'x_y/'}
+  ${'/x_y'}
+  ${'$ per'}
+  ${'@ per'}
+  ${'# per'}
+  ${'x  /'}          // Too many spaces / underscores.
+  ${'x__/'}
+  ${'x_ /'}
+  ${'x _/'}
+  ${'/  x'}
+  ${'/__x'}
+  ${'/_ x'}
+  ${'/ _x'}
+  ${'x  /y'}
+  ${'x__/y'}
+  ${'x_ /y'}
+  ${'x _/y'}
+  ${'y/  x'}
+  ${'y/__x'}
+  ${'y/_ x'}
+  ${'y/ _x'}
+  ${'x  per'}
+  ${'x__per'}
+  ${'x_ per'}
+  ${'x _per'}
+  ${'per  x'}
+  ${'per__x'}
+  ${'per_ x'}
+  ${'per _x'}
+  ${'x  per y'}
+  ${'x__per y'}
+  ${'x_ per y'}
+  ${'x _per y'}
+  ${'y per  x'}
+  ${'y per__x'}
+  ${'y per_ x'}
+  ${'y per _x'}
+  ${'x/y/z'}         // Too many slashes / "per"s.
+  ${'x//y'}
+  ${'x//'}
+  ${'//y'}
+  ${'x per y/z'}
+  ${'x/y per z'}
+  ${'x per y per z'}
+  ${'x per per y'}
+  ${'x per per'}
+  ${'per per y'}
+  ${'per z per'}
+  ${'per per per'}
+  ${'abcdefghijx'}   // Name too long.
+  ${'abcdefghijx/'}
+  ${'/abcdefghijx'}
+  `('returns `null` given `$value`', ({ value }) => {
+    expect(UnitQuantity.parseUnitSpec(value)).toBeNull();
+  });
+
+  // Success cases.
+  test.each`
+  spec                           | expected
+  ${''}                          | ${[null, null]}
+  ${' '}                         | ${[null, null]}
+  ${'  '}                        | ${[null, null]}
+  ${'/'}                         | ${[null, null]}
+  ${'/ '}                        | ${[null, null]}
+  ${' /'}                        | ${[null, null]}
+  ${' / '}                       | ${[null, null]}
+  ${'  /  '}                     | ${[null, null]}
+  ${'per'}                       | ${[null, null]}
+  ${'per '}                      | ${[null, null]}
+  ${' per'}                      | ${[null, null]}
+  ${' per '}                     | ${[null, null]}
+  ${'  per  '}                   | ${[null, null]}
+  ${'x'}                         | ${['x', null]}
+  ${'xyz'}                       | ${['xyz', null]}
+  ${' x'}                        | ${['x', null]}
+  ${'x '}                        | ${['x', null]}
+  ${'  x'}                       | ${['x', null]}
+  ${'x  '}                       | ${['x', null]}
+  ${'  x  '}                     | ${['x', null]}
+  ${'x/'}                        | ${['x', null]}
+  ${'x /'}                       | ${['x', null]}
+  ${'x_/'}                       | ${['x', null]}
+  ${' x_/'}                      | ${['x', null]}
+  ${'x per'}                     | ${['x', null]}
+  ${'x_per'}                     | ${['x', null]}
+  ${' x per '}                   | ${['x', null]}
+  ${'/x'}                        | ${[null, 'x']}
+  ${'/ x'}                       | ${[null, 'x']}
+  ${'/_x'}                       | ${[null, 'x']}
+  ${'/_x '}                      | ${[null, 'x']}
+  ${'per x'}                     | ${[null, 'x']}
+  ${'per_x'}                     | ${[null, 'x']}
+  ${' per x '}                   | ${[null, 'x']}
+  ${'x/y'}                       | ${['x', 'y']}
+  ${'x /y'}                      | ${['x', 'y']}
+  ${'x/ y'}                      | ${['x', 'y']}
+  ${'x / y'}                     | ${['x', 'y']}
+  ${'x_/y'}                      | ${['x', 'y']}
+  ${'x/_y'}                      | ${['x', 'y']}
+  ${'x_/_y'}                     | ${['x', 'y']}
+  ${'x_/ y'}                     | ${['x', 'y']}
+  ${'x /_y'}                     | ${['x', 'y']}
+  ${'  x/y  '}                   | ${['x', 'y']}
+  ${'x per y'}                   | ${['x', 'y']}
+  ${'x_per y'}                   | ${['x', 'y']}
+  ${'x per_y'}                   | ${['x', 'y']}
+  ${'x_per_y'}                   | ${['x', 'y']}
+  ${'abcdefghij/kkkkklllll'}     | ${['abcdefghij', 'kkkkklllll']}
+  ${'abcdefghij per kkkkklllll'} | ${['abcdefghij', 'kkkkklllll']}
+  ${'xyz/xyz'}                   | ${[null, null]} // Units cancel out.
+  `('returns $expected given `$spec`', ({ spec, expected }) => {
+    const result = UnitQuantity.parseUnitSpec(spec);
+
+    expect(result).not.toBeNull();
+    expect(result).toBeArrayOfSize(2);
+    expect(result).toEqual(expected);
   });
 });

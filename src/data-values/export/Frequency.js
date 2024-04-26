@@ -74,7 +74,7 @@ export class Frequency extends UnitQuantity {
   }));
 
   /**
-   * Parses a string representing a duration, returning an instance of this
+   * Parses a string representing a frequency, returning an instance of this
    * class. See {@link UnitQuantity#parse} for details on the allowed syntax.
    * The allowed units are:
    *
@@ -91,36 +91,45 @@ export class Frequency extends UnitQuantity {
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value, in hertz.
-   *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value, in hertz.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value, in hertz.
-   *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value, in hertz.
-   *   That is, require `value >= minInclusive`.
+   * @param {?object} [options.range] Optional range restrictions, in the form
+   *   of the argument required by {@link UnitQuantity#isInRange}. If present,
+   *   the result of a parse is `null` when the range is not satisfied.
    * @returns {?Frequency} The parsed frequency, or `null` if the value could
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
-    options ??= {
-      allowInstance: true
-    };
+    const {
+      allowInstance = true,
+      range         = null
+    } = options ?? {};
 
-    let result = UnitQuantity.parse(valueToParse, {
-      allowInstance: options.allowInstance
-    });
-
-    if (result === null) {
-      return null;
-    } else if (!(result instanceof Frequency)) {
-      const value = result?.convertValue(this.#UNIT_PER_SEC) ?? null;
-      if ((value === null) || (value < 0)) {
-        return null;
+    // This imposes the class's basic range restriction, on top of anything that
+    // the caller provided (if anything).
+    let finalRange;
+    if (range) {
+      finalRange = range;
+      if (typeof range.minInclusive === 'number') {
+        if (range.minInclusive < 0) {
+          finalRange.minInclusive = 0;
+        }
+      } else {
+        finalRange = { ...range, minInclusive: 0 };
       }
-      result = new Frequency(value);
+    } else {
+      finalRange = { minInclusive: 0 };
     }
 
-    return result.isInRange(options) ? result : null;
+    const result = UnitQuantity.parse(valueToParse, {
+      allowInstance,
+      convert: {
+        resultUnit: '/sec',
+        unitMaps:   [this.#UNIT_PER_SEC]
+      },
+      range: finalRange
+    });
+
+    return ((result === null) || (result instanceof Frequency))
+      ? result
+      : new Frequency(result.value);
   }
 }

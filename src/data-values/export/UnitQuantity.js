@@ -91,9 +91,13 @@ export class UnitQuantity {
   }
 
   /**
-   * @returns {string} String in the form `numeratorUnit/denominatorUnit`,
-   * representing both units. If either (or both) is absent, the corresponding
-   * side of the `/` is empty. For a unitless instance, this is simply `/`.
+   * @returns {string} String in a form accepted by {@link #parseUnitSpec},
+   * representing the units of this instance. More specifically, this always
+   * produces a string of the form `numeratorUnit/denominatorUnit`, that is,
+   * with a slash separating the numerator and denominator unit and with no
+   * additional spaces or underscores. If either numerator or denominator is
+   * absent, the corresponding side of the `/` is empty. In the case of a
+   * unitless instance, this is simply `/`.
    */
   get unitString() {
     const numer = this.#numeratorUnit ?? '';
@@ -163,11 +167,17 @@ export class UnitQuantity {
    * missing units or conversions).
    *
    * In order to convert, this instance must have a unit (numerator or
-   * denominator) that corresponds to each of the given tables. Each table has
-   * numerator or denominator names (including possibly a mix) as keys, and
-   * multiplication factors as values. A numerator key is a unit name with a
-   * slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name with a
-   * slash (`/`) prefix (e.g., '/sec').
+   * denominator) that corresponds to each of the given tables, and no other
+   * units. The end result is, in effect, a unitless value having had all the
+   * units canceled out. The idea here is that you can take an instance which is
+   * meant to represent some kind of real-world measurement (such speed) with
+   * a variety of units and end up with a value with implied-but-known units,
+   * e.g., convert `km/sec` _and_ `mile/hr` _and_ `mm/min` all to just `m/sec`.
+   *
+   * Each table has numerator or denominator names (including possibly a mix) as
+   * keys, and multiplication factors as values. A numerator key is a unit name
+   * with a slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name
+   * with a slash (`/`) prefix (e.g., '/sec').
    *
    * @param {...Map<string, number>} unitMaps One map for each set of required
    *   units.
@@ -239,6 +249,18 @@ export class UnitQuantity {
    */
   gt(other) {
     return this.compare(other) > 0;
+  }
+
+  /**
+   * Indicates whether the given other instance has the same units as this one.
+   *
+   * @param {UnitQuantity} other Instance to check.
+   * @returns {boolean} `true` iff `other`'s units are the same as this one.
+   */
+  hasSameUnits(other) {
+    MustBe.instanceOf(other, UnitQuantity);
+    return (this.#numeratorUnit === other.#numeratorUnit)
+      && (this.#denominatorUnit === other.#denominatorUnit);
   }
 
   /**
@@ -371,40 +393,174 @@ export class UnitQuantity {
    * name. The number is allowed to be any regular floating point value
    * (including exponents), with underscores allowed in the middle of it (for
    * ease of reading, as with normal JavaScript constants). The unit names are
-   * restricted to alphabetic characters (case sensitive) up to 50 characters in
-   * length, and can either be a simple unit name taken to be a numerator, a
-   * compound numerator-denominator in the form `num/denom` or `num per denom`
-   * (literal `per`), or a denominator-only in the form `/denom` or `per denom`.
-   * Slashes are allowed to have spaces or underscores around them, and `per`
-   * can be separated with underscores instead of spaces.
+   * as defined by {@link #parseUnitSpec}.
    *
    * This method _also_ optionally accepts `value` as an instance of this class,
    * (to make use of the method when parsing configurations a bit easier).
-   *
-   * **Notes:**
-   * * If the numerator and denominator units are identical, the result is a
-   *   unitless instance.
-   * * The unit name `per` is not allowed, as it is reserved as the
-   *   word-equivalent of `/`.
    *
    * @param {string|UnitQuantity} valueToParse The value to parse, or the value
    *   itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
+   * @param {?object} [options.convert] Optional unit conversion information,
+   *   to apply to the initial parsed result.
+   * @param {?string} [options.convert.resultUnit] Optional final result unit,
+   *   in the same format as taken by {@link #parseUnitSpec}. If specified, the
+   *   return value from this method will have the indicated units. If not
+   *   specified, the return value will be unitless.
+   * @param {?Array<Map>} [options.convert.unitMaps] Optional unit maps to
+   *   apply, using {@link #convertValue}. That method (or equivalent) will be
+   *   called to produce the final numeric value. If not specified, then the
+   *   original `valueToParse` must use the same units as `resultUnit` (which
+   *   means unitless if `resultUnit` is not specified).
+   * @param {?object} [options.range] Optional range restrictions, in the form
+   *   of the argument required by {@link #isInRange}. If present, the result of
+   *   a parse is `null` when the range is not satisfied. If this and `convert`
+   *   are both present, the range check happens _after_ conversion.
    * @returns {?UnitQuantity} The parsed instance, or `null` if the value could
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
+    const {
+      allowInstance = true,
+      convert       = null,
+      range         = null
+    } = options ?? {};
+
+    let result;
+
     if (valueToParse instanceof UnitQuantity) {
-      if (options?.allowInstance ?? true) {
-        return valueToParse;
+      if (allowInstance) {
+        result = valueToParse;
       } else {
         return null;
       }
     } else {
-      return this.#parseString(valueToParse);
+      result = this.#parseString(valueToParse);
+      if (result === null) {
+        return null;
+      }
     }
+
+    if (convert) {
+      const { resultUnit = null, unitMaps = null } = convert;
+      const unitSpec = UnitQuantity.parseUnitSpec(resultUnit ?? '/');
+
+      if (unitSpec === null) {
+        throw new Error(`Invalid \`resultUnit\`: ${resultUnit}`);
+      }
+
+      if (unitMaps) {
+        const finalValue = result.convertValue(...(unitMaps ?? []));
+
+        if (finalValue === null) {
+          return null;
+        }
+
+        result = new UnitQuantity(finalValue, ...unitSpec);
+      } else {
+        const unitCheck = new UnitQuantity(0, ...unitSpec);
+        if (!unitCheck.hasSameUnits(result)) {
+          return null;
+        }
+      }
+
+      if (valueToParse instanceof UnitQuantity) {
+        // We started with an instance as the value to parse. If it turns out
+        // that conversion was effectively a no-op, then restore the result to
+        // the original argument.
+        if (result.hasSameUnits(valueToParse)) {
+          result = valueToParse;
+        }
+      }
+    }
+
+    if (range) {
+      if (!result.isInRange(range)) {
+        return null;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses a unit specification string. Generally, the syntax accepted is a
+   * numerator unit name separated from a denominator unit name by a slash (`/`)
+   * or the word `per`. Details:
+   *
+   * * There may be any number of spaces surrounding the main unit string.
+   * * Unit names must each be a series of one or more Unicode letters (case
+   *   sensitive), of no more than ten characters.
+   * * The unit names may optionally be separated from a slash by a single space
+   *   or underscore (`_`).
+   * * If `per` is used instead of a slash, it _must_ be separated from unit
+   *   names with either a space or underscore.
+   * * The unit name `per` is not allowed (because it would be too confusing).
+   * * It is valid to omit either unit name, or both. For example, the strings
+   *   `/` and `per` represent the "unitless unit."
+   * * It is valid to omit the slash or `per` if the denominator is omitted.
+   * * The empty string (or a string with just spaces) is also allowed, and
+   *   represents the "unitless unit."
+   * * The numerator and denominator are allowed to be the same string (e.g.
+   *   `mile per mile`), which also represents the "unitless unit."
+   *
+   * @param {string} unitSpec Unit specification to parse.
+   * @returns {?Array<string>} Array of arguments suitable to pass to the
+   *   constructor of this class as unit arguments, or `null` if `unitSpec`
+   *   could not be parsed.
+   */
+  static parseUnitSpec(unitSpec) {
+    MustBe.string(unitSpec);
+
+    // Trim away spaces on either end of `unitSpec`, and validates the character
+    // set used within the main spec string.
+    unitSpec = unitSpec.match(/^ *(?<us>(?!=[ _])[ _\/\p{Letter}]*(?<![ _])) *$/v)?.groups.us ?? null;
+
+    if (unitSpec === null) {
+      return null;
+    }
+
+    // Used to match the denominator spec, in both denominator-only specs and
+    // full-spec contexts.
+    const denomMatch = (spec) => {
+      const match = spec.match(/^(?:(?:\/|per(?=[ _]|$))[ _]?(?<denom>.*))?$/);
+      return match
+        ? match.groups.denom ?? ''
+        : null;
+    };
+
+    let numer = '';
+    let denom = denomMatch(unitSpec); // Matches if there is no numerator.
+
+    if (denom === null) {
+      // There is a numerator.
+
+      // This regex `match()` shouldn't ever fail.
+      const { n, denomSpec } = unitSpec.match(/^(?<n>[^ _/]*)[ _]?(?<denomSpec>.*)$/).groups;
+
+      numer = n;
+      denom = denomMatch(denomSpec);
+
+      if (denom === null) {
+        return null;
+      }
+    }
+
+    if (!(/^\p{Letter}{0,10}$/v.test(numer) && /^\p{Letter}{0,10}$/v.test(denom))) {
+      // A slash or an underscore was present in one of these, or one was too
+      // long.
+      return null;
+    } else if ((numer === 'per') || (denom === 'per')) {
+      // Disallowed to avoid confusion. (See doc comment.)
+      return null;
+    }
+
+    const finalNumer = ((numer === '') || (numer === denom)) ? null : numer;
+    const finalDenom = ((denom === '') || (numer === denom)) ? null : denom;
+
+    return [finalNumer, finalDenom];
   }
 
   /**
@@ -424,10 +580,9 @@ export class UnitQuantity {
       return null;
     }
 
-    // This matches both the number and possibly-combo unit, but in both cases
-    // with loose matching which gets tightened up below.
-    const overallMatch =
-      value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _]))$/v);
+    // This matches both the number and unit spec, but in both cases with loose
+    // matching which gets tightened up below.
+    const overallMatch = value.match(/^(?<num>[-+._0-9eE]+(?<!_))[ _]?(?! )(?<unit>.{0,100})$/);
 
     if (!overallMatch) {
       return null;
@@ -435,7 +590,7 @@ export class UnitQuantity {
 
     const { num: numStr, unit } = overallMatch.groups;
 
-    // Disallow underscores not surrounded by digits.
+    // Disallow underscores in `num` not surrounded by digits.
     if (/^_|[^0-9]_|_[^0-9]/.test(numStr)) {
       return null;
     }
@@ -446,22 +601,12 @@ export class UnitQuantity {
       return null;
     }
 
-    const comboMatch = unit.match(/[ _]?(?:\/|(?<=[ _]|^)per(?=[ _]))[ _]?(?<denom>.+)$/v);
+    const unitSpec = this.parseUnitSpec(unit);
 
-    const [numer, denom] = comboMatch
-      ? [unit.slice(0, comboMatch.index), comboMatch.groups.denom]
-      : [unit, ''];
-
-    if (!(/^\p{Letter}*$/v.test(numer) && /^\p{Letter}*$/v.test(denom))) {
-      return null;
-    } else if ((numer === 'per') || (denom === 'per')) {
-      // Disallowed to avoid confusion.
+    if (!unitSpec) {
       return null;
     }
 
-    const finalNumer = ((numer === '') || (numer === denom)) ? null : numer;
-    const finalDenom = ((denom === '') || (numer === denom)) ? null : denom;
-
-    return new UnitQuantity(num, finalNumer, finalDenom);
+    return new UnitQuantity(num, ...unitSpec);
   }
 }

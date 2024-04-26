@@ -25,7 +25,8 @@ Breaking changes:
 * `data-values`:
   * Filled out the comparison methods in `Moment`, and made them match the ones
     added to `UnitQuantity` (see below).
-  * Reworked `UnitQuantity.parse()`.
+  * Reworked `UnitQuantity.parse()`, with much more straightforward
+    functionality, including the addition of optional unit conversions.
 * `loggy-intf`:
   * Removed `FormatUtils.byteStringFrom()` in favor of
     `ByteCount.stringFromByteCount()` (see below).

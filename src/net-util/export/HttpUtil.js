@@ -416,7 +416,7 @@ export class HttpUtil {
    */
   static #ccSeconds(name, duration) {
     try {
-      duration = Duration.parse(duration, { minInclusive: 0 });
+      duration = Duration.parse(duration, { range: { minInclusive: 0 } });
     } catch {
       if (typeof duration === 'string') {
         return { error: 'Expected non-negative duration string.' };
