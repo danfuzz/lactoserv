@@ -35,8 +35,9 @@ Examples:
 
 * `1 day`
 * `1_000ms`
-* `123 per sec`
-* `5/day`
+* `123_per_sec`
+* `5/hour`
+* `120 Gib per day`
 
 ### `ByteCount`
 
@@ -51,8 +52,7 @@ are:
 
 Rates of data flow are specified using the class `ByteRate`. The available units
 are the same as with `ByteCount` for the numerator and the same as with
-`Frequency` for the denominator (except that `hertz` / `hz` isn't allowed). For
-example, `25 GiB / day`.
+`Frequency` for the denominator (except that `hertz` / `hz` isn't allowed).
 
 ### `Duration`
 
