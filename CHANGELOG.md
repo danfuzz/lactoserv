@@ -40,7 +40,7 @@ Other notable changes:
   * New classes `BaseWrappedHierarchy` and `BaseThreadComponent`.
 * `data-values`:
   * Added comparison methods to `UnitQuantity`.
-  * New class `ByteCount` (a unit quantity).
+  * New classes `ByteCount` and `ByteRate`, both unit quantities.
 * `webapp-builtins`:
   * New application `RequestDelay`.
   * New application `SuffixRouter`.
