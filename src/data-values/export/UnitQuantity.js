@@ -446,6 +446,10 @@ export class UnitQuantity {
       result = this.#parseString(valueToParse);
     }
 
+    if (result === null) {
+      return null;
+    }
+
     if (convert) {
       const { resultUnit = null, unitMaps = null } = convert;
       const unitSpec = UnitQuantity.parseUnitSpec(resultUnit ?? '/');

@@ -633,6 +633,10 @@ describe('parse()', () => {
 
   describe('with `{ convert: ... }`', () => {
     describe('without `unitMaps` or `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        expect(UnitQuantity.parse('12 34 56!', { convert: {} })).toBeNull();
+      });
+
       test('returns `null` given a unit-ful value', () => {
         expect(UnitQuantity.parse('12 x', { convert: {} })).toBeNull();
       });
@@ -647,6 +651,16 @@ describe('parse()', () => {
     });
 
     describe('with `resultUnit` but not `unitMaps`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('zonk 126!', {
+          convert: {
+            resultUnit: 'a/b'
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
       test('returns `null` given a unit-ful value with non-matching units', () => {
         const uq = UnitQuantity.parse('12 x per y', {
           convert: {
@@ -683,6 +697,18 @@ describe('parse()', () => {
     });
 
     describe('with `unitMaps` but not `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('beep boop bop', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
       test('uses a single-element `unitMaps`', () => {
         const uq = UnitQuantity.parse('12 x', {
           convert: {
@@ -731,6 +757,19 @@ describe('parse()', () => {
     });
 
     describe('with `unitMaps` and `resultUnit`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('flippity flop 999', {
+          convert: {
+            resultUnit: 'x/y',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
       test('uses a two-element `unitMaps`', () => {
         const uq = UnitQuantity.parse('7 x per y', {
           convert: {
