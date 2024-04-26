@@ -205,18 +205,18 @@ describe('parse()', () => {
 
   // Success and failure cases, with options.
   test.each`
-  value               | options                     | expected
-  ${'0 byte'}         | ${{ minInclusive: 0 }}      | ${0}
-  ${'-1 byte'}        | ${{ minInclusive: 0 }}      | ${null}
-  ${'0 byte'}         | ${{ minExclusive: 0 }}      | ${null}
-  ${'0.001 byte'}     | ${{ minExclusive: 0 }}      | ${0.001}
-  ${'0 byte'}         | ${{ maxInclusive: 0 }}      | ${0}
-  ${'-0.1 byte'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
-  ${'0 byte'}         | ${{ maxExclusive: 0 }}      | ${null}
-  ${'-.001 byte'}     | ${{ maxExclusive: 0 }}      | ${-0.001}
-  ${'10 KiB'}         | ${{ maxExclusive: 10 }}     | ${null}
-  ${'10 KiB'}         | ${{ maxExclusive: 10241 }}  | ${10240}
-  ${new ByteCount(1)} | ${{ allowInstance: false }} | ${null}
+  value               | options                                | expected
+  ${'0 byte'}         | ${{ range: { minInclusive: 0 } }}      | ${0}
+  ${'-1 byte'}        | ${{ range: { minInclusive: 0 } }}      | ${null}
+  ${'0 byte'}         | ${{ range: { minExclusive: 0 } }}      | ${null}
+  ${'0.001 byte'}     | ${{ range: { minExclusive: 0 } }}      | ${0.001}
+  ${'0 byte'}         | ${{ range: { maxInclusive: 0 } }}      | ${0}
+  ${'-0.1 byte'}      | ${{ range: { maxInclusive: 0 } }}      | ${-0.1}
+  ${'0 byte'}         | ${{ range: { maxExclusive: 0 } }}      | ${null}
+  ${'-.001 byte'}     | ${{ range: { maxExclusive: 0 } }}      | ${-0.001}
+  ${'10 KiB'}         | ${{ range: { maxExclusive: 10 } }}     | ${null}
+  ${'10 KiB'}         | ${{ range: { maxExclusive: 10241 } }}  | ${10240}
+  ${new ByteCount(1)} | ${{ allowInstance: false }}            | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
     const result = ByteCount.parse(value, options);
 
