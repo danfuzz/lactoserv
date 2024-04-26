@@ -248,6 +248,18 @@ export class UnitQuantity {
   }
 
   /**
+   * Indicates whether the given other instance has the same units as this one.
+   *
+   * @param {UnitQuantity} other Instance to check.
+   * @returns {boolean} `true` iff `other`'s units are the same as this one.
+   */
+  hasSameUnits(other) {
+    MustBe.instanceOf(other, UnitQuantity);
+    return (this.#numeratorUnit === other.#numeratorUnit)
+      && (this.#denominatorUnit === other.#denominatorUnit);
+  }
+
+  /**
    * Returns the inverse of this instance, that is, `1 / value`, with numerator
    * and denominator swapped.
    *

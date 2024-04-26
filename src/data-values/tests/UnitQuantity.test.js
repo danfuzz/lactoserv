@@ -226,11 +226,18 @@ describe('isInRange()', () => {
 // This is for the bad-argument cases. There are separate `describe()`s for
 // success cases.
 describe.each`
-methodName
-${'add'}
-${'compare'}
-${'subtract'}
-`('$methodName()', ({ methodName }) => {
+methodName        | acceptsDifferentUnits
+${'add'}          | ${false}
+${'compare'}      | ${false}
+${'eq'}           | ${false}
+${'ge'}           | ${false}
+${'gt'}           | ${false}
+${'hasSameUnits'} | ${true}
+${'le'}           | ${false}
+${'lt'}           | ${false}
+${'ne'}           | ${false}
+${'subtract'}     | ${false}
+`('$methodName()', ({ methodName, acceptsDifferentUnits }) => {
   test.each`
   arg
   ${undefined}
@@ -246,17 +253,19 @@ ${'subtract'}
     expect(() => uq[methodName](arg)).toThrow();
   });
 
-  test('throws if the numerator units do not match', () => {
-    const uq1 = new UnitQuantity(1, 'a', 'yes');
-    const uq2 = new UnitQuantity(1, 'b', 'yes');
-    expect(() => uq1[methodName](uq2)).toThrow();
-  });
+  if (!acceptsDifferentUnits) {
+    test('throws if the numerator units do not match', () => {
+      const uq1 = new UnitQuantity(1, 'a', 'yes');
+      const uq2 = new UnitQuantity(1, 'b', 'yes');
+      expect(() => uq1[methodName](uq2)).toThrow();
+    });
 
-  test('throws if the denominator units do not match', () => {
-    const uq1 = new UnitQuantity(1, 'yes', 'x');
-    const uq2 = new UnitQuantity(1, 'yes', 'y');
-    expect(() => uq1[methodName](uq2)).toThrow();
-  });
+    test('throws if the denominator units do not match', () => {
+      const uq1 = new UnitQuantity(1, 'yes', 'x');
+      const uq2 = new UnitQuantity(1, 'yes', 'y');
+      expect(() => uq1[methodName](uq2)).toThrow();
+    });
+  }
 });
 
 describe.each`
@@ -336,6 +345,77 @@ ${'ne'}
       }
 
       expect(result).toBe(exp);
+    });
+  });
+});
+
+describe('hasSameUnits()', () => {
+  class UqSub1 extends UnitQuantity {
+    // @emptyBlock
+  }
+
+  class UqSub2 extends UnitQuantity {
+    // @emptyBlock
+  }
+
+  describe.each`
+  label                             | thisClass       | otherClass
+  ${'both are direct instances'}    | ${UnitQuantity} | ${UnitQuantity}
+  ${'`this` is a subclass'}         | ${UqSub1}       | ${UnitQuantity}
+  ${'`other` is a subclass'}        | ${UnitQuantity} | ${UqSub1}
+  ${'both are the same subclass'}   | ${UqSub1}       | ${UqSub2}
+  ${'each is a different subclass'} | ${UqSub1}       | ${UqSub2}
+  `('$label', ({ thisClass, otherClass }) => {
+    function makeInstances(unit1, unit2) {
+      return [
+        new thisClass(123, ...unit1),
+        new otherClass(456, ...unit2)
+      ];
+    }
+
+    test('returns `true` for two unitless instances', () => {
+      const [uq1, uq2] = makeInstances([null, null], [null, null]);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two same-numerator no-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', null], ['x', null]);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two same-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', 'y'], ['x', 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `true` for two no-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances([null, 'y'], [null, 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeTrue();
+    });
+
+    test('returns `false` for two different-numerator no-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', null], ['y', null]);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two no-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances([null, 'x'], [null, 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two same-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['x', 'a'], ['x', 'b']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two different-numerator same-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['a', 'x'], ['b', 'x']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
+    });
+
+    test('returns `false` for two different-numerator different-denominator instances', () => {
+      const [uq1, uq2] = makeInstances(['a', 'x'], ['b', 'y']);
+      expect(uq1.hasSameUnits(uq2)).toBeFalse();
     });
   });
 });
