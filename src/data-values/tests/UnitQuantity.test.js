@@ -550,7 +550,7 @@ describe('parse()', () => {
   ${'1 /per'}
   ${'1 per/'}
 
-  // Generally invalid number syntax, as are all the rest...
+  // Generally invalid number syntax.
   ${'. z'}
   ${'..1 z'}
   ${'1.. z'}
@@ -581,7 +581,7 @@ describe('parse()', () => {
   ${'1e1+1 z'}
   ${'1e1-1 z'}
   ${'_123 z'}
-  `('returns `null` given $value', ({ value }) => {
+  `('returns `null` given `$value`', ({ value }) => {
     expect(UnitQuantity.parse(value)).toBeNull();
   });
 
@@ -628,6 +628,142 @@ describe('parse()', () => {
     test('does not accept an instance', () => {
       const uq = new UnitQuantity(123, 'x', null);
       expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
+    });
+  });
+
+  describe('with `{ convert: ... }`', () => {
+    describe('without `unitMaps` or `resultUnit`', () => {
+      test('returns `null` given a unit-ful value', () => {
+        expect(UnitQuantity.parse('12 x', { convert: {} })).toBeNull();
+      });
+
+      test('parses a unitless value', () => {
+        const uq = UnitQuantity.parse('34', { convert: {} });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(34);
+        expect(uq.unitString).toBe('/');
+      });
+    });
+
+    describe('with `resultUnit` but not `unitMaps`', () => {
+      test('returns `null` given a unit-ful value with non-matching units', () => {
+        const uq = UnitQuantity.parse('12 x per y', {
+          convert: {
+            resultUnit: 'a/b'
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('parses a value with matching units', () => {
+        const uq = UnitQuantity.parse('99 x / y', {
+          convert: {
+            resultUnit: 'x per y'
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(99);
+        expect(uq.unitString).toBe('x/y');
+      });
+
+      test('parses a unitless value when `resultUnit` is unitless', () => {
+        const uq = UnitQuantity.parse('1221', {
+          convert: {
+            resultUnit: '/'
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(1221);
+        expect(uq.unitString).toBe('/');
+      });
+    });
+
+    describe('with `unitMaps` but not `resultUnit`', () => {
+      test('uses a single-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('12 x', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(24);
+        expect(uq.unitString).toBe('/');
+      });
+
+      test('uses a two-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('7 x per y', {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(42);
+        expect(uq.unitString).toBe('/');
+      });
+
+      test('returns `null` given a value with non-fully-matched units', () => {
+        const opts = {
+          convert: {
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        };
+
+        expect(UnitQuantity.parse('7', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
+    });
+
+    describe('with `unitMaps` and `resultUnit`', () => {
+      test('uses a two-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('7 x per y', {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(42);
+        expect(uq.unitString).toBe('a/b');
+      });
+
+      test('returns `null` given a value with non-fully-matched units', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        };
+
+        expect(UnitQuantity.parse('7', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
     });
   });
 

@@ -414,19 +414,72 @@ export class UnitQuantity {
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
+   * @param {?object} [options.convert] Optional unit conversion information,
+   *   to apply to the initial parsed result.
+   * @param {?string} [options.convert.resultUnit] Optional final result unit,
+   *   in the same format as taken by {@link #parseUnitSpec}. If specified, the
+   *   return value from this method will have the indicated units. If not
+   *   specified, the return value will be unitless.
+   * @param {?Array<Map>} [options.convert.unitMaps] Optional unit maps to
+   *   apply, using {@link #convertValue}. That method (or equivalent) will be
+   *   called to produce the final numeric value. If not specified, then the
+   *   original `valueToParse` must use the same units as `resultUnit` (which
+   *   means unitless if `resultUnit` is not specified).
    * @returns {?UnitQuantity} The parsed instance, or `null` if the value could
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
+    const {
+      allowInstance = true,
+      convert       = null
+    } = options ?? {};
+
+    let result;
+
     if (valueToParse instanceof UnitQuantity) {
-      if (options?.allowInstance ?? true) {
-        return valueToParse;
+      if (allowInstance) {
+        result = valueToParse;
       } else {
         return null;
       }
     } else {
-      return this.#parseString(valueToParse);
+      result = this.#parseString(valueToParse);
     }
+
+    if (convert) {
+      const { resultUnit = null, unitMaps = null } = convert;
+      const unitSpec = UnitQuantity.parseUnitSpec(resultUnit ?? '/');
+
+      if (unitSpec === null) {
+        throw new Error(`Invalid \`resultUnit\`: ${resultUnit}`);
+      }
+
+      if (unitMaps) {
+        const finalValue = result.convertValue(...(unitMaps ?? []));
+
+        if (finalValue === null) {
+          return null;
+        }
+
+        result = new UnitQuantity(finalValue, ...unitSpec);
+      } else {
+        const unitCheck = new UnitQuantity(0, ...unitSpec);
+        if (!unitCheck.hasSameUnits(result)) {
+          return null;
+        }
+      }
+
+      if (valueToParse instanceof UnitQuantity) {
+        // We started with an instance as the value to parse. If it turns out
+        // that conversion was effectively a no-op, then restore the result to
+        // the original argument.
+        if (result.hasSameUnits(valueToParse)) {
+          result = valueToParse;
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
