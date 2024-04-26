@@ -38,7 +38,7 @@ Examples:
 * `123 per sec`
 * `5/day`
 
-### Durations
+### `Duration`
 
 Durations are specified using the class `Duration`. The available units are:
 
@@ -50,9 +50,9 @@ Durations are specified using the class `Duration`. The available units are:
 * `hour` or `hr` or `h` &mdash; Hours.
 * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
 
-### Frequencies
+### `Frequency`
 
-Frequencies are specified using the class `Duration`. The available units are:
+Frequencies are specified using the class `Frequency`. The available units are:
 
 * `/nsec` or `/ns` &mdash; Per nanosecond.
 * `/usec` or `/us` &mdash; Per microsecond.
