@@ -764,6 +764,21 @@ describe('parse()', () => {
         expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
         expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
       });
+
+      test('returns the given actual-instance argument if it came in with the right units', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a per b',
+            unitMaps: [
+              new Map(Object.entries({ 'a/': 1, 'aa/': 10 })),
+              new Map(Object.entries({ '/b': 1, '/bb': 20 }))
+            ]
+          }
+        };
+
+        const uq = new UnitQuantity(914, 'a', 'b');
+        expect(UnitQuantity.parse(uq, opts)).toBe(uq);
+      });
     });
   });
 
