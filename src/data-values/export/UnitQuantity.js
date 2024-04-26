@@ -163,11 +163,17 @@ export class UnitQuantity {
    * missing units or conversions).
    *
    * In order to convert, this instance must have a unit (numerator or
-   * denominator) that corresponds to each of the given tables. Each table has
-   * numerator or denominator names (including possibly a mix) as keys, and
-   * multiplication factors as values. A numerator key is a unit name with a
-   * slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name with a
-   * slash (`/`) prefix (e.g., '/sec').
+   * denominator) that corresponds to each of the given tables, and no other
+   * units. The end result is, in effect, a unitless value having had all the
+   * units canceled out. The idea here is that you can take an instance which is
+   * meant to represent some kind of real-world measurement (such speed) with
+   * a variety of units and end up with a value with implied-but-known units,
+   * e.g., convert `km/sec` _and_ `mile/hr` _and_ `mm/min` all to just `m/sec`.
+   *
+   * Each table has numerator or denominator names (including possibly a mix) as
+   * keys, and multiplication factors as values. A numerator key is a unit name
+   * with a slash (`/`) suffix (e.g., `sec/`). A denominator key is a unit name
+   * with a slash (`/`) prefix (e.g., '/sec').
    *
    * @param {...Map<string, number>} unitMaps One map for each set of required
    *   units.
