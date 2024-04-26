@@ -38,6 +38,22 @@ Examples:
 * `123 per sec`
 * `5/day`
 
+### `ByteCount`
+
+Amounts of data are specified using the class `ByteCount`. The available units
+are:
+
+* `byte` or `B` &mdash; Bytes.
+* `kB`, `MB`, `GB`, or `TB` &mdash; Standard decimal powers-of-1000 bytes.
+* `KiB`, `MiB`, `GiB`, or `TiB` &mdash; Standard binary powers-of-1024 bytes.
+
+### `ByteRate`
+
+Rates of data flow are specified using the class `ByteRate`. The available units
+are the same as with `ByteCount` for the numerator and the same as with
+`Frequency` for the denominator (except that `hertz` / `hz` isn't allowed). For
+example, `25 GiB / day`.
+
 ### `Duration`
 
 Durations are specified using the class `Duration`. The available units are:
@@ -61,6 +77,9 @@ Frequencies are specified using the class `Frequency`. The available units are:
 * `/minute` or `/min` or `/m` &mdash; Per minute.
 * `/hour` or `/hr` or `/h` &mdash; Per hour.
 * `/day` or `/d` &mdash; Per (24-hour) day.
+
+As a rarely-useful addition, the _numerator_ unit `hertz` or `hz` is allowed as
+an equivalent to `/sec`.
 
 - - - - - - - - - -
 ```
