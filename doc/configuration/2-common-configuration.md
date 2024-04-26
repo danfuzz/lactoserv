@@ -38,9 +38,9 @@ The available units for durations are:
 * `nsec` or `ns` &mdash; Nanoseconds.
 * `usec` or `us` &mdash; Microseconds.
 * `msec` or `ms` &mdash; Milliseconds.
-* `sec` or `s` &mdash; Seconds.
-* `min` or `m` &mdash; Minutes.
-* `hr` or `h` &mdash; Hours.
+* `second` or `sec` or `s` &mdash; Seconds.
+* `minute` or `min` or `m` &mdash; Minutes.
+* `hour` or `hr` or `h` &mdash; Hours.
 * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
 
 ### Frequencies
@@ -50,9 +50,9 @@ The available units for frequencies are:
 * `/nsec` or `/ns` &mdash; Per nanosecond.
 * `/usec` or `/us` &mdash; Per microsecond.
 * `/msec` or `/ms` &mdash; Per millisecond.
-* `/sec` or `/s` &mdash; Per second.
-* `/min` or `/m` &mdash; Per minute.
-* `/hr` or `/h` &mdash; Per hour.
+* `/second` or `/sec` or `/s` &mdash; Per second.
+* `/minute` or `/min` or `/m` &mdash; Per minute.
+* `/hour` or `/hr` or `/h` &mdash; Per hour.
 * `/day` or `/d` &mdash; Per (24-hour) day.
 
 - - - - - - - - - -
