@@ -151,13 +151,9 @@ export class Duration extends UnitQuantity {
       ...(range ? { range } : null)
     });
 
-    if (result === null) {
-      return null;
-    } else if (!(result instanceof Duration)) {
-      result = new Duration(result.value);
-    }
-
-    return result;
+    return ((result === null) || (result instanceof Duration))
+      ? result
+      : new Duration(result.value);
   }
 
   /**

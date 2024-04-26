@@ -127,13 +127,9 @@ export class ByteCount extends UnitQuantity {
       ...(range ? { range } : null)
     });
 
-    if (result === null) {
-      return null;
-    } else if (!(result instanceof ByteCount)) {
-      result = new ByteCount(result.value);
-    }
-
-    return result;
+    return ((result === null) || (result instanceof ByteCount))
+      ? result
+      : new ByteCount(result.value);
   }
 
   /**
