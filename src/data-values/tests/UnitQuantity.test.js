@@ -671,6 +671,16 @@ describe('parse()', () => {
         expect(uq).toBeNull();
       });
 
+      test('throws given a syntactically invalid `resultUnit`', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'hey what is happening today?'
+          }
+        };
+
+        expect(() => UnitQuantity.parse('123', opts)).toThrow();
+      });
+
       test('parses a value with matching units', () => {
         const uq = UnitQuantity.parse('99 x / y', {
           convert: {
