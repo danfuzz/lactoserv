@@ -393,21 +393,10 @@ export class UnitQuantity {
    * name. The number is allowed to be any regular floating point value
    * (including exponents), with underscores allowed in the middle of it (for
    * ease of reading, as with normal JavaScript constants). The unit names are
-   * restricted to alphabetic characters (case sensitive) up to 50 characters in
-   * length, and can either be a simple unit name taken to be a numerator, a
-   * compound numerator-denominator in the form `num/denom` or `num per denom`
-   * (literal `per`), or a denominator-only in the form `/denom` or `per denom`.
-   * Slashes are allowed to have spaces or underscores around them, and `per`
-   * can be separated with underscores instead of spaces.
+   * as defined by {@link #parseUnitSpec}.
    *
    * This method _also_ optionally accepts `value` as an instance of this class,
    * (to make use of the method when parsing configurations a bit easier).
-   *
-   * **Notes:**
-   * * If the numerator and denominator units are identical, the result is a
-   *   unitless instance.
-   * * The unit name `per` is not allowed, as it is reserved as the
-   *   word-equivalent of `/`.
    *
    * @param {string|UnitQuantity} valueToParse The value to parse, or the value
    *   itself.
@@ -502,8 +491,8 @@ export class UnitQuantity {
    * or the word `per`. Details:
    *
    * * There may be any number of spaces surrounding the main unit string.
-   * * Unit names must each be a series of one or more Unicode letters, of no
-   *   more than ten characters.
+   * * Unit names must each be a series of one or more Unicode letters (case
+   *   sensitive), of no more than ten characters.
    * * The unit names may optionally be separated from a slash by a single space
    *   or underscore (`_`).
    * * If `per` is used instead of a slash, it _must_ be separated from unit
@@ -591,10 +580,9 @@ export class UnitQuantity {
       return null;
     }
 
-    // This matches both the number and possibly-combo unit, but in both cases
-    // with loose matching which gets tightened up below.
-    const overallMatch =
-      value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _]))$/v);
+    // This matches both the number and unit spec, but in both cases with loose
+    // matching which gets tightened up below.
+    const overallMatch = value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?! )(?<unit>.{0,100})$/);
 
     if (!overallMatch) {
       return null;
@@ -602,7 +590,7 @@ export class UnitQuantity {
 
     const { num: numStr, unit } = overallMatch.groups;
 
-    // Disallow underscores not surrounded by digits.
+    // Disallow underscores in `num` not surrounded by digits.
     if (/^_|[^0-9]_|_[^0-9]/.test(numStr)) {
       return null;
     }
@@ -613,22 +601,12 @@ export class UnitQuantity {
       return null;
     }
 
-    const comboMatch = unit.match(/[ _]?(?:\/|(?<=[ _]|^)per(?=[ _]))[ _]?(?<denom>.+)$/v);
+    const unitSpec = this.parseUnitSpec(unit);
 
-    const [numer, denom] = comboMatch
-      ? [unit.slice(0, comboMatch.index), comboMatch.groups.denom]
-      : [unit, ''];
-
-    if (!(/^\p{Letter}*$/v.test(numer) && /^\p{Letter}*$/v.test(denom))) {
-      return null;
-    } else if ((numer === 'per') || (denom === 'per')) {
-      // Disallowed to avoid confusion.
+    if (!unitSpec) {
       return null;
     }
 
-    const finalNumer = ((numer === '') || (numer === denom)) ? null : numer;
-    const finalDenom = ((denom === '') || (numer === denom)) ? null : denom;
-
-    return new UnitQuantity(num, finalNumer, finalDenom);
+    return new UnitQuantity(num, ...unitSpec);
   }
 }

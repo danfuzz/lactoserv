@@ -509,14 +509,10 @@ describe('parse()', () => {
   ${'1 per x*'}
 
   // Denominator problems, with slashes.
-  ${'1 /'}       // No "naked" slash.
-  ${'1/'}        // Ditto.
   ${'1 b/c/d'}   // Only one slash in unit.
   ${'1 b/c/'}    // Ditto.
   ${'1 /c/'}     // Ditto.
-  ${'1 b/'}      // No slash at end.
-  ${'1 b/ '}     // Ditto.
-  ${'1 b/_'}     // Ditto.
+  ${'1 b/_'}     // No trailing underscore (even with slash).
   ${'1 b  /c'}   // No more than one space on either side of slash.
   ${'1 b/  c'}   // Ditto.
   ${'1 b__/c'}   // No more than one underscore on either side of slash.
@@ -527,16 +523,10 @@ describe('parse()', () => {
   ${'1 b/ _c'}   // Ditto.
 
   // Like the slash tests above, but with "per".
-  ${'1 per'}
-  ${'1per'}
-  ${'1per '}
   ${'1per_'}
-  ${'1_per'}
   ${'1 b per c per d'}
   ${'1 b per c per'}
   ${'1 per c per'}
-  ${'1 b per'}
-  ${'1 b per '}
   ${'1 b per_'}
   ${'1 b  per c'}
   ${'1 b per  c'}
@@ -596,32 +586,6 @@ describe('parse()', () => {
     const uq = new UnitQuantity(123, 'x', 'y');
 
     expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
-  });
-
-  test('allows unitless input', () => {
-    const uq1 = UnitQuantity.parse('123');
-
-    expect(uq1).toBeInstanceOf(UnitQuantity);
-    expect(uq1.value).toBe(123);
-    expect(uq1.numeratorUnit).toBeNull();
-    expect(uq1.denominatorUnit).toBeNull();
-
-    // Spaces around the number are allowed.
-    const uq2 = UnitQuantity.parse(' 999 ');
-
-    expect(uq2).toBeInstanceOf(UnitQuantity);
-    expect(uq2.value).toBe(999);
-    expect(uq2.numeratorUnit).toBeNull();
-    expect(uq2.denominatorUnit).toBeNull();
-  });
-
-  test('returns a unitless instance when given identical numerator and denominator', () => {
-    const uq = UnitQuantity.parse('0.987 bop/bop');
-
-    expect(uq).toBeInstanceOf(UnitQuantity);
-    expect(uq.value).toBe(0.987);
-    expect(uq.numeratorUnit).toBeNull();
-    expect(uq.denominatorUnit).toBeNull();
   });
 
   describe('with `{ allowInstance: false }`', () => {
@@ -882,6 +846,34 @@ describe('parse()', () => {
     });
   });
 
+  // Success cases that result in unitless instances.
+  test.each`
+  value            | expected
+  ${'123'}         | ${123}
+  ${'999 '}        | ${999}
+  ${' 888'}        | ${888}
+  ${' 777 '}       | ${777}
+  ${'0/'}          | ${0}
+  ${'1 /'}         | ${1}
+  ${'2_/'}         | ${2}
+  ${'3 / '}        | ${3}
+  ${'4_/ '}        | ${4}
+  ${'5per'}        | ${5}
+  ${'6 per'}       | ${6}
+  ${'7_per'}       | ${7}
+  ${'8 per '}      | ${8}
+  ${'9_per '}      | ${9}
+  ${'789 ab/ab'}   | ${789} // Units cancel out.
+  ${'789 x per x'} | ${789}
+  `('returns unitless $expected given `$value`', ({ value, expected }) => {
+    const uq = UnitQuantity.parse(value);
+
+    expect(uq).toBeInstanceOf(UnitQuantity);
+    expect(uq.value).toBe(expected);
+    expect(uq.numeratorUnit).toBeNull();
+    expect(uq.denominatorUnit).toBeNull();
+  });
+
   // Success cases, no options.
   test.each`
   value                   | expected
@@ -908,6 +900,9 @@ describe('parse()', () => {
   ${'1.2 z'}              | ${[1.2, 'z', null]}
   ${'0.2 z'}              | ${[0.2, 'z', null]}
   ${'.2 z'}               | ${[0.2, 'z', null]}
+  ${'123 zz/'}            | ${[123, 'zz', null]}
+  ${'4.5 zz /'}           | ${[4.5, 'zz', null]}
+  ${'.6 zz per'}          | ${[0.6, 'zz', null]}
   ${'1234567890 zonk'}    | ${[1234567890, 'zonk', null]}
   ${'-1 a/b'}             | ${[-1, 'a', 'b']}
   ${'+1 a/b'}             | ${[1, 'a', 'b']}
@@ -1003,6 +998,8 @@ describe('parseUnitSpec()', () => {
   ${'x per per y'}
   ${'x per per'}
   ${'per per y'}
+  ${'per z per'}
+  ${'per per per'}
   ${'abcdefghijx'}   // Name too long.
   ${'abcdefghijx/'}
   ${'/abcdefghijx'}
