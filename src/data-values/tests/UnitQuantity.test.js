@@ -681,3 +681,143 @@ describe('parse()', () => {
     expect(result.denominatorUnit).toBe(expected[2]);
   });
 });
+
+describe('parseUnitSpec()', () => {
+  // Error: Wrong argument type.
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${123}
+  ${['123s']}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => UnitQuantity.parseUnitSpec(arg)).toThrow();
+  });
+
+  // Syntax errors.
+  test.each`
+  value
+  ${'1/a'}           // Invalid character in unit name.
+  ${'a/1'}
+  ${'a1b/'}
+  ${'/a1b'}
+  ${'a per 1'}
+  ${'1 per a'}
+  ${'x_y/'}
+  ${'/x_y'}
+  ${'$ per'}
+  ${'@ per'}
+  ${'# per'}
+  ${'x  /'}          // Too many spaces / underscores.
+  ${'x__/'}
+  ${'x_ /'}
+  ${'x _/'}
+  ${'/  x'}
+  ${'/__x'}
+  ${'/_ x'}
+  ${'/ _x'}
+  ${'x  /y'}
+  ${'x__/y'}
+  ${'x_ /y'}
+  ${'x _/y'}
+  ${'y/  x'}
+  ${'y/__x'}
+  ${'y/_ x'}
+  ${'y/ _x'}
+  ${'x  per'}
+  ${'x__per'}
+  ${'x_ per'}
+  ${'x _per'}
+  ${'per  x'}
+  ${'per__x'}
+  ${'per_ x'}
+  ${'per _x'}
+  ${'x  per y'}
+  ${'x__per y'}
+  ${'x_ per y'}
+  ${'x _per y'}
+  ${'y per  x'}
+  ${'y per__x'}
+  ${'y per_ x'}
+  ${'y per _x'}
+  ${'x/y/z'}         // Too many slashes / "per"s.
+  ${'x//y'}
+  ${'x//'}
+  ${'//y'}
+  ${'x per y/z'}
+  ${'x/y per z'}
+  ${'x per y per z'}
+  ${'x per per y'}
+  ${'x per per'}
+  ${'per per y'}
+  ${'abcdefghijx'}   // Name too long.
+  ${'abcdefghijx/'}
+  ${'/abcdefghijx'}
+  `('returns `null` given `$value`', ({ value }) => {
+    expect(UnitQuantity.parseUnitSpec(value)).toBeNull();
+  });
+
+  // Success cases.
+  test.each`
+  spec                           | expected
+  ${''}                          | ${[null, null]}
+  ${' '}                         | ${[null, null]}
+  ${'  '}                        | ${[null, null]}
+  ${'/'}                         | ${[null, null]}
+  ${'/ '}                        | ${[null, null]}
+  ${' /'}                        | ${[null, null]}
+  ${' / '}                       | ${[null, null]}
+  ${'  /  '}                     | ${[null, null]}
+  ${'per'}                       | ${[null, null]}
+  ${'per '}                      | ${[null, null]}
+  ${' per'}                      | ${[null, null]}
+  ${' per '}                     | ${[null, null]}
+  ${'  per  '}                   | ${[null, null]}
+  ${'x'}                         | ${['x', null]}
+  ${'xyz'}                       | ${['xyz', null]}
+  ${' x'}                        | ${['x', null]}
+  ${'x '}                        | ${['x', null]}
+  ${'  x'}                       | ${['x', null]}
+  ${'x  '}                       | ${['x', null]}
+  ${'  x  '}                     | ${['x', null]}
+  ${'x/'}                        | ${['x', null]}
+  ${'x /'}                       | ${['x', null]}
+  ${'x_/'}                       | ${['x', null]}
+  ${' x_/'}                      | ${['x', null]}
+  ${'x per'}                     | ${['x', null]}
+  ${'x_per'}                     | ${['x', null]}
+  ${' x per '}                   | ${['x', null]}
+  ${'/x'}                        | ${[null, 'x']}
+  ${'/ x'}                       | ${[null, 'x']}
+  ${'/_x'}                       | ${[null, 'x']}
+  ${'/_x '}                      | ${[null, 'x']}
+  ${'per x'}                     | ${[null, 'x']}
+  ${'per_x'}                     | ${[null, 'x']}
+  ${' per x '}                   | ${[null, 'x']}
+  ${'x/y'}                       | ${['x', 'y']}
+  ${'x /y'}                      | ${['x', 'y']}
+  ${'x/ y'}                      | ${['x', 'y']}
+  ${'x / y'}                     | ${['x', 'y']}
+  ${'x_/y'}                      | ${['x', 'y']}
+  ${'x/_y'}                      | ${['x', 'y']}
+  ${'x_/_y'}                     | ${['x', 'y']}
+  ${'x_/ y'}                     | ${['x', 'y']}
+  ${'x /_y'}                     | ${['x', 'y']}
+  ${'  x/y  '}                   | ${['x', 'y']}
+  ${'x per y'}                   | ${['x', 'y']}
+  ${'x_per y'}                   | ${['x', 'y']}
+  ${'x per_y'}                   | ${['x', 'y']}
+  ${'x_per_y'}                   | ${['x', 'y']}
+  ${'abcdefghij/kkkkklllll'}     | ${['abcdefghij', 'kkkkklllll']}
+  ${'abcdefghij per kkkkklllll'} | ${['abcdefghij', 'kkkkklllll']}
+  ${'xyz/xyz'}                   | ${[null, null]} // Units cancel out.
+  `('returns $expected given `$spec`', ({ spec, expected }) => {
+    const result = UnitQuantity.parseUnitSpec(spec);
+
+    expect(result).not.toBeNull();
+    expect(result).toBeArrayOfSize(2);
+    expect(result).toEqual(expected);
+  });
+});

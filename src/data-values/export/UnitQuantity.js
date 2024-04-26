@@ -91,9 +91,13 @@ export class UnitQuantity {
   }
 
   /**
-   * @returns {string} String in the form `numeratorUnit/denominatorUnit`,
-   * representing both units. If either (or both) is absent, the corresponding
-   * side of the `/` is empty. For a unitless instance, this is simply `/`.
+   * @returns {string} String in a form accepted by {@link #parseUnitSpec},
+   * representing the units of this instance. More specifically, this always
+   * produces a string of the form `numeratorUnit/denominatorUnit`, that is,
+   * with a slash separating the numerator and denominator unit and with no
+   * additional spaces or underscores. If either numerator or denominator is
+   * absent, the corresponding side of the `/` is empty. In the case of a
+   * unitless instance, this is simply `/`.
    */
   get unitString() {
     const numer = this.#numeratorUnit ?? '';
@@ -423,6 +427,84 @@ export class UnitQuantity {
     } else {
       return this.#parseString(valueToParse);
     }
+  }
+
+  /**
+   * Parses a unit specification string. Generally, the syntax accepted is a
+   * numerator unit name separated from a denominator unit name by a slash (`/`)
+   * or the word `per`. Details:
+   *
+   * * There may be any number of spaces surrounding the main unit string.
+   * * Unit names must each be a series of one or more Unicode letters, of no
+   *   more than ten characters.
+   * * The unit names may optionally be separated from a slash by a single space
+   *   or underscore (`_`).
+   * * If `per` is used instead of a slash, it _must_ be separated from unit
+   *   names with either a space or underscore.
+   * * The unit name `per` is not allowed (because it would be too confusing).
+   * * It is valid to omit either unit name, or both. For example, the strings
+   *   `/` and `per` represent the "unitless unit."
+   * * It is valid to omit the slash or `per` if the denominator is omitted.
+   * * The empty string (or a string with just spaces) is also allowed, and
+   *   represents the "unitless unit."
+   * * The numerator and denominator are allowed to be the same string (e.g.
+   *   `mile per mile`), which also represents the "unitless unit."
+   *
+   * @param {string} unitSpec Unit specification to parse.
+   * @returns {?Array<string>} Array of arguments suitable to pass to the
+   *   constructor of this class as unit arguments, or `null` if `unitSpec`
+   *   could not be parsed.
+   */
+  static parseUnitSpec(unitSpec) {
+    MustBe.string(unitSpec);
+
+    // Trim away spaces on either end of `unitSpec`, and validates the character
+    // set used within the main spec string.
+    unitSpec = unitSpec.match(/^ *(?<us>(?!=[ _])[ _\/\p{Letter}]*(?<![ _])) *$/v)?.groups.us ?? null;
+
+    if (unitSpec === null) {
+      return null;
+    }
+
+    // Used to match the denominator spec, in both denominator-only specs and
+    // full-spec contexts.
+    const denomMatch = (spec) => {
+      const match = spec.match(/^(?:(?:\/|per(?=[ _]|$))[ _]?(?<denom>.*))?$/);
+      return match
+        ? match.groups.denom ?? ''
+        : null;
+    };
+
+    let numer = '';
+    let denom = denomMatch(unitSpec); // Matches if there is no numerator.
+
+    if (denom === null) {
+      // There is a numerator.
+
+      // This regex `match()` shouldn't ever fail.
+      const { n, denomSpec } = unitSpec.match(/^(?<n>[^ _\/]*)[ _]?(?<denomSpec>.*)$/).groups;
+
+      numer = n;
+      denom = denomMatch(denomSpec);
+
+      if (denom === null) {
+        return null;
+      }
+    }
+
+    if (!(/^\p{Letter}{0,10}$/v.test(numer) && /^\p{Letter}{0,10}$/v.test(denom))) {
+      // A slash or an underscore was present in one of these, or one was too
+      // long.
+      return null;
+    } else if ((numer === 'per') || (denom === 'per')) {
+      // Disallowed to avoid confusion. (See doc comment.)
+      return null;
+    }
+
+    const finalNumer = ((numer === '') || (numer === denom)) ? null : numer;
+    const finalDenom = ((denom === '') || (numer === denom)) ? null : denom;
+
+    return [finalNumer, finalDenom];
   }
 
   /**
