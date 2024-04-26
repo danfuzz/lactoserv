@@ -37,7 +37,7 @@ Examples:
 * `1_000ms`
 * `123_per_sec`
 * `5/hour`
-* `120 Gib per day`
+* `120 GiB per day`
 
 ### `ByteCount`
 
