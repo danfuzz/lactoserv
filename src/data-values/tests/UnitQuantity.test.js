@@ -830,7 +830,7 @@ describe('parse()', () => {
           convert: {
             resultUnit: 'a',
             unitMaps: [
-              new Map(Object.entries({ 'a/': 1, 'aaa/': 1000 })),
+              new Map(Object.entries({ 'a/': 1, 'aaa/': 1000 }))
             ]
           },
           range: {

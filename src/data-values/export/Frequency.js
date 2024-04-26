@@ -119,7 +119,7 @@ export class Frequency extends UnitQuantity {
       finalRange = { minInclusive: 0 };
     }
 
-    let result = UnitQuantity.parse(valueToParse, {
+    const result = UnitQuantity.parse(valueToParse, {
       allowInstance,
       convert: {
         resultUnit: '/sec',
