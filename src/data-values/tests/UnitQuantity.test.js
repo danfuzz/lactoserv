@@ -631,6 +631,38 @@ describe('parse()', () => {
     });
   });
 
+  describe('with `{ range: ... }`', () => {
+    test('accepts a value that falls within the range', () => {
+      const opt = {
+        range: {
+          minInclusive: 1,
+          maxInclusive: 10
+        }
+      };
+
+      const uq1  = UnitQuantity.parse('1 x', opt);
+      const uq10 = UnitQuantity.parse('10 x', opt);
+
+      expect(uq1.value).toBe(1);
+      expect(uq10.value).toBe(10);
+    });
+
+    test('returns `null` given a value that falls outside the range', () => {
+      const opt = {
+        range: {
+          minExclusive: 1,
+          maxExclusive: 10
+        }
+      };
+
+      const uq1  = UnitQuantity.parse('1 x', opt);
+      const uq10 = UnitQuantity.parse('10 x', opt);
+
+      expect(uq1).toBeNull();
+      expect(uq10).toBeNull();
+    });
+  });
+
   describe('with `{ convert: ... }`', () => {
     describe('without `unitMaps` or `resultUnit`', () => {
       test('returns `null` given a syntactically incorrect value', () => {
@@ -827,6 +859,25 @@ describe('parse()', () => {
 
         const uq = new UnitQuantity(914, 'a', 'b');
         expect(UnitQuantity.parse(uq, opts)).toBe(uq);
+      });
+
+      test('uses `convert` before checking `range`', () => {
+        const opts = {
+          convert: {
+            resultUnit: 'a',
+            unitMaps: [
+              new Map(Object.entries({ 'a/': 1, 'aaa/': 1000 })),
+            ]
+          },
+          range: {
+            minInclusive: 1000
+          }
+        };
+
+        const uq = UnitQuantity.parse('5 aaa', opts);
+        expect(uq).toBeInstanceOf(UnitQuantity);
+        expect(uq.value).toBe(5000);
+        expect(uq.unitString).toBe('a/');
       });
     });
   });

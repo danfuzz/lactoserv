@@ -425,13 +425,18 @@ export class UnitQuantity {
    *   called to produce the final numeric value. If not specified, then the
    *   original `valueToParse` must use the same units as `resultUnit` (which
    *   means unitless if `resultUnit` is not specified).
+   * @param {?object} [options.range] Optional range restrictions, in the form
+   *   of the argument required by {@link #isInRange}. If present, the result of
+   *   a parse is `null` when the range is not satisfied. If this and `convert`
+   *   are both present, the range check happens _after_ conversion.
    * @returns {?UnitQuantity} The parsed instance, or `null` if the value could
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
     const {
       allowInstance = true,
-      convert       = null
+      convert       = null,
+      range         = null
     } = options ?? {};
 
     let result;
@@ -480,6 +485,12 @@ export class UnitQuantity {
         if (result.hasSameUnits(valueToParse)) {
           result = valueToParse;
         }
+      }
+    }
+
+    if (range) {
+      if (!result.isInRange(range)) {
+        return null;
       }
     }
 
