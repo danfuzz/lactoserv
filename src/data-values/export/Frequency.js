@@ -8,7 +8,9 @@ import { UnitQuantity } from '#x/UnitQuantity';
 
 
 /**
- * Representation of a frequency, that is, a rate of time.
+ * Representation of a frequency, that is, a rate of time. This class allows
+ * negative values; though not useful all the time, there's arguably at least
+ * some utility to them.
  *
  * Instances of this class are always frozen.
  */
@@ -17,10 +19,9 @@ export class Frequency extends UnitQuantity {
    * Constructs an instance.
    *
    * @param {number} hertz The frequency to represent, in hertz (that is, as an
-   *   inverse of seconds). Must be finite and non-negative.
+   *   inverse of seconds). Must be finite.
    */
   constructor(hertz) {
-    MustBe.number(hertz, { finite: true, minInclusive: 0 });
     super(hertz, null, 'sec');
   }
 
@@ -55,22 +56,25 @@ export class Frequency extends UnitQuantity {
    * @type {Map<string, number>}
    */
   static #UNIT_PER_SEC = new Map(Object.entries({
-    '/ns':    1_000_000_000,
-    '/nsec':  1_000_000_000,
-    '/us':    1_000_000,
-    '/usec':  1_000_000,
-    '/ms':    1_000,
-    '/msec':  1_000,
-    '/s':     1,
-    '/sec':   1,
-    'hz/':    1,
-    'hertz/': 1,
-    '/m':     (1 / 60),
-    '/min':   (1 / 60),
-    '/h':     (1 / (60 * 60)),
-    '/hr':    (1 / (60 * 60)),
-    '/d':     (1 / (60 * 60 * 24)),
-    '/day':   (1 / (60 * 60 * 24))
+    '/ns':     1_000_000_000,
+    '/nsec':   1_000_000_000,
+    '/us':     1_000_000,
+    '/usec':   1_000_000,
+    '/ms':     1_000,
+    '/msec':   1_000,
+    '/s':      1,
+    '/sec':    1,
+    '/second': 1,
+    'hz/':     1,
+    'hertz/':  1,
+    '/m':      (1 / 60),
+    '/min':    (1 / 60),
+    '/minute': (1 / 60),
+    '/h':      (1 / (60 * 60)),
+    '/hr':     (1 / (60 * 60)),
+    '/hour':   (1 / (60 * 60)),
+    '/d':      (1 / (60 * 60 * 24)),
+    '/day':    (1 / (60 * 60 * 24))
   }));
 
   /**
@@ -82,8 +86,8 @@ export class Frequency extends UnitQuantity {
    * * `/us` or `/usec` -- per microsecond
    * * `/ms` or `/msec` -- per millisecond
    * * `/s`, `/sec`, `hz`, or `hertz` -- per second
-   * * `/m` or `/min` -- per minute
-   * * `/h` or `/hr` -- per hour
+   * * `/m` or `/min` or `minute` -- per minute
+   * * `/h` or `/hr` or `hour` -- per hour
    * * `/d` or `/day` -- per day (defined as exactly once per 24 hours)
    *
    * @param {string|Frequency|UnitQuantity} valueToParse The value to parse, or
@@ -103,30 +107,16 @@ export class Frequency extends UnitQuantity {
       range         = null
     } = options ?? {};
 
-    // This imposes the class's basic range restriction, on top of anything that
-    // the caller provided (if anything).
-    let finalRange;
-    if (range) {
-      finalRange = range;
-      if (typeof range.minInclusive === 'number') {
-        if (range.minInclusive < 0) {
-          finalRange.minInclusive = 0;
-        }
-      } else {
-        finalRange = { ...range, minInclusive: 0 };
-      }
-    } else {
-      finalRange = { minInclusive: 0 };
-    }
-
     const result = UnitQuantity.parse(valueToParse, {
       allowInstance,
       convert: {
         resultUnit: '/sec',
         unitMaps:   [this.#UNIT_PER_SEC]
       },
-      range: finalRange
+      ...(range ? { range } : null)
     });
+
+    console.log('######### XXX', result);
 
     return ((result === null) || (result instanceof Frequency))
       ? result

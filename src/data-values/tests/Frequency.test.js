@@ -19,7 +19,6 @@ describe('constructor()', () => {
   ${undefined}
   ${null}
   ${123n}
-  ${-0.1}
   ${Number.POSITIVE_INFINITY}
   ${[1, 2, 3]}
   `('throws given $value', ({ value }) => {
@@ -86,7 +85,6 @@ describe('parse()', () => {
   ${'1 sec'}     // Unknown unit (this is a duration, not a frequency).
   ${'1 per x'}   // Ditto.
   ${'_1 /sec'}   // Leading underscore not allowed.
-  ${'-0.1 /sec'} // Negative value not allowed.
   `('returns `null` given $value', ({ value }) => {
     expect(Frequency.parse(value)).toBeNull();
   });
@@ -103,12 +101,15 @@ describe('parse()', () => {
   ${'0 /us'}                          | ${0}
   ${'0 /msec'}                        | ${0}
   ${'0 /ms'}                          | ${0}
+  ${'0 /second'}                      | ${0}
   ${'0 /sec'}                         | ${0}
   ${'0 /s'}                           | ${0}
   ${'0 hertz'}                        | ${0}
   ${'0 hz'}                           | ${0}
+  ${'0 /minute'}                      | ${0}
   ${'0 /min'}                         | ${0}
   ${'0 /m'}                           | ${0}
+  ${'0 per hour'}                     | ${0}
   ${'0 per hr'}                       | ${0}
   ${'0 per h'}                        | ${0}
   ${'0 per_day'}                      | ${0}
@@ -131,6 +132,7 @@ describe('parse()', () => {
   ${'234.567_per_sec'}                | ${234.567}
   ${'234.567 /msec'}                  | ${1000 * 234.567}
   ${'234.567 per day '}               | ${234.567 / 86400}
+  ${'-5 per hour'}                    | ${-5 / (60 * 60)}
   `('returns $expected given $value', ({ value, expected }) => {
     const result = Frequency.parse(value);
 
@@ -143,6 +145,7 @@ describe('parse()', () => {
   test.each`
   value               | options                                | expected
   ${'0 /s'}           | ${{ range: { minInclusive: 0 } }}      | ${0}
+  ${'-3 /s'}          | ${{ range: { minInclusive: -4 } }}     | ${-3}
   ${'1.99 /sec'}      | ${{ range: { minInclusive: 2 } }}      | ${null}
   ${'1.99 /msec'}     | ${{ range: { minInclusive: 2 } }}      | ${1990}
   ${'0 per s'}        | ${{ range: { minExclusive: 0 } }}      | ${null}
