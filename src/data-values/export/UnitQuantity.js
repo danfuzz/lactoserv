@@ -538,7 +538,7 @@ export class UnitQuantity {
       // There is a numerator.
 
       // This regex `match()` shouldn't ever fail.
-      const { n, denomSpec } = unitSpec.match(/^(?<n>[^ _\/]*)[ _]?(?<denomSpec>.*)$/).groups;
+      const { n, denomSpec } = unitSpec.match(/^(?<n>[^ _/]*)[ _]?(?<denomSpec>.*)$/).groups;
 
       numer = n;
       denom = denomMatch(denomSpec);
@@ -582,7 +582,7 @@ export class UnitQuantity {
 
     // This matches both the number and unit spec, but in both cases with loose
     // matching which gets tightened up below.
-    const overallMatch = value.match(/^(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?! )(?<unit>.{0,100})$/);
+    const overallMatch = value.match(/^(?<num>[-+._0-9eE]+(?<!_))[ _]?(?! )(?<unit>.{0,100})$/);
 
     if (!overallMatch) {
       return null;
