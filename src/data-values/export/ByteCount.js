@@ -87,7 +87,7 @@ export class ByteCount extends UnitQuantity {
   }));
 
   /**
-   * Parses a string representing a data quantity, returning an instance of this
+   * Parses a string representing a byte count, returning an instance of this
    * class. See {@link UnitQuantity#parse} for details on the allowed syntax.
    * The allowed units are:
    *
