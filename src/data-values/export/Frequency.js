@@ -114,8 +114,6 @@ export class Frequency extends UnitQuantity {
       ...(range ? { range } : null)
     });
 
-    console.log('######### XXX', result);
-
     return ((result === null) || (result instanceof Frequency))
       ? result
       : new Frequency(result.value);
