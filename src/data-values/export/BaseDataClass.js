@@ -3,10 +3,11 @@
 
 import { Methods } from '@this/typey';
 
+/* c8 ignore start */ // No coverage needed for this class.
 
-// Note: `ConverterConfig` below can't be a `{@link ...}` because that would
-// require an `import` above, which would in turn cause a circular reference
-// during system init.
+// Note: `ConverterConfig` in the comment below can't be a `{@link ...}` because
+// that would require an `import` above, which would in turn cause a circular
+// reference during system init.
 
 /**
  * Base class for all classes which are considered to be peer data value types
