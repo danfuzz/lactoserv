@@ -8,8 +8,6 @@ import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
 
-import { RateLimitedStream } from '#p/RateLimitedStream';
-
 
 /**
  * Service which can apply various rate limits to network traffic.
@@ -27,13 +25,6 @@ export class RateLimiter extends BaseService {
   #connections = null;
 
   /**
-   * Outgoing data rate limiter, if any.
-   *
-   * @type {?TokenBucket}
-   */
-  #data = null;
-
-  /**
    * Request rate limiter, if any.
    *
    * @type {?TokenBucket}
@@ -48,10 +39,9 @@ export class RateLimiter extends BaseService {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const { connections, data, requests } = this.config;
+    const { connections, requests } = this.config;
 
     this.#connections = RateLimiter.#makeBucket(connections);
-    this.#data        = RateLimiter.#makeBucket(data);
     this.#requests    = RateLimiter.#makeBucket(requests);
   }
 
@@ -63,15 +53,6 @@ export class RateLimiter extends BaseService {
   /** @override */
   async _impl_handleCall_newRequest(logger) {
     return RateLimiter.#requestOneToken(this.#requests, logger);
-  }
-
-  /** @override */
-  async _impl_handleCall_wrapWriter(stream, logger) {
-    if (this.#data === null) {
-      return stream;
-    }
-
-    return RateLimitedStream.wrapWriter(this.#data, stream, logger);
   }
 
   /** @override */
@@ -93,7 +74,6 @@ export class RateLimiter extends BaseService {
   async _impl_stop(willReload_unused) {
     await Promise.all([
       this.#connections?.denyAllRequests(),
-      this.#data?.denyAllRequests(),
       this.#requests?.denyAllRequests()
     ]);
   }
@@ -158,13 +138,6 @@ export class RateLimiter extends BaseService {
     #connections;
 
     /**
-     * Configuration for data rate limiting.
-     *
-     * @type {?object}
-     */
-    #data;
-
-    /**
      * Configuration for request rate limiting.
      *
      * @type {?object}
@@ -179,21 +152,15 @@ export class RateLimiter extends BaseService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      const { connections, data, requests } = rawConfig;
+      const { connections, requests } = rawConfig;
 
       this.#connections = Config.#parseOneBucket(connections);
-      this.#data        = Config.#parseOneBucket(data);
       this.#requests    = Config.#parseOneBucket(requests);
     }
 
     /** @returns {?object} Configuration for connection rate limiting. */
     get connections() {
       return this.#connections;
-    }
-
-    /** @returns {?object} Configuration for data rate limiting. */
-    get data() {
-      return this.#data;
     }
 
     /** @returns {?object} Configuration for request rate limiting. */

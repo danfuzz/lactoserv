@@ -109,6 +109,29 @@ const services = [
 ];
 ```
 
+## `DataRateLimiter`
+
+A service which provides data rate limiting of network traffic (specifically
+on the write side). Configuration is exactly as described by
+[Rate Limiting](./2-common-configuration.md#rate-limiting), with the token unit
+being a byte (class `ByteCount`) and the flow rate unit being bytes-per-second
+(class `ByteRate`). The `maxQueueGrant` option _is_ allowed.
+
+```js
+import { DataRateLimiter } from '@lactoserv/webapp-builtins';
+
+const services = [
+  {
+    name:          'dataRateLimiter',
+    class:         DataRateLimiter,
+    maxBurst:      '5 MiB',
+    flowRate:      '32 KiB/sec',
+    maxQueue:      '32 MiB',
+    maxQueueGrant: '100 KiB'
+  }
+];
+```
+
 ## `EventFan`
 
 A service which "fans out" any events it receives to a set of other services, in
@@ -271,16 +294,17 @@ object with the following bindings:
   [Frequency](./2-common-configuration.md#frequency). The rate must be
   positive.
 * `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
-  rate-limiting takes effect.
-* `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
-  tokens. This is the number of tokens that are allowed to be queued up for a
-  grant, when there is insufficient burst capacity to satisfy all active
-  clients. Attempts to queue up more result in token denials (e.g. network
-  connections closed instead of sending bytes).
+  rate-limiting takes effect. Minimum value `1`.
 * `maxQueueGrantSize` &mdash; Optional maximum possible size of a grant given to
-  a requester in the wait queue, in tokens. If not specified, it is the same as
-  the `maxBurstSize`. (It is really only meaningful for `data` limiting, because
-  `connections` and `requests` are only requested one at a time.)
+  a requester in the wait queue, in tokens. Minimum value `1`. If not
+  specified, it is the same as the `maxBurstSize`. (It is really only meaningful
+  for `data` limiting, because `connections` and `requests` are only ever
+  requested one at a time.)
+* `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
+  tokens. Minimum value `1`. This is the number of tokens that are allowed to be
+  queued up for a grant, when there is insufficient burst capacity to satisfy
+  all active clients. Attempts to queue up more result in token denials (e.g.
+  network connections closed instead of sending bytes).
 
 ```js
 import { RateLimiter } from '@lactoserv/webapp-builtins';

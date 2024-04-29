@@ -9,6 +9,7 @@ import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
+import { IntfDataRateLimiter } from '#x/IntfDataRateLimiter';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 import { WranglerContext } from '#p/WranglerContext';
@@ -20,11 +21,18 @@ import { WranglerContext } from '#p/WranglerContext';
  */
 export class TcpWrangler extends ProtocolWrangler {
   /**
-   * Rate limiter service to use, if any.
+   * Connection rate limiter service to use, if any.
    *
    * @type {?IntfRateLimiter}
    */
-  #rateLimiter;
+  #connectionRateLimiter;
+
+  /**
+   * Data rate limiter service to use, if any.
+   *
+   * @type {?IntfDataRateLimiter}
+   */
+  #dataRateLimiter;
 
   /**
    * Arguments to pass to the {@link AsyncServerSocket} constructor.
@@ -70,8 +78,9 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#rateLimiter     = options.rateLimiter ?? null;
-    this.#asyncServerArgs = [options.interface, options.protocol];
+    this.#connectionRateLimiter = options.rateLimiter ?? null;
+    this.#dataRateLimiter       = options.dataRateLimiter ?? null;
+    this.#asyncServerArgs       = [options.interface, options.protocol];
   }
 
   /** @override */
@@ -135,14 +144,16 @@ export class TcpWrangler extends ProtocolWrangler {
 
     const connLogger = this.#makeConnectionLogger(socket, ...rest);
 
-    if (this.#rateLimiter) {
-      const granted = await this.#rateLimiter.call('newConnection', connLogger);
+    if (this.#connectionRateLimiter) {
+      const granted = await this.#connectionRateLimiter.call('newConnection', connLogger);
       if (!granted) {
         socket.destroy();
         return;
       }
+    }
 
-      socket = await this.#rateLimiter.call('wrapWriter', socket, connLogger);
+    if (this.#dataRateLimiter) {
+      socket = await this.#dataRateLimiter.call('wrapWriter', socket, connLogger);
     }
 
     this.#sockets.add(socket);

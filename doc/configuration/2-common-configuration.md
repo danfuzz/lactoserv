@@ -16,7 +16,7 @@ _actual_ file names by inserting something in between the prefix and suffix
 (such as a date stamp and/or a sequence number), or in some cases just used
 as-is.
 
-## Real-world units
+## Real-World Units
 
 Several configurations are specified as real-world units, including for example
 time durations and data quantities. Each type of unit has a corresponding class,
@@ -80,6 +80,48 @@ Frequencies are specified using the class `Frequency`. The available units are:
 
 As a rarely-useful addition, the _numerator_ unit `hertz` or `hz` is allowed as
 an equivalent to `/sec`.
+
+## Rate Limiting
+
+A handful of applications and services have rate-limiting functionality. Rate
+limiting is modeled as a hybrid-model "leaky token bucket," where a non-empty
+bucket causes immediate flow (of data, etc.), and an empty bucket causes the
+system to allow flow at a defined rate.
+
+These applications and services all accept a common set of configuration
+options. In each specific case, there is a "token unit" and a "flow rate unit."
+The token unit is either a raw number or a real-world unit (as described above).
+The flow rate unit is always a real-world unit of some sort.
+
+* `flowRate` &mdash; The rate of token flow once any burst capacity is
+  exhausted. The rate must be positive.
+* `maxBurst` &mdash; The maximum allowed "burst" of tokens before rate limiting
+  takes effect. Minimum value `1`.
+* `maxQueueGrant` &mdash; Optional maximum possible size of a grant given to
+  a requester in the wait queue, in tokens. Minimum value `1`. If not
+  specified, it is the same as the `maxBurst`. **Note:** This configuration is
+  only used by _some_ rate limiters.
+* `maxQueue` &mdash; Optional maximum possible size of the wait queue, in
+  tokens. Minimum value `1`. This is the number of tokens that are allowed to be
+  queued up for a grant, when there is insufficient burst capacity to satisfy
+  all active clients. Attempts to queue up more result in token denials (e.g.,
+  network connections closed instead of sending bytes).
+
+```js
+import { SomeSortOfRateLimiter } from '@lactoserv/webapp-builtins';
+
+const services = [
+  {
+    name:          'limiter',
+    class:         SomeSortOfRateLimiter,
+    maxBurst:      '5 MiB',
+    flowRate:      '32 KiB/sec',
+    maxQueue:      '32 MiB',
+    maxQueueGrant: '100 KiB'
+  }
+];
+```
+
 
 - - - - - - - - - -
 ```
