@@ -153,7 +153,7 @@ host-authenticated protocols (which is nearly always, at least in standalone
 uses).
 
 **Note:** If you want to keep the text of the keys and certificates out of the
-main configuration file, then a reasonablhy easy tactic is to use the standard
+main configuration file, then a reasonably easy tactic is to use the standard
 Node `fs` package to read the contents of files named in the configuration.
 
 ### `services`
