@@ -135,11 +135,13 @@ export class ProtocolWrangler {
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
    */
   constructor(options) {
+    // Note: See `TcpWrangler` for where `rateLimiter` and `dataRateLimiter`
+    // are used.
+
     const {
       accessLog,
       hostManager,
       interface: interfaceConfig,
-      rateLimiter,
       requestHandler
     } = options;
 
