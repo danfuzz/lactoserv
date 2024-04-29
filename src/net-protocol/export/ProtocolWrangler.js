@@ -12,6 +12,7 @@ import { FullResponse, IncomingRequest, IntfRequestHandler, RequestContext,
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfAccessLog } from '#x/IntfAccessLog';
+import { IntfDataRateLimiter } from '#x/IntfDataRateLimiter';
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { WranglerContext } from '#p/WranglerContext';
@@ -65,7 +66,8 @@ export class ProtocolWrangler {
   #hostManager;
 
   /**
-   * Rate limiter service to use, or `null` not to do any rate limiting.
+   * Connection and request rate limiter service to use, or `null` not to do any
+   * rate limiting for those.
    *
    * @type {?IntfRateLimiter}
    */
@@ -120,8 +122,11 @@ export class ProtocolWrangler {
    * @param {object} options Construction options.
    * @param {object} options.hostManager Host manager to use. Ignored for
    *   instances which don't do need to do host-based security (certs, etc.).
-   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
-   *   specified, the instance won't do rate limiting.
+   * @param {IntfDataRateLimiter} options.dataRateLimiter Data rate limiter to
+   *   use. If not specified, the instance won't do data rate limiting.
+   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use for
+   *   connections and requests. If not specified, the instance won't do rate
+   *   limiting for those.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
    * @param {IntfAccessLog} options.accessLog Network access logger to send to.
