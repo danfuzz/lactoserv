@@ -38,16 +38,17 @@ applications.
     to HTTPS for clients that can't do HTTP2.)
 * JS-based configuration file format, which isn't actually that awful!
 * Several built-in applications, including:
-  * Five request routing and filtering applications, to cover most routing
-    needs.
+  * A bunch of request routing and filtering applications, to cover the most
+    common needs.
   * Three "leaf" applications, for regular content responses and redirection.
   * More to come!
-* Several built-in services:
-  * "Token bucket" / "leaky bucket" rate limiting for connections, requests,
-    and/or sent data (bytes / bandwidth).
+* Several built-in services, including:
   * Access logging (that is, network request "access logs" in the usual sense),
     in a recognizable standard-ish form.
   * Detailed system activity logging, in a couple of different formats.
+* Optional rate limiting &mdash; for connections, requests, and sent data (bytes
+  / bandwidth) &mdash; based on the classic "token bucket" / "leaky bucket"
+  strategy.
 * The ability to define custom applications and services, using a modern
   promise-based application framework. Instead of directly dealing with the
   quirky core Node request and response objects, this framework exposes a
