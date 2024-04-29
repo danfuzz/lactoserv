@@ -112,18 +112,12 @@ export class ProtocolWrangler {
    * Constructs an instance.
    *
    * @param {object} options Construction options.
-   * @param {object} options.hostManager Host manager to use. Ignored for
-   *   instances which don't do need to do host-based security (certs, etc.).
-   * @param {IntfDataRateLimiter} options.dataRateLimiter Data rate limiter to
-   *   use. If not specified, the instance won't do data rate limiting.
-   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use for
-   *   connections and requests. If not specified, the instance won't do rate
-   *   limiting for those.
-   * @param {IntfRequestHandler} options.requestHandler Request handler. This is
-   *   required.
    * @param {IntfAccessLog} options.accessLog Network access logger to send to.
    *   If not specified, the instance won't do access logging.
-   * @param {string} options.protocol The name of the protocol to use.
+   * @param {IntfDataRateLimiter} options.dataRateLimiter Data rate limiter to
+   *   use. If not specified, the instance won't do data rate limiting.
+   * @param {object} options.hostManager Host manager to use. Ignored for
+   *   instances which don't do need to do host-based security (certs, etc.).
    * @param {object} options.interface  Options to use for creation of and/or
    *   listening on the low-level server socket. See docs for
    *   `net.createServer()` and `net.Server.listen()` for details on all the
@@ -133,10 +127,16 @@ export class ProtocolWrangler {
    *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
    *   * The default for `allowHalfOpen` is `true`, which is required in
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
+   * @param {string} options.protocol The name of the protocol to use.
+   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use for
+   *   connections and requests. If not specified, the instance won't do rate
+   *   limiting for those.
+   * @param {IntfRequestHandler} options.requestHandler Request handler. This is
+   *   required.
    */
   constructor(options) {
     // Note: See `TcpWrangler` for where `rateLimiter` and `dataRateLimiter`
-    // are used.
+    // are used. See `ProtocolWranglers` (plural) for where `protocol` is used.
 
     const {
       accessLog,
