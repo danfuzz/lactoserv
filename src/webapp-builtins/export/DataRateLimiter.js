@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ByteCount, ByteRate } from '@this/data-values';
+import { ByteCount, ByteRate, Frequency } from '@this/data-values';
 import { IntfDataRateLimiter } from '@this/net-protocol';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
@@ -33,7 +33,7 @@ export class DataRateLimiter extends BaseService {
   constructor(rawConfig) {
     super(rawConfig);
 
-    this.#bucket = new TokenBucket(this.config);
+    this.#bucket = new TokenBucket(this.config.bucket);
   }
 
   /** @override */
@@ -90,7 +90,7 @@ export class DataRateLimiter extends BaseService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      this.#bucket = Config.#parseRateLimit(this.config, {
+      this.#bucket = Config.#parseRateLimit(rawConfig, {
         allowMqg:  true,
         rateType:  ByteRate,
         tokenType: ByteCount
@@ -132,7 +132,8 @@ export class DataRateLimiter extends BaseService {
         if (result === null) {
           throw new Error(`Could not parse flow rate: ${value}`);
         }
-        return result.value;
+        // `TokenBucket` always wants a plain `Frequency` for its `flowRate`.
+        return new Frequency(result.value);
       };
 
       const parseTokenCount = (value, allowNull) => {
