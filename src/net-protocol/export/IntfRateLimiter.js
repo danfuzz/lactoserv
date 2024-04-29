@@ -34,20 +34,4 @@ export class IntfRateLimiter {
   async _impl_handleCall_newRequest(logger) {
     Methods.abstract(logger);
   }
-
-  /**
-   * Wraps a writable stream in a new writable stream, the latter which abides
-   * by this instance's data rate limiter. If the given stream is actually
-   * duplex, then this method returns a duplex stream but with the read side
-   * being fully pass-through.
-   *
-   * @abstract
-   * @param {object} stream The writable stream to wrap.
-   * @param {?IntfLogger} logger Logger to use for this action.
-   * @returns {object} An appropriately-wrapped instance, or the original
-   *   `stream` if this instance has no data rate limiter.
-   */
-  async _impl_handleCall_wrapWriter(stream, logger) {
-    Methods.abstract(stream, logger);
-  }
 }
