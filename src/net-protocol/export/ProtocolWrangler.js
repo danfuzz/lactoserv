@@ -66,14 +66,6 @@ export class ProtocolWrangler {
   #hostManager;
 
   /**
-   * Connection and request rate limiter service to use, or `null` not to do any
-   * rate limiting for those.
-   *
-   * @type {?IntfRateLimiter}
-   */
-  #rateLimiter;
-
-  /**
    * Request handler.
    *
    * @type {IntfRequestHandler}
@@ -153,7 +145,6 @@ export class ProtocolWrangler {
 
     this.#accessLog      = accessLog ?? null;
     this.#hostManager    = hostManager ?? null;
-    this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.object(requestHandler);
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
@@ -436,22 +427,9 @@ export class ProtocolWrangler {
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
 
-    let result      = null;
-    let closeSocket = false;
+    let result = null;
 
     try {
-      if (this.#rateLimiter) {
-        const granted = await this.#rateLimiter.call('newRequest', reqLogger);
-        if (!granted) {
-          // Send the error response, and wait for it to be (believed to be)
-          // sent. Then just thwack the underlying socket. The hope is that the
-          // waiting above will make it likely that the far side will actually
-          // see the 503 ("Service Unavailable") response.
-          result      = FullResponse.makeMetaResponse(503);
-          closeSocket = true;
-        }
-      }
-
       result ??= await this.#handleRequest(request, outerContext);
     } catch (e) {
       // `500` == "Internal Server Error."
@@ -481,10 +459,11 @@ export class ProtocolWrangler {
 
       res.statusCode = 500; // "Internal Server Error."
       res.end();
-      closeSocket = true;
     }
 
-    if (closeSocket) {
+    if ((res.statusCode >= 500) || (res.statusCode === 429)) {
+      // It's a "server error" (5xx) or "too many requests" (429) error, so it's
+      // appropriate to completely close the connection.
       const csock = outerContext.socket;
       csock.end();
       csock.once('finish', () => {
