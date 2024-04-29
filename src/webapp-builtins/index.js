@@ -14,6 +14,7 @@ export * from '#x/RateLimiter';
 export * from '#x/Redirector';
 export * from '#x/RequestDelay';
 export * from '#x/RequestFilter';
+export * from '#x/RequestRateLimiter';
 export * from '#x/SerialRouter';
 export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';
