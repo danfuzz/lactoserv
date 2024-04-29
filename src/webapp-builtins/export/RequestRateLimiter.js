@@ -40,11 +40,11 @@ export class RequestRateLimiter extends BaseApplication {
   async _impl_handleRequest(request_unused, dispatch_unused) {
     const got = await this.#bucket.requestGrant(1);
     if (got.waitTime.sec > 0) {
-      this.logger?.rateLimiterWaited(got.waitTime);
+      this.logger?.waited(got.waitTime);
     }
 
     if (!got.done) {
-      this.logger?.rateLimiterDenied();
+      this.logger?.denied();
       return StatusResponse.fromStatus(429);
     }
 
