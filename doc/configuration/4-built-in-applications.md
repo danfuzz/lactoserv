@@ -316,7 +316,9 @@ Similar to [`RequestDelay`](#requestdelay), this application operates by never
 actually handling requests, but rather, when asked to handle one, it waits until
 its configured rate limit would allow it and then responds that it won't handle
 the request. This makes it useful to place in the route list for a
-[`SerialRouter`](#serialrouter).
+[`SerialRouter`](#serialrouter). If the configured rate limit indicates that a
+request should not actually be handled at all, this application will ultimately
+respond with a status `429` ("Too Many Requests").
 
 ```js
 import { RequestRateLimiter } from '@lactoserv/webapp-builtins';
