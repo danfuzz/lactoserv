@@ -3,6 +3,7 @@
 
 export * from '#x/AccessLogToFile';
 export * from '#x/AccessLogToSyslog';
+export * from '#x/DataRateLimiter';
 export * from '#x/EventFan';
 export * from '#x/HostRouter';
 export * from '#x/MemoryMonitor';
