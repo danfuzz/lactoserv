@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AskIf } from '@this/typey';
-
 
 /**
  * Utilities for dealing with `Error` objects.
@@ -17,9 +15,11 @@ export class ErrorUtil {
    */
   static extractErrorCode(error) {
     const shortenAndFormat = (str) => {
-      return str.slice(0, 32).toLowerCase()
-        .replaceAll(/[_ ]/g, '-')
-        .replaceAll(/[^-a-z0-9]/g, '');
+      return str
+        .replaceAll(/[^- _A-Za-z0-9]/g, '')
+        .slice(0, 30)
+        .toLowerCase()
+        .replaceAll(/[_ ]/g, '-');
     };
 
     if (error instanceof Error) {
@@ -28,7 +28,7 @@ export class ErrorUtil {
       } else if (error.message) {
         return shortenAndFormat(error.message);
       }
-    } else if (AskIf.string(error)) {
+    } else if (typeof error === 'string') {
       return shortenAndFormat(error);
     }
 
