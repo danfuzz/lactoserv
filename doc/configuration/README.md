@@ -234,7 +234,8 @@ naming and configuring one of them. Each element has the following bindings:
   This binding is optional, and if present all roles are optional. The following
   roles are recognized:
   * `accessLog` &mdash; A network access logger.
-  * `rateLimiter` &mdash; A request/data rate limiter.
+  * `dataRateLimiter` &mdash; A data rate limiter.
+  * `rateLimiter` &mdash; A connection / request rate limiter.
 * `application` &mdash; The name of the application which this endpoint should
   send requests to. **Note:** In order to serve multiple leaf applications, the
   one named here will have to be a routing application of some sort (such as
