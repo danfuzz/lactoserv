@@ -5,8 +5,8 @@ import * as fs from 'node:fs/promises';
 
 import { AccessLogToFile, AccessLogToSyslog, DataRateLimiter, EventFan,
   HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
-  RateLimiter, Redirector, RequestDelay, RequestFilter, SerialRouter,
-  SimpleResponse, StaticFiles, SuffixRouter, SyslogToFile }
+  RateLimiter, Redirector, RequestDelay, RequestFilter, RequestRateLimiter,
+  SerialRouter, SimpleResponse, StaticFiles, SuffixRouter, SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -125,21 +125,24 @@ const services = [
       maxBurstSize: 10,
       flowRate:     '3 per sec',
       maxQueueSize: 25
-    },
-    requests: {
-      maxBurstSize: 20,
-      flowRate:     '600 per min',
-      maxQueueSize: 100
     }
   }
 ];
 
 // Application definitions.
 const applications = [
-  // Main apps.
+  // Top-level dispatch bits.
 
   {
-    name:         'myWackyRedirector',
+    name:  'myRedirector',
+    class: SerialRouter,
+    applications: [
+      'requestRate',
+      'actuallyRedirect'
+    ]
+  },
+  {
+    name:         'actuallyRedirect',
     class:        Redirector,
     statusCode:   308,
     target:       'https://localhost:8443/resp/',
@@ -148,6 +151,14 @@ const applications = [
 
   {
     name:  'mySite',
+    class: SerialRouter,
+    applications: [
+      'requestRate',
+      'myHosts'
+    ]
+  },
+  {
+    name:  'myHosts',
     class: HostRouter,
     hosts: {
       '*':         'myPaths',
@@ -167,6 +178,13 @@ const applications = [
       '/resp/one':          'responseOne',
       '/resp/two':          'responseTwo'
     }
+  },
+  {
+    name:     'requestRate',
+    class:    RequestRateLimiter,
+    maxBurst: 20,
+    flowRate: '600 per min',
+    maxQueue: 100
   },
   {
     name:           'myFilter',
@@ -275,7 +293,7 @@ const endpoints = [
       dataRateLimiter: 'dataRateLimiter',
       rateLimiter:     'limiter'
     },
-    application: 'myWackyRedirector'
+    application: 'myRedirector'
   },
   {
     name:      'secure',

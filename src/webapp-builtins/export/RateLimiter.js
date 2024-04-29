@@ -25,13 +25,6 @@ export class RateLimiter extends BaseService {
   #connections = null;
 
   /**
-   * Request rate limiter, if any.
-   *
-   * @type {?TokenBucket}
-   */
-  #requests = null;
-
-  /**
    * Constructs an instance.
    *
    * @param {object} rawConfig Raw configuration object.
@@ -39,20 +32,14 @@ export class RateLimiter extends BaseService {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const { connections, requests } = this.config;
+    const { connections } = this.config;
 
     this.#connections = RateLimiter.#makeBucket(connections);
-    this.#requests    = RateLimiter.#makeBucket(requests);
   }
 
   /** @override */
   async _impl_handleCall_newConnection(logger) {
     return RateLimiter.#requestOneToken(this.#connections, logger);
-  }
-
-  /** @override */
-  async _impl_handleCall_newRequest(logger) {
-    return RateLimiter.#requestOneToken(this.#requests, logger);
   }
 
   /** @override */
@@ -72,10 +59,7 @@ export class RateLimiter extends BaseService {
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    await Promise.all([
-      this.#connections?.denyAllRequests(),
-      this.#requests?.denyAllRequests()
-    ]);
+    await this.#connections?.denyAllRequests();
   }
 
 
@@ -138,13 +122,6 @@ export class RateLimiter extends BaseService {
     #connections;
 
     /**
-     * Configuration for request rate limiting.
-     *
-     * @type {?object}
-     */
-    #requests;
-
-    /**
      * Constructs an instance.
      *
      * @param {object} rawConfig Raw configuration object.
@@ -152,20 +129,14 @@ export class RateLimiter extends BaseService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      const { connections, requests } = rawConfig;
+      const { connections } = rawConfig;
 
       this.#connections = Config.#parseOneBucket(connections);
-      this.#requests    = Config.#parseOneBucket(requests);
     }
 
     /** @returns {?object} Configuration for connection rate limiting. */
     get connections() {
       return this.#connections;
-    }
-
-    /** @returns {?object} Configuration for request rate limiting. */
-    get requests() {
-      return this.#requests;
     }
 
     /**

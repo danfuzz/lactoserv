@@ -1,23 +1,23 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ByteCount, ByteRate } from '@this/data-values';
-import { IntfDataRateLimiter } from '@this/net-protocol';
-import { BaseService } from '@this/webapp-core';
+import { Frequency } from '@this/data-values';
+import { StatusResponse } from '@this/net-util';
+import { BaseApplication } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
 
 import { RateLimitConfig } from '#p/RateLimitConfig';
-import { RateLimitedStream } from '#p/RateLimitedStream';
 
 
 /**
- * Service which can apply data rate-limiting to network traffic.
- *
- * See `doc/configuration` for configuration object details.
- *
- * @implements {IntfDataRateLimiter}
+ * Application that does rate limiting on requests. It operates by delaying
+ * until the configured rate is satisfied, then not-handling a request. In the
+ * case of a full waiter queue, this _does_ handle the request by reporting
+ * status `429` ("Too Many Requests"). Instances of this class are usefully used
+ * in the list of apps of a `SerialRouter` (or similar). See docs for
+ * configuration object details.
  */
-export class DataRateLimiter extends BaseService {
+export class RequestRateLimiter extends BaseApplication {
   /**
    * Underlying token bucket used to perform rate limiting.
    *
@@ -37,13 +37,18 @@ export class DataRateLimiter extends BaseService {
   }
 
   /** @override */
-  async _impl_handleCall_wrapWriter(stream, logger) {
-    return RateLimitedStream.wrapWriter(this.#bucket, stream, logger);
-  }
+  async _impl_handleRequest(request_unused, dispatch_unused) {
+    const got = await this.#bucket.requestGrant(1);
+    if (got.waitTime.sec > 0) {
+      this.logger?.waited(got.waitTime);
+    }
 
-  /** @override */
-  _impl_implementedInterfaces() {
-    return [IntfDataRateLimiter];
+    if (!got.done) {
+      this.logger?.denied();
+      return StatusResponse.fromStatus(429);
+    }
+
+    return null;
   }
 
   /** @override */
@@ -58,7 +63,7 @@ export class DataRateLimiter extends BaseService {
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    await this.#bucket.denyAllRequests();
+    // @emptyBlock
   }
 
 
@@ -74,7 +79,7 @@ export class DataRateLimiter extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseService.Config {
+  static #Config = class Config extends BaseApplication.Config {
     /**
      * Configuration for the token bucket to use.
      *
@@ -91,9 +96,9 @@ export class DataRateLimiter extends BaseService {
       super(rawConfig);
 
       this.#bucket = RateLimitConfig.parse(rawConfig, {
-        allowMqg:  true,
-        rateType:  ByteRate,
-        tokenType: ByteCount
+        allowMqg:  false,
+        rateType:  Frequency,
+        tokenType: 'number'
       });
     }
 

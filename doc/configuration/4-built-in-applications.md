@@ -218,6 +218,7 @@ const applications = [
     name:  'myDelay',
     class: RequestDelay,
     delay: '250 msec'
+  }
 ];
 ```
 
@@ -298,6 +299,37 @@ const applications = [
     acceptMethods:       ['get', 'head'],
     maxQueryLength:      0,
     redirectDirectories: true
+  }
+];
+```
+
+## `RequestRateLimiter`
+
+An application which provides request rate limiting. Configuration is exactly as
+described by [Rate Limiting](./2-common-configuration.md#rate-limiting), with
+the token unit being a plain number representing a request (or request count)
+and the flow rate unit being requests-per-second represented as a plain
+frequency (class `Frequency`). The `maxQueueGrant` option _is not_ allowed
+(because it is meaningless in this context).
+
+Similar to [`RequestDelay`](#requestdelay), this application operates by never
+actually handling requests, but rather, when asked to handle one, it waits until
+its configured rate limit would allow it and then responds that it won't handle
+the request. This makes it useful to place in the route list for a
+[`SerialRouter`](#serialrouter). If the configured rate limit indicates that a
+request should not actually be handled at all, this application will ultimately
+respond with a status `429` ("Too Many Requests").
+
+```js
+import { RequestRateLimiter } from '@lactoserv/webapp-builtins';
+
+const applications = [
+  {
+    name:     'reqRateLimiter',
+    class:    RequestRateLimiter,
+    maxBurst: 100,
+    flowRate: '10 per sec',
+    maxQueue: 300
   }
 ];
 ```

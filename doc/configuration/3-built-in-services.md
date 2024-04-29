@@ -282,12 +282,17 @@ shutdown."
 
 ## `RateLimiter`
 
-A service which provides rate limiting of any/all of network connections,
-HTTP-ish requests, or sent data. Rate limiting is modeled as a hybrid-model
-"leaky token bucket." The configuration consists of three sections, each
-optional, for `connections` (token unit, a connection), `requests` (token unit,
-a request), and `data` (token unit, a byte). Each of these is configured as an
-object with the following bindings:
+A service which provides rate limiting of network connections, that is,
+specifically the act of accepting a connection. (See
+[`DataRateLimiter`](#dataratelimiter) for data rate limiting.) Configuration is
+exactly as described by [Rate
+Limiting](./2-common-configuration.md#rate-limiting), with the token unit
+being a a plain number representing a connection (or connection count) and
+the flow rate unit being connections-per-second represented as a plain frequency
+(class `Frequency`). The `maxQueueGrant` option _is not_ allowed (because it is
+meaningless in this context).
+
+TODO: This isn't actually quite what is described in chapter 2!!!!
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
   exhausted, specified as a frequency value as described in
@@ -295,11 +300,6 @@ object with the following bindings:
   positive.
 * `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
   rate-limiting takes effect. Minimum value `1`.
-* `maxQueueGrantSize` &mdash; Optional maximum possible size of a grant given to
-  a requester in the wait queue, in tokens. Minimum value `1`. If not
-  specified, it is the same as the `maxBurstSize`. (It is really only meaningful
-  for `data` limiting, because `connections` and `requests` are only ever
-  requested one at a time.)
 * `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
   tokens. Minimum value `1`. This is the number of tokens that are allowed to be
   queued up for a grant, when there is insufficient burst capacity to satisfy
@@ -317,9 +317,7 @@ const services = [
       maxBurstSize: 5,
       flowRate:     '1 per second',
       maxQueueSize: 15
-    },
-    requests: { /* ... */ },
-    data: { /* ... */ }
+    }
   }
 ];
 ```
