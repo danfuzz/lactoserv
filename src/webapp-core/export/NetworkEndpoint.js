@@ -4,8 +4,8 @@
 import { PathKey } from '@this/collections';
 import { BaseComponent, BaseConfig, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
-import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
-  from '@this/net-protocol';
+import { IntfAccessLog, IntfDataRateLimiter, IntfRateLimiter, ProtocolWrangler,
+  ProtocolWranglers } from '@this/net-protocol';
 import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
@@ -96,11 +96,15 @@ export class NetworkEndpoint extends BaseComponent {
       interface: iface,
       protocol,
       services: {
-        accessLog:   accessLogName = null,
-        rateLimiter: rateLimiterName = null
+        accessLog:       accessLogName       = null,
+        dataRateLimiter: dataRateLimiterName = null,
+        rateLimiter:     rateLimiterName     = null
       }
     } = this.config;
 
+    const dataRateLimiter = dataRateLimiterName
+      ? serviceManager.get(dataRateLimiterName, IntfDataRateLimiter)
+      : null;
     const rateLimiter = rateLimiterName
       ? serviceManager.get(rateLimiterName, IntfRateLimiter)
       : null;
@@ -116,6 +120,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     const wranglerOptions = {
       accessLog,
+      dataRateLimiter,
       rateLimiter,
       requestHandler: this,
       protocol,
