@@ -152,8 +152,8 @@ export class ByteRate extends UnitQuantity {
 
   /**
    * Makes a human-friendly byte-rate string. The result string represents a
-   * rounded value, in a format which varies based on the magnitude of the
-   * rate. The denominator of the result is always `sec`. The numeric value and
+   * rounded value, in a format which varies based on the magnitude of the rate.
+   * The denominator of the result is always `sec`. The numeric value and
    * numerator are produced as if by {@link ByteCount#stringFromByteCount}.
    *
    * @param {number} byteRate Byte data rate.

@@ -170,8 +170,8 @@ export class UnitQuantity {
    * denominator) that corresponds to each of the given tables, and no other
    * units. The end result is, in effect, a unitless value having had all the
    * units canceled out. The idea here is that you can take an instance which is
-   * meant to represent some kind of real-world measurement (such speed) with
-   * a variety of units and end up with a value with implied-but-known units,
+   * meant to represent some kind of real-world measurement (such speed) with a
+   * variety of units and end up with a value with implied-but-known units,
    * e.g., convert `km/sec` _and_ `mile/hr` _and_ `mm/min` all to just `m/sec`.
    *
    * Each table has numerator or denominator names (including possibly a mix) as
@@ -403,8 +403,8 @@ export class UnitQuantity {
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?object} [options.convert] Optional unit conversion information,
-   *   to apply to the initial parsed result.
+   * @param {?object} [options.convert] Optional unit conversion information, to
+   *   apply to the initial parsed result.
    * @param {?string} [options.convert.resultUnit] Optional final result unit,
    *   in the same format as taken by {@link #parseUnitSpec}. If specified, the
    *   return value from this method will have the indicated units. If not
