@@ -3,10 +3,10 @@
 
 import * as fs from 'node:fs/promises';
 
-import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
-  MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, RequestDelay, RequestFilter, SerialRouter, SimpleResponse,
-  StaticFiles, SuffixRouter, SyslogToFile }
+import { AccessLogToFile, AccessLogToSyslog, DataRateLimiter, EventFan,
+  HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
+  RateLimiter, Redirector, RequestDelay, RequestFilter, SerialRouter,
+  SimpleResponse, StaticFiles, SuffixRouter, SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -111,6 +111,14 @@ const services = [
     services: ['accessFile', 'accessSyslog']
   },
   {
+    name: 'dataRateLimiter',
+    class: DataRateLimiter,
+    maxBurst:      '1 MiB',
+    flowRate:      '100 KiB / sec',
+    maxQueueGrant: '50 KiB',
+    maxQueue:      '2 MiB'
+  },
+  {
     name:        'limiter',
     class:       RateLimiter,
     connections: {
@@ -122,12 +130,6 @@ const services = [
       maxBurstSize: 20,
       flowRate:     '600 per min',
       maxQueueSize: 100
-    },
-    data: {
-      maxBurstSize:      1024 * 1024,           // 1MB.
-      flowRate:          `${100 * 1024} / sec`, // 100kB.
-      maxQueueGrantSize: 50 * 1024,             // 50kB.
-      maxQueueSize:      2 * 1024 * 1024        // 2MB.
     }
   }
 ];
@@ -269,8 +271,9 @@ const endpoints = [
     protocol:  'http',
     interface: '*:8080',
     services: {
-      accessLog:   'accessLog',
-      rateLimiter: 'limiter'
+      accessLog:       'accessLog',
+      dataRateLimiter: 'dataRateLimiter',
+      rateLimiter:     'limiter'
     },
     application: 'myWackyRedirector'
   },
@@ -280,8 +283,9 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8443',
     services: {
-      accessLog:   'accessLog',
-      rateLimiter: 'limiter'
+      accessLog:       'accessLog',
+      dataRateLimiter: 'dataRateLimiter',
+      rateLimiter:     'limiter'
     },
     application: 'mySite'
   },
