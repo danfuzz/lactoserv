@@ -1,12 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ByteCount, ByteRate, Frequency } from '@this/data-values';
+import { ByteCount, ByteRate } from '@this/data-values';
 import { IntfDataRateLimiter } from '@this/net-protocol';
-import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
 
+import { RateLimitConfig } from '#p/RateLimitConfig';
 import { RateLimitedStream } from '#p/RateLimitedStream';
 
 
@@ -90,7 +90,7 @@ export class DataRateLimiter extends BaseService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      this.#bucket = Config.#parseRateLimit(rawConfig, {
+      this.#bucket = RateLimitConfig.parse(rawConfig, {
         allowMqg:  true,
         rateType:  ByteRate,
         tokenType: ByteCount
@@ -100,74 +100,6 @@ export class DataRateLimiter extends BaseService {
     /** @returns {object} Configuration for the token bucket to use. */
     get bucket() {
       return this.#bucket;
-    }
-
-    /**
-     * Parses the a rate limiter configuration.
-     *
-     * @param {object} config Configuration object.
-     * @param {object} options Parsing options.
-     * @param {boolean} options.allowMqg Whether to recognize `maxQueueGrant`
-     *   configuration.
-     * @param {function(new:*)} options.rateType Unit quantity class which
-     *   represents the token flow rate.
-     * @param {function(new:*)|string} options.tokenType Unit quantity class
-     *   which represents tokens, or the string `number` if plain numbers are
-     *   allowed.
-     * @returns {object} Parsed configuration, suitable for passing to the
-     *   {@link TokenBucket} constructor.
-     */
-    static #parseRateLimit(config, options) {
-      const {
-        flowRate,
-        maxBurst,
-        maxQueueGrant = null,
-        maxQueue      = null
-      } = config;
-
-      const { allowMqg, rateType, tokenType } = options;
-
-      const parseFlowRate = (value) => {
-        const result = rateType.parse(value, { range: { minExclusive: 0 } });
-        if (result === null) {
-          throw new Error(`Could not parse flow rate: ${value}`);
-        }
-        // `TokenBucket` always wants a plain `Frequency` for its `flowRate`.
-        return new Frequency(result.value);
-      };
-
-      const parseTokenCount = (value, allowNull) => {
-        if ((value === null) && !allowNull) {
-          throw new Error('Must be a token count.');
-        }
-
-        const opts = { range: { minInclusive: 1, maxInclusive: 1e100 } };
-
-        if (tokenType === 'number') {
-          return MustBe.number(value, opts);
-        } else {
-          const result = tokenType.parse(value, opts);
-          if (result === null) {
-            throw new Error(`Could not parse token count: ${value}`);
-          }
-          return result.value;
-        }
-      };
-
-      const result = {
-        flowRate:          parseFlowRate(flowRate),
-        maxBurstSize:      parseTokenCount(maxBurst, false),
-        maxQueueGrantSize: null,
-        maxQueueSize:      parseTokenCount(maxQueue, true)
-      };
-
-      if (allowMqg) {
-        result.maxQueueGrantSize = parseTokenCount(maxQueueGrant, true);
-      } else if (maxQueueGrant !== null) {
-        throw new Error('Cannot use `maxQueueGrant` with this kind of rate limiter; it is meaningless.');
-      }
-
-      return Object.freeze(result);
     }
   };
 }
