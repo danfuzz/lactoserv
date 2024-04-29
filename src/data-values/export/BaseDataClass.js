@@ -3,6 +3,7 @@
 
 import { Methods } from '@this/typey';
 
+
 /* c8 ignore start */ // No coverage needed for this class.
 
 // Note: `ConverterConfig` in the comment below can't be a `{@link ...}` because

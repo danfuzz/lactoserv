@@ -5,7 +5,8 @@ import { PathKey } from '@this/collections';
 import { BaseComponent, BaseConfig, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfDataRateLimiter, IntfRateLimiter, ProtocolWrangler,
-  ProtocolWranglers } from '@this/net-protocol';
+  ProtocolWranglers }
+  from '@this/net-protocol';
 import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
