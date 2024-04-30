@@ -78,7 +78,7 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#connectionRateLimiter = options.rateLimiter ?? null;
+    this.#connectionRateLimiter = options.connectionRateLimiter ?? null;
     this.#dataRateLimiter       = options.dataRateLimiter ?? null;
     this.#asyncServerArgs       = [options.interface, options.protocol];
   }

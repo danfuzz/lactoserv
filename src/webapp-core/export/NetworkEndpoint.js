@@ -97,17 +97,17 @@ export class NetworkEndpoint extends BaseComponent {
       interface: iface,
       protocol,
       services: {
-        accessLog:       accessLogName       = null,
-        dataRateLimiter: dataRateLimiterName = null,
-        rateLimiter:     rateLimiterName     = null
+        accessLog:             accessLogName             = null,
+        dataRateLimiter:       dataRateLimiterName       = null,
+        connectionRateLimiter: connectionRateLimiterName = null
       }
     } = this.config;
 
     const dataRateLimiter = dataRateLimiterName
       ? serviceManager.get(dataRateLimiterName, IntfDataRateLimiter)
       : null;
-    const rateLimiter = rateLimiterName
-      ? serviceManager.get(rateLimiterName, IntfRateLimiter)
+    const connectionRateLimiter = connectionRateLimiterName
+      ? serviceManager.get(connectionRateLimiterName, IntfRateLimiter)
       : null;
     const accessLog = accessLogName
       ? serviceManager.get(accessLogName, IntfAccessLog)
@@ -121,8 +121,8 @@ export class NetworkEndpoint extends BaseComponent {
 
     const wranglerOptions = {
       accessLog,
+      connectionRateLimiter,
       dataRateLimiter,
-      rateLimiter,
       requestHandler: this,
       protocol,
       interface: iface,

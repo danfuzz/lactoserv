@@ -290,9 +290,9 @@ const endpoints = [
     protocol:  'http',
     interface: '*:8080',
     services: {
-      accessLog:       'accessLog',
-      dataRateLimiter: 'dataRateLimiter',
-      rateLimiter:     'limiter'
+      accessLog:             'accessLog',
+      dataRateLimiter:       'dataRateLimiter',
+      connectionRateLimiter: 'limiter'
     },
     application: 'myRedirector'
   },
@@ -302,9 +302,9 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8443',
     services: {
-      accessLog:       'accessLog',
-      dataRateLimiter: 'dataRateLimiter',
-      rateLimiter:     'limiter'
+      accessLog:             'accessLog',
+      dataRateLimiter:       'dataRateLimiter',
+      connectionRateLimiter: 'limiter'
     },
     application: 'mySite'
   },

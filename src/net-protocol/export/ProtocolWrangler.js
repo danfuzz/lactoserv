@@ -114,6 +114,9 @@ export class ProtocolWrangler {
    * @param {object} options Construction options.
    * @param {IntfAccessLog} options.accessLog Network access logger to send to.
    *   If not specified, the instance won't do access logging.
+   * @param {IntfRateLimiter} options.connectionRateLimiter Rate limiter to use
+   *   for connections. If not specified, the instance won't do connection rate
+   *   limiting.
    * @param {IntfDataRateLimiter} options.dataRateLimiter Data rate limiter to
    *   use. If not specified, the instance won't do data rate limiting.
    * @param {object} options.hostManager Host manager to use. Ignored for
@@ -128,15 +131,13 @@ export class ProtocolWrangler {
    *   * The default for `allowHalfOpen` is `true`, which is required in
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
    * @param {string} options.protocol The name of the protocol to use.
-   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use for
-   *   connections and requests. If not specified, the instance won't do rate
-   *   limiting for those.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
    */
   constructor(options) {
-    // Note: See `TcpWrangler` for where `rateLimiter` and `dataRateLimiter`
-    // are used. See `ProtocolWranglers` (plural) for where `protocol` is used.
+    // Note: See `TcpWrangler` for where `connectionRateLimiter` and
+    // `dataRateLimiter` are used. See `ProtocolWranglers` (plural) for where
+    // `protocol` is used.
 
     const {
       accessLog,

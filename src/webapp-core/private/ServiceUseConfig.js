@@ -15,8 +15,8 @@ import { BaseConfig, Names } from '@this/compy';
  * Allowed roles:
  *
  * * `accessLog` -- Network access logging service.
+ * * `connectionRateLimiter` -- Connection rate limiter service.
  * * `dataRateLimiter` -- Data rate limiter service.
- * * `rateLimiter` -- Rate limiter service. (TODO: Split out individual rates.)
  */
 export class ServiceUseConfig extends BaseConfig {
   /**
@@ -61,9 +61,11 @@ export class ServiceUseConfig extends BaseConfig {
     return this.#map;
   }
 
-  /** @returns {?string} Service name for `rateLimiter` role, if any. */
-  get rateLimiter() {
-    return this.#map.get('rateLimiter') ?? null;
+  /**
+   * @returns {?string} Service name for `connectionRateLimiter` role, if any.
+   */
+  get connectionRateLimiter() {
+    return this.#map.get('connectionRateLimiter') ?? null;
   }
 
 
@@ -78,7 +80,7 @@ export class ServiceUseConfig extends BaseConfig {
    */
   static #ROLES = Object.freeze(new Set([
     'accessLog',
-    'dataRateLimiter',
-    'rateLimiter'
+    'connectionRateLimiter',
+    'dataRateLimiter'
   ]));
 }
