@@ -10,7 +10,8 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
-**Note:** v0.7.0 wasn't announced widely, because it was a "rebrand" of v0.6.16.
+**Note:** v0.7.0 wasn't announced widely, because it was mostly just a clone
+of v0.6.16.
 
 Breaking changes:
 * configuration / `webapp-builtins`:
