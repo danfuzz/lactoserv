@@ -16,7 +16,7 @@ import { TokenBucket } from '@this/webapp-util';
  *
  * @implements {IntfRateLimiter}
  */
-export class RateLimiter extends BaseService {
+export class ConnectionRateLimiter extends BaseService {
   /**
    * Connection rate limiter, if any.
    *
@@ -34,12 +34,12 @@ export class RateLimiter extends BaseService {
 
     const { connections } = this.config;
 
-    this.#connections = RateLimiter.#makeBucket(connections);
+    this.#connections = ConnectionRateLimiter.#makeBucket(connections);
   }
 
   /** @override */
   async _impl_handleCall_newConnection(logger) {
-    return RateLimiter.#requestOneToken(this.#connections, logger);
+    return ConnectionRateLimiter.#requestOneToken(this.#connections, logger);
   }
 
   /** @override */

@@ -3,10 +3,11 @@
 
 import * as fs from 'node:fs/promises';
 
-import { AccessLogToFile, AccessLogToSyslog, DataRateLimiter, EventFan,
-  HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
-  RateLimiter, Redirector, RequestDelay, RequestFilter, RequestRateLimiter,
-  SerialRouter, SimpleResponse, StaticFiles, SuffixRouter, SyslogToFile }
+import { AccessLogToFile, AccessLogToSyslog, ConnectionRateLimiter,
+  DataRateLimiter, EventFan, HostRouter, MemoryMonitor, PathRouter,
+  ProcessIdFile, ProcessInfoFile, Redirector, RequestDelay, RequestFilter,
+  RequestRateLimiter, SerialRouter, SimpleResponse, StaticFiles, SuffixRouter,
+  SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -120,7 +121,7 @@ const services = [
   },
   {
     name:        'limiter',
-    class:       RateLimiter,
+    class:       ConnectionRateLimiter,
     connections: {
       maxBurstSize: 10,
       flowRate:     '3 per sec',

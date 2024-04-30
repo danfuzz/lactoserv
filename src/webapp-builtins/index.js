@@ -3,6 +3,7 @@
 
 export * from '#x/AccessLogToFile';
 export * from '#x/AccessLogToSyslog';
+export * from '#x/ConnectionRateLimiter';
 export * from '#x/DataRateLimiter';
 export * from '#x/EventFan';
 export * from '#x/HostRouter';
@@ -10,7 +11,6 @@ export * from '#x/MemoryMonitor';
 export * from '#x/PathRouter';
 export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
-export * from '#x/RateLimiter';
 export * from '#x/Redirector';
 export * from '#x/RequestDelay';
 export * from '#x/RequestFilter';

@@ -109,6 +109,48 @@ const services = [
 ];
 ```
 
+## `ConnectionRateLimiter`
+
+A service which provides rate limiting of network connections, that is,
+specifically the act of accepting a connection. (See
+[`DataRateLimiter`](#dataratelimiter) for data rate limiting.) Configuration is
+exactly as described by [Rate
+Limiting](./2-common-configuration.md#rate-limiting), with the token unit
+being a a plain number representing a connection (or connection count) and
+the flow rate unit being connections-per-second represented as a plain frequency
+(class `Frequency`). The `maxQueueGrant` option _is not_ allowed (because it is
+meaningless in this context).
+
+TODO: This isn't actually quite what is described in chapter 2!!!!
+
+* `flowRate` &mdash; The rate of token flow once any burst capacity is
+  exhausted, specified as a frequency value as described in
+  [Frequency](./2-common-configuration.md#frequency). The rate must be
+  positive.
+* `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
+  rate-limiting takes effect. Minimum value `1`.
+* `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
+  tokens. Minimum value `1`. This is the number of tokens that are allowed to be
+  queued up for a grant, when there is insufficient burst capacity to satisfy
+  all active clients. Attempts to queue up more result in token denials (e.g.
+  network connections closed instead of sending bytes).
+
+```js
+import { ConnectionRateLimiter } from '@lactoserv/webapp-builtins';
+
+const services = [
+  {
+    name:  'limiter',
+    class: ConnectionRateLimiter,
+    connections: {
+      maxBurstSize: 5,
+      flowRate:     '1 per second',
+      maxQueueSize: 15
+    }
+  }
+];
+```
+
 ## `DataRateLimiter`
 
 A service which provides data rate limiting of network traffic (specifically
@@ -279,48 +321,6 @@ is preserved, it is first checked to see if it has a shutdown "disposition"
 (that is, an indication that the system had a chance to note why it was
 stopped). If not, the system will update that file to indicate "unexpected
 shutdown."
-
-## `RateLimiter`
-
-A service which provides rate limiting of network connections, that is,
-specifically the act of accepting a connection. (See
-[`DataRateLimiter`](#dataratelimiter) for data rate limiting.) Configuration is
-exactly as described by [Rate
-Limiting](./2-common-configuration.md#rate-limiting), with the token unit
-being a a plain number representing a connection (or connection count) and
-the flow rate unit being connections-per-second represented as a plain frequency
-(class `Frequency`). The `maxQueueGrant` option _is not_ allowed (because it is
-meaningless in this context).
-
-TODO: This isn't actually quite what is described in chapter 2!!!!
-
-* `flowRate` &mdash; The rate of token flow once any burst capacity is
-  exhausted, specified as a frequency value as described in
-  [Frequency](./2-common-configuration.md#frequency). The rate must be
-  positive.
-* `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
-  rate-limiting takes effect. Minimum value `1`.
-* `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
-  tokens. Minimum value `1`. This is the number of tokens that are allowed to be
-  queued up for a grant, when there is insufficient burst capacity to satisfy
-  all active clients. Attempts to queue up more result in token denials (e.g.
-  network connections closed instead of sending bytes).
-
-```js
-import { RateLimiter } from '@lactoserv/webapp-builtins';
-
-const services = [
-  {
-    name:  'limiter',
-    class: RateLimiter,
-    connections: {
-      maxBurstSize: 5,
-      flowRate:     '1 per second',
-      maxQueueSize: 15
-    }
-  }
-];
-```
 
 ## `SyslogToFile`
 
