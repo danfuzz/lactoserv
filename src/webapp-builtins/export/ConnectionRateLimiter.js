@@ -3,7 +3,8 @@
 
 import { IntfConnectionRateLimiter } from '@this/net-protocol';
 import { BaseService } from '@this/webapp-core';
-import { ConnectionCount, ConnectionRate, TokenBucket } from '@this/webapp-util';
+import { ConnectionCount, ConnectionRate, TokenBucket }
+  from '@this/webapp-util';
 
 import { RateLimitConfig } from '#p/RateLimitConfig';
 
