@@ -432,10 +432,18 @@ export class UnitQuantity {
    *   Defaults to `true`.
    * @param {?object} [options.convert] Optional unit conversion information, to
    *   apply to the initial parsed result.
+   * @param {function(new:*, number)} [options.convert.resultClass] Class to
+   *   construct with the final converted value. If specified, a non-`null`
+   *   return value from this class will be the result of a `new` call on this
+   *   class, passing it the converted value (a number) as its sole argument.
+   *   It is not valid to specify both this and `resultUnit`.
    * @param {?string} [options.convert.resultUnit] Optional final result unit,
-   *   in the same format as taken by {@link #parseUnitSpec}. If specified, the
-   *   return value from this method will have the indicated units. If not
-   *   specified, the return value will be unitless.
+   *   in the same format as taken by {@link #parseUnitSpec}. If specified, a
+   *   non-`null` return value from this method will be an instance of this
+   *   class (`UnitQuantity` per se), with the indicated units. If not specified
+   *   (and `resultClass` isn't either), the return value will be a unitless
+   *   instance of this class. It is not valid to specify both this and
+   *   `resultClass`.
    * @param {?Array<Map>} [options.convert.unitMaps] Optional unit maps to
    *   apply, using {@link #convertValue}. That method (or equivalent) will be
    *   called to produce the final numeric value. If not specified, then the
@@ -463,18 +471,22 @@ export class UnitQuantity {
       } else {
         return null;
       }
-    } else {
+    } else if (typeof valueToParse === 'string') {
       result = this.#parseString(valueToParse);
       if (result === null) {
         return null;
       }
+    } else {
+      throw new Error(`Cannot parse value: ${valueToParse}`);
     }
 
     if (convert) {
-      const { resultUnit = null, unitMaps = null } = convert;
-      const unitSpec = UnitQuantity.parseUnitSpec(resultUnit ?? '/');
+      const { resultClass = null, resultUnit = null, unitMaps = null } = convert;
+      const unitSpec   = UnitQuantity.parseUnitSpec(resultUnit ?? '/');
 
-      if (unitSpec === null) {
+      if ((resultClass !== null) && (resultUnit !== null)) {
+        throw new Error('Cannot use both `resultClass` and `resultUnit`.');
+      } else if (unitSpec === null) {
         throw new Error(`Invalid \`resultUnit\`: ${resultUnit}`);
       }
 
@@ -485,7 +497,11 @@ export class UnitQuantity {
           return null;
         }
 
-        result = new UnitQuantity(finalValue, ...unitSpec);
+        result = resultClass
+          ? new resultClass(finalValue)
+          : new UnitQuantity(finalValue, ...unitSpec);
+      } else if (resultClass) {
+        result = new resultClass(result.value);
       } else {
         const unitCheck = new UnitQuantity(0, ...unitSpec);
         if (!unitCheck.hasSameUnits(result)) {
