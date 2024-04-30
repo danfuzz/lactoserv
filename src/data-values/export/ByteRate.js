@@ -92,25 +92,7 @@ export class ByteRate extends UnitQuantity {
    *
    * @type {Map<string, number>}
    */
-  static #UNIT_PER_SEC = new Map(Object.entries({
-    '/ns':     1_000_000_000,
-    '/nsec':   1_000_000_000,
-    '/us':     1_000_000,
-    '/usec':   1_000_000,
-    '/ms':     1_000,
-    '/msec':   1_000,
-    '/s':      1,
-    '/sec':    1,
-    '/second': 1,
-    '/m':      (1 / 60),
-    '/min':    (1 / 60),
-    '/minute': (1 / 60),
-    '/h':      (1 / (60 * 60)),
-    '/hr':     (1 / (60 * 60)),
-    '/hour':   (1 / (60 * 60)),
-    '/d':      (1 / (60 * 60 * 24)),
-    '/day':    (1 / (60 * 60 * 24))
-  }));
+  static #UNIT_PER_SEC = Frequency.DENOMINATOR_UNITS;
 
   /**
    * Parses a string representing a byte data rate, returning an instance of
