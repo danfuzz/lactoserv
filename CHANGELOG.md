@@ -10,6 +10,9 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+This release contains most (if not all) of the breaking changes to standalone
+configuration that are currently anticipated for the v0.7.* release series.
+
 **Note:** v0.7.0 wasn't announced widely, because it was mostly just a clone
 of v0.6.16.
 
