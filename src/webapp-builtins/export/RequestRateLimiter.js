@@ -4,7 +4,7 @@
 import { Frequency } from '@this/data-values';
 import { StatusResponse } from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
-import { TokenBucket } from '@this/webapp-util';
+import { RequestCount, RequestRate, TokenBucket } from '@this/webapp-util';
 
 import { RateLimitConfig } from '#p/RateLimitConfig';
 
@@ -97,8 +97,8 @@ export class RequestRateLimiter extends BaseApplication {
 
       this.#bucket = RateLimitConfig.parse(rawConfig, {
         allowMqg:  false,
-        rateType:  Frequency,
-        tokenType: 'number'
+        rateType:  RequestRate,
+        tokenType: RequestCount
       });
     }
 
