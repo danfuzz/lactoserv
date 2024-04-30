@@ -140,18 +140,12 @@ export class Duration extends UnitQuantity {
    *   be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
     const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+      ...(options || {}),
       convert: {
         resultUnit: 'sec',
         unitMaps:   [this.#SEC_PER_UNIT]
-      },
-      ...(range ? { range } : null)
+      }
     });
 
     return ((result === null) || (result instanceof Duration))

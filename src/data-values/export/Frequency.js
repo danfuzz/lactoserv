@@ -125,18 +125,12 @@ export class Frequency extends UnitQuantity {
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
     const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+      ...(options || {}),
       convert: {
         resultUnit: '/sec',
         unitMaps:   [this.#UNIT_PER_SEC]
-      },
-      ...(range ? { range } : null)
+      }
     });
 
     return ((result === null) || (result instanceof Frequency))
