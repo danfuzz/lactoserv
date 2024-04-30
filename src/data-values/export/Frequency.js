@@ -63,7 +63,7 @@ export class Frequency extends UnitQuantity {
     '/s':      1,
     '/sec':    1,
     '/second': 1,
-    'hz/':     1,
+    'Hz/':     1,
     'hertz/':  1,
     '/m':      (1 / 60),
     '/min':    (1 / 60),
@@ -83,7 +83,7 @@ export class Frequency extends UnitQuantity {
    * * `/ns` or `/nsec` -- per nanosecond
    * * `/us` or `/usec` -- per microsecond
    * * `/ms` or `/msec` -- per millisecond
-   * * `/s`, `/sec`, `hz`, or `hertz` -- per second
+   * * `/s`, `/sec`, `Hz`, or `hertz` -- per second
    * * `/m` or `/min` or `minute` -- per minute
    * * `/h` or `/hr` or `hour` -- per hour
    * * `/d` or `/day` -- per day (defined as exactly once per 24 hours)
