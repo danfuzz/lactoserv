@@ -120,7 +120,7 @@ const services = [
     maxQueue:      '2 MiB'
   },
   {
-    name:        'conncetionRateLimiter',
+    name:        'connectionRateLimiter',
     class:       ConnectionRateLimiter,
     connections: {
       maxBurstSize: 10,
@@ -292,7 +292,7 @@ const endpoints = [
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
-      connectionRateLimiter: 'conncetionRateLimiter'
+      connectionRateLimiter: 'connectionRateLimiter'
     },
     application: 'myRedirector'
   },
@@ -304,7 +304,7 @@ const endpoints = [
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
-      connectionRateLimiter: 'conncetionRateLimiter'
+      connectionRateLimiter: 'connectionRateLimiter'
     },
     application: 'mySite'
   },
