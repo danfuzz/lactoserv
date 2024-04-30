@@ -78,7 +78,7 @@ Frequencies are specified using the class `Frequency`. The available units are:
 * `/hour` or `/hr` or `/h` &mdash; Per hour.
 * `/day` or `/d` &mdash; Per (24-hour) day.
 
-As a rarely-useful addition, the _numerator_ unit `hertz` or `hz` is allowed as
+As a rarely-useful addition, the _numerator_ unit `hertz` or `Hz` is allowed as
 an equivalent to `/sec`.
 
 ## Rate Limiting
