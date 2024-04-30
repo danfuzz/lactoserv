@@ -10,6 +10,8 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+**Note:** v0.7.0 wasn't announced widely, because it was a "rebrand" of v0.6.16.
+
 Breaking changes:
 * configuration / `webapp-builtins`:
   * Totally reworked rate limiting. There is now a separate class per thing that
@@ -48,8 +50,6 @@ Other notable changes:
 * `webapp-builtins`:
   * New application `RequestDelay`.
   * New application `SuffixRouter`.
-
-**Note:** v0.7.0 wasn't announced widely, because it was a "rebrand" of v0.6.16.
 
 ### v0.7.0 -- 2024-04-22
 
