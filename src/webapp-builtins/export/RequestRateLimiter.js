@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Frequency } from '@this/data-values';
 import { StatusResponse } from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
 import { RequestCount, RequestRate, TokenBucket } from '@this/webapp-util';
