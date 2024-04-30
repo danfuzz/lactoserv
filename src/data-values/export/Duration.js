@@ -183,11 +183,11 @@ export class Duration extends UnitQuantity {
    * @param {number} durationSec Duration in seconds.
    * @param {object} [options] Formatting options.
    * @param {boolean} [options.spaces] Use spaces to separate the number from
-   *   the units? If `false` an underscore is used.
+   *   the units? If `false` an underscore is used. Defaults to `true`;
    * @returns {string} The friendly form.
    */
-  static stringFromSec(durationSec, options = {}) {
-    const { spaces = true } = options;
+  static stringFromSec(durationSec, options = null) {
+    const { spaces = true } = options ?? {};
 
     const spaceyChar = spaces ? ' ' : '_';
 
