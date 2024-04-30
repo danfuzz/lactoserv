@@ -10,7 +10,7 @@ import { Methods } from '@this/typey';
  *
  * @interface
  */
-export class IntfRateLimiter {
+export class IntfConnectionRateLimiter {
   /**
    * Waits if necessary, and async-returns when either the caller has been
    * granted a new connection or there is too much load to grant a connection.

@@ -3,10 +3,11 @@
 
 import * as fs from 'node:fs/promises';
 
-import { AccessLogToFile, AccessLogToSyslog, DataRateLimiter, EventFan,
-  HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
-  RateLimiter, Redirector, RequestDelay, RequestFilter, RequestRateLimiter,
-  SerialRouter, SimpleResponse, StaticFiles, SuffixRouter, SyslogToFile }
+import { AccessLogToFile, AccessLogToSyslog, ConnectionRateLimiter,
+  DataRateLimiter, EventFan, HostRouter, MemoryMonitor, PathRouter,
+  ProcessIdFile, ProcessInfoFile, Redirector, RequestDelay, RequestFilter,
+  RequestRateLimiter, SerialRouter, SimpleResponse, StaticFiles, SuffixRouter,
+  SyslogToFile }
   from '@lactoserv/webapp-builtins';
 
 
@@ -120,7 +121,7 @@ const services = [
   },
   {
     name:        'limiter',
-    class:       RateLimiter,
+    class:       ConnectionRateLimiter,
     connections: {
       maxBurstSize: 10,
       flowRate:     '3 per sec',
@@ -289,9 +290,9 @@ const endpoints = [
     protocol:  'http',
     interface: '*:8080',
     services: {
-      accessLog:       'accessLog',
-      dataRateLimiter: 'dataRateLimiter',
-      rateLimiter:     'limiter'
+      accessLog:             'accessLog',
+      dataRateLimiter:       'dataRateLimiter',
+      connectionRateLimiter: 'limiter'
     },
     application: 'myRedirector'
   },
@@ -301,9 +302,9 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8443',
     services: {
-      accessLog:       'accessLog',
-      dataRateLimiter: 'dataRateLimiter',
-      rateLimiter:     'limiter'
+      accessLog:             'accessLog',
+      dataRateLimiter:       'dataRateLimiter',
+      connectionRateLimiter: 'limiter'
     },
     application: 'mySite'
   },

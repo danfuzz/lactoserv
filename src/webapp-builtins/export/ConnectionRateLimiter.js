@@ -3,7 +3,7 @@
 
 import { Frequency } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
-import { IntfRateLimiter } from '@this/net-protocol';
+import { IntfConnectionRateLimiter } from '@this/net-protocol';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
@@ -14,9 +14,9 @@ import { TokenBucket } from '@this/webapp-util';
  *
  * See `doc/configuration` for configuration object details.
  *
- * @implements {IntfRateLimiter}
+ * @implements {IntfConnectionRateLimiter}
  */
-export class RateLimiter extends BaseService {
+export class ConnectionRateLimiter extends BaseService {
   /**
    * Connection rate limiter, if any.
    *
@@ -34,17 +34,17 @@ export class RateLimiter extends BaseService {
 
     const { connections } = this.config;
 
-    this.#connections = RateLimiter.#makeBucket(connections);
+    this.#connections = ConnectionRateLimiter.#makeBucket(connections);
   }
 
   /** @override */
   async _impl_handleCall_newConnection(logger) {
-    return RateLimiter.#requestOneToken(this.#connections, logger);
+    return ConnectionRateLimiter.#requestOneToken(this.#connections, logger);
   }
 
   /** @override */
   _impl_implementedInterfaces() {
-    return [IntfRateLimiter];
+    return [IntfConnectionRateLimiter];
   }
 
   /** @override */
