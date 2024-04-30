@@ -358,6 +358,33 @@ export class UnitQuantity {
   }
 
   /**
+   * Gets a string form of this instance.
+   *
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.spaces] Use spaces to separate the number from
+   *   the units? If `false` an underscore is used. Defaults to `true`.
+   * @returns {string} The string form.
+   */
+  toString(options = null) {
+    const { spaces = true } = options ?? {};
+
+    const spc   = spaces ? ' ' : '_';
+    const numer = this.#numeratorUnit;
+    const denom = this.#denominatorUnit;
+    const value = this.#value;
+
+    if (numer === null) {
+      return (denom === null)
+        ? `${value}`
+        : `${value}${spc}/${denom}`;
+    } else {
+      return (denom === null)
+        ? `${value}${spc}${numer}`
+        : `${value}${spc}${numer}/${denom}`;
+    }
+  }
+
+  /**
    * Throws an error if either the given value isn't an instance of this class
    * or if its units don't match this class.
    *

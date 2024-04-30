@@ -456,6 +456,41 @@ describe('inverse()', () => {
   });
 });
 
+describe('toString()', () => {
+  describe.each`
+  opts                 | spaces
+  ${{ spaces: false }} | ${false}
+  ${{ spaces: true }}  | ${true}
+  ${{}}                | ${true}
+  ${null}              | ${true}
+  ${undefined}         | ${true}
+  `('with `options === $opts`', ({ opts, spaces }) => {
+    test.each`
+    value                       | expected
+    ${[0, null, null]}          | ${'0'}
+    ${[0, 'x', null]}           | ${'0 x'}
+    ${[0, 'abc', null]}         | ${'0 abc'}
+    ${[0, null, 'z']}           | ${'0 /z'}
+    ${[0, null, 'def']}         | ${'0 /def'}
+    ${[0, 'q', 'r']}            | ${'0 q/r'}
+    ${[0, 'bip', 'flop']}       | ${'0 bip/flop'}
+    ${[12.34, null, null]}      | ${'12.34'}
+    ${[-123, null, null]}       | ${'-123'}
+    ${[9.9e99, null, null]}     | ${'9.9e+99'}
+    ${[98765, 'xyz', null]}     | ${'98765 xyz'}
+    ${[44.12345, null, 'zonk']} | ${'44.12345 /zonk'}
+    ${[-909, 'aa', 'bb']}       | ${'-909 aa/bb'}
+    `('returns `$expected` given `$value`', ({ value, expected }) => {
+      const uq  = new UnitQuantity(...value);
+      const got = uq.toString(opts);
+      const exp = spaces ? got : got.replace(/[ ]/, '_');
+
+      expect(got).toBeString();
+      expect(got).toBe(exp);
+    });
+  });
+});
+
 
 //
 // Static members
