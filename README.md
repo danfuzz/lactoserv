@@ -70,8 +70,6 @@ applications.
 * Developed using automated unit and integration tests. (As of this writing,
   test coverage stats indicate _decent_ but not _outstanding_ coverage.)
 
-- - - - - - - - - -
-
 ### Requirements
 
 To build:
