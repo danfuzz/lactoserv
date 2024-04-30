@@ -509,10 +509,10 @@ export class UnitQuantity {
         }
       }
 
-      if (valueToParse instanceof UnitQuantity) {
-        // We started with an instance as the value to parse. If it turns out
-        // that conversion was effectively a no-op, then restore the result to
-        // the original argument.
+      if (valueToParse instanceof (resultClass ?? UnitQuantity)) {
+        // We started with an instance of the right class as the value to parse.
+        // If it turns out that conversion was effectively a no-op, then restore
+        // the result to the original argument.
         if (result.hasSameUnits(valueToParse)) {
           result = valueToParse;
         }
