@@ -483,7 +483,7 @@ describe('toString()', () => {
     `('returns `$expected` given `$value`', ({ value, expected }) => {
       const uq  = new UnitQuantity(...value);
       const got = uq.toString(opts);
-      const exp = spaces ? got : got.replace(/[ ]/, '_');
+      const exp = spaces ? expected : expected.replace(/[ ]/, '_');
 
       expect(got).toBeString();
       expect(got).toBe(exp);
