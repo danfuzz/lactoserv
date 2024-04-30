@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Frequency } from '@this/data-values';
-import { MustBe } from '@this/typey';
 import { TokenBucket } from '@this/webapp-util';
 
 
@@ -21,8 +20,8 @@ export class RateLimitConfig {
    *   represents the token flow rate.
    * @param {function(new:*)} options.tokenType Unit quantity class which
    *   represents tokens.
-   * @returns {object} Parsed configuration, suitable for passing to the {@link
-   *   TokenBucket} constructor.
+   * @returns {object} Parsed configuration, suitable for passing to the
+   *   {@link TokenBucket} constructor.
    */
   static parse(config, options) {
     const {
