@@ -113,17 +113,13 @@ export class ByteRate extends UnitQuantity {
    *   could not be parsed.
    */
   static parse(valueToParse, options = null) {
-    const result = UnitQuantity.parse(valueToParse, {
+    return UnitQuantity.parse(valueToParse, {
       ...(options || {}),
       convert: {
-        resultUnit: 'byte/sec',
-        unitMaps:   [this.#BYTE_PER_UNIT, this.#UNIT_PER_SEC]
+        resultClass: ByteRate,
+        unitMaps:    [this.#BYTE_PER_UNIT, this.#UNIT_PER_SEC]
       }
     });
-
-    return ((result === null) || (result instanceof ByteRate))
-      ? result
-      : new ByteRate(result.value);
   }
 
   /**
