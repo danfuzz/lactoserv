@@ -42,6 +42,39 @@ export class Frequency extends UnitQuantity {
   //
 
   /**
+   * @returns {Map<string, number>} The set of units which are used as
+   * denominators for this class, in the form used by {@link
+   * UnitQuantity#convert} and {@link UnitQuantity@parse}. This is meant to make
+   * it easier to define rate classes that use non-empty denominators (that is,
+   * to avoid redundancy).
+   *
+   * **Note:** This getter produces a new instance every time it is used,
+   * because JavaScript doesn't provide a straightforward way to produce a
+   * frozen `Map`.
+   */
+  static get DENOMINATOR_UNITS() {
+    return new Map(Object.entries({
+      '/ns':     1_000_000_000,
+      '/nsec':   1_000_000_000,
+      '/us':     1_000_000,
+      '/usec':   1_000_000,
+      '/ms':     1_000,
+      '/msec':   1_000,
+      '/s':      1,
+      '/sec':    1,
+      '/second': 1,
+      '/m':      (1 / 60),
+      '/min':    (1 / 60),
+      '/minute': (1 / 60),
+      '/h':      (1 / (60 * 60)),
+      '/hr':     (1 / (60 * 60)),
+      '/hour':   (1 / (60 * 60)),
+      '/d':      (1 / (60 * 60 * 24)),
+      '/day':    (1 / (60 * 60 * 24))
+    }));
+  }
+
+  /**
    * Instance with value of `0`.
    *
    * @type {Frequency}
