@@ -92,25 +92,7 @@ export class ByteRate extends UnitQuantity {
    *
    * @type {Map<string, number>}
    */
-  static #UNIT_PER_SEC = new Map(Object.entries({
-    '/ns':     1_000_000_000,
-    '/nsec':   1_000_000_000,
-    '/us':     1_000_000,
-    '/usec':   1_000_000,
-    '/ms':     1_000,
-    '/msec':   1_000,
-    '/s':      1,
-    '/sec':    1,
-    '/second': 1,
-    '/m':      (1 / 60),
-    '/min':    (1 / 60),
-    '/minute': (1 / 60),
-    '/h':      (1 / (60 * 60)),
-    '/hr':     (1 / (60 * 60)),
-    '/hour':   (1 / (60 * 60)),
-    '/d':      (1 / (60 * 60 * 24)),
-    '/day':    (1 / (60 * 60 * 24))
-  }));
+  static #UNIT_PER_SEC = Frequency.DENOMINATOR_UNITS;
 
   /**
    * Parses a string representing a byte data rate, returning an instance of
@@ -131,23 +113,13 @@ export class ByteRate extends UnitQuantity {
    *   could not be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
-    const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+    return UnitQuantity.parse(valueToParse, {
+      ...(options || {}),
       convert: {
-        resultUnit: 'byte/sec',
-        unitMaps:   [this.#BYTE_PER_UNIT, this.#UNIT_PER_SEC]
-      },
-      ...(range ? { range } : null)
+        resultClass: ByteRate,
+        unitMaps:    [this.#BYTE_PER_UNIT, this.#UNIT_PER_SEC]
+      }
     });
-
-    return ((result === null) || (result instanceof ByteRate))
-      ? result
-      : new ByteRate(result.value);
   }
 
   /**

@@ -140,23 +140,13 @@ export class Duration extends UnitQuantity {
    *   be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
-    const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+    return UnitQuantity.parse(valueToParse, {
+      ...(options || {}),
       convert: {
-        resultUnit: 'sec',
-        unitMaps:   [this.#SEC_PER_UNIT]
-      },
-      ...(range ? { range } : null)
+        resultClass: Duration,
+        unitMaps:    [this.#SEC_PER_UNIT]
+      }
     });
-
-    return ((result === null) || (result instanceof Duration))
-      ? result
-      : new Duration(result.value);
   }
 
   /**
@@ -183,11 +173,11 @@ export class Duration extends UnitQuantity {
    * @param {number} durationSec Duration in seconds.
    * @param {object} [options] Formatting options.
    * @param {boolean} [options.spaces] Use spaces to separate the number from
-   *   the units? If `false` an underscore is used.
+   *   the units? If `false` an underscore is used. Defaults to `true`;
    * @returns {string} The friendly form.
    */
-  static stringFromSec(durationSec, options = {}) {
-    const { spaces = true } = options;
+  static stringFromSec(durationSec, options = null) {
+    const { spaces = true } = options ?? {};
 
     const spaceyChar = spaces ? ' ' : '_';
 

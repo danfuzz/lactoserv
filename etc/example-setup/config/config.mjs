@@ -182,9 +182,9 @@ const applications = [
   {
     name:     'requestRate',
     class:    RequestRateLimiter,
-    maxBurst: 20,
-    flowRate: '600 per min',
-    maxQueue: 100
+    maxBurst: '20 req',
+    flowRate: '600 req per min',
+    maxQueue: '100 req'
   },
   {
     name:           'myFilter',

@@ -4,6 +4,22 @@
 import { UnitQuantity } from '@this/data-values';
 
 
+/**
+ * Fake unit class.
+ */
+class FakeUnit extends UnitQuantity {
+  /**
+   * Constructs an instance.
+   *
+   * @param {number} value The value.
+   * @param {?string} [numer] Numerator unit.
+   * @param {?string} [denom] Denominator unit.
+   */
+  constructor(value, numer = 'fakeNumer', denom = 'fakeDenom') {
+    super(value, numer, denom);
+  }
+}
+
 describe('constructor()', () => {
   test.each`
   args
@@ -456,6 +472,41 @@ describe('inverse()', () => {
   });
 });
 
+describe('toString()', () => {
+  describe.each`
+  opts                 | spaces
+  ${{ spaces: false }} | ${false}
+  ${{ spaces: true }}  | ${true}
+  ${{}}                | ${true}
+  ${null}              | ${true}
+  ${undefined}         | ${true}
+  `('with `options === $opts`', ({ opts, spaces }) => {
+    test.each`
+    value                       | expected
+    ${[0, null, null]}          | ${'0'}
+    ${[0, 'x', null]}           | ${'0 x'}
+    ${[0, 'abc', null]}         | ${'0 abc'}
+    ${[0, null, 'z']}           | ${'0 /z'}
+    ${[0, null, 'def']}         | ${'0 /def'}
+    ${[0, 'q', 'r']}            | ${'0 q/r'}
+    ${[0, 'bip', 'flop']}       | ${'0 bip/flop'}
+    ${[12.34, null, null]}      | ${'12.34'}
+    ${[-123, null, null]}       | ${'-123'}
+    ${[9.9e99, null, null]}     | ${'9.9e+99'}
+    ${[98765, 'xyz', null]}     | ${'98765 xyz'}
+    ${[44.12345, null, 'zonk']} | ${'44.12345 /zonk'}
+    ${[-909, 'aa', 'bb']}       | ${'-909 aa/bb'}
+    `('returns `$expected` given `$value`', ({ value, expected }) => {
+      const uq  = new UnitQuantity(...value);
+      const got = uq.toString(opts);
+      const exp = spaces ? expected : expected.replace(/[ ]/, '_');
+
+      expect(got).toBeString();
+      expect(got).toBe(exp);
+    });
+  });
+});
+
 
 //
 // Static members
@@ -628,7 +679,16 @@ describe('parse()', () => {
   });
 
   describe('with `{ convert: ... }`', () => {
-    describe('without `unitMaps` or `resultUnit`', () => {
+    test('throws when passed both `resultClass` and `resultUnit`', () => {
+      expect(() => UnitQuantity.parse('1 x/y', {
+        convert: {
+          resultUnit:  'x/y',
+          resultClass: UnitQuantity
+        }
+      })).toThrow();
+    });
+
+    describe('without `unitMaps` or `result*`', () => {
       test('returns `null` given a syntactically incorrect value', () => {
         expect(UnitQuantity.parse('12 34 56!', { convert: {} })).toBeNull();
       });
@@ -643,6 +703,50 @@ describe('parse()', () => {
         expect(uq).toBeInstanceOf(UnitQuantity);
         expect(uq.value).toBe(34);
         expect(uq.unitString).toBe('/');
+      });
+    });
+
+    describe('with `resultClass` but not `unitMaps`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('zonk 126!', {
+          convert: {
+            resultClass: FakeUnit
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('parses a unit-ful value with arbitrary units', () => {
+        const uq = UnitQuantity.parse('12 x per y', {
+          convert: {
+            resultClass: FakeUnit
+          }
+        });
+
+        expect(uq).toBeInstanceOf(FakeUnit);
+        expect(uq.value).toBe(12);
+      });
+
+      test('parses a unitless value', () => {
+        const uq = UnitQuantity.parse('4321', {
+          convert: {
+            resultClass: FakeUnit
+          }
+        });
+
+        expect(uq).toBeInstanceOf(FakeUnit);
+        expect(uq.value).toBe(4321);
+      });
+
+      test('throws given a valid value but a non-constuctor for `resultClass`', () => {
+        const opts = {
+          convert: {
+            resultClass: 12345
+          }
+        };
+
+        expect(() => UnitQuantity.parse('123', opts)).toThrow();
       });
     });
 
@@ -702,7 +806,7 @@ describe('parse()', () => {
       });
     });
 
-    describe('with `unitMaps` but not `resultUnit`', () => {
+    describe('with `unitMaps` but not `result*`', () => {
       test('returns `null` given a syntactically incorrect value', () => {
         const uq = UnitQuantity.parse('beep boop bop', {
           convert: {
@@ -759,6 +863,75 @@ describe('parse()', () => {
         expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
         expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
         expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
+    });
+
+    describe('with `unitMaps` and `resultClass`', () => {
+      test('returns `null` given a syntactically incorrect value', () => {
+        const uq = UnitQuantity.parse('flippity flop 999', {
+          convert: {
+            resultClass: FakeUnit,
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeNull();
+      });
+
+      test('uses a two-element `unitMaps`', () => {
+        const uq = UnitQuantity.parse('7 x per y', {
+          convert: {
+            resultClass: FakeUnit,
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        });
+
+        expect(uq).toBeInstanceOf(FakeUnit);
+        expect(uq.value).toBe(42);
+      });
+
+      test('returns `null` given a value with non-fully-matched units', () => {
+        const opts = {
+          convert: {
+            resultClass: FakeUnit,
+            unitMaps: [
+              new Map(Object.entries({ 'x/': 2, 'xx/': 20 })),
+              new Map(Object.entries({ '/y': 3, '/yy': 30 }))
+            ]
+          }
+        };
+
+        expect(UnitQuantity.parse('7', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 /y', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 x/a', opts)).toBeNull();
+        expect(UnitQuantity.parse('7 a/y', opts)).toBeNull();
+      });
+
+      test('returns the given actual-instance argument if it came in with the right units', () => {
+        class FakerUnit extends FakeUnit {
+          constructor(value) {
+            super(value, 'a', 'b');
+          }
+        }
+
+        const opts = {
+          convert: {
+            resultClass: FakerUnit,
+            unitMaps: [
+              new Map(Object.entries({ 'a/': 1, 'aa/': 10 })),
+              new Map(Object.entries({ '/b': 1, '/bb': 20 }))
+            ]
+          }
+        };
+
+        const uq = new FakerUnit(914, 'a', 'b');
+        expect(UnitQuantity.parse(uq, opts)).toBe(uq);
       });
     });
 

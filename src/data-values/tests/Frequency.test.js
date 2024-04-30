@@ -53,6 +53,42 @@ describe('inverse()', () => {
   });
 });
 
+//
+// Static members
+//
+
+describe('.DENOMINATOR_UNITS', () => {
+  test('is a `Map`', () => {
+    expect(Frequency.DENOMINATOR_UNITS).toBeInstanceOf(Map);
+  });
+
+  test('is a new instance with every call', () => {
+    const got1 = Frequency.DENOMINATOR_UNITS;
+    const got2 = Frequency.DENOMINATOR_UNITS;
+    const got3 = Frequency.DENOMINATOR_UNITS;
+
+    expect(got1).not.toBe(got2);
+    expect(got1).not.toBe(got3);
+    expect(got2).not.toBe(got3);
+  });
+
+  test('only contains denominators', () => {
+    const got = Frequency.DENOMINATOR_UNITS;
+
+    for (const [key, value_unused] of got) {
+      expect(key.startsWith('/')).toBeTrue();
+    }
+  });
+
+  test('has at least some of the expected elements', () => {
+    const got = Frequency.DENOMINATOR_UNITS;
+
+    expect(got.get('/sec')).toBe(1);
+    expect(got.get('/msec')).toBe(1000);
+    expect(got.get('/min')).toBe(1 / 60);
+  });
+});
+
 describe('.ZERO', () => {
   test('has the value `0`', () => {
     expect(Frequency.ZERO.hertz).toBe(0);
@@ -105,7 +141,7 @@ describe('parse()', () => {
   ${'0 /sec'}                         | ${0}
   ${'0 /s'}                           | ${0}
   ${'0 hertz'}                        | ${0}
-  ${'0 hz'}                           | ${0}
+  ${'0 Hz'}                           | ${0}
   ${'0 /minute'}                      | ${0}
   ${'0 /min'}                         | ${0}
   ${'0 /m'}                           | ${0}

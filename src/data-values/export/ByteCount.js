@@ -113,23 +113,13 @@ export class ByteCount extends UnitQuantity {
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
-    const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+    return UnitQuantity.parse(valueToParse, {
+      ...(options || {}),
       convert: {
-        resultUnit: 'byte',
-        unitMaps:   [this.#BYTE_PER_UNIT]
-      },
-      ...(range ? { range } : null)
+        resultClass: ByteCount,
+        unitMaps:    [this.#BYTE_PER_UNIT]
+      }
     });
-
-    return ((result === null) || (result instanceof ByteCount))
-      ? result
-      : new ByteCount(result.value);
   }
 
   /**

@@ -42,18 +42,12 @@ export class Frequency extends UnitQuantity {
   //
 
   /**
-   * Instance with value of `0`.
+   * Denominator multipliers for each named unit to convert to hertz, as a plain
+   * object.
    *
-   * @type {Frequency}
+   * @type {object}
    */
-  static ZERO = new Frequency(0);
-
-  /**
-   * Multipliers for each named unit to convert to hertz.
-   *
-   * @type {Map<string, number>}
-   */
-  static #UNIT_PER_SEC = new Map(Object.entries({
+  static #DENOMINATOR_UNITS = Object.freeze({
     '/ns':     1_000_000_000,
     '/nsec':   1_000_000_000,
     '/us':     1_000_000,
@@ -63,8 +57,6 @@ export class Frequency extends UnitQuantity {
     '/s':      1,
     '/sec':    1,
     '/second': 1,
-    'hz/':     1,
-    'hertz/':  1,
     '/m':      (1 / 60),
     '/min':    (1 / 60),
     '/minute': (1 / 60),
@@ -73,7 +65,40 @@ export class Frequency extends UnitQuantity {
     '/hour':   (1 / (60 * 60)),
     '/d':      (1 / (60 * 60 * 24)),
     '/day':    (1 / (60 * 60 * 24))
+  });
+
+  /**
+   * Multipliers for each named unit to convert to hertz.
+   *
+   * @type {Map<string, number>}
+   */
+  static #UNIT_PER_SEC = new Map(Object.entries({
+    ...this.#DENOMINATOR_UNITS,
+    'Hz/':     1,
+    'hertz/':  1
   }));
+
+  /**
+   * @returns {Map<string, number>} The set of units which are used as
+   * denominators for this class, in the form used by {@link
+   * UnitQuantity#convert} and {@link UnitQuantity@parse}. This is meant to make
+   * it easier to define rate classes that use non-empty denominators (that is,
+   * to avoid redundancy).
+   *
+   * **Note:** This getter produces a new instance every time it is used,
+   * because JavaScript doesn't provide a straightforward way to produce a
+   * frozen `Map`.
+   */
+  static get DENOMINATOR_UNITS() {
+    return new Map(Object.entries(this.#DENOMINATOR_UNITS));
+  }
+
+  /**
+   * Instance with value of `0`.
+   *
+   * @type {Frequency}
+   */
+  static ZERO = new Frequency(0);
 
   /**
    * Parses a string representing a frequency, returning an instance of this
@@ -83,7 +108,7 @@ export class Frequency extends UnitQuantity {
    * * `/ns` or `/nsec` -- per nanosecond
    * * `/us` or `/usec` -- per microsecond
    * * `/ms` or `/msec` -- per millisecond
-   * * `/s`, `/sec`, `hz`, or `hertz` -- per second
+   * * `/s`, `/sec`, `Hz`, or `hertz` -- per second
    * * `/m` or `/min` or `minute` -- per minute
    * * `/h` or `/hr` or `hour` -- per hour
    * * `/d` or `/day` -- per day (defined as exactly once per 24 hours)
@@ -100,22 +125,12 @@ export class Frequency extends UnitQuantity {
    *   not be parsed.
    */
   static parse(valueToParse, options = null) {
-    const {
-      allowInstance = true,
-      range         = null
-    } = options ?? {};
-
-    const result = UnitQuantity.parse(valueToParse, {
-      allowInstance,
+    return UnitQuantity.parse(valueToParse, {
+      ...(options || {}),
       convert: {
-        resultUnit: '/sec',
-        unitMaps:   [this.#UNIT_PER_SEC]
-      },
-      ...(range ? { range } : null)
+        resultClass: Frequency,
+        unitMaps:    [this.#UNIT_PER_SEC]
+      }
     });
-
-    return ((result === null) || (result instanceof Frequency))
-      ? result
-      : new Frequency(result.value);
   }
 }
