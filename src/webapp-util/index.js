@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseFileService';
+export * from '#x/ConnectionCount';
+export * from '#x/ConnectionRate';
 export * from '#x/RequestCount';
 export * from '#x/RequestRate';
 export * from '#x/Rotator';

@@ -37,7 +37,7 @@ export class RequestCount extends UnitQuantity {
    * Parses a string representing a request count. See {@link
    * UnitQuantity#parse} for details.
    *
-   * @param {string|RequestRate|UnitQuantity} valueToParse The value to parse,
+   * @param {string|RequestCount|UnitQuantity} valueToParse The value to parse,
    *   or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @returns {?RequestCount} The parsed count, or `null` if the value
