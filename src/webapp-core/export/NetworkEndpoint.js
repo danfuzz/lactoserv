@@ -4,8 +4,8 @@
 import { PathKey } from '@this/collections';
 import { BaseComponent, BaseConfig, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
-import { IntfAccessLog, IntfDataRateLimiter, IntfRateLimiter, ProtocolWrangler,
-  ProtocolWranglers }
+import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
+  ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
 import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
   from '@this/net-util';
@@ -107,7 +107,7 @@ export class NetworkEndpoint extends BaseComponent {
       ? serviceManager.get(dataRateLimiterName, IntfDataRateLimiter)
       : null;
     const connectionRateLimiter = connectionRateLimiterName
-      ? serviceManager.get(connectionRateLimiterName, IntfRateLimiter)
+      ? serviceManager.get(connectionRateLimiterName, IntfConnectionRateLimiter)
       : null;
     const accessLog = accessLogName
       ? serviceManager.get(accessLogName, IntfAccessLog)

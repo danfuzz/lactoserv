@@ -12,9 +12,9 @@ import { FullResponse, IncomingRequest, IntfRequestHandler, RequestContext,
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfAccessLog } from '#x/IntfAccessLog';
+import { IntfConnectionRateLimiter } from '#x/IntfConnectionRateLimiter';
 import { IntfDataRateLimiter } from '#x/IntfDataRateLimiter';
 import { IntfHostManager } from '#x/IntfHostManager';
-import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { WranglerContext } from '#p/WranglerContext';
 
 
@@ -114,9 +114,9 @@ export class ProtocolWrangler {
    * @param {object} options Construction options.
    * @param {IntfAccessLog} options.accessLog Network access logger to send to.
    *   If not specified, the instance won't do access logging.
-   * @param {IntfRateLimiter} options.connectionRateLimiter Rate limiter to use
-   *   for connections. If not specified, the instance won't do connection rate
-   *   limiting.
+   * @param {IntfConnectionRateLimiter} options.connectionRateLimiter Rate
+   *   limiter to use for connections. If not specified, the instance won't do
+   *   connection rate limiting.
    * @param {IntfDataRateLimiter} options.dataRateLimiter Data rate limiter to
    *   use. If not specified, the instance won't do data rate limiting.
    * @param {object} options.hostManager Host manager to use. Ignored for

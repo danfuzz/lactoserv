@@ -9,8 +9,8 @@ import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
+import { IntfConnectionRateLimiter } from '#x/IntfConnectionRateLimiter';
 import { IntfDataRateLimiter } from '#x/IntfDataRateLimiter';
-import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 import { WranglerContext } from '#p/WranglerContext';
 
@@ -23,7 +23,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /**
    * Connection rate limiter service to use, if any.
    *
-   * @type {?IntfRateLimiter}
+   * @type {?IntfConnectionRateLimiter}
    */
   #connectionRateLimiter;
 

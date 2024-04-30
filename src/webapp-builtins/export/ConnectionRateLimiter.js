@@ -3,7 +3,7 @@
 
 import { Frequency } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
-import { IntfRateLimiter } from '@this/net-protocol';
+import { IntfConnectionRateLimiter } from '@this/net-protocol';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
@@ -14,7 +14,7 @@ import { TokenBucket } from '@this/webapp-util';
  *
  * See `doc/configuration` for configuration object details.
  *
- * @implements {IntfRateLimiter}
+ * @implements {IntfConnectionRateLimiter}
  */
 export class ConnectionRateLimiter extends BaseService {
   /**
@@ -44,7 +44,7 @@ export class ConnectionRateLimiter extends BaseService {
 
   /** @override */
   _impl_implementedInterfaces() {
-    return [IntfRateLimiter];
+    return [IntfConnectionRateLimiter];
   }
 
   /** @override */
