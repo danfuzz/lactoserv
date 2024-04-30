@@ -120,13 +120,11 @@ const services = [
     maxQueue:      '2 MiB'
   },
   {
-    name:        'connectionRateLimiter',
-    class:       ConnectionRateLimiter,
-    connections: {
-      maxBurstSize: 10,
-      flowRate:     '3 per sec',
-      maxQueueSize: 25
-    }
+    name:     'connectionRateLimiter',
+    class:    ConnectionRateLimiter,
+    maxBurst: '10 conn',
+    flowRate: '3 conn per sec',
+    maxQueue: '25 conn'
   }
 ];
 
