@@ -128,8 +128,7 @@ system to allow flow at a defined rate.
 
 These applications and services all accept a common set of configuration
 options. In each specific case, there is a "token unit" and a "flow rate unit."
-The token unit is either a raw number or a real-world unit (as described above).
-The flow rate unit is always a real-world unit of some sort.
+These units are always each a real-world unit of some sort (as described above).
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
   exhausted. The rate must be positive.
