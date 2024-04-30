@@ -19,8 +19,8 @@ export class RateLimitConfig {
    *   configuration.
    * @param {function(new:*)} options.rateType Unit quantity class which
    *   represents the token flow rate.
-   * @param {function(new:*)|string} options.tokenType Unit quantity class which
-   *   represents tokens, or the string `number` if plain numbers are allowed.
+   * @param {function(new:*)} options.tokenType Unit quantity class which
+   *   represents tokens.
    * @returns {object} Parsed configuration, suitable for passing to the
    *   {@link TokenBucket} constructor.
    */
@@ -48,17 +48,16 @@ export class RateLimitConfig {
         throw new Error('Must be a token count.');
       }
 
-      const opts = { range: { minInclusive: 1, maxInclusive: 1e100 } };
+      const result = tokenType.parse(value, {
+        range: { minInclusive: 1, maxInclusive: 1e100 }
+      });
 
-      if (tokenType === 'number') {
-        return MustBe.number(value, opts);
-      } else {
-        const result = tokenType.parse(value, opts);
-        if (result === null) {
-          throw new Error(`Could not parse token count: ${value}`);
-        }
-        return result.value;
+      if (result === null) {
+        throw new Error(`Could not parse token count: ${value}`);
       }
+
+      // `TokenBucket` always wants a plain `number` for its token counts.
+      return result.value;
     };
 
     const result = {
