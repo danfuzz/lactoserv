@@ -53,7 +53,8 @@ Other notable changes:
 
 ### v0.7.0 -- 2024-04-22
 
-This is the same source tree as v0.6.16, other than the CHANGELOG file.
+This is the same source tree as v0.6.16, other than the version strings and the
+CHANGELOG file.
 
 Breaking changes:
 * None.
