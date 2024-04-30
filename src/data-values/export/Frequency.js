@@ -42,6 +42,43 @@ export class Frequency extends UnitQuantity {
   //
 
   /**
+   * Denominator multipliers for each named unit to convert to hertz, as a plain
+   * object.
+   *
+   * @type {object}
+   */
+  static #DENOMINATOR_UNITS = Object.freeze({
+    '/ns':     1_000_000_000,
+    '/nsec':   1_000_000_000,
+    '/us':     1_000_000,
+    '/usec':   1_000_000,
+    '/ms':     1_000,
+    '/msec':   1_000,
+    '/s':      1,
+    '/sec':    1,
+    '/second': 1,
+    '/m':      (1 / 60),
+    '/min':    (1 / 60),
+    '/minute': (1 / 60),
+    '/h':      (1 / (60 * 60)),
+    '/hr':     (1 / (60 * 60)),
+    '/hour':   (1 / (60 * 60)),
+    '/d':      (1 / (60 * 60 * 24)),
+    '/day':    (1 / (60 * 60 * 24))
+  });
+
+  /**
+   * Multipliers for each named unit to convert to hertz.
+   *
+   * @type {Map<string, number>}
+   */
+  static #UNIT_PER_SEC = new Map(Object.entries({
+    ...this.#DENOMINATOR_UNITS,
+    'Hz/':     1,
+    'hertz/':  1
+  }));
+
+  /**
    * @returns {Map<string, number>} The set of units which are used as
    * denominators for this class, in the form used by {@link
    * UnitQuantity#convert} and {@link UnitQuantity@parse}. This is meant to make
@@ -53,25 +90,7 @@ export class Frequency extends UnitQuantity {
    * frozen `Map`.
    */
   static get DENOMINATOR_UNITS() {
-    return new Map(Object.entries({
-      '/ns':     1_000_000_000,
-      '/nsec':   1_000_000_000,
-      '/us':     1_000_000,
-      '/usec':   1_000_000,
-      '/ms':     1_000,
-      '/msec':   1_000,
-      '/s':      1,
-      '/sec':    1,
-      '/second': 1,
-      '/m':      (1 / 60),
-      '/min':    (1 / 60),
-      '/minute': (1 / 60),
-      '/h':      (1 / (60 * 60)),
-      '/hr':     (1 / (60 * 60)),
-      '/hour':   (1 / (60 * 60)),
-      '/d':      (1 / (60 * 60 * 24)),
-      '/day':    (1 / (60 * 60 * 24))
-    }));
+    return new Map(Object.entries(this.#DENOMINATOR_UNITS));
   }
 
   /**
@@ -80,33 +99,6 @@ export class Frequency extends UnitQuantity {
    * @type {Frequency}
    */
   static ZERO = new Frequency(0);
-
-  /**
-   * Multipliers for each named unit to convert to hertz.
-   *
-   * @type {Map<string, number>}
-   */
-  static #UNIT_PER_SEC = new Map(Object.entries({
-    '/ns':     1_000_000_000,
-    '/nsec':   1_000_000_000,
-    '/us':     1_000_000,
-    '/usec':   1_000_000,
-    '/ms':     1_000,
-    '/msec':   1_000,
-    '/s':      1,
-    '/sec':    1,
-    '/second': 1,
-    'Hz/':     1,
-    'hertz/':  1,
-    '/m':      (1 / 60),
-    '/min':    (1 / 60),
-    '/minute': (1 / 60),
-    '/h':      (1 / (60 * 60)),
-    '/hr':     (1 / (60 * 60)),
-    '/hour':   (1 / (60 * 60)),
-    '/d':      (1 / (60 * 60 * 24)),
-    '/day':    (1 / (60 * 60 * 24))
-  }));
 
   /**
    * Parses a string representing a frequency, returning an instance of this
