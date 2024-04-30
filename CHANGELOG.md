@@ -11,6 +11,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* configuration / `webapp-builtins`:
+  * Totally reworked rate limiting. There is now a separate class per thing that
+    can be rate-limited, and configuration uses unit classes for all the token
+    bucket stuff.
 * `async` / `webapp-util`:
   * Moved `TokenBucket` from `async` to `webapp-util`. It _was_ the only
     not-particularly-simple class in `async`, and its placement in that module
