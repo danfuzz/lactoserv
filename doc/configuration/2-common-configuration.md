@@ -22,7 +22,7 @@ Several configurations are specified as real-world units, including for example
 time durations and data quantities. Each type of unit has a corresponding class,
 and can be specified in a configuration file using that class directly or by
 providing a string that can be parsed into an instance of that class. The
-classes are all in the `data-values` module.
+classes are all in either the `data-values` or `webapp-util` module.
 
 When using a string, the accepted syntax is a number in the usual JavaScript
 form (including exponents and internal underscores), followed by the unit
@@ -48,11 +48,30 @@ are:
 * `kB`, `MB`, `GB`, or `TB` &mdash; Standard decimal powers-of-1000 bytes.
 * `KiB`, `MiB`, `GiB`, or `TiB` &mdash; Standard binary powers-of-1024 bytes.
 
+```js
+import { ByteCount } from '@lactoserv/data-values';
+```
+
 ### `ByteRate`
 
 Rates of data flow are specified using the class `ByteRate`. The available units
 are the same as with `ByteCount` for the numerator and the same as with
-`Frequency` for the denominator (except that `hertz` / `hz` isn't allowed).
+`Frequency` for the denominator (except that `hertz` / `Hz` isn't allowed).
+
+```js
+import { ByteRate } from '@lactoserv/data-values';
+```
+
+### `ConnectionCount` and `ConnectionRate`
+
+Counts and rates of network connections are covered by the classes
+`ConnectionCount` and `ConnectionRate`. The numerator units &mdash;
+`connection`, `conn`, and `c` &mdash; are all equivalent and represent a single
+connection. Denominator units are the same as with `Frequency`.
+
+```js
+import { ConnectionCount, ConnectionRate } from '@lactoserv/webapp-util';
+```
 
 ### `Duration`
 
@@ -65,6 +84,10 @@ Durations are specified using the class `Duration`. The available units are:
 * `minute` or `min` or `m` &mdash; Minutes.
 * `hour` or `hr` or `h` &mdash; Hours.
 * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+
+```js
+import { Duration } from '@lactoserv/data-values';
+```
 
 ### `Frequency`
 
@@ -80,6 +103,21 @@ Frequencies are specified using the class `Frequency`. The available units are:
 
 As a rarely-useful addition, the _numerator_ unit `hertz` or `Hz` is allowed as
 an equivalent to `/sec`.
+
+```js
+import { Frequency } from '@lactoserv/data-values';
+```
+
+### `RequestCount` and `RequestRate`
+
+Counts and rates of network requests are covered by the classes `RequestCount`
+and `RequestRate`. The numerator units &mdash; `request`, `req`, and `r` &mdash;
+are all equivalent and represent a single request. Denominator units are the
+same as with `Frequency`.
+
+```js
+import { RequestCount, RequestRate } from '@lactoserv/webapp-util';
+```
 
 ## Rate Limiting
 
