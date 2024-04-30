@@ -38,6 +38,7 @@ export class RequestRateLimiter extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request_unused, dispatch_unused) {
     const got = await this.#bucket.requestGrant(1);
+
     if (got.waitTime.sec > 0) {
       this.logger?.waited(got.waitTime);
     }
