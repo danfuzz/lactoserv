@@ -435,8 +435,8 @@ export class UnitQuantity {
    * @param {function(new:*, number)} [options.convert.resultClass] Class to
    *   construct with the final converted value. If specified, a non-`null`
    *   return value from this class will be the result of a `new` call on this
-   *   class, passing it the converted value (a number) as its sole argument.
-   *   It is not valid to specify both this and `resultUnit`.
+   *   class, passing it the converted value (a number) as its sole argument. It
+   *   is not valid to specify both this and `resultUnit`.
    * @param {?string} [options.convert.resultUnit] Optional final result unit,
    *   in the same format as taken by {@link #parseUnitSpec}. If specified, a
    *   non-`null` return value from this method will be an instance of this

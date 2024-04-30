@@ -21,8 +21,8 @@ export class RateLimitConfig {
    *   represents the token flow rate.
    * @param {function(new:*)} options.tokenType Unit quantity class which
    *   represents tokens.
-   * @returns {object} Parsed configuration, suitable for passing to the
-   *   {@link TokenBucket} constructor.
+   * @returns {object} Parsed configuration, suitable for passing to the {@link
+   *   TokenBucket} constructor.
    */
   static parse(config, options) {
     const {

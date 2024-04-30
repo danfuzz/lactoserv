@@ -40,8 +40,8 @@ export class ConnectionCount extends UnitQuantity {
    * @param {string|ConnectionCount|UnitQuantity} valueToParse The value to
    *   parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @returns {?ConnectionCount} The parsed count, or `null` if the value
-   *   could not be parsed.
+   * @returns {?ConnectionCount} The parsed count, or `null` if the value could
+   *   not be parsed.
    */
   static parse(valueToParse, options = null) {
     return UnitQuantity.parse(valueToParse, {

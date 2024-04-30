@@ -40,8 +40,8 @@ export class RequestCount extends UnitQuantity {
    * @param {string|RequestCount|UnitQuantity} valueToParse The value to parse,
    *   or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @returns {?RequestCount} The parsed count, or `null` if the value
-   *   could not be parsed.
+   * @returns {?RequestCount} The parsed count, or `null` if the value could not
+   *   be parsed.
    */
   static parse(valueToParse, options = null) {
     return UnitQuantity.parse(valueToParse, {
