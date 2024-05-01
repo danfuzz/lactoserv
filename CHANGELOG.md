@@ -27,14 +27,15 @@ of v0.6.16.
 Breaking changes:
 * configuration / `webapp-builtins`:
   * Totally reworked rate limiting. There is now a separate class per thing that
-    can be rate-limited, and configuration uses unit quantity classes for all
+    can be rate-limited -- `ConnectionRateLimiter`, `DataRateLimiter`, and
+    `RequestRateLimiter `-- and configuration uses unit quantity classes for all
     the token bucket stuff.
 * `async` / `webapp-util`:
   * Moved `TokenBucket` from `async` to `webapp-util`. It _was_ the only
     not-particularly-simple class in `async`, and its placement in that module
     had become the source of a module dependency cycle.
   * Renamed `IntfThreadlike` to `IntfThread`.
-  * Make `EventSink` implement `IntfThread`.
+  * Made `EventSink` implement `IntfThread`.
 * `clocky` / `clocks`:
   * Renamed module to `clocky`, to harmonize with the other `*y` modules.
 * `collections`:
@@ -60,8 +61,7 @@ Other notable changes:
   * Added comparison methods to `UnitQuantity`.
   * New classes `ByteCount` and `ByteRate`, both unit quantities.
 * `webapp-builtins`:
-  * New application `RequestDelay`.
-  * New application `SuffixRouter`.
+  * New applications `RequestDelay` and `SuffixRouter`.
 
 ### v0.7.0 -- 2024-04-22
 
