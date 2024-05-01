@@ -34,10 +34,11 @@ export class BaseConfig {
    * if the configuration instance gets used in a context where the concrete
    * component class is not in fact implied.
    *
-   * @param {?function(new:object)} value Proposed configuration value.
+   * @param {?function(new:object)} [value] Proposed configuration value.
+   *   Default `null`;
    * @returns {?function(new:object)} Accepted configuration value.
    */
-  _check_class(value) {
+  _check_class(value = null) {
     if (value === null) {
       return null;
     }
@@ -52,10 +53,10 @@ export class BaseConfig {
    * it must adhere to the syntax defined by {@link Names#checkName}. Names are
    * used when finding a component in its hierarchy, and for use when logging.
    *
-   * @param {?string} value Proposed configuration value.
+   * @param {?string} [value] Proposed configuration value. Default `null`.
    * @returns {?string} Accepted configuration value.
    */
-  _check_name(value) {
+  _check_name(value = null) {
     if (value === null) {
       return null;
     }
@@ -83,10 +84,10 @@ export class BaseConfig {
    * Fills in a property on `this` for each property that is covered by a
    * `_check_*` method defined by the actual (concrete) class of `this`. If the
    * given `rawConfig` doesn't have a property for any given checker method,
-   * that method is called with `null` as the argument, to give it a chance to
-   * reject it not being filled in. After making all such calls, this method
-   * then calls {@link #_impl_validate} to allow the concrete subclass to do
-   * any final validation and tweakage.
+   * that method is called with no argument, to give it a chance to use a
+   * default value or simply reject it for not being filled in. After making all
+   * such calls, this method then calls {@link #_impl_validate} to allow the
+   * concrete subclass to do any final validation and tweakage.
    *
    * **Note:** This method treats `undefined` in configuration objects like
    * `null` and will only pass `null` per se into a checker method. And it
@@ -104,17 +105,21 @@ export class BaseConfig {
     const props       = {};
 
     for (const name of sortedNames) {
-      const checker  = checkers.get(name);
-      const rawValue = rawConfig[name];
+      const checker   = checkers.get(name);
+      const hasConfig = name in rawConfig;
 
       try {
-        const value = this[checker](rawValue ?? null);
+        const value = hasConfig
+          ? this[checker](rawConfig[name])
+          : this[checker]();
+
         if (value === undefined) {
           throw new Error(`Checker \`${checker}()\` did not return a value. Maybe missing a \`return\`?`);
         }
+
         props[name] = value;
       } catch (e) {
-        if (!(name in rawConfig)) {
+        if (!hasConfig) {
           throw new Error(`Missing required configuration property: \`${name}\``);
         }
         throw e;
