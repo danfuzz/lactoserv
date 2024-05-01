@@ -10,6 +10,14 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.7.1 -- 2024-05-01
+
 This release contains most (if not all) of the breaking changes to standalone
 configuration that are currently anticipated for the v0.7.* release series.
 
