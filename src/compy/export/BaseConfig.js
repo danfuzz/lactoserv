@@ -104,14 +104,21 @@ export class BaseConfig {
     const props       = {};
 
     for (const name of sortedNames) {
-      const checker = checkers.get(name);
-      const value   = this[checker](rawConfig[name] ?? null);
+      const checker  = checkers.get(name);
+      const rawValue = rawConfig[name];
 
-      if (value === undefined) {
-        throw new Error(`Checker \`${checker}()\` did not return a value. Maybe missing a \`return\`?`);
+      try {
+        const value = this[checker](rawValue ?? null);
+        if (value === undefined) {
+          throw new Error(`Checker \`${checker}()\` did not return a value. Maybe missing a \`return\`?`);
+        }
+        props[name] = value;
+      } catch (e) {
+        if (!(name in rawConfig)) {
+          throw new Error(`Missing required configuration property: \`${name}\``);
+        }
+        throw e;
       }
-
-      props[name] = value;
     }
 
     const finalProps = this._impl_validate(props);
