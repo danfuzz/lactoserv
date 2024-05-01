@@ -160,98 +160,7 @@ export class NetworkEndpoint extends BaseComponent {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseConfig {
-    /**
-     * Name of the application to send requests to.
-     *
-     * @type {string}
-     */
-    #application;
-
-    /**
-     * The hostnames in question.
-     *
-     * @type {Array<string>}
-     */
-    #hostnames;
-
-    /**
-     * Physical interface to listen on; this is the result of a call to {@link
-     * UriUtil#parseInterface}.
-     *
-     * @type {object}
-     */
-    #interface;
-
-    /**
-     * High-level protocol to speak.
-     *
-     * @type {string}
-     */
-    #protocol;
-
-    /**
-     * Role-to-service mappings.
-     *
-     * @type {ServiceUseConfig}
-     */
-    #services;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        hostnames = '*',
-        interface: iface, // `interface` is a reserved word.
-        application,
-        protocol,
-        services = {}
-      } = rawConfig;
-
-      this.#hostnames = StringUtil.checkAndFreezeStrings(
-        hostnames,
-        (item) => HostUtil.checkHostname(item, true));
-
-      this.#interface   = Object.freeze(HostUtil.parseInterface(iface));
-      this.#application = Names.checkName(application);
-      this.#protocol    = ProtocolWranglers.checkProtocol(protocol);
-      this.#services    = new ServiceUseConfig(services);
-    }
-
-    /** @returns {string} Name of the application to send requests to. */
-    get application() {
-      return this.#application;
-    }
-
-    /**
-     * @returns {Array<string>} List of hostnames, including possibly subdomain
-     * and/or full wildcards.
-     */
-    get hostnames() {
-      return this.#hostnames;
-    }
-
-    /**
-     * @returns {object} Parsed interface. This is a frozen return value from
-     * {@link UriUtil#parseInterface}.
-     */
-    get interface() {
-      return this.#interface;
-    }
-
-    /** @returns {string} High-level protocol to speak. */
-    get protocol() {
-      return this.#protocol;
-    }
-
-    /** @returns {ServiceUseConfig} Role-to-service configuration. */
-    get services() {
-      return this.#services;
-    }
+    // @defaultConstructor
 
     /**
      * Indicates whether the protocol requires host certificate configuration.
@@ -259,7 +168,67 @@ export class NetworkEndpoint extends BaseComponent {
      * @returns {boolean} `true` iff certificates are required.
      */
     requiresCertificates() {
-      return this.#protocol !== 'http';
+      return this.protocol !== 'http';
+    }
+
+    /**
+     * Name of the application to send requests to.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
+     */
+    _config_application(value) {
+      return Names.checkName(value);
+    }
+
+    /**
+     * List of hostnames to recognize as valid, including possibly subdomain
+     * wildcards and/or a full wildcard.
+     *
+     * @param {string|Array<string>} [value] Proposed configuration value.
+     *   Default `'*'`.
+     * @returns {Array<string>} Accepted configuration value.
+     */
+    _config_hostnames(value = '*') {
+      return StringUtil.checkAndFreezeStrings(
+        value,
+        (item) => HostUtil.checkHostname(item, true));
+    }
+
+    /**
+     * Interface to listen on. When passed in, this is expected to be a string
+     * which can be parsed by {@link UriUtil#parseInterface}.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {object} Accepted configuration value, as parsed by {@link
+     *   UriUtil#parseInterface}.
+     */
+    _config_interface(value) {
+      return Object.freeze(HostUtil.parseInterface(value));
+    }
+
+    /**
+     * High-level protocol to speak. Accepted values are `http`, `http2`, and
+     * `https`.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
+     */
+    _config_protocol(value) {
+      return ProtocolWranglers.checkProtocol(value);
+    }
+
+    /**
+     * Role-to-service configuration. When passed in, this is expected to be a
+     * plain object that can be parsed by the {@link ServiceUseConfig}
+     * constructor.
+     *
+     * @param {object} [value] Proposed configuration value. Default `{}` (that
+     *   is, no services).
+     * @returns {ServiceUseConfig} Accepted configuration value.
+     */
+    _config_services(value = {}) {
+      return new ServiceUseConfig(value);
     }
   };
 }
