@@ -266,7 +266,7 @@ export class BaseService extends BaseComponent {
 
   /**
    * Default configuration subclass for this (outer) class, which adds no
-   * configuration option and requires its instances to have `name`.
+   * configuration options.
    *
    * This class mostly exists to be an easy target to use when subclasses want
    * to define configuration classes in the usual way, without having to
@@ -274,9 +274,6 @@ export class BaseService extends BaseComponent {
    * most appropriate one to derive from.
    */
   static Config = class Config extends BaseConfig {
-    /** @override */
-    constructor(rawConfig) {
-      super(rawConfig, true /* require `name` */);
-    }
+    // @emptyBlock
   };
 }

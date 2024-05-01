@@ -202,7 +202,7 @@ export class NetworkEndpoint extends BaseComponent {
      * @param {object} rawConfig Raw configuration object.
      */
     constructor(rawConfig) {
-      super(rawConfig, true /* require `name` */);
+      super(rawConfig);
 
       const {
         hostnames = '*',
