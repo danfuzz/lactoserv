@@ -28,7 +28,7 @@ Breaking changes:
 * configuration / `webapp-builtins`:
   * Totally reworked rate limiting. There is now a separate class per thing that
     can be rate-limited -- `ConnectionRateLimiter`, `DataRateLimiter`, and
-    `RequestRateLimiter `-- and configuration uses unit quantity classes for all
+    `RequestRateLimiter` -- and configuration uses unit quantity classes for all
     the token bucket stuff.
 * `async` / `webapp-util`:
   * Moved `TokenBucket` from `async` to `webapp-util`. It _was_ the only
