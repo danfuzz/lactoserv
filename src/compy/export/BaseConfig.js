@@ -46,16 +46,11 @@ export class BaseConfig {
    *
    * @param {object} rawConfig Raw configuration object. See class header for
    *   details.
-   * @param {boolean} [requireName] Is a `name` binding required?
    */
-  constructor(rawConfig, requireName = false) {
+  constructor(rawConfig) {
     MustBe.plainObject(rawConfig);
 
     const { class: cls = null, name = null } = rawConfig;
-
-    if (requireName && (name === null)) {
-      throw new Error('Missing `name` binding.');
-    }
 
     this.#class  = (cls === null)  ? null : MustBe.constructorFunction(cls);
     this.#name   = (name === null) ? null : Names.checkName(name);
