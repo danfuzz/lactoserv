@@ -93,33 +93,33 @@ export class Redirector extends BaseApplication {
     // @defaultConstructor
 
     /**
-     * Configuration property `statusCode`: The redirect status code to use.
+     * The redirect status code to use.
      *
      * @param {number} [value] Proposed configuration value. Default `308`.
      * @returns {number} Accepted configuration value.
      */
-    _check_statusCode(value = 308) {
+    _config_statusCode(value = 308) {
       return MustBe.number(value, { minInclusive: 300, maxInclusive: 399 });
     }
 
     /**
-     * Configuration property `target`: The target base URI.
+     * The target base URI.
      *
      * @param {string} value Proposed configuration value.
      * @returns {string} Accepted configuration value.
      */
-    _check_target(value) {
+    _config_target(value) {
       return UriUtil.checkBasicUri(value);
     }
 
     /**
-     * Configuration property `cacheControl`: `cache-control` header to
-     * automatically include, or `null` not to do that.
+     * `cache-control` header to automatically include in responses, or `null`
+     * not to include that header.
      *
      * @param {?string} [value] Proposed configuration value. Default `null`.
      * @returns {?string} Accepted configuration value.
      */
-    _check_cacheControl(value = null) {
+    _config_cacheControl(value = null) {
       if (value === null) {
         return null;
       } else if (typeof value === 'string') {

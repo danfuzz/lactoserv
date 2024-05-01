@@ -27,18 +27,18 @@ export class BaseConfig {
   }
 
   /**
-   * Configuration property `class`: The concrete class of the component to
-   * create, or `null` if the class is (going to be) implied by context (such as
-   * by passing an instance directly to the corresponding component
-   * constructor). This property isn't required in general, but it _is_ required
-   * if the configuration instance gets used in a context where the concrete
-   * component class is not in fact implied.
+   * Configuration property: The concrete class of the component to create, or
+   * `null` if the class is (going to be) implied by context (such as by passing
+   * an instance directly to the corresponding component constructor). This
+   * property isn't required in general, but it _is_ required if the
+   * configuration instance gets used in a context where the concrete component
+   * class is not in fact implied.
    *
    * @param {?function(new:object)} [value] Proposed configuration value.
    *   Default `null`;
    * @returns {?function(new:object)} Accepted configuration value.
    */
-  _check_class(value = null) {
+  _config_class(value = null) {
     if (value === null) {
       return null;
     }
@@ -47,8 +47,8 @@ export class BaseConfig {
   }
 
   /**
-   * Configuration property `name`: The item's name, or `null` if it does not
-   * have a configured name. If `null`, the corresponding component will get a
+   * Configuration property: The item's name, or `null` if it does not have a
+   * configured name. If `null`, the corresponding component will get a
    * synthesized name as soon as it is attached to a hierarchy. If non-`null`,
    * it must adhere to the syntax defined by {@link Names#checkName}. Names are
    * used when finding a component in its hierarchy, and for use when logging.
@@ -56,7 +56,7 @@ export class BaseConfig {
    * @param {?string} [value] Proposed configuration value. Default `null`.
    * @returns {?string} Accepted configuration value.
    */
-  _check_name(value = null) {
+  _config_name(value = null) {
     if (value === null) {
       return null;
     }
@@ -82,7 +82,7 @@ export class BaseConfig {
 
   /**
    * Fills in a property on `this` for each property that is covered by a
-   * `_check_*` method defined by the actual (concrete) class of `this`. If the
+   * `_config_*` method defined by the actual (concrete) class of `this`. If the
    * given `rawConfig` doesn't have a property for any given checker method,
    * that method is called with no argument, to give it a chance to use a
    * default value or simply reject it for not being filled in. After making all
@@ -145,7 +145,7 @@ export class BaseConfig {
   }
 
   /**
-   * Finds all the `_check_*` methods on `this`, returning a map from the
+   * Finds all the `_config_*` methods on `this`, returning a map from the
    * plain property name to the check method name.
    *
    * @returns {Map<string, string>} The map from property names to corresponding
@@ -159,7 +159,7 @@ export class BaseConfig {
       const keys = Reflect.ownKeys(target);
 
       for (const k of keys) {
-        const name = k.match(/^_check_(?<name>.*)$/)?.groups.name ?? null;
+        const name = k.match(/^_config_(?<name>.*)$/)?.groups.name ?? null;
         if (name && !result.has(name)) {
           const pd = Reflect.getOwnPropertyDescriptor(target, k);
           if (typeof pd.value === 'function') {
