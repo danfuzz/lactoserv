@@ -174,8 +174,8 @@ This application accepts the following configuration bindings:
   specified, it defaults to `308` ("Permanent Redirect").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
   path of each request to form the final redirection URL.
-* `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `null`, every cacheable response comes with the specified header.
+* `cacheControl` &mdash; Optional `cache-control` header definition. If present
+  and not `null`, every cacheable response comes with the specified header.
 
 ```js
 import { Redirector } from '@lactoserv/webapp-builtins';

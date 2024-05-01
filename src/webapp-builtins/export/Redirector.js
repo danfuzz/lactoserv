@@ -116,10 +116,10 @@ export class Redirector extends BaseApplication {
      * Configuration property `cacheControl`: `cache-control` header to
      * automatically include, or `null` not to do that.
      *
-     * @param {?string} value Proposed configuration value.
+     * @param {?string} [value] Proposed configuration value. Default `null`.
      * @returns {?string} Accepted configuration value.
      */
-    _check_cacheControl(value) {
+    _check_cacheControl(value = null) {
       if (value === null) {
         return null;
       } else if (typeof value === 'string') {
