@@ -175,7 +175,7 @@ This application accepts the following configuration bindings:
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
   path of each request to form the final redirection URL.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header.
+  `null`, every cacheable response comes with the specified header.
 
 ```js
 import { Redirector } from '@lactoserv/webapp-builtins';
