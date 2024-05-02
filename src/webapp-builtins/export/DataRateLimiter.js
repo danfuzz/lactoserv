@@ -76,30 +76,80 @@ export class DataRateLimiter extends BaseService {
    */
   static #Config = class Config extends BaseService.Config {
     /**
-     * Configuration for the token bucket to use.
+     * Data rate. If passed as a `string` it is parsed into an
+     * instance of {@link ByteRate}.
      *
-     * @type {object}
+     * @param {string|ByteRate} value Proposed configuration value.
+     * @returns {ByteRate} Accepted configuration value.
      */
-    #bucket;
+    _config_flowRate(value) {
+      if ((typeof value === 'string') || (value instanceof ByteRate)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `flowRate`.');
+    }
 
     /**
-     * Constructs an instance.
+     * Maximum data burst size. If passed as a `string` it is
+     * parsed into an instance of {@link ByteCount}.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {string|ByteCount} value Proposed configuration value.
+     * @returns {ByteCount} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
+    _config_maxBurst(value) {
+      if ((typeof value === 'string') || (value instanceof ByteCount)) {
+        return value;
+      }
 
-      this.#bucket = RateLimitConfig.parse(rawConfig, {
-        allowMqg:  true,
+      throw new Error('Invalid value for `maxBurst`.');
+    }
+
+    /**
+     * Maximum amount of data that can be queued up for writing, or
+     * `null` to have no limit. If passed as a `string` it is parsed into an
+     * instance of {@link ByteCount}.
+     *
+     * @param {?string|ByteCount} value Proposed configuration value.
+     * @returns {?ByteCount} Accepted configuration value.
+     */
+    _config_maxQueue(value = null) {
+      if (value === null) {
+        return null;
+      } else if ((typeof value === 'string') || (value instanceof ByteCount)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `maxQueue`.');
+    }
+
+    /**
+     * Maximum amount of data that will be allowed to be written in a single
+     * grant, or `null` to use the default limit (of the smaller of `maxBurst`
+     * and `maxQueue`). If passed as a `string` it is parsed into an
+     * instance of {@link ByteCount}.
+     *
+     * @param {?string|ByteCount} value Proposed configuration value.
+     * @returns {?ByteCount} Accepted configuration value.
+     */
+    _config_maxQueueGrant(value = null) {
+      if (value === null) {
+        return null;
+      } else if ((typeof value === 'string') || (value instanceof ByteCount)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `maxQueueGrant`.');
+    }
+
+    /** @override */
+    _impl_validate(config) {
+      const bucket = RateLimitConfig.parse(config, {
         rateType:  ByteRate,
         tokenType: ByteCount
       });
-    }
 
-    /** @returns {object} Configuration for the token bucket to use. */
-    get bucket() {
-      return this.#bucket;
+      return super._impl_validate({ ...config, bucket });
     }
   };
 }
