@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Names } from '@this/compy';
-import { MustBe } from '@this/typey';
+import { StringUtil } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 
 
@@ -104,39 +104,19 @@ export class EventFan extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseService.Config {
+    // @defaultConstructor
+
     /**
-     * Like the outer `services` except with names instead of service instances.
+     * Names of services to fan out to. Each name must be a valid component
+     * name, per {@link Names#checkName}.
      *
-     * @type {Array<string>}
+     * @param {string|Array<string>} value Proposed configuration value.
+     * @returns {Array<string>} Accepted configuration value.
      */
-    #services;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { services } = rawConfig;
-
-      MustBe.arrayOfString(services);
-
-      for (const name of services) {
-        Names.checkName(name);
-      }
-
-      // `[...]` to copy the list in order to avoid outside interference.
-      this.#services = [...services];
-    }
-
-    /**
-     * @returns {Array<string>} Like the outer `services` except with names
-     * instead of service instances.
-     */
-    get services() {
-      return this.#services;
+    _config_services(value) {
+      return StringUtil.checkAndFreezeStrings(
+        value,
+        (item) => Names.checkName(item));
     }
   };
 }
