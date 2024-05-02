@@ -103,6 +103,7 @@ export class BaseConfig {
     const checkers    = this.#findConfigCheckers();
     const sortedNames = [...checkers.keys()].sort();
     const props       = {};
+    const leftovers   = new Set(Object.keys(rawConfig));
 
     for (const name of sortedNames) {
       const checker   = checkers.get(name);
@@ -118,12 +119,22 @@ export class BaseConfig {
         }
 
         props[name] = value;
+
+        if (hasConfig) {
+          leftovers.delete(name);
+        }
       } catch (e) {
         if (!hasConfig) {
           throw new Error(`Missing required configuration property: \`${name}\``);
         }
         throw e;
       }
+    }
+
+    if (leftovers.size !== 0) {
+      const names = [...leftovers].join(', ');
+      const word  = (leftovers.size === 1) ? 'property' : 'properties';
+      throw new Error(`Extra configuration ${word}: \`${names}\``)
     }
 
     const finalProps = this._impl_validate(props);
@@ -140,8 +151,6 @@ export class BaseConfig {
         value
       });
     }
-
-    // TODO: Reject `rawConfig` with extra properties not covered by checkers.
   }
 
   /**
