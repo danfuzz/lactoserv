@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConfig, Names } from '@this/compy';
+import { Names } from '@this/compy';
 
 
 /**
@@ -18,7 +18,7 @@ import { BaseConfig, Names } from '@this/compy';
  * * `connectionRateLimiter` -- Connection rate limiter service.
  * * `dataRateLimiter` -- Data rate limiter service.
  */
-export class ServiceUseConfig extends BaseConfig {
+export class ServiceUseConfig {
   /**
    * The role-to-service mapping.
    *
@@ -33,8 +33,6 @@ export class ServiceUseConfig extends BaseConfig {
    *   details.
    */
   constructor(rawConfig) {
-    super(rawConfig);
-
     this.#map = Object.freeze(new Map(Object.entries(rawConfig)));
 
     for (const [role, name] of this.#map) {
