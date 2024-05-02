@@ -310,39 +310,28 @@ export class ProcessInfoFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseFileService.Config {
-    /**
-     * How often to update the info file, or `null` to not perform updates.
-     *
-     * @type {?Duration}
-     */
-    #updatePeriod;
+    // @defaultConstructor
 
     /**
-     * Constructs an instance.
+     * How often to update the process info file, or `null` to not perform
+     * updates. If passed as a string, it is parsed by {@link Duration#parse}.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { updatePeriod = null } = rawConfig;
-
-      if (updatePeriod) {
-        this.#updatePeriod = Duration.parse(updatePeriod, { range: { minInclusive: 1 } });
-        if (!this.#updatePeriod) {
-          throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
-        }
-      } else {
-        this.#updatePeriod = MustBe.null(updatePeriod);
+    _config_updatePeriod(value = null) {
+      if (value === null) {
+        return null;
       }
-    }
 
-    /**
-     * @returns {?Duration} How often to update the info file, or `null` to not
-     * perform updates.
-     */
-    get updatePeriod() {
-      return this.#updatePeriod;
+      const result = Duration.parse(value, { range: { minInclusive: 1 } });
+
+      if (!result) {
+        throw new Error(`Could not parse \`updatePeriod\`: ${value}`);
+      }
+
+      return result;
     }
   };
 }

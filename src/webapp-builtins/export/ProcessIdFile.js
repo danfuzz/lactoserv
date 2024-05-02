@@ -236,8 +236,8 @@ export class ProcessIdFile extends BaseFileService {
     };
 
     /**
-     * How often to update the info file, or `null` to not perform updates. If
-     * passed as a string, it is parsed by {@link Duration#parse}.
+     * How often to update the process ID file, or `null` to not perform
+     * updates. If passed as a string, it is parsed by {@link Duration#parse}.
      *
      * @param {?string|Duration} value Proposed configuration value. Default
      *   `null`.
@@ -248,13 +248,13 @@ export class ProcessIdFile extends BaseFileService {
         return null;
       }
 
-      const result = Duration.parse(value, { range: { minInclusive: 0 } });
+      const result = Duration.parse(value, { range: { minInclusive: 1 } });
 
       if (!result) {
         throw new Error(`Could not parse \`updatePeriod\`: ${value}`);
       }
 
-      return (result === 0) ? null : result;
+      return result;
     }
   };
 }
