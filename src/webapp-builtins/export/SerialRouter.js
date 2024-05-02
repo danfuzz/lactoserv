@@ -3,7 +3,7 @@
 
 import { Names } from '@this/compy';
 import { IntfRequestHandler } from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { StringUtil } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
 
@@ -40,7 +40,7 @@ export class SerialRouter extends BaseApplication {
 
   /** @override */
   async _impl_init() {
-    this.logger?.routes(this.config.routeList);
+    this.logger?.routes(this.config.applications);
   }
 
   /** @override */
@@ -52,7 +52,7 @@ export class SerialRouter extends BaseApplication {
     const appManager = this.root.applicationManager;
     const routeList  = [];
 
-    for (const name of this.config.routeList) {
+    for (const name of this.config.applications) {
       const app = appManager.get(name);
       routeList.push(app);
     }
@@ -79,40 +79,19 @@ export class SerialRouter extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
+    // @defaultConstructor
+
     /**
-     * Like the outer `routeList` except with names instead of application
-     * instances.
+     * List of the names of all the applications to route to, in order. Each
+     * name must be a valid component name, per {@link Names#checkName}.
      *
-     * @type {Array<string>}
+     * @param {Array<string>} value Proposed configuration value.
+     * @returns {Array<string>} Accepted configuration value.
      */
-    #routeList;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { applications } = rawConfig;
-
-      MustBe.arrayOfString(applications);
-
-      for (const name of applications) {
-        Names.checkName(name);
-      }
-
-      // `[...]` to copy the list in order to avoid outside interference.
-      this.#routeList = [...applications];
-    }
-
-    /**
-     * @returns {Array<string>} Like the outer `routeList` except with names
-     * instead of application instances.
-     */
-    get routeList() {
-      return this.#routeList;
+    _config_applications(value) {
+      return StringUtil.checkAndFreezeStrings(
+        value,
+        (item) => Names.checkName(item));
     }
   };
 }
