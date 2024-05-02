@@ -223,55 +223,38 @@ export class ProcessIdFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseFileService.Config {
+    // @defaultConstructor
+
     /**
      * Allow multiple processes to be listed in the file?
      *
-     * @type {boolean}
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    #multiprocess;
+    _config_multiprocess(value = false) {
+      return MustBe.boolean(value);
+    };
 
     /**
-     * How often to update the info file, or `null` to not perform updates.
+     * How often to update the info file, or `null` to not perform updates. If
+     * passed as a string, it is parsed by {@link Duration#parse}.
      *
-     * @type {?Duration}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #updatePeriod;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { multiprocess = null, updatePeriod = null } = rawConfig;
-
-      this.#multiprocess = (typeof multiprocess === 'boolean')
-        ? multiprocess
-        : MustBe.null(multiprocess);
-
-      if (updatePeriod) {
-        this.#updatePeriod = Duration.parse(updatePeriod, { range: { minInclusive: 1 } });
-        if (!this.#updatePeriod) {
-          throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
-        }
-      } else {
-        this.#updatePeriod = MustBe.null(updatePeriod);
+    _config_updatePeriod(value = null) {
+      if (value === null) {
+        return null;
       }
-    }
 
-    /** @returns {boolean} Allow multiple processes to be listed in the file? */
-    get multiprocess() {
-      return this.#multiprocess;
-    }
+      const result = Duration.parse(value, { range: { minInclusive: 0 } });
 
-    /**
-     * @returns {?Duration} How often to update the info file, or `null` to not
-     * perform updates.
-     */
-    get updatePeriod() {
-      return this.#updatePeriod;
+      if (!result) {
+        throw new Error(`Could not parse \`updatePeriod\`: ${value}`);
+      }
+
+      return (result === 0) ? null : result;
     }
   };
 }

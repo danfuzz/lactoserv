@@ -130,6 +130,10 @@ export class SyslogToFile extends BaseFileService {
      * @returns {?Duration} Accepted configuration value.
      */
     _config_bufferPeriod(value = null) {
+      if (value === null) {
+        return null;
+      }
+
       const result = Duration.parse(value, { range: { minInclusive: 0 } });
 
       if (!result) {
