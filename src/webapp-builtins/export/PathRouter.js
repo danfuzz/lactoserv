@@ -52,7 +52,7 @@ export class PathRouter extends BaseApplication {
   /** @override */
   async _impl_init() {
     const routes = {};
-    for (const [path, name] of this.config.routeTree) {
+    for (const [path, name] of this.config.paths) {
       routes[UriUtil.pathStringFrom(path)] = name;
     }
 
@@ -68,7 +68,7 @@ export class PathRouter extends BaseApplication {
     const appManager = this.root.applicationManager;
     const routeTree  = new TreeMap();
 
-    for (const [path, name] of this.config.routeTree) {
+    for (const [path, name] of this.config.paths) {
       const app = appManager.get(name);
       routeTree.add(path, app);
     }
@@ -95,43 +95,29 @@ export class PathRouter extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
-    /**
-     * Like the outer `routeTree` except with names instead of handler
-     * instances.
-     *
-     * @type {TreeMap<string>}
-     */
-    #routeTree;
+    // @defaultConstructor
 
     /**
-     * Constructs an instance.
+     * Map which goes from a path prefix to the name of the application to
+     * handle that prefix. Each path prefix must be a valid possibly-wildcarded
+     * _absolute_ path prefix. Each name must be a valid component name, per
+     * {@link Names#checkName}. On input, the value must be a plain object.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {object} value Proposed configuration value.
+     * @returns {TreeMap<string>} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
+    _config_paths(value) {
+      MustBe.plainObject(value);
 
-      const { paths } = rawConfig;
+      const result = new TreeMap();
 
-      MustBe.plainObject(paths);
-
-      const routeTree = new TreeMap();
-
-      for (const [path, name] of Object.entries(paths)) {
+      for (const [path, name] of Object.entries(value)) {
         Names.checkName(name);
         const key = Config.#parsePath(path);
-        routeTree.add(key, name);
+        result.add(key, name);
       }
 
-      this.#routeTree = routeTree;
-    }
-
-    /**
-     * @returns {TreeMap<string>} Like the outer `routeTree` except with
-     * names instead of handler instances.
-     */
-    get routeTree() {
-      return this.#routeTree;
+      return result;
     }
 
     /**
