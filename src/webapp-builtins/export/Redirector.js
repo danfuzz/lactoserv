@@ -113,10 +113,12 @@ export class Redirector extends BaseApplication {
     }
 
     /**
-     * `cache-control` header to automatically include in responses, or `null`
-     * not to include that header.
+     * `cache-control` header to automatically include, or `null` not to include
+     * it. Can be passed either as a literal string or an object to be passed to
+     * {@link HttpUtil#cacheControlHeader}.
      *
-     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @param {?string|object} [value] Proposed configuration value. Default
+     *   `null`.
      * @returns {?string} Accepted configuration value.
      */
     _config_cacheControl(value = null) {
