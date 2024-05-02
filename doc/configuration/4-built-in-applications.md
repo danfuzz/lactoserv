@@ -33,7 +33,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 ### ETag Configuration: `etag`
 
 Applications and services that generate ETags accept an `etag` binding. When it
-is absent or `false` (if allowed), no ETags are generated. If it is specified as
+is absent or `null` (if allowed), no ETags are generated. If it is specified as
 `true` or `{}` (the empty object), ETags are generated using a default
 configuration. If it is specified as an object with bindings, the following
 properties are recognized:
@@ -387,10 +387,10 @@ configuration bindings:
   an explicit `charset` is honored (e.g. `text/plain; charset=iso-8859-1`), but
   if not specified then `utf-8` is assumed for text types.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header. See
+  `null`, every cacheable response comes with the specified header. See
   [Cache control configuration](#cache-control-configuration-cacheControl) for
   details.
-* `etag` &mdash; ETag-generating options. If present and not `false`, the
+* `etag` &mdash; ETag-generating options. If present and not `null`, the
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
@@ -457,11 +457,11 @@ reasonable demand:
 An application which serves static files from a local directory. This
 application accepts the following configuration bindings:
 
-* `etag` &mdash; ETag-generating options. If present and not `false`, the
+* `etag` &mdash; ETag-generating options. If present and not `null`, the
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header. See
+  `null`, every cacheable response comes with the specified header. See
   [Cache control configuration](#cache-control-configuration-cacheControl) for
   details.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
