@@ -112,6 +112,19 @@ exported configuration object. In each case, the binding is described as a
 element is needed, a plain object may be bound directly instead of being a
 one-element array.
 
+In addition, each element can be specified as any of:
+* A plain object with appropriate bindings. This is what is directly documented
+  here.
+* A pre-constructed configuration object of the right class to construct an
+  instance.
+* An actual instance of the right type of object.
+
+For anything but the first form, please refer to the API documentation
+(including documentation comments in the source).
+
+Each of these sections is optional, though it would be unusual to omit either
+`applications` or `endpoints`.
+
 ### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
