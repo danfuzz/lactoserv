@@ -45,6 +45,14 @@ describe('checkAndFreezeStrings()', () => {
       expect(result).toEqual(['florp']);
     });
 
+    test('returns an array with it, if it is in a given `Set`', () => {
+      const value  = 'florp';
+      const result = StringUtil.checkAndFreezeStrings(value, new Set(['flip', 'florp']));
+
+      expect(result).toBeFrozen();
+      expect(result).toEqual(['florp']);
+    });
+
     test('returns its filtered value, as mapped by a filter function', () => {
       const value  = 'florp';
       const filter = (x) => x.toUpperCase();
@@ -54,13 +62,19 @@ describe('checkAndFreezeStrings()', () => {
       expect(result).toEqual(['FLORP']);
     });
 
+    test('throws, if it is not in a given `Set`', () => {
+      const value = 'florp';
+      const set   = new Set(['bomp', 'bump']);
+      expect(() => StringUtil.checkAndFreezeStrings(value, set)).toThrow();
+    });
+
     test('throws, if it does not pass a regex filter', () => {
-      const value  = 'florp';
+      const value = 'florp';
       expect (() => StringUtil.checkAndFreezeStrings(value, /^g/)).toThrow();
     });
 
     test('throws, if it does not pass a regex filter passed as a string', () => {
-      const value  = 'florp';
+      const value = 'florp';
       expect (() => StringUtil.checkAndFreezeStrings(value, '^g')).toThrow();
     });
 
@@ -91,6 +105,12 @@ describe('checkAndFreezeStrings()', () => {
       checkResult(arg, result);
     });
 
+    test('returns a frozen copy, if all elements are in a given `Set`', () => {
+      const arg    = ['flip', 'flop', 'florp'];
+      const result = StringUtil.checkAndFreezeStrings(arg, new Set(['yip', 'flip', 'flop', 'florp', 'zip']));
+      checkResult(arg, result);
+    });
+
     test('returns an array with it, if it passes a regex filter passed as a string', () => {
       const arg    = ['flip', 'flop', 'florp'];
       const result = StringUtil.checkAndFreezeStrings(arg, 'p$');
@@ -102,6 +122,12 @@ describe('checkAndFreezeStrings()', () => {
       const filter = (x) => x.startsWith('z') ? `YES-${x}` : `NO-${x}`;
       const result = StringUtil.checkAndFreezeStrings(arg, filter);
       checkResult(arg, result, ['YES-zip', 'YES-zap', 'YES-zowie', 'YES-zamboni', 'NO-urp']);
+    });
+
+    test('throws, if an element is not in a given `Set`', () => {
+      const arg = ['flip', 'flop', 'florp'];
+      const set = new Set(['yip', 'flip', 'florp', 'zip']);
+      expect (() => StringUtil.checkAndFreezeStrings(arg, set)).toThrow();
     });
 
     test('throws, if an element does not pass a regex filter', () => {
