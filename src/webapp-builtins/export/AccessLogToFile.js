@@ -200,6 +200,8 @@ export class AccessLogToFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseFileService.Config {
+    // @defaultConstructor
+
     /**
      * How long to buffer updates for, or `null` to not do any buffering. If
      * passed as a string, it is parsed by {@link Duration#parse}.
