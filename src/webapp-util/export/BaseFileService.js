@@ -4,7 +4,6 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
-import { BaseConfig } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
@@ -180,7 +179,7 @@ export class BaseFileService extends BaseService {
   /**
    * Configuration class for `save` bindings.
    */
-  static SaveConfig = class SaveConfig extends BaseConfig {
+  static SaveConfig = class SaveConfig {
     /**
      * The maximum number of old-file bytes to allow, if so limited.
      *
@@ -215,8 +214,6 @@ export class BaseFileService extends BaseService {
      * @param {object} rawConfig Configuration object.
      */
     constructor(rawConfig) {
-      super(rawConfig);
-
       const {
         maxOldBytes = null,
         maxOldCount = null,
