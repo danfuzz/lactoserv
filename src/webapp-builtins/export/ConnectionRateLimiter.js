@@ -89,7 +89,7 @@ export class ConnectionRateLimiter extends BaseService {
      * instance of {@link ConnectionRate}.
      *
      * @param {string|ConnectionRate} value Proposed configuration value.
-     * @returns {?ConnectionRate} Accepted configuration value.
+     * @returns {ConnectionRate} Accepted configuration value.
      */
     _config_flowRate(value) {
       if ((typeof value === 'string') || (value instanceof ConnectionRate)) {
@@ -104,7 +104,7 @@ export class ConnectionRateLimiter extends BaseService {
      * parsed into an instance of {@link ConnectionCount}.
      *
      * @param {string|ConnectionCount} value Proposed configuration value.
-     * @returns {?ConnectionCount} Accepted configuration value.
+     * @returns {ConnectionCount} Accepted configuration value.
      */
     _config_maxBurst(value) {
       if ((typeof value === 'string') || (value instanceof ConnectionCount)) {
@@ -119,7 +119,7 @@ export class ConnectionRateLimiter extends BaseService {
      * `null` to have no limit. If passed as a `string` it is parsed into an
      * instance of {@link ConnectionCount}.
      *
-     * @param {string|ConnectionCount} value Proposed configuration value.
+     * @param {?string|ConnectionCount} value Proposed configuration value.
      * @returns {?ConnectionCount} Accepted configuration value.
      */
     _config_maxQueue(value = null) {

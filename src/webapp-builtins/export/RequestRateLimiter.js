@@ -81,30 +81,61 @@ export class RequestRateLimiter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.Config {
     /**
-     * Configuration for the token bucket to use.
+     * Request flow rate. If passed as a `string` it is parsed into an
+     * instance of {@link RequestRate}.
      *
-     * @type {object}
+     * @param {string|RequestRate} value Proposed configuration value.
+     * @returns {RequestRate} Accepted configuration value.
      */
-    #bucket;
+    _config_flowRate(value) {
+      if ((typeof value === 'string') || (value instanceof RequestRate)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `flowRate`.');
+    }
 
     /**
-     * Constructs an instance.
+     * Maximum count of requests in a burst. If passed as a `string` it is
+     * parsed into an instance of {@link RequestCount}.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {string|RequestCount} value Proposed configuration value.
+     * @returns {RequestCount} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
+    _config_maxBurst(value) {
+      if ((typeof value === 'string') || (value instanceof RequestCount)) {
+        return value;
+      }
 
-      this.#bucket = RateLimitConfig.parse(rawConfig, {
-        allowMqg:  false,
+      throw new Error('Invalid value for `maxBurst`.');
+    }
+
+    /**
+     * Maximum count of connections that can be queued up for acceptance, or
+     * `null` to have no limit. If passed as a `string` it is parsed into an
+     * instance of {@link RequestCount}.
+     *
+     * @param {?string|RequestCount} value Proposed configuration value.
+     * @returns {?RequestCount} Accepted configuration value.
+     */
+    _config_maxQueue(value = null) {
+      if (value === null) {
+        return null;
+      } else if ((typeof value === 'string') || (value instanceof RequestCount)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `maxQueue`.');
+    }
+
+    /** @override */
+    _impl_validate(config) {
+      const bucket = RateLimitConfig.parse(config, {
         rateType:  RequestRate,
         tokenType: RequestCount
       });
-    }
 
-    /** @returns {object} Configuration for the token bucket to use. */
-    get bucket() {
-      return this.#bucket;
+      return super._impl_validate({ ...config, bucket });
     }
   };
 }
