@@ -76,8 +76,8 @@ export class DataRateLimiter extends BaseService {
    */
   static #Config = class Config extends BaseService.Config {
     /**
-     * Data rate. If passed as a `string` it is parsed into an
-     * instance of {@link ByteRate}.
+     * Data rate. If passed as a `string` it is parsed into an instance of
+     * {@link ByteRate}.
      *
      * @param {string|ByteRate} value Proposed configuration value.
      * @returns {ByteRate} Accepted configuration value.
@@ -91,8 +91,8 @@ export class DataRateLimiter extends BaseService {
     }
 
     /**
-     * Maximum data burst size. If passed as a `string` it is
-     * parsed into an instance of {@link ByteCount}.
+     * Maximum data burst size. If passed as a `string` it is parsed into an
+     * instance of {@link ByteCount}.
      *
      * @param {string|ByteCount} value Proposed configuration value.
      * @returns {ByteCount} Accepted configuration value.
@@ -106,9 +106,9 @@ export class DataRateLimiter extends BaseService {
     }
 
     /**
-     * Maximum amount of data that can be queued up for writing, or
-     * `null` to have no limit. If passed as a `string` it is parsed into an
-     * instance of {@link ByteCount}.
+     * Maximum amount of data that can be queued up for writing, or `null` to
+     * have no limit. If passed as a `string` it is parsed into an instance of
+     * {@link ByteCount}.
      *
      * @param {?string|ByteCount} value Proposed configuration value.
      * @returns {?ByteCount} Accepted configuration value.
@@ -126,8 +126,8 @@ export class DataRateLimiter extends BaseService {
     /**
      * Maximum amount of data that will be allowed to be written in a single
      * grant, or `null` to use the default limit (of the smaller of `maxBurst`
-     * and `maxQueue`). If passed as a `string` it is parsed into an
-     * instance of {@link ByteCount}.
+     * and `maxQueue`). If passed as a `string` it is parsed into an instance of
+     * {@link ByteCount}.
      *
      * @param {?string|ByteCount} value Proposed configuration value.
      * @returns {?ByteCount} Accepted configuration value.

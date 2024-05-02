@@ -134,7 +134,7 @@ export class BaseConfig {
     if (leftovers.size !== 0) {
       const names = [...leftovers].join(', ');
       const word  = (leftovers.size === 1) ? 'property' : 'properties';
-      throw new Error(`Extra configuration ${word}: \`${names}\``)
+      throw new Error(`Extra configuration ${word}: \`${names}\``);
     }
 
     const finalProps = this._impl_validate(props);
@@ -154,8 +154,8 @@ export class BaseConfig {
   }
 
   /**
-   * Finds all the `_config_*` methods on `this`, returning a map from the
-   * plain property name to the check method name.
+   * Finds all the `_config_*` methods on `this`, returning a map from the plain
+   * property name to the check method name.
    *
    * @returns {Map<string, string>} The map from property names to corresponding
    *   checker method names.

@@ -88,8 +88,8 @@ export class RequestDelay extends BaseApplication {
     }
 
     /**
-     * Maximum delay time, inclusive, if delays are to be made randomly within
-     * a range, or `null` if `delay` is being used. If passed as a string, it is
+     * Maximum delay time, inclusive, if delays are to be made randomly within a
+     * range, or `null` if `delay` is being used. If passed as a string, it is
      * parsed by {@link Duration#parse}.
      *
      * @param {?string|Duration} value Proposed configuration value. Default
@@ -101,9 +101,9 @@ export class RequestDelay extends BaseApplication {
     }
 
     /**
-     * Minimum delay time, inclusive, if delays are to be made randomly within
-     * a range, or `null` if `delay` is being used. If passed as a string, it
-     * is parsed by {@link Duration#parse}.
+     * Minimum delay time, inclusive, if delays are to be made randomly within a
+     * range, or `null` if `delay` is being used. If passed as a string, it is
+     * parsed by {@link Duration#parse}.
      *
      * @param {?string|Duration} value Proposed configuration value. Default
      *   `null`.

@@ -174,8 +174,8 @@ export class MemoryMonitor extends BaseService {
      * How often to check, in seconds. If passed as a string, it is parsed by
      * {@link Duration#parse}.
      *
-     * @param {string|Duration} [value] Proposed configuration value. Default
-     *   `5 min`
+     * @param {string|Duration} [value] Proposed configuration value. Default `5
+     *   min`
      * @returns {Duration} Accepted configuration value.
      */
     _config_checkPeriod(value = '5 min') {
@@ -192,8 +192,8 @@ export class MemoryMonitor extends BaseService {
      * Grace period before triggering an action. If passed as a string, it is
      * parsed by {@link Duration#parse}.
      *
-     * @param {string|Duration} [value] Proposed configuration value. Default
-     *   `0 sec` (that is, no grace period).
+     * @param {string|Duration} [value] Proposed configuration value. Default `0
+     *   sec` (that is, no grace period).
      * @returns {Duration} Accepted configuration value.
      */
     _config_gracePeriod(value = '0 sec') {

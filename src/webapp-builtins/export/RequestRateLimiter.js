@@ -81,8 +81,8 @@ export class RequestRateLimiter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.Config {
     /**
-     * Request flow rate. If passed as a `string` it is parsed into an
-     * instance of {@link RequestRate}.
+     * Request flow rate. If passed as a `string` it is parsed into an instance
+     * of {@link RequestRate}.
      *
      * @param {string|RequestRate} value Proposed configuration value.
      * @returns {RequestRate} Accepted configuration value.

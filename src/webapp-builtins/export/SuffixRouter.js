@@ -122,8 +122,8 @@ export class SuffixRouter extends BaseApplication {
 
     /**
      * Map from each file name suffix spec (e.g. with `*` prefixes) to the name
-     * of the application to handle that spec. On input, the value must be
-     * a plain object.
+     * of the application to handle that spec. On input, the value must be a
+     * plain object.
      *
      * @param {object} value Proposed configuration value.
      * @returns {{ routeMap: Map<string, string>, suffixMatcher: RegExp }}

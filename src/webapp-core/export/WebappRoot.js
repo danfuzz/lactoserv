@@ -210,8 +210,8 @@ export class WebappRoot extends BaseComponent {
 
     /**
      * Endpoint instances, or `null` to have no configured endpoints (which
-     * would be unusual). On input, this is expected to be an object
-     * suitable as an argument to {@link BaseComponent#evalArray} (see which).
+     * would be unusual). On input, this is expected to be an object suitable as
+     * an argument to {@link BaseComponent#evalArray} (see which).
      *
      * @param {?object|Array<NetworkEndpoint|NetworkEndpoint.Config>} [value]
      *   Proposed configuration value. Default `null`.
