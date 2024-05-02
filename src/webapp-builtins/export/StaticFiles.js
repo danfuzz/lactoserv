@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import { Paths, Statter } from '@this/fs-util';
 import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes }
   from '@this/net-util';
+import { AskIf } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
 
@@ -59,12 +60,12 @@ export class StaticFiles extends BaseApplication {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const { cacheControl, etagOptions, notFoundPath, siteDirectory } = this.config;
+    const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
     this.#cacheControl  = cacheControl;
-    this.#etagGenerator = etagOptions ? new EtagGenerator(etagOptions) : null;
+    this.#etagGenerator = etag ? new EtagGenerator(etag) : null;
   }
 
   /** @override */
@@ -268,98 +269,70 @@ export class StaticFiles extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
-    /**
-     * Path to the file to serve for a not-found result, or `null` if not-found
-     * handling shouldn't be done.
-     *
-     * @type {?string}
-     */
-    #notFoundPath;
+    // @defaultConstructor
 
     /**
-     * The base directory for the site files.
+     * `cache-control` header to automatically include, or `null` not to include
+     * it. Can be passed either as a literal string or an object to be passed to
+     * {@link HttpUtil#cacheControlHeader}.
      *
-     * @type {string}
+     * @param {?string|object} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?string} Accepted configuration value.
      */
-    #siteDirectory;
+    _config_cacheControl(value = null) {
+      if (value === null) {
+        return null;
+      } else if (typeof value === 'string') {
+        return value;
+      } else if (AskIf.plainObject(value)) {
+        return HttpUtil.cacheControlHeader(value);
+      } else {
+        throw new Error('Invalid `cacheControl` option.');
+      }
+    }
 
     /**
-     * `cache-control` header to automatically include, or `null` not to do
-     * that.
+     * Etag-generating options, `true` for default options, or `null` not to
+     * include an `etag` header in responses.
      *
-     * @type {?string}
+     * @param {?object|true} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?object} Accepted configuration value.
      */
-    #cacheControl = null;
+    _config_etag(value = null) {
+      if (value === null) {
+        return null;
+      } else if (value === true) {
+        return EtagGenerator.expandOptions({});
+      } else if (AskIf.plainObject(value)) {
+        return EtagGenerator.expandOptions(value);
+      } else {
+        throw new Error('Invalid `etag` option.');
+      }
+    }
 
     /**
-     * Etag configuration options, or `null` not to generate etags.
+     * Absolute path to the file to serve for a not-found result, or `null` if
+     * not-found handling shouldn't be done.
      *
-     * @type {?object}
+     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
      */
-    #etagOptions = null;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        cacheControl = null,
-        etag         = null,
-        notFoundPath = null,
-        siteDirectory
-      } = rawConfig;
-
-      this.#notFoundPath = (notFoundPath === null)
+    _config_notFoundPath(value = null) {
+      return (value === null)
         ? null
-        : Paths.checkAbsolutePath(notFoundPath);
-      this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
-
-      if ((cacheControl !== null) && (cacheControl !== false)) {
-        this.#cacheControl = (typeof cacheControl === 'string')
-          ? cacheControl
-          : HttpUtil.cacheControlHeader(cacheControl);
-        if (!this.#cacheControl) {
-          throw new Error('Invalid `cacheControl` option.');
-        }
-      }
-
-      if ((etag !== null) && (etag !== false)) {
-        this.#etagOptions =
-          EtagGenerator.expandOptions((etag === true) ? {} : etag);
-      }
+        : Paths.checkAbsolutePath(value);
     }
 
     /**
-     * @returns {?string} `cache-control` header to automatically include, or
-     * `null` not to do that.
+     * Absolute path to the base directory for the site files.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
      */
-    get cacheControl() {
-      return this.#cacheControl;
-    }
-
-    /**
-     * @returns {?object} Etag configuration options, or `null` not to generate
-     * etags.
-     */
-    get etagOptions() {
-      return this.#etagOptions;
-    }
-
-    /** @returns {string} The base directory for the site files. */
-    get siteDirectory() {
-      return this.#siteDirectory;
-    }
-
-    /**
-     * @returns {?string} Path to the file to serve for a not-found result, or
-     * `null` if not-found handling shouldn't be done.
-     */
-    get notFoundPath() {
-      return this.#notFoundPath;
+    _config_siteDirectory(value) {
+      return Paths.checkAbsolutePath(value);
     }
   };
 }
