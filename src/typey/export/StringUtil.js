@@ -11,11 +11,12 @@ import { MustBe } from '#x/MustBe';
 export class StringUtil {
   /**
    * Takes either a string or array of strings, and checks that each one matches
-   * a given pattern or passes a given filter.
+   * a given pattern, is contained in a given set, or passes a given filter.
    *
    * @param {*} items Items to check.
-   * @param {string|RegExp|function(string): string} patternOrFilter Pattern or
-   *   filter/checker function which must match all the items.
+   * @param {string|Set|RegExp|function(string): string} patternOrFilter Pattern
+   *   or filter/checker function which must match all the items. If passed a
+   *   string, it is interpreted as a regex.
    * @returns {Array<string>} Frozen copy of the `items` if a `string[]`, frozen
    *   array of just `items` if a simple `string`. If given a filter, the return
    *   value is a frozen array of all the results from calls to the filter.
@@ -31,7 +32,16 @@ export class StringUtil {
 
     let filter;
 
-    if (AskIf.callableFunction(patternOrFilter)) {
+    if (patternOrFilter instanceof Set) {
+      const set = patternOrFilter;
+      filter = (item) => {
+        if (!set.has(item)) {
+          const setStr = `[${[...set].join(', ')}]`;
+          throw new Error(`String is not in set ${setStr}: ${item}`);
+        }
+        return item;
+      };
+    } else if (AskIf.callableFunction(patternOrFilter)) {
       filter = patternOrFilter;
     } else {
       if (typeof patternOrFilter === 'string') {

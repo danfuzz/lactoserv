@@ -3,7 +3,7 @@
 
 import { FullResponse, HttpUtil, StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { MustBe, StringUtil } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
 
@@ -120,185 +120,126 @@ export class RequestFilter extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
-    /**
-     * The response status to use when filtering out a request.
-     *
-     * @type {number}
-     */
-    #filterResponseStatus;
+    // @defaultConstructor
 
     /**
-     * Set of request methods (e.g. `post`) that the application accepts.
+     * Set of request methods (e.g. `post`) that the application accepts,
+     * lowercased, or `null` if not to filter on request methods. When passed as
+     * non-`null`, it is expected to be a single string (if only one method is
+     * to be accepted) or an array of strings.
      *
-     * @type {Set<string>}
+     * @param {?string|Array<string>} value Proposed configuration value.
+     *   Default `null`.
+     * @returns {?Set<string>} Accepted configuration value.
      */
-    #acceptMethods;
-
-    /**
-     * Maximum allowed dispatch `extra` path length in slash-separated
-     * components (inclusive), or `null` if there is no limit.
-     *
-     * @type {?number}
-     */
-    #maxPathDepth;
-
-    /**
-     * Maximum allowed dispatch `extra` path length in octets (inclusive), or
-     * `null` if there is no limit.
-     *
-     * @type {?number}
-     */
-    #maxPathLength;
-
-    /**
-     * Maximum allowed query (search string) length in octets (inclusive), or
-     * `null` if there is no limit.
-     *
-     * @type {?number}
-     */
-    #maxQueryLength;
-
-    /**
-     * Redirect file paths to the corresponding directory?
-     *
-     * @type {boolean}
-     */
-    #redirectDirectories;
-
-    /**
-     * Redirect directory paths to the corresponding file?
-     *
-     * @type {boolean}
-     */
-    #redirectFiles;
-
-    /**
-     * Reject directory (non-file) paths?
-     *
-     * @type {boolean}
-     */
-    #rejectDirectories;
-
-    /**
-     * Reject file (non-directory) paths?
-     *
-     * @type {boolean}
-     */
-    #rejectFiles;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        acceptMethods        = null,
-        filterResponseStatus = 404,
-        maxPathDepth         = null,
-        maxPathLength        = null,
-        maxQueryLength       = null,
-        redirectDirectories  = false,
-        redirectFiles        = false,
-        rejectDirectories    = false,
-        rejectFiles          = false
-      } = rawConfig;
-
-      this.#acceptMethods = (acceptMethods === null)
-        ? null
-        : new Set(MustBe.arrayOfString(acceptMethods, Config.#METHODS));
-      this.#filterResponseStatus = HttpUtil.checkStatus(filterResponseStatus);
-      this.#maxPathDepth = (maxPathDepth === null)
-        ? null
-        : MustBe.number(maxPathDepth, { safeInteger: true, minInclusive: 0 });
-      this.#maxPathLength = (maxPathLength === null)
-        ? null
-        : MustBe.number(maxPathLength, { safeInteger: true, minInclusive: 0 });
-      this.#maxQueryLength = (maxQueryLength === null)
-        ? null
-        : MustBe.number(maxQueryLength, { safeInteger: true, minInclusive: 0 });
-      this.#redirectDirectories = MustBe.boolean(redirectDirectories);
-      this.#redirectFiles       = MustBe.boolean(redirectFiles);
-      this.#rejectDirectories   = MustBe.boolean(rejectDirectories);
-      this.#rejectFiles         = MustBe.boolean(rejectFiles);
-
-      const boolCount =
-        redirectDirectories + redirectFiles + rejectDirectories + rejectFiles;
-      if (boolCount > 1) {
-        throw new Error('Cannot configure more than one `redirect*` or `reject*` option as `true`.');
+    _config_acceptMethods(value = null) {
+      if (value === null) {
+        return null;
+      } else {
+        const array = StringUtil.checkAndFreezeStrings(value, Config.#METHODS);
+        return new Set(array);
       }
     }
 
     /**
-     * @returns {Set<string>} Set of request methods (e.g. `post`) that the
-     * application accepts.
+     * The response status to use when filtering out a request.
+     *
+     * @param {number} [value] Proposed configuration value. Default `404`.
+     * @returns {number} Accepted configuration value.
      */
-    get acceptMethods() {
-      return this.#acceptMethods;
-    }
-
-    /**
-     * @returns {number} The response status to use when filtering out a
-     * request.
-     */
-    get filterResponseStatus() {
-      return this.#filterResponseStatus;
+    _config_filterResponseStatus(value = 404) {
+      return HttpUtil.checkStatus(value);
     }
 
     /**
      * Maximum allowed dispatch `extra` path length in slash-separated
      * components (inclusive), or `null` if there is no limit.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    get maxPathDepth() {
-      return this.#maxPathDepth;
+    _config_maxPathDepth(value = null) {
+      return (value === null)
+        ? null
+        : MustBe.number(value, { safeInteger: true, minInclusive: 0 });
     }
 
     /**
      * Maximum allowed dispatch `extra` path length in octets (inclusive), or
      * `null` if there is no limit.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    get maxPathLength() {
-      return this.#maxPathLength;
+    _config_maxPathLength(value = null) {
+      return (value === null)
+        ? null
+        : MustBe.number(value, { safeInteger: true, minInclusive: 0 });
     }
 
     /**
      * Maximum allowed query (search string) length in octets (inclusive), or
      * `null` if there is no limit.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    get maxQueryLength() {
-      return this.#maxQueryLength;
+    _config_maxQueryLength(value = null) {
+      return (value === null)
+        ? null
+        : MustBe.number(value, { safeInteger: true, minInclusive: 0 });
     }
 
     /**
-     * @returns {boolean} Redirect file paths to the corresponding directory?
+     * Redirect file paths to the corresponding directory?
+     *
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    get redirectDirectories() {
-      return this.#redirectDirectories;
+    _config_redirectDirectories(value = false) {
+      return MustBe.boolean(value);
     }
 
     /**
-     * @returns {boolean} Redirect directory paths to the corresponding file?
+     * Redirect directory paths to the corresponding file?
+     *
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    get redirectFiles() {
-      return this.#redirectFiles;
+    _config_redirectFiles(value = false) {
+      return MustBe.boolean(value);
     }
 
-    /** @returns {boolean} Reject directory (non-file) paths? */
-    get rejectDirectories() {
-      return this.#rejectDirectories;
+    /**
+     * Reject directory (non-file) paths?
+     *
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
+     */
+    _config_rejectDirectories(value = false) {
+      return MustBe.boolean(value);
     }
 
-    /** @returns {boolean} Reject file (non-directory) paths? */
-    get rejectFiles() {
-      return this.#rejectFiles;
+    /**
+     * Reject file (non-directory) paths?
+     *
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
+     */
+    _config_rejectFiles(value = false) {
+      return MustBe.boolean(value);
+    }
+
+    /** @override */
+    _impl_validate(config) {
+      const { redirectDirectories, redirectFiles, rejectDirectories, rejectFiles } = config;
+      const boolCount = redirectDirectories + redirectFiles + rejectDirectories + rejectFiles;
+
+      if (boolCount > 1) {
+        throw new Error('Cannot configure more than one `redirect*` or `reject*` option as `true`.');
+      }
+
+      return config;
     }
 
 

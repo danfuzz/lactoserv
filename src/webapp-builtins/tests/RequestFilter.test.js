@@ -10,6 +10,10 @@ import { RequestUtil } from '#test/RequestUtil';
 
 
 describe('constructor', () => {
+  test('accepts empty options', () => {
+    expect(() => new RequestFilter({})).not.toThrow();
+  });
+
   test('accepts an omnibus valid set of options', () => {
     const opts = {
       name:                 'myFavoriteFilter',
@@ -69,7 +73,7 @@ describe('_impl_handleRequest()', () => {
     return rf;
   }
 
-  describe('with non-`null` `acceptMethods`', () => {
+  describe('with an array for `acceptMethods`', () => {
     test('accepts an allowed method', async () => {
       const rf = await makeInstance({
         acceptMethods:        ['get', 'post'],
@@ -86,6 +90,35 @@ describe('_impl_handleRequest()', () => {
     test('filters out a disallowed method', async () => {
       const rf = await makeInstance({
         acceptMethods:        ['post'],
+        filterResponseStatus: 599
+      });
+
+      const req    = RequestUtil.makeGet('/florp');
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeInstanceOf(StatusResponse);
+      expect(result.status).toBe(599);
+    });
+  });
+
+  describe('with a single string for `acceptMethods`', () => {
+    test('accepts an allowed method', async () => {
+      const rf = await makeInstance({
+        acceptMethods:        'head',
+        filterResponseStatus: 599
+      });
+
+      const req    = RequestUtil.makeRequest('head', '/florp');
+      const disp   = new DispatchInfo(PathKey.EMPTY, req.pathname);
+      const result = await rf.handleRequest(req, disp);
+
+      expect(result).toBeNull();
+    });
+
+    test('filters out a disallowed method', async () => {
+      const rf = await makeInstance({
+        acceptMethods:        'head',
         filterResponseStatus: 599
       });
 

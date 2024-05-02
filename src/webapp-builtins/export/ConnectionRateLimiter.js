@@ -85,30 +85,61 @@ export class ConnectionRateLimiter extends BaseService {
    */
   static #Config = class Config extends BaseService.Config {
     /**
-     * Configuration for the token bucket to use.
+     * Connection flow rate. If passed as a `string` it is parsed into an
+     * instance of {@link ConnectionRate}.
      *
-     * @type {object}
+     * @param {string|ConnectionRate} value Proposed configuration value.
+     * @returns {ConnectionRate} Accepted configuration value.
      */
-    #bucket;
+    _config_flowRate(value) {
+      if ((typeof value === 'string') || (value instanceof ConnectionRate)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `flowRate`.');
+    }
 
     /**
-     * Constructs an instance.
+     * Maximum count of connections in a burst. If passed as a `string` it is
+     * parsed into an instance of {@link ConnectionCount}.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {string|ConnectionCount} value Proposed configuration value.
+     * @returns {ConnectionCount} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
+    _config_maxBurst(value) {
+      if ((typeof value === 'string') || (value instanceof ConnectionCount)) {
+        return value;
+      }
 
-      this.#bucket = RateLimitConfig.parse(rawConfig, {
-        allowMqg:  false,
+      throw new Error('Invalid value for `maxBurst`.');
+    }
+
+    /**
+     * Maximum count of connections that can be queued up for acceptance, or
+     * `null` to have no limit. If passed as a `string` it is parsed into an
+     * instance of {@link ConnectionCount}.
+     *
+     * @param {?string|ConnectionCount} value Proposed configuration value.
+     * @returns {?ConnectionCount} Accepted configuration value.
+     */
+    _config_maxQueue(value = null) {
+      if (value === null) {
+        return null;
+      } else if ((typeof value === 'string') || (value instanceof ConnectionCount)) {
+        return value;
+      }
+
+      throw new Error('Invalid value for `maxQueue`.');
+    }
+
+    /** @override */
+    _impl_validate(config) {
+      const bucket = RateLimitConfig.parse(config, {
         rateType:  ConnectionRate,
         tokenType: ConnectionCount
       });
-    }
 
-    /** @returns {object} Configuration for the token bucket to use. */
-    get bucket() {
-      return this.#bucket;
+      return super._impl_validate({ ...config, bucket });
     }
   };
 }

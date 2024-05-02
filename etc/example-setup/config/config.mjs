@@ -240,7 +240,6 @@ const applications = [
   {
     name:        'responseNotFound',
     class:       SimpleResponse,
-    etag:        false,
     body :       'Sorry! Not found!\n',
     contentType: 'text/plain',
     statusCode:  404

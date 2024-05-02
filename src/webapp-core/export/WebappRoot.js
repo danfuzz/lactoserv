@@ -193,74 +193,58 @@ export class WebappRoot extends BaseComponent {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseConfig {
-    /**
-     * Application instances.
-     *
-     * @type {Array<BaseApplication>}
-     */
-    #applications;
+    // @defaultConstructor
 
     /**
-     * Host handling instances.
+     * Application instances, or `null` to have no configured applications
+     * (which would be unusual). On input, this is expected to be an object
+     * suitable as an argument to {@link BaseComponent#evalArray} (see which).
      *
-     * @type {Array<NetworkHost>}
+     * @param {?object|Array<BaseApplication|BaseApplication.Config>} [value]
+     *   Proposed configuration value. Default `null`.
+     * @returns {Array<BaseApplication>} Accepted configuration value.
      */
-    #hosts;
-
-    /**
-     * Endpoint instances.
-     *
-     * @type {Array<NetworkEndpoint>}
-     */
-    #endpoints;
-
-    /**
-     * Service instances.
-     *
-     * @type {Array<BaseService>}
-     */
-    #services;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Configuration object. See class header for
-     *   details.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        applications,
-        endpoints,
-        hosts = [],
-        services = []
-      } = rawConfig;
-
-      this.#applications = BaseApplication.evalArray(applications);
-      this.#hosts        = NetworkHost.evalArray(hosts);
-      this.#endpoints    = NetworkEndpoint.evalArray(endpoints);
-      this.#services     = BaseService.evalArray(services);
+    _config_applications(value = null) {
+      return BaseApplication.evalArray(value ?? []);
     }
 
-    /** @returns {Array<BaseApplication>} Application instances. */
-    get applications() {
-      return this.#applications;
+    /**
+     * Endpoint instances, or `null` to have no configured endpoints (which
+     * would be unusual). On input, this is expected to be an object suitable as
+     * an argument to {@link BaseComponent#evalArray} (see which).
+     *
+     * @param {?object|Array<NetworkEndpoint|NetworkEndpoint.Config>} [value]
+     *   Proposed configuration value. Default `null`.
+     * @returns {Array<NetworkEndpoint>} Accepted configuration value.
+     */
+    _config_endpoints(value = null) {
+      return NetworkEndpoint.evalArray(value ?? []);
     }
 
-    /** @returns {Array<NetworkHost>} Host handling instances. */
-    get hosts() {
-      return this.#hosts;
+    /**
+     * Host handling instances, or `null` to have no configured hosts. On input,
+     * this is expected to be an object suitable as an argument to {@link
+     * BaseComponent#evalArray} (see which).
+     *
+     * @param {?object|Array<NetworkHost|NetworkHost.Config>} [value] Proposed
+     *   configuration value. Default `null`.
+     * @returns {Array<NetworkHost>} Accepted configuration value.
+     */
+    _config_hosts(value = null) {
+      return NetworkHost.evalArray(value ?? []);
     }
 
-    /** @returns {Array<NetworkEndpoint>} Endpoint instances. */
-    get endpoints() {
-      return this.#endpoints;
-    }
-
-    /** @returns {Array<BaseService>} Service instances. */
-    get services() {
-      return this.#services;
+    /**
+     * Service instances, or `null` to have no configured services. On input,
+     * this is expected to be an object suitable as an argument to {@link
+     * BaseComponent#evalArray} (see which).
+     *
+     * @param {?object|Array<BaseService|BaseService.Config>} [value] Proposed
+     *   configuration value. Default `null`.
+     * @returns {Array<BaseService>} Accepted configuration value.
+     */
+    _config_services(value = null) {
+      return BaseService.evalArray(value ?? []);
     }
   };
 }

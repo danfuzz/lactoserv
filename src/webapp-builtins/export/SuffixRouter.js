@@ -98,59 +98,44 @@ export class SuffixRouter extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
-    /**
-     * Like the outer `routeMap` except with names instead of handler instances.
-     *
-     * @type {Map<string, string>}
-     */
-    #routeMap;
-
-    /**
-     * Regular expression which matches the longest handled suffix of a given
-     * file name. This ends up having a form along the lines of
-     * `/(?<!^)(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
-     *
-     * @type {RegExp}
-     */
-    #suffixMatcher;
+    // @defaultConstructor
 
     /**
      * Should directory paths get matched?
      *
-     * @type {boolean}
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    #handleDirectories;
+    _config_handleDirectories(value = false) {
+      return MustBe.boolean(value);
+    }
 
     /**
      * Should file paths (non-directories) get matched?
      *
-     * @type {boolean}
+     * @param {boolean} [value] Proposed configuration value. Default `true`.
+     * @returns {boolean} Accepted configuration value.
      */
-    #handleFiles;
+    _config_handleFiles(value = true) {
+      return MustBe.boolean(value);
+    }
 
     /**
-     * Constructs an instance.
+     * Map from each file name suffix spec (e.g. with `*` prefixes) to the name
+     * of the application to handle that spec. On input, the value must be a
+     * plain object.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {object} value Proposed configuration value.
+     * @returns {{ routeMap: Map<string, string>, suffixMatcher: RegExp }}
+     *   Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        handleDirectories = false,
-        handleFiles       = true,
-        suffixes
-      } = rawConfig;
-
-      MustBe.plainObject(suffixes);
-
-      this.#handleDirectories = MustBe.boolean(handleDirectories);
-      this.#handleFiles       = MustBe.boolean(handleFiles);
+    _config_suffixes(value) {
+      MustBe.plainObject(value);
 
       const routeMap   = new Map();
       const regexParts = [];
 
-      for (const [suffix, name] of Object.entries(suffixes)) {
+      for (const [suffix, name] of Object.entries(value)) {
         const { text, regex } = Config.#parseSuffix(suffix);
         if (routeMap.has(text)) {
           throw new Error(`Duplicate suffix spec: ${suffix}`);
@@ -159,35 +144,33 @@ export class SuffixRouter extends BaseApplication {
         regexParts.push(regex);
       }
 
-      this.#routeMap      = routeMap;
-      this.#suffixMatcher = new RegExp(`(?<!^)(?:${regexParts.join('|')})$`);
+      // This is a regex which matches the longest handled suffix of a given
+      // file name. It ends up having a form along the lines of
+      // `/(?<!^)(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
+      const suffixMatcher = new RegExp(`(?<!^)(?:${regexParts.join('|')})$`);
+
+      return { routeMap, suffixMatcher };
     }
 
-    /**
-     * @returns {Map<string, string>} Like the outer `routeMap` except with
-     * names instead of handler instances.
-     */
-    get routeMap() {
-      return this.#routeMap;
+    /** @override */
+    _impl_validate(config) {
+      const { handleDirectories, handleFiles } = config;
+
+      if (!(handleDirectories || handleFiles)) {
+        throw new Error('Must configure at least one of `handleDirectories` or `handleFiles` as true');
+      }
+
+      // Replace `suffixes` with its elements.
+      const result = { ...config, ...(config.suffixes) };
+      delete result.suffixes;
+
+      return super._impl_validate(result);
     }
 
-    /**
-     * @returns {RegExp} Regular expression which matches the longest handled
-     * suffix of a given file name.
-     */
-    get suffixMatcher() {
-      return this.#suffixMatcher;
-    }
 
-    /** @returns {boolean} Should directory paths get matched? */
-    get handleDirectories() {
-      return this.#handleDirectories;
-    }
-
-    /** @returns {boolean} Should file paths (non-directories) get matched? */
-    get handleFiles() {
-      return this.#handleFiles;
-    }
+    //
+    // Static members
+    //
 
     /**
      * Parses a suffix specifier.

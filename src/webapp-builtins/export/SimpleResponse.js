@@ -7,7 +7,7 @@ import { WallClock } from '@this/clocky';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, FullResponse, HttpUtil, MimeTypes }
   from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
 
@@ -55,7 +55,7 @@ export class SimpleResponse extends BaseApplication {
     }
 
     const {
-      body, contentType, cacheControl, etagOptions, filePath, statusCode
+      body, contentType, cacheControl, etag, filePath, statusCode
     } = this.config;
 
     const response  = new FullResponse();
@@ -88,10 +88,10 @@ export class SimpleResponse extends BaseApplication {
       response.cacheControl = cacheControl;
     }
 
-    if (etagOptions) {
-      const etagGen = new EtagGenerator(etagOptions);
-      const etag    = await etagGen.etagFromData(response.bodyBuffer ?? '');
-      headers.set('etag', etag);
+    if (etag) {
+      const etagGen    = new EtagGenerator(etag);
+      const etagHeader = await etagGen.etagFromData(response.bodyBuffer ?? '');
+      headers.set('etag', etagHeader);
     }
 
     if (statusCode !== null) {
@@ -121,165 +121,139 @@ export class SimpleResponse extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
+    // @defaultConstructor
+
+    /**
+     * Body contents of the response, or `null` to use `filePath` if present
+     * _or_ respond with no body.
+     *
+     * @param {?string|Buffer} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?string|Buffer} Accepted configuration value.
+     */
+    _config_body(value = null) {
+      if (value === null) {
+        return value;
+      } else if ((value instanceof Buffer) || (typeof value === 'string')) {
+        return value;
+      } else {
+        throw new Error('Invalid `body` option.');
+      }
+    }
+
+    /**
+     * `cache-control` header to automatically include, or `null` not to include
+     * it. Can be passed either as a literal string or an object to be passed to
+     * {@link HttpUtil#cacheControlHeader}.
+     *
+     * @param {?string|object} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?string} Accepted configuration value.
+     */
+    _config_cacheControl(value = null) {
+      if (value === null) {
+        return null;
+      } else if (typeof value === 'string') {
+        return value;
+      } else if (AskIf.plainObject(value)) {
+        return HttpUtil.cacheControlHeader(value);
+      } else {
+        throw new Error('Invalid `cacheControl` option.');
+      }
+    }
+
+    /**
+     * Content type of the response, or `null` to infer it from `filePath`.
+     *
+     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
+     */
+    _config_contentType(value = null) {
+      // Note: Conversion is done in `_impl_validate()`, because we don't know
+      // what options to pass to the MIME type converter until we see if we
+      // have `body` or `filePath`.
+      return (value === null) ? null : MustBe.string(value);
+    }
+
+    /**
+     * Etag-generating options, `true` for default options, or `null` not to
+     * include an `etag` header in responses.
+     *
+     * @param {?object|true} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?object} Accepted configuration value.
+     */
+    _config_etag(value = null) {
+      if (value === null) {
+        return null;
+      } else if (value === true) {
+        return EtagGenerator.expandOptions({});
+      } else if (AskIf.plainObject(value)) {
+        return EtagGenerator.expandOptions(value);
+      } else {
+        throw new Error('Invalid `etag` option.');
+      }
+    }
+
+    /**
+     * Absolute path to a file for the body contents, or `null` if `body` is
+     * being used _or_ if this is to be a no-body response.
+     *
+     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
+     */
+    _config_filePath(value = null) {
+      return (value === null)
+        ? null
+        : Paths.checkAbsolutePath(value);
+    }
+
     /**
      * Predefined status code of the response, or `null` to use the most
-     * appropriate "success" status code (most typically `200`).
+     * appropriate "success" status code (usually but not always `200`).
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #statusCode = null;
+    _config_statusCode(value = null) {
+      if (value === null) {
+        return null;
+      }
 
-    /**
-     * Content type of the response, or `null` to infer it from {@link
-     * #filePath}.
-     *
-     * @type {?string}
-     */
-    #contentType = null;
+      return MustBe.number(value, {
+        safeInteger:  true,
+        minInclusive: 100,
+        maxInclusive: 599
+      });
+    }
 
-    /**
-     * Body contents of the response, or `null` to use {@link #filePath}.
-     *
-     * @type {?(string|Buffer)}
-     */
-    #body = null;
-
-    /**
-     * `cache-control` header to automatically include, or `null` not to do
-     * that.
-     *
-     * @type {?string}
-     */
-    #cacheControl = null;
-
-    /**
-     * Etag-generating options, or `null` not to do that.
-     *
-     * @type {?object}
-     */
-    #etagOptions = null;
-
-    /**
-     * Absolute path to a file for the body contents, or `null` if {@link #body}
-     * is supplied directly.
-     *
-     * @type {?string}
-     */
-    #filePath = null;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        body         = null,
-        contentType  = null,
-        cacheControl = null,
-        etag         = null,
-        filePath     = null,
-        statusCode   = null
-      } = rawConfig;
+    /** @override */
+    _impl_validate(config) {
+      const { body, filePath } = config;
+      let   { contentType }    = config;
 
       if (body !== null) {
-        if (!(body instanceof Buffer)) {
-          MustBe.string(body);
-        }
-
         if (contentType === null) {
-          throw new Error('Must supply `contentType` if `body` is used.');
+          throw new Error('Must specify `contentType` if `body` is used.');
         } else if (filePath !== null) {
           throw new Error('Cannot specify both `body` and `filePath`.');
         }
 
-        const isText = typeof body === 'string';
-
-        this.#body        = body;
-        this.#contentType = MimeTypes.typeFromExtensionOrType(contentType, { isText });
+        contentType = MimeTypes.typeFromExtensionOrType(contentType, {
+          isText: (typeof body === 'string')
+        });
       } else if (filePath !== null) {
-        this.#filePath    = Paths.checkAbsolutePath(filePath);
-        this.#contentType = (contentType === null)
+        contentType = (contentType === null)
           ? MimeTypes.typeFromPathExtension(filePath)
           : MimeTypes.typeFromExtensionOrType(contentType);
       } else {
-        // It's an empty body.
+        // It's a no-body response.
         if (contentType !== null) {
-          throw new Error('Cannot supply `contentType` with empty body.');
+          throw new Error('Cannot specify `contentType` on a no-body response.');
         }
       }
 
-      if ((cacheControl !== null) && (cacheControl !== false)) {
-        this.#cacheControl = (typeof cacheControl === 'string')
-          ? cacheControl
-          : HttpUtil.cacheControlHeader(cacheControl);
-        if (!this.#cacheControl) {
-          throw new Error('Invalid `cacheControl` option.');
-        }
-      }
-
-      if ((etag !== null) && (etag !== false)) {
-        this.#etagOptions =
-          EtagGenerator.expandOptions((etag === true) ? {} : etag);
-      }
-
-      if (statusCode !== null) {
-        this.#statusCode =
-          MustBe.number(statusCode, {
-            safeInteger:  true,
-            minInclusive: 100,
-            maxInclusive: 599
-          });
-      }
-    }
-
-    /**
-     * @returns {?(string|Buffer)} Body contents of the response, or `null` to
-     * use {@link #filePath}.
-     */
-    get body() {
-      return this.#body;
-    }
-
-    /**
-     * @returns {?string} `cache-control` header to automatically include, or
-     * `null` not to do that.
-     */
-    get cacheControl() {
-      return this.#cacheControl;
-    }
-
-    /**
-     * @returns {?string} Content type of the response, or `null` to infer it
-     * from {@link #filePath}.
-     */
-    get contentType() {
-      return this.#contentType;
-    }
-
-    /** @returns {?object} Etag-generating options, or `null` not to do that. */
-    get etagOptions() {
-      return this.#etagOptions;
-    }
-
-    /**
-     * @returns {?string} Absolute path to a file for the body contents, or
-     * `null` if {@link #body} is supplied directly.
-     */
-    get filePath() {
-      return this.#filePath;
-    }
-
-    /**
-     * Predefined status code of the response, or `null` to use the most
-     * appropriate "success" status code (most typically `200`).
-     *
-     * @type {?number}
-     */
-    get statusCode() {
-      return this.#statusCode;
+      return super._impl_validate({ ...config, contentType });
     }
   };
 }

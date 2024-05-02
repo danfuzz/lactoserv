@@ -31,20 +31,23 @@ export class RateLimitConfig {
       maxQueue      = null
     } = config;
 
-    const { allowMqg, rateType, tokenType } = options;
+    const { rateType, tokenType } = options;
 
     const parseFlowRate = (value) => {
       const result = rateType.parse(value, { range: { minExclusive: 0 } });
       if (result === null) {
-        throw new Error(`Could not parse flow rate: ${value}`);
+        throw new Error(`Could not parse \`flowRate\`: ${value}`);
       }
       // `TokenBucket` always wants a plain `Frequency` for its `flowRate`.
       return new Frequency(result.value);
     };
 
     const parseTokenCount = (value, allowNull) => {
-      if ((value === null) && !allowNull) {
-        throw new Error('Must be a token count.');
+      if (value === null) {
+        if (!allowNull) {
+          throw new Error('Must be a token count.');
+        }
+        return null;
       }
 
       const result = tokenType.parse(value, {
@@ -62,15 +65,9 @@ export class RateLimitConfig {
     const result = {
       flowRate:          parseFlowRate(flowRate),
       maxBurstSize:      parseTokenCount(maxBurst, false),
-      maxQueueGrantSize: null,
+      maxQueueGrantSize: parseTokenCount(maxQueueGrant, true),
       maxQueueSize:      parseTokenCount(maxQueue, true)
     };
-
-    if (allowMqg) {
-      result.maxQueueGrantSize = parseTokenCount(maxQueueGrant, true);
-    } else if (maxQueueGrant !== null) {
-      throw new Error('Cannot use `maxQueueGrant` with this kind of rate limiter; it is meaningless.');
-    }
 
     return Object.freeze(result);
   }

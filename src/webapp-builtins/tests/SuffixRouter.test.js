@@ -26,6 +26,26 @@ describe('constructor', () => {
     expect(() => new SuffixRouter({ name: 'x', suffixes })).not.toThrow();
   });
 
+  test('rejects both `handle*` being `false`', () => {
+    const opts = {
+      suffixes:          { '*': 'a' },
+      handleDirectories: false,
+      handleFiles:       false
+    };
+
+    expect(() => new SuffixRouter(opts)).toThrow();
+  });
+
+  test.each`
+  opts
+  ${{ handleDirectories: false, handleFiles: true }}
+  ${{ handleDirectories: true,  handleFiles: false }}
+  ${{ handleDirectories: true,  handleFiles: true }}
+  `('accepts $opts', ({ opts }) => {
+    opts = { ...opts, suffixes: { '*': 'a' } };
+    expect(() => new SuffixRouter(opts)).not.toThrow();
+  });
+
   test.each`
   suffix
   ${''}        // Can't be totally empty.

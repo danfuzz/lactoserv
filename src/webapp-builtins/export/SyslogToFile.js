@@ -119,60 +119,45 @@ export class SyslogToFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseFileService.Config {
-    /**
-     * How long to buffer updates for, or `null` to not do any buffering.
-     *
-     * @type {?Duration}
-     */
-    #bufferPeriod;
+    // @defaultConstructor
 
     /**
-     * The output format name.
+     * How long to buffer updates for, or `null` to not do any buffering. If
+     * passed as a string, it is parsed by {@link Duration#parse}.
      *
-     * @type {string}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #format;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { bufferPeriod = null, format } = rawConfig;
-
-      if (bufferPeriod) {
-        this.#bufferPeriod = Duration.parse(bufferPeriod, { range: { minInclusive: 0 } });
-        if (!this.#bufferPeriod) {
-          throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
-        }
-        if (this.#bufferPeriod === 0) {
-          this.#bufferPeriod = null;
-        }
-      } else {
-        this.#bufferPeriod = MustBe.null(bufferPeriod);
+    _config_bufferPeriod(value = null) {
+      if (value === null) {
+        return null;
       }
 
-      this.#format = MustBe.string(format);
+      const result = Duration.parse(value, { range: { minInclusive: 0 } });
 
-      if (!TextFileSink.isValidFormat(format)) {
-        throw new Error(`Unknown log format: ${format}`);
+      if (!result) {
+        throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
       }
+
+      return (result === 0) ? null : result;
     }
 
     /**
-     * @returns {?Duration} How long to buffer updates for, or `null` to not do
-     * any buffering.
+     * The output format name. Must be valid per {@link
+     * TextFileSink#isValidFormat}.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
      */
-    get bufferPeriod() {
-      return this.#bufferPeriod;
-    }
+    _config_format(value) {
+      MustBe.string(value);
 
-    /** @returns {string} The output format name. */
-    get format() {
-      return this.#format;
+      if (!TextFileSink.isValidFormat(value)) {
+        throw new Error(`Unknown log format: ${value}`);
+      }
+
+      return value;
     }
   };
 }

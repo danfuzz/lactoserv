@@ -168,92 +168,66 @@ export class MemoryMonitor extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseService.Config {
-    /**
-     * How often to check, in seconds.
-     *
-     * @type {Duration}
-     */
-    #checkPeriod;
+    // @defaultConstructor
 
     /**
-     * Grace period before triggering an action.
+     * How often to check, in seconds. If passed as a string, it is parsed by
+     * {@link Duration#parse}.
      *
-     * @type {Duration}
+     * @param {string|Duration} [value] Proposed configuration value. Default `5
+     *   min`
+     * @returns {Duration} Accepted configuration value.
      */
-    #gracePeriod;
+    _config_checkPeriod(value = '5 min') {
+      const result = Duration.parse(value, { range: { minInclusive: 1 } });
+
+      if (!result) {
+        throw new Error(`Could not parse \`checkPeriod\`: ${value}`);
+      }
+
+      return result;
+    }
+
+    /**
+     * Grace period before triggering an action. If passed as a string, it is
+     * parsed by {@link Duration#parse}.
+     *
+     * @param {string|Duration} [value] Proposed configuration value. Default `0
+     *   sec` (that is, no grace period).
+     * @returns {Duration} Accepted configuration value.
+     */
+    _config_gracePeriod(value = '0 sec') {
+      const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+      if (!result) {
+        throw new Error(`Could not parse \`gracePeriod\`: ${value}`);
+      }
+
+      return result;
+    }
 
     /**
      * Maximum allowed size of heap usage, in bytes, or `null` for no limit.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #maxHeapBytes;
+    _config_maxHeapBytes(value = null) {
+      return (value === null)
+        ? null
+        : MustBe.number(value, { finite: true, minInclusive: 1024 * 1024 });
+    }
 
     /**
      * Maximum allowed size of RSS, in bytes, or `null` for no limit.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #maxRssBytes;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        checkPeriod  = null,
-        gracePeriod  = null,
-        maxHeapBytes = null,
-        maxRssBytes  = null
-      } = rawConfig;
-
-      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { range: { minInclusive: 1 } });
-      if (!this.#checkPeriod) {
-        throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
-      }
-
-      this.#gracePeriod = Duration.parse(gracePeriod ?? '0 sec', { range: { minInclusive: 0 } });
-      if (!this.#gracePeriod) {
-        throw new Error(`Could not parse \`gracePeriod\`: ${gracePeriod}`);
-      }
-
-      this.#maxHeapBytes = (maxHeapBytes === null)
+    _config_maxRssBytes(value = null) {
+      return (value === null)
         ? null
-        : MustBe.number(maxHeapBytes, { finite: true, minInclusive: 1024 * 1024 });
-
-      this.#maxRssBytes = (maxRssBytes === null)
-        ? null
-        : MustBe.number(maxRssBytes, { finite: true, minInclusive: 1024 * 1024 });
-    }
-
-    /** @returns {Duration} How often to check. */
-    get checkPeriod() {
-      return this.#checkPeriod;
-    }
-
-    /** @returns {Duration} Grace period before triggering an action. */
-    get gracePeriod() {
-      return this.#gracePeriod;
-    }
-
-    /**
-     * @returns {?number} Maximum allowed size of heap usage, in bytes, or
-     * `null` for no limit.
-     */
-    get maxHeapBytes() {
-      return this.#maxHeapBytes;
-    }
-
-    /**
-     * @returns {?number} Maximum allowed size of RSS, in bytes, or `null` for
-     * no limit.
-     */
-    get maxRssBytes() {
-      return this.#maxRssBytes;
+        : MustBe.number(value, { finite: true, minInclusive: 1024 * 1024 });
     }
   };
 }

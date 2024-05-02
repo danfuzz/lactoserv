@@ -33,7 +33,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 ### ETag Configuration: `etag`
 
 Applications and services that generate ETags accept an `etag` binding. When it
-is absent or `false` (if allowed), no ETags are generated. If it is specified as
+is absent or `null` (if allowed), no ETags are generated. If it is specified as
 `true` or `{}` (the empty object), ETags are generated using a default
 configuration. If it is specified as an object with bindings, the following
 properties are recognized:
@@ -174,8 +174,8 @@ This application accepts the following configuration bindings:
   specified, it defaults to `308` ("Permanent Redirect").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
   path of each request to form the final redirection URL.
-* `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header.
+* `cacheControl` &mdash; Optional `cache-control` header definition. If present
+  and not `null`, every cacheable response comes with the specified header.
 
 ```js
 import { Redirector } from '@lactoserv/webapp-builtins';
@@ -238,9 +238,10 @@ filter can be included early in the list of applications of a
 
 This application accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; Array of strings indicating which request methods to
-  accept. The array can include any of `connect`, `delete`, `get`, `head`,
-  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
+* `acceptMethods` &mdash; String (for a single item) or array of strings
+  indicating which request methods to accept, or `null` not to do method
+  filtering. Allowed methods are `connect`, `delete`, `get`, `head`, `options`,
+  `patch`, `post`, `put`, and/or `trace` (all lowercase). Defaults to `null`.
 * `filterResponseStatus` &mdash; Status to report when a request has been
   filtered out (as opposed to having been redirected). Defaults to `404` ("Not
   Found").
@@ -386,10 +387,10 @@ configuration bindings:
   an explicit `charset` is honored (e.g. `text/plain; charset=iso-8859-1`), but
   if not specified then `utf-8` is assumed for text types.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header. See
+  `null`, every cacheable response comes with the specified header. See
   [Cache control configuration](#cache-control-configuration-cacheControl) for
   details.
-* `etag` &mdash; ETag-generating options. If present and not `false`, the
+* `etag` &mdash; ETag-generating options. If present and not `null`, the
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
@@ -456,11 +457,11 @@ reasonable demand:
 An application which serves static files from a local directory. This
 application accepts the following configuration bindings:
 
-* `etag` &mdash; ETag-generating options. If present and not `false`, the
+* `etag` &mdash; ETag-generating options. If present and not `null`, the
   response comes with an `ETag` header. See
   [ETag Configuration](#etag-configuration-etag) for details.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
-  `false`, every cacheable response comes with the specified header. See
+  `null`, every cacheable response comes with the specified header. See
   [Cache control configuration](#cache-control-configuration-cacheControl) for
   details.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a

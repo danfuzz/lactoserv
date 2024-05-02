@@ -200,63 +200,40 @@ export class AccessLogToFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseFileService.Config {
+    // @defaultConstructor
+
     /**
-     * How long to buffer updates for, or `null` to not do any buffering.
+     * How long to buffer updates for, or `null` to not do any buffering. If
+     * passed as a string, it is parsed by {@link Duration#parse}.
      *
-     * @type {?Duration}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #bufferPeriod;
+    _config_bufferPeriod(value = null) {
+      if (value === null) {
+        return null;
+      }
+
+      const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+      if (!result) {
+        throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
+      }
+
+      return (result === 0) ? null : result;
+    }
 
     /**
      * Maximum rendered URL length, or `null` for no maximum.
      *
-     * @type {?number}
+     * @param {?number} value Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #maxUrlLength;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        bufferPeriod = null,
-        maxUrlLength = null
-      } = rawConfig;
-
-      if (bufferPeriod) {
-        this.#bufferPeriod = Duration.parse(bufferPeriod, { range: { minInclusive: 0 } });
-        if (!this.#bufferPeriod) {
-          throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
-        }
-        if (this.#bufferPeriod === 0) {
-          this.#bufferPeriod = null;
-        }
-      } else {
-        this.#bufferPeriod = MustBe.null(bufferPeriod);
-      }
-
-      this.#maxUrlLength = maxUrlLength
-        ? MustBe.number(maxUrlLength, { safeInteger: true, minInclusive: 20 })
-        : MustBe.null(maxUrlLength);
-    }
-
-    /**
-     * @returns {?Duration} How long to buffer updates for, or `null` to not do
-     * any buffering.
-     */
-    get bufferPeriod() {
-      return this.#bufferPeriod;
-    }
-
-    /**
-     * @returns {number} Maximum rendered URL length, or `null` for no maximum.
-     */
-    get maxUrlLength() {
-      return this.#maxUrlLength;
+    _config_maxUrlLength(value = null) {
+      return (value === null)
+        ? null
+        : MustBe.number(value, { safeInteger: true, minInclusive: 20 });
     }
   };
 }

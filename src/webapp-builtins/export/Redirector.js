@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FullResponse, HttpUtil, UriUtil } from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
 
@@ -90,74 +90,47 @@ export class Redirector extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
+    // @defaultConstructor
+
     /**
      * The redirect status code to use.
      *
-     * @type {number}
+     * @param {number} [value] Proposed configuration value. Default `308`.
+     * @returns {number} Accepted configuration value.
      */
-    #statusCode;
+    _config_statusCode(value = 308) {
+      return MustBe.number(value, { minInclusive: 300, maxInclusive: 399 });
+    }
 
     /**
      * The target base URI.
      *
-     * @type {string}
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
      */
-    #target;
+    _config_target(value) {
+      return UriUtil.checkBasicUri(value);
+    }
 
     /**
-     * `cache-control` header to automatically include, or `null` not to do
-     * that.
+     * `cache-control` header to automatically include, or `null` not to include
+     * it. Can be passed either as a literal string or an object to be passed to
+     * {@link HttpUtil#cacheControlHeader}.
      *
-     * @type {?string}
+     * @param {?string|object} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?string} Accepted configuration value.
      */
-    #cacheControl = null;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        cacheControl = null,
-        statusCode = null,
-        target
-      } = rawConfig;
-
-      this.#statusCode = statusCode
-        ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })
-        : 308;
-
-      this.#target = UriUtil.checkBasicUri(target);
-
-      if ((cacheControl !== null) && (cacheControl !== false)) {
-        this.#cacheControl = (typeof cacheControl === 'string')
-          ? cacheControl
-          : HttpUtil.cacheControlHeader(cacheControl);
-        if (!this.#cacheControl) {
-          throw new Error('Invalid `cacheControl` option.');
-        }
+    _config_cacheControl(value = null) {
+      if (value === null) {
+        return null;
+      } else if (typeof value === 'string') {
+        return value;
+      } else if (AskIf.plainObject(value)) {
+        return HttpUtil.cacheControlHeader(value);
+      } else {
+        throw new Error('Invalid `cacheControl` option.');
       }
-    }
-
-    /**
-     * @returns {?string} `cache-control` header to automatically include, or
-     * `null` not to do that.
-     */
-    get cacheControl() {
-      return this.#cacheControl;
-    }
-
-    /** @returns {string} The target base URI. */
-    get statusCode() {
-      return this.#statusCode;
-    }
-
-    /** @returns {string} The target base URI. */
-    get target() {
-      return this.#target;
     }
   };
 }

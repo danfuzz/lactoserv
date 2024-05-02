@@ -4,7 +4,6 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
-import { BaseConfig } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
@@ -62,60 +61,13 @@ export class BaseFileService extends BaseService {
    */
   static Config = class Config extends BaseService.Config {
     /**
-     * The absolute path to use.
-     *
-     * @type {string}
-     */
-    #path;
-
-    /**
      * Path parts, or `null` if not yet calculated.
      *
      * @type {?object}
      */
     #pathParts = null;
 
-    /**
-     * Rotation configuration, if any.
-     *
-     * @type {?BaseFileService.RotateConfig}
-     */
-    #rotate;
-
-    /**
-     * Preservation configuration, if any.
-     *
-     * @type {?BaseFileService.SaveConfig}
-     */
-    #save;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object. See class header for
-     *   details.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { path, rotate, save } = rawConfig;
-
-      if (rotate && save) {
-        throw new Error('Cannot specify both `rotate` and `save`.');
-      }
-
-      this.#path   = Paths.checkAbsolutePath(path);
-      this.#rotate = rotate ? new BaseFileService.RotateConfig(rotate) : null;
-      this.#save   = save   ? new BaseFileService.SaveConfig(save)     : null;
-    }
-
-    /**
-     * @returns {string} The absolute path to write to (with possible infixing
-     * of the final path component, depending on the specific use case).
-     */
-    get path() {
-      return this.#path;
-    }
+    // @defaultConstructor
 
     /**
      * The various parts of {@link #path}. The return value is a frozen plain
@@ -144,19 +96,58 @@ export class BaseFileService extends BaseService {
     }
 
     /**
-     * @returns {?BaseFileService.RotateConfig} Rotation configuration, if any.
+     * The absolute path to write to, with possible infixing of the final path
+     * component, depending on the specific use case.
+     *
+     * @param {string} value Proposed configuration value.
+     * @returns {string} Accepted configuration value.
      */
-    get rotate() {
-      return this.#rotate;
+    _config_path(value) {
+      return Paths.checkAbsolutePath(value);
     }
 
     /**
-     * @returns {?BaseFileService.SaveConfig} Preservation configuration, if
-     * any. If this instance has a {@link #RotateConfig}, that is returned here
-     * too (it's a subclass).
+     * Rotation configuration, or `null` not to do rotation. On input, this is
+     * expected to be a plain object suitable to pass to {@link
+     * BaseFileService#RotateConfig.constructor}.
+     *
+     * @param {?object} [value] Proposed configuration value. Default `null`.
+     * @returns {?BaseFileService.RotateConfig} Accepted configuration value.
      */
-    get save() {
-      return this.#save ?? this.#rotate;
+    _config_rotate(value = null) {
+      return (value === null)
+        ? null
+        : new BaseFileService.RotateConfig(value);
+    }
+
+    /**
+     * File preservation configuration, or `null` not to do file preservation.
+     * On input, this is expected to be a plain object suitable to pass to
+     * {@link BaseFileService#SaveConfig.constructor}.
+     *
+     * @param {?object} [value] Proposed configuration value. Default `null`.
+     * @returns {?BaseFileService.SaveConfig} Accepted configuration value.
+     */
+    _config_save(value = null) {
+      return (value === null)
+        ? null
+        : new BaseFileService.SaveConfig(value);
+    }
+
+    /** @override */
+    _impl_validate(config) {
+      const { rotate, save } = config;
+
+      if (rotate && save) {
+        throw new Error('Cannot specify both `rotate` and `save`.');
+      }
+
+      // `rotate` is also used as a `save` config, so copy it to that property.
+      const result = rotate
+        ? { ...config, save: rotate }
+        : config;
+
+      return super._impl_validate(result);
     }
 
     /**
@@ -165,7 +156,7 @@ export class BaseFileService extends BaseService {
      * @returns {object} The split path, as described.
      */
     #makePathParts() {
-      const path = this.#path;
+      const { path } = this;
 
       const { directory, fileName } =
         path.match(/^(?<directory>.*)[/](?<fileName>[^/]+)$/).groups;
@@ -180,7 +171,7 @@ export class BaseFileService extends BaseService {
   /**
    * Configuration class for `save` bindings.
    */
-  static SaveConfig = class SaveConfig extends BaseConfig {
+  static SaveConfig = class SaveConfig {
     /**
      * The maximum number of old-file bytes to allow, if so limited.
      *
@@ -215,8 +206,6 @@ export class BaseFileService extends BaseService {
      * @param {object} rawConfig Configuration object.
      */
     constructor(rawConfig) {
-      super(rawConfig);
-
       const {
         maxOldBytes = null,
         maxOldCount = null,
