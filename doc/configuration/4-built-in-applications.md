@@ -238,9 +238,10 @@ filter can be included early in the list of applications of a
 
 This application accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; Array of strings indicating which request methods to
-  accept. The array can include any of `connect`, `delete`, `get`, `head`,
-  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
+* `acceptMethods` &mdash; String (for a single item) or array of strings
+  indicating which request methods to accept, or `null` not to do method
+  filtering. Allowed methods are `connect`, `delete`, `get`, `head`, `options`,
+  `patch`, `post`, `put`, and/or `trace` (all lowercase). Defaults to `null`.
 * `filterResponseStatus` &mdash; Status to report when a request has been
   filtered out (as opposed to having been redirected). Defaults to `404` ("Not
   Found").
