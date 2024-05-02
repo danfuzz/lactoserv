@@ -197,9 +197,10 @@ export class SimpleResponse extends BaseApplication {
 
     /**
      * Absolute path to a file for the body contents, or `null` if `body`
-     * is supplied directly.
+     * is being used _or_ if this is to be a no-body response.
      *
-     * @type {?string}
+     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
      */
     _config_filePath(value = null) {
       return (value === null)
