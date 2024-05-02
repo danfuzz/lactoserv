@@ -207,7 +207,8 @@ export class NetworkHost extends BaseComponent {
      * covered by the instance. Hostnames can be absolute, partial wildcards, or
      * a full wildcard.
      *
-     * @type {Array<string>}
+     * @param {string|Array<string>} value Proposed configuration value.
+     * @returns {Array<string>} Accepted configuration value.
      */
     _config_hostnames(value) {
       return StringUtil.checkAndFreezeStrings(
@@ -219,7 +220,8 @@ export class NetworkHost extends BaseComponent {
      * The certificate for the hosts, as PEM-encoded data. Allowed to be `null`
      * _only_ if `selfSigned` is configured as `true`.
      *
-     * @type {?string}
+     * @param {?string} value Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
      */
     _config_certificate(value = null) {
       return (value === null)
@@ -231,7 +233,8 @@ export class NetworkHost extends BaseComponent {
      * The private key for the hosts, as PEM-encoded data. Allowed to be `null`
      * _only_ if `selfSigned` is configured as `true`.
      *
-     * @type {?string}
+     * @param {?string} value Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
      */
     _config_privateKey(value = null) {
       return (value === null)
@@ -242,7 +245,8 @@ export class NetworkHost extends BaseComponent {
     /**
      * Is this to be a self-signed certificate?
      *
-     * @type {boolean}
+     * @param {boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
     _config_selfSigned(value = false) {
       return MustBe.boolean(value);
