@@ -73,6 +73,8 @@ export class RequestDelay extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.Config {
+    // @defaultConstructor
+
     /**
      * Delay time, or `null` if `minDelay` and `maxDelay` are being used. If
      * passed as a string, it is parsed by {@link Duration#parse}.
