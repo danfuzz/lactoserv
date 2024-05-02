@@ -46,7 +46,7 @@ export class HostRouter extends BaseApplication {
   /** @override */
   async _impl_init() {
     const routes = {};
-    for (const [host, name] of this.config.routeTree) {
+    for (const [host, name] of this.config.hosts) {
       routes[HostUtil.hostnameStringFrom(host)] = name;
     }
 
@@ -62,7 +62,7 @@ export class HostRouter extends BaseApplication {
     const appManager = this.root.applicationManager;
     const routeTree  = new TreeMap();
 
-    for (const [host, name] of this.config.routeTree) {
+    for (const [host, name] of this.config.hosts) {
       const app = appManager.get(name);
       routeTree.add(host, app);
     }
@@ -90,42 +90,27 @@ export class HostRouter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.Config {
     /**
-     * Like the outer `routeTree` except with names instead of handler
-     * instances.
+     * Map which goes from a host prefix to the name of an application which
+     * should handle that prefix. Each host must be a valid possibly-wildcarded
+     * host name, per {@link HostUtil#parseHostname}. Each name must be a valid
+     * component name, per {@link Names#checkName}. On input, the value must be
+     * a plain object.
      *
-     * @type {TreeMap<string>}
+     * @param {object} value Proposed configuration value.
+     * @returns {TreeMap<string>} Accepted configuration value.
      */
-    #routeTree;
+    _config_hosts(value) {
+      MustBe.plainObject(value);
 
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
+      const result = new TreeMap();
 
-      const { hosts } = rawConfig;
-
-      MustBe.plainObject(hosts);
-
-      const routeTree = new TreeMap();
-
-      for (const [host, name] of Object.entries(hosts)) {
+      for (const [host, name] of Object.entries(value)) {
         Names.checkName(name);
         const key = HostUtil.parseHostname(host, true);
-        routeTree.add(key, name);
+        result.add(key, name);
       }
 
-      this.#routeTree = routeTree;
-    }
-
-    /**
-     * @returns {TreeMap<string>} Like the outer `routeTree` except with
-     * names instead of handler instances.
-     */
-    get routeTree() {
-      return this.#routeTree;
+      return Object.freeze(result);
     }
   };
 }
