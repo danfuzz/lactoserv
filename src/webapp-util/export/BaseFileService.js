@@ -111,7 +111,8 @@ export class BaseFileService extends BaseService {
      * expected to be a plain object suitable to pass to {@link
      * BaseFileService#RotateConfig.constructor}.
      *
-     * @type {?BaseFileService.RotateConfig}
+     * @param {?object} [value] Proposed configuration value. Default `null`.
+     * @returns {?BaseFileService.RotateConfig} Accepted configuration value.
      */
     _config_rotate(value = null) {
       return (value === null)
@@ -124,7 +125,8 @@ export class BaseFileService extends BaseService {
      * On input, this is expected to be a plain object suitable to pass to
      * {@link BaseFileService#SaveConfig.constructor}.
      *
-     * @type {?BaseFileService.SaveConfig}
+     * @param {?object} [value] Proposed configuration value. Default `null`.
+     * @returns {?BaseFileService.SaveConfig} Accepted configuration value.
      */
     _config_save(value = null) {
       return (value === null)
