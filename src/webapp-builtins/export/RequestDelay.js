@@ -74,87 +74,82 @@ export class RequestDelay extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.Config {
     /**
-     * Maximum delay time, inclusive.
+     * Delay time, or `null` if `minDelay` and `maxDelay` are being used. If
+     * passed as a string, it is parsed by {@link Duration#parse}.
      *
-     * @type {Duration}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #maxDelay;
+    _config_delay(value = null) {
+      return (value === null) ? null : Config.#parseDelay(value);
+    }
 
     /**
-     * Minimum delay time, inclusive.
+     * Maximum delay time, inclusive, if delays are to be made randomly within
+     * a range, or `null` if `delay` is being used. If passed as a string, it is
+     * parsed by {@link Duration#parse}.
      *
-     * @type {Duration}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #minDelay;
+    _config_maxDelay(value = null) {
+      return (value === null) ? null : Config.#parseDelay(value);
+    }
 
     /**
-     * Time source.
+     * Minimum delay time, inclusive, if delays are to be made randomly within
+     * a range, or `null` if `delay` is being used. If passed as a string, it
+     * is parsed by {@link Duration#parse}.
      *
-     * @type {IntfTimeSource}
+     * @param {?string|Duration} value Proposed configuration value. Default
+     *   `null`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    #timeSource;
+    _config_minDelay(value = null) {
+      return (value === null) ? null : Config.#parseDelay(value);
+    }
 
     /**
-     * Constructs an instance.
+     * Time source, or `null` to use the standard time source. This
+     * configuration option is mostly intended for testing.
      *
-     * @param {object} rawConfig Raw configuration object.
+     * @param {?IntfTimeSource} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {IntfTimeSource} Accepted configuration value.
      */
-    constructor(rawConfig) {
-      super(rawConfig);
+    _config_timeSource(value = null) {
+      // TODO: Check that a non-`null` `value` actually implements
+      // `IntfTimeSource`.
 
-      const {
-        delay      = null,
-        minDelay   = null,
-        maxDelay   = null,
-        timeSource = null
-      } = rawConfig;
+      return (value === null)
+        ? StdTimeSource.INSTANCE
+        : MustBe.object(value);
+    }
 
-      if (delay !== null) {
-        if ((maxDelay !== null) || (minDelay !== null)) {
-          throw new Error('Must specify either `delay` or both `minDelay` and `maxDelay`.');
-        }
-        this.#maxDelay = Config.#parseDelay(delay);
-        this.#minDelay = this.#maxDelay;
-      } else if ((maxDelay !== null) && (minDelay !== null)) {
-        this.#maxDelay = Config.#parseDelay(maxDelay);
-        this.#minDelay = Config.#parseDelay(minDelay);
-        if (this.#minDelay.gt(this.#maxDelay)) {
-          throw new Error('`minDelay` must not be greater than `maxDelay`.');
-        } else if (this.#minDelay.eq(this.#maxDelay)) {
-          // Allow a literal `===` comparison in the handler.
-          this.#minDelay = this.#maxDelay;
-        }
-      } else {
+    /** @override */
+    _impl_validate(config) {
+      const { delay } = config;
+      let   { maxDelay, minDelay } = config;
+
+      if (!!delay === !!(maxDelay || minDelay)) {
         throw new Error('Must specify either `delay` or both `minDelay` and `maxDelay`.');
+      } else if (delay) {
+        maxDelay = minDelay = delay;
+      } else if (!(maxDelay && minDelay)) {
+        throw new Error('Must specify both `minDelay` and `maxDelay` if either is used.');
+      } else if (minDelay.gt(maxDelay)) {
+        throw new Error('`minDelay` must not be greater than `maxDelay`.');
+      } else if (minDelay.eq(maxDelay)) {
+        // This allows a `===` comparison in the handler to work.
+        minDelay = maxDelay;
       }
 
-      if (timeSource === null) {
-        this.#timeSource = StdTimeSource.INSTANCE;
-      } else {
-        // TODO: Check that it actually implements `IntfTimeSource`.
-        this.#timeSource = MustBe.object(timeSource);
-      }
-    }
+      const result = { ...config, maxDelay, minDelay };
+      delete result.delay;
 
-    /**
-     * @returns {Duration} Maximum delay time, inclusive.
-     */
-    get maxDelay() {
-      return this.#maxDelay;
-    }
-
-    /**
-     * @returns {Duration} Minimum delay time, inclusive.
-     */
-    get minDelay() {
-      return this.#minDelay;
-    }
-
-    /**
-     * @returns {IntfTimeSource} Time source.
-     */
-    get timeSource() {
-      return this.#timeSource;
+      return super._impl_validate(result);
     }
 
 

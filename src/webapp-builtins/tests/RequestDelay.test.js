@@ -64,6 +64,10 @@ describe('constructor', () => {
     expect(() => new RequestDelay({ minDelay: '1_sec' })).toThrow();
   });
 
+  test('rejects `minDelay > maxDelay`', () => {
+    expect(() => new RequestDelay({ minDelay: '1_sec', maxDelay: '0.99_sec' })).toThrow();
+  });
+
   test('rejects `delay` with either `minDelay` or `maxDelay`', () => {
     expect(() => new RequestDelay({ delay: '2_sec', minDelay: '1_sec' })).toThrow();
     expect(() => new RequestDelay({ delay: '1_sec', maxDelay: '2_sec' })).toThrow();

@@ -120,6 +120,11 @@ export class PathRouter extends BaseApplication {
       return result;
     }
 
+
+    //
+    // Static members
+    //
+
     /**
      * Parses a path.
      *
