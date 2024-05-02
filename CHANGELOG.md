@@ -11,7 +11,12 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `compy`:
+  * Reworked how component classes define their configuration properties, to
+    be way more ergonomic, avoiding a lot of formerly-required boilerplate and
+    adding a modicum of error checking that all components get "for free."
+    **Note:** This is a breaking change for how components are built, but it
+    doesn't affect how components are instantiated.
 
 Other notable changes:
 * None.
