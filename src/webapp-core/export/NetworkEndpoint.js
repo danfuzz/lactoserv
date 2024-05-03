@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { BaseComponent, BaseConfig, Names } from '@this/compy';
+import { BaseComponent, Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
@@ -159,7 +159,7 @@ export class NetworkEndpoint extends BaseComponent {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseConfig {
+  static #Config = class Config extends BaseComponent.Config {
     // @defaultConstructor
 
     /**

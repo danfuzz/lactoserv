@@ -75,13 +75,26 @@ use the following comment in place of an intentionally omitted constructor:
   properties. As with base classes, use `Methods.abstract(...)` to prevent
   accidental usage.
 
+* `Templ<Name>` &mdash; A "template class," which in this case really means a
+  factory function for classes, which has arguments for each of the template
+  variables.
+
 * `Type<Name>` &mdash; A `@typedef` declaration, just to be used to annotate
   method arguments, class properties, etc.
+
+* `<Name>Config` &mdash; A configuration class of some sort. These are typically
+  parsed from plain objects and can be passed as arguments to many constructors.
+  Notably, the `compy` component framework requires their use.
 
 * `<Name>Util` &mdash; A "utility" class which is not meant to be instantiated,
   and which only contains `static` methods.
 
 ### Member naming (and details)
+
+* `_config_<name>` &mdash; Method defined by configuration classes which are
+  (direct or indirect) subclasses of `compy.BaseConfig`. Each such method is
+  responsible for validating and parsing/converting the correspondingly named
+  property of a plain-object configuration.
 
 * `_impl_<name>` &mdash; Declared in base classes, _either_ as abstract and left
   for subclasses to fill in (as specified by the base class), or with a

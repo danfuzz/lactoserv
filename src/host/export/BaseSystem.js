@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, BaseConfig, BaseThreadComponent, BaseWrappedHierarchy,
+import { BaseComponent, BaseThreadComponent, BaseWrappedHierarchy,
   RootControlContext }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
@@ -103,11 +103,6 @@ export class BaseSystem extends BaseThreadComponent {
       /** @override */
       async _impl_makeHierarchy(oldRoot) {
         return makeHierarchy(oldRoot);
-      }
-
-      /** @override */
-      static _impl_configClass() {
-        return BaseConfig;
       }
     }
 

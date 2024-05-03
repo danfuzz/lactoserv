@@ -20,50 +20,22 @@ import { Names } from '@this/compy';
  */
 export class ServiceUseConfig {
   /**
-   * The role-to-service mapping.
-   *
-   * @type {Map<string, string>}
-   */
-  #map;
-
-  /**
    * Constructs an instance.
    *
    * @param {object} rawConfig Configuration object. See class header for
    *   details.
    */
   constructor(rawConfig) {
-    this.#map = Object.freeze(new Map(Object.entries(rawConfig)));
-
-    for (const [role, name] of this.#map) {
+    for (const [role, name] of Object.entries(rawConfig)) {
       Names.checkName(role);
       Names.checkName(name);
+
       if (!ServiceUseConfig.#ROLES.has(role)) {
         throw new Error(`Invalid role: ${role}`);
       }
+
+      Reflect.defineProperty(this, role, { value: name });
     }
-  }
-
-  /** @returns {?string} Service name for `accessLog` role, if any. */
-  get accessLog() {
-    return this.#map.get('accessLog') ?? null;
-  }
-
-  /** @returns {?string} Service name for `dataRateLimiter` role, if any. */
-  get dataRateLimiter() {
-    return this.#map.get('dataRateLimiter') ?? null;
-  }
-
-  /** @returns {Map<string, string>} The map of roles to service names. */
-  get map() {
-    return this.#map;
-  }
-
-  /**
-   * @returns {?string} Service name for `connectionRateLimiter` role, if any.
-   */
-  get connectionRateLimiter() {
-    return this.#map.get('connectionRateLimiter') ?? null;
   }
 
 

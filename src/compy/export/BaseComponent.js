@@ -5,6 +5,7 @@ import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, Methods, MustBe } from '@this/typey';
 
+import { BaseConfig } from '#x/BaseConfig';
 import { ControlContext } from '#x/ControlContext';
 import { Names } from '#x/Names';
 import { RootControlContext } from '#x/RootControlContext';
@@ -62,30 +63,26 @@ export class BaseComponent {
    * here).
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
-   *   correct) configuration for this instance, or `null` if it has no
-   *   associated configuration. If `null` then the class must define {@link
-   *   #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
-   *   instance of {@link #CONFIG_CLASS} _or_ must be a plain object which is
-   *   acceptable to the constructor of {@link #CONFIG_CLASS}.
+   *   correct) configuration for this instance. It must either be an instance
+   *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which
+   *   is acceptable to the constructor of that class, or `null` (equivalent to
+   *   `{}`, that is, an empt object) to have no configuration properties.
+   *   Default `null`.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
    */
   constructor(rawConfig = null, rootContext = null) {
+    rawConfig ??= {};
+
     const configClass = this.constructor.CONFIG_CLASS;
-    if (rawConfig === null) {
-      if (configClass !== null) {
-        throw new Error('Expected object argument for `rawConfig`.');
-      }
-      this.#config = null;
-    } else if (configClass === null) {
-      throw new Error('Expected `null` argument for `rawConfig`.');
-    } else if (rawConfig instanceof configClass) {
+
+    if (rawConfig instanceof configClass) {
       this.#config = rawConfig;
     } else if (AskIf.plainObject(rawConfig)) {
       const thisClass = this.constructor;
       const rawClass  = rawConfig.class;
-      if (rawClass) {
+      if ((rawClass !== null) && (rawClass !== undefined)) {
         if (!AskIf.constructorFunction(rawClass)) {
           throw new Error('Expected class for `rawConfig.class`.');
         } else if (rawConfig.class !== thisClass) {
@@ -423,10 +420,7 @@ export class BaseComponent {
 
     const configClass = this._impl_configClass();
 
-    if (configClass !== null) {
-      MustBe.constructorFunction(configClass);
-    }
-
+    MustBe.constructorFunction(configClass);
     BaseComponent.#configClass.set(this, configClass);
 
     return configClass;
@@ -486,13 +480,36 @@ export class BaseComponent {
   }
 
   /**
-   * @returns {?function(new:object, object)} The expected configuration class
-   * for this class, or `null` if this class does not use a configuration class.
-   * The base class calls this exactly once to get the value to return from
-   * {@link #CONFIG_CLASS} Defaults to `null`. Subclasses are expected to
-   * override this as necessary.
+   * @returns {function(new:object, object)} The expected configuration class
+   * for this class. This (base) class calls this method exactly once to get the
+   * value to return from {@link #CONFIG_CLASS} Defaults to {@link #Config}.
+   * Subclasses are expected to override this as necessary.
    */
   static _impl_configClass() {
-    return null;
+    return BaseComponent.Config;
   }
+
+  /**
+   * Default configuration subclass for this (outer) class, which adds `name` as
+   * an optional configuration property.
+   */
+  static Config = class Config extends BaseConfig {
+    // @defaultConstructor
+
+    /**
+     * Configuration property: The item's name, or `null` if it does not have a
+     * configured name. If `null`, the corresponding component will get a
+     * synthesized name as soon as it is attached to a hierarchy. If non-`null`,
+     * it must adhere to the syntax defined by {@link Names#checkName}. Names
+     * are used when finding a component in its hierarchy, and when logging.
+     *
+     * @param {?string} [value] Proposed configuration value. Default `null`.
+     * @returns {?string} Accepted configuration value.
+     */
+    _config_name(value = null) {
+      return (value === null)
+        ? null
+        : Names.checkName(value);
+    }
+  };
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseComponent, BaseConfig } from '@this/compy';
+import { BaseComponent } from '@this/compy';
 
 
 /**
@@ -273,7 +273,7 @@ export class BaseService extends BaseComponent {
    * remember the persnickety detail of which class in the `compy` module is the
    * most appropriate one to derive from.
    */
-  static Config = class Config extends BaseConfig {
+  static Config = class Config extends BaseComponent.Config {
     // @emptyBlock
   };
 }

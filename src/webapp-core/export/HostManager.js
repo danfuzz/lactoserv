@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreeMap } from '@this/collections';
-import { BaseAggregateComponent, BaseConfig } from '@this/compy';
+import { BaseAggregateComponent } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
@@ -97,11 +97,6 @@ export class HostManager extends BaseAggregateComponent {
   //
   // Static members
   //
-
-  /** @override */
-  static _impl_configClass() {
-    return BaseConfig;
-  }
 
   /**
    * The main implementation of this (outer) class. This exists as a separate
