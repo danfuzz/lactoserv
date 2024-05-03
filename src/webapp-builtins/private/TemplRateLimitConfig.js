@@ -2,23 +2,29 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Frequency, UnitQuantity } from '@this/data-values';
-import { Methods, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 
 /**
  * Template class for parsing rate limiter configurations. It is parametric on
  * the token type.
  *
- * @param {function(new:*)} superclass The superclass to inherit from.
- * @param {function(new:UnitQuantity)} countType Unit quantity class for counts.
- * @param {function(new:UnitQuantity)} rateType Unit quantity class for rates.
+ * @param {string} className The name of the resulting class.
+ * @param {function(new:*)} superclass The superclass to extend (inherit from).
+ * @param {object} params Template parameters.
+ * @param {function(new:UnitQuantity)} params.countType Unit quantity class for
+ *   counts.
+ * @param {function(new:UnitQuantity)} params.rateType Unit quantity class for
+ *   rates.
+ * @returns {function(new:*)} The instantiated template class.
  */
-export const TemplRateLimitConfig = (superclass, countType, rateType) => {
+export const TemplRateLimitConfig = (className, superclass, { countType, rateType }) => {
   MustBe.constructorFunction(superclass);
+  MustBe.string(className);
   MustBe.constructorFunction(countType);
   MustBe.constructorFunction(rateType);
 
-  return class MixinRateLimitConfig extends superclass {
+  return class RateLimitConfig extends superclass {
     // @defaultConstructor
 
     /**
@@ -47,7 +53,7 @@ export const TemplRateLimitConfig = (superclass, countType, rateType) => {
      * @returns {UnitQuantity} Accepted configuration value.
      */
     _config_maxBurst(value) {
-      return MixinRateLimitConfig.#parseTokenCount(value, countType, false);
+      return RateLimitConfig.#parseTokenCount(value, countType, false);
     }
 
     /**
@@ -66,11 +72,11 @@ export const TemplRateLimitConfig = (superclass, countType, rateType) => {
         throw new Error('`maxQueueGrant` does not make sense for this kind of rate limiter.');
       }
 
-      return MixinRateLimitConfig.#parseTokenCount(value, countType, true);
+      return RateLimitConfig.#parseTokenCount(value, countType, true);
     }
 
     _config_maxQueue(value = null) {
-      return MixinRateLimitConfig.#parseTokenCount(value, countType, true);
+      return RateLimitConfig.#parseTokenCount(value, countType, true);
     }
 
     _impl_allowMaxQueueGrant() {
@@ -101,10 +107,15 @@ export const TemplRateLimitConfig = (superclass, countType, rateType) => {
     // Static members
     //
 
+    static get name() {
+      return className;
+    }
+
     /**
      * Parses a token count of some sort.
      *
      * @param {?string|UnitQuantity} value Proposed configuration value.
+     * @param {boolean} allowNull Is `null` allowed for `value`?
      * @returns {UnitQuantity} Accepted configuration value.
      */
     static #parseTokenCount(value, allowNull) {
@@ -126,5 +137,5 @@ export const TemplRateLimitConfig = (superclass, countType, rateType) => {
       // `TokenBucket` always wants a plain `number` for its token counts.
       return result.value;
     }
-  }
-}
+  };
+};

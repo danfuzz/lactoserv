@@ -83,5 +83,11 @@ export class ConnectionRateLimiter extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = TemplRateLimitConfig(BaseService.Config, ConnectionCount, ConnectionRate);
+  static #Config = TemplRateLimitConfig(
+    'ConnectionRateLimiterConfig',
+    BaseService.Config,
+    {
+      countType: ConnectionCount,
+      rateType:  ConnectionRate
+    });
 }
