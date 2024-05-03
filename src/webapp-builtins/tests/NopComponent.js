@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, BaseConfig } from '@this/compy';
+import { BaseAggregateComponent } from '@this/compy';
 
 
 /**
@@ -24,15 +24,5 @@ export class NopComponent extends BaseAggregateComponent {
   /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
-  }
-
-
-  //
-  // Static members
-  //
-
-  /** @override */
-  static _impl_configClass() {
-    return BaseConfig;
   }
 }

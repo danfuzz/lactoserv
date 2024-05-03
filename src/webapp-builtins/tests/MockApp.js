@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConfig } from '@this/compy';
 import { FullResponse, IntfRequestHandler } from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
 
@@ -51,15 +50,5 @@ export class MockApp extends BaseApplication {
   /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
-  }
-
-
-  //
-  // Static members
-  //
-
-  /** @override */
-  static _impl_configClass() {
-    return BaseConfig;
   }
 }

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, BaseConfig, RootControlContext }
+import { BaseAggregateComponent, RootControlContext }
   from '@this/compy';
 
 
@@ -22,11 +22,6 @@ class MockComponent extends BaseAggregateComponent {
   /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
-  }
-
-  /** @override */
-  static _impl_configClass() {
-    return BaseConfig;
   }
 }
 

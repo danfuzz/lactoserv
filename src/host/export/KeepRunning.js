@@ -3,7 +3,7 @@
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseConfig, BaseThreadComponent } from '@this/compy';
+import { BaseThreadComponent } from '@this/compy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 
@@ -51,9 +51,4 @@ export class KeepRunning extends BaseThreadComponent {
    * @type {number}
    */
   static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
-
-  /** @override */
-  static _impl_configClass() {
-    return BaseConfig;
-  }
 }
