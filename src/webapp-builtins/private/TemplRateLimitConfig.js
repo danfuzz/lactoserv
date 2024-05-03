@@ -12,15 +12,18 @@ import { MustBe } from '@this/typey';
  * @param {string} className The name of the resulting class.
  * @param {function(new:*)} superclass The superclass to extend (inherit from).
  * @param {object} params Template parameters.
+ * @param {boolean} [params.allowMaxQueueGrant] Whether to recognize
+ *   `maxQueueGrant` configuration. Default `false`.
  * @param {function(new:UnitQuantity)} params.countType Unit quantity class for
  *   counts.
  * @param {function(new:UnitQuantity)} params.rateType Unit quantity class for
  *   rates.
  * @returns {function(new:*)} The instantiated template class.
  */
-export const TemplRateLimitConfig = (className, superclass, { countType, rateType }) => {
+export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant = false, countType, rateType }) => {
   MustBe.constructorFunction(superclass);
   MustBe.string(className);
+  MustBe.boolean(allowMaxQueueGrant);
   MustBe.constructorFunction(countType);
   MustBe.constructorFunction(rateType);
 
@@ -64,8 +67,21 @@ export const TemplRateLimitConfig = (className, superclass, { countType, rateTyp
      * @param {?string|UnitQuantity} value Proposed configuration value.
      * @returns {?UnitQuantity} Accepted configuration value.
      */
+    _config_maxQueue(value = null) {
+      return RateLimitConfig.#parseTokenCount(value, countType, true);
+    }
+
+    /**
+     * Maximum count of items that will be returned in a single grant, or `null`
+     * to use the default limit (of the smaller of `maxBurst` and `maxQueue`).
+     * If passed as a `string` it is parsed into an instance of the appropriate
+     * unit-count class.
+     *
+     * @param {?string|UnitQuantity} value Proposed configuration value.
+     * @returns {?UnitQuantity} Accepted configuration value.
+     */
     _config_maxQueueGrant(value = null) {
-      if (!this._impl_allowMaxQueueGrant()) {
+      if (!allowMaxQueueGrant) {
         if (value === null) {
           return null;
         }
@@ -75,14 +91,7 @@ export const TemplRateLimitConfig = (className, superclass, { countType, rateTyp
       return RateLimitConfig.#parseTokenCount(value, countType, true);
     }
 
-    _config_maxQueue(value = null) {
-      return RateLimitConfig.#parseTokenCount(value, countType, true);
-    }
-
-    _impl_allowMaxQueueGrant() {
-      return false;
-    }
-
+    /** @override */
     _impl_validate(config) {
       const result = {
         ...config,
@@ -107,6 +116,11 @@ export const TemplRateLimitConfig = (className, superclass, { countType, rateTyp
     // Static members
     //
 
+    /**
+     * @returns {string} The class name. This is arguably the best way for a
+     * class to end up with a dynamically-generated name. (E.g., `class [name]
+     * {...}`) is not valid syntax.)
+     */
     static get name() {
       return className;
     }
