@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseConfig } from '@this/compy';
+import { BaseComponent } from '@this/compy';
 import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
   StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
@@ -117,7 +117,7 @@ export class BaseApplication extends BaseComponent {
    * remember the persnickety detail of which class in the `compy` module is the
    * most appropriate one to derive from.
    */
-  static Config = class Config extends BaseConfig {
+  static Config = class Config extends BaseComponent.Config {
     // @emptyBlock
   };
 }

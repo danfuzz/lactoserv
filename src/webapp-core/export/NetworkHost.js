@@ -6,7 +6,7 @@ import * as tls from 'node:tls';
 
 import pem from 'pem';
 
-import { BaseComponent, BaseConfig } from '@this/compy';
+import { BaseComponent } from '@this/compy';
 import { CertUtil, HostUtil } from '@this/net-util';
 import { MustBe, StringUtil } from '@this/typey';
 
@@ -199,7 +199,7 @@ export class NetworkHost extends BaseComponent {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseConfig {
+  static #Config = class Config extends BaseComponent.Config {
     // @defaultConstructor
 
     /**

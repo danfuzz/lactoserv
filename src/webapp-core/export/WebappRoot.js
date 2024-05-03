@@ -3,7 +3,7 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseComponent, BaseConfig, RootControlContext }
+import { BaseComponent, RootControlContext }
   from '@this/compy';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -192,7 +192,7 @@ export class WebappRoot extends BaseComponent {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseConfig {
+  static #Config = class Config extends BaseComponent.Config {
     // @defaultConstructor
 
     /**
