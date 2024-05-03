@@ -47,24 +47,6 @@ export class BaseConfig {
   }
 
   /**
-   * Configuration property: The item's name, or `null` if it does not have a
-   * configured name. If `null`, the corresponding component will get a
-   * synthesized name as soon as it is attached to a hierarchy. If non-`null`,
-   * it must adhere to the syntax defined by {@link Names#checkName}. Names are
-   * used when finding a component in its hierarchy, and for use when logging.
-   *
-   * @param {?string} [value] Proposed configuration value. Default `null`.
-   * @returns {?string} Accepted configuration value.
-   */
-  _config_name(value = null) {
-    if (value === null) {
-      return null;
-    }
-
-    return Names.checkName(value);
-  }
-
-  /**
    * Validates a processed configuration object, optionally changing properties,
    * prior to actually setting its properties on this instance. Subclasses
    * should override this if they need to do any final validation or tweakage.
