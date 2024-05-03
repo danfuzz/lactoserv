@@ -19,8 +19,9 @@ file rotation and cleanup. A `rotate` configuration is an object with the
 following bindings:
 
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
-  greater. Optional, and if not specified (or if `null`), does not rotate based
-  on size.
+  greater, specified as a byte count as described in
+  [`ByteCount`](./2-common-configuration.md#bytecount), or `null` to not rotate
+  based on size. Optional, and defaults to `null`.
 * `checkPeriod` &mdash; How often to check for a rotation condition, specified
   as a duration value as described in
   [`Duration`](./2-common-configuration.md#duration), or `null` to

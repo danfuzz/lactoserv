@@ -53,9 +53,11 @@ export class Rotator extends BaseFilePreserver {
       return;
     }
 
+    const atSize = this.#config.rotate.atSize.byte;
+
     try {
       const stats = await Statter.statOrNull(this.#config.path);
-      if (stats && (stats.size >= this.#config.rotate.atSize)) {
+      if (stats && (stats.size >= atSize)) {
         this._prot_saveNow();
       }
     } catch (e) {
