@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
+import { BaseConfig } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
@@ -171,82 +172,55 @@ export class BaseFileService extends BaseService {
   /**
    * Configuration class for `save` bindings.
    */
-  static SaveConfig = class SaveConfig {
+  static SaveConfig = class SaveConfig extends BaseConfig {
+    // @defaultConstructor
+
     /**
      * The maximum number of old-file bytes to allow, if so limited.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #maxOldBytes;
+    _config_maxOldBytes(value = null) {
+      if (value === null) {
+        return null;
+      }
+
+      return MustBe.number(value, { finite: true, minInclusive: 1 });
+    }
 
     /**
      * The maximum number of old files to allow, if so limited.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #maxOldCount;
+    _config_maxOldCount(value = null) {
+      if (value === null) {
+        return null;
+      }
+
+      return MustBe.number(value, { finite: true, minInclusive: 1 });
+    }
 
     /**
      * Rotate when starting the system?
      *
-     * @type {boolean}
+     * @param {?boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    #onStart;
+    _config_onStart(value = false) {
+      return MustBe.boolean(value);
+    }
 
     /**
      * Rotate when stopping the system?
      *
-     * @type {boolean}
+     * @param {?boolean} [value] Proposed configuration value. Default `false`.
+     * @returns {boolean} Accepted configuration value.
      */
-    #onStop;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Configuration object.
-     */
-    constructor(rawConfig) {
-      const {
-        maxOldBytes = null,
-        maxOldCount = null,
-        onStart     = false,
-        onStop      = false
-      } = rawConfig;
-
-      this.#maxOldBytes = (maxOldBytes === null)
-        ? null
-        : MustBe.number(maxOldBytes, { finite: true, minInclusive: 1 });
-      this.#maxOldCount = (maxOldCount === null)
-        ? null
-        : MustBe.number(maxOldCount, { finite: true, minInclusive: 1 });
-      this.#onStart  = MustBe.boolean(onStart);
-      this.#onStop   = MustBe.boolean(onStop);
-    }
-
-    /**
-     * @returns {?number} The maximum number of old-file bytes to allow, or
-     * `null` if there is no limit.
-     */
-    get maxOldBytes() {
-      return this.#maxOldBytes;
-    }
-
-    /**
-     * @returns {?number} The maximum number of old files to allow, or `null` if
-     * there is no limit.
-     */
-    get maxOldCount() {
-      return this.#maxOldCount;
-    }
-
-    /** @returns {boolean} Rotate when starting the system? */
-    get onStart() {
-      return this.#onStart;
-    }
-
-    /** @returns {boolean} Rotate when stopping the system? */
-    get onStop() {
-      return this.#onStop;
+    _config_onStop(value = false) {
+      return MustBe.boolean(value);
     }
   };
 
@@ -254,62 +228,53 @@ export class BaseFileService extends BaseService {
    * Configuration class for `rotate` bindings.
    */
   static RotateConfig = class RotateConfig extends BaseFileService.SaveConfig {
+    // @defaultConstructor
+
     /**
      * The file size at which to rotate, if ever.
      *
-     * @type {?number}
+     * @param {?number} [value] Proposed configuration value. Default `null`.
+     * @returns {?number} Accepted configuration value.
      */
-    #atSize;
-
-    /**
-     * How often to check for rotation eligibility, if at all.
-     *
-     * @type {?Duration}
-     */
-    #checkPeriod;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const {
-        atSize      = null,
-        checkPeriod = null
-      } = rawConfig;
-
-      this.#atSize = (atSize === null)
-        ? null
-        : MustBe.number(atSize, { finite: true, minInclusive: 1 });
-
-      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { range: { minInclusive: 1 } });
-      if (!this.#checkPeriod) {
-        throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
+    _config_atSize(value = null) {
+      if (value === null) {
+        return null;
       }
 
-      if (this.#atSize === null) {
-        // `checkPeriod` is irrelevant in this case.
-        this.#checkPeriod = null;
-      }
+      return MustBe.number(value, { finite: true, minInclusive: 1 });
     }
 
     /**
-     * @returns {?number} The file size at which to rotate, or `null` not to do
-     * file size checks.
+     * How often to check for rotation eligibility, if at all. If passed as a
+     * string, it is parsed by {@link Duration#parse}.
+     *
+     * @param {?string|Duration} [value] Proposed configuration value. Default
+     *   `'5 min'`.
+     * @returns {?Duration} Accepted configuration value.
      */
-    get atSize() {
-      return this.#atSize;
+    _config_checkPeriod(value = '5 min') {
+      if (value === null) {
+        return null;
+      }
+
+      const result = Duration.parse(value, { range: { minInclusive: 1 } });
+
+      if (!result) {
+        throw new Error(`Could not parse \`checkPeriod\`: ${value}`);
+      }
+
+      return result;
     }
 
-    /**
-     * @returns {?Duration} How often to check for rotation eligibility, or
-     * `null` not to ever check.
-     */
-    get checkPeriod() {
-      return this.#checkPeriod;
+    /** @override */
+    _impl_validate(config) {
+      const { atSize, checkPeriod } = config;
+
+      if ((atSize === null) && (checkPeriod !== null)) {
+        throw new Error('Configuring `checkPeriod` is not meaningful unless `atSize` is also used.');
+      }
+
+      return super._impl_validate(config);
     }
   };
 }
