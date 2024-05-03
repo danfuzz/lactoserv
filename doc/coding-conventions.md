@@ -75,6 +75,10 @@ use the following comment in place of an intentionally omitted constructor:
   properties. As with base classes, use `Methods.abstract(...)` to prevent
   accidental usage.
 
+* `Templ<Name>` &mdash; A "template class," which in this case really means a
+  factory function for classes, which has arguments for each of the template
+  variables.
+
 * `Type<Name>` &mdash; A `@typedef` declaration, just to be used to annotate
   method arguments, class properties, etc.
 
