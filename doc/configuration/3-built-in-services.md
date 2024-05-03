@@ -207,27 +207,31 @@ bindings:
   `null`) to not have a grace period at all. Default `0`. **Note:** When in the
   middle of a grace period, the service will check memory usage more often than
   `checkPeriod` so as not to miss a significant dip.
-* `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
-  `null` for no limit on this. The amount counted is `heapTotal + external` from
-  `process.memoryUsage()`. Defaults to `null`. **Note:** In order to catch
-  probably-unintentional misconfiguration, if a number, must be at least one
-  megabyte.
-* `maxRssBytes` &mdash; How many bytes of RSS is considered "over limit," or
-  `null` for no limit on this. Defaults to `null`. **Note:** In order to catch
-  probably-unintentional misconfiguration, if non-`null`, must be at least one
-  megabyte.
+* `maxHeap` &mdash; How many bytes of heap is considered "over limit," or `null`
+  for no limit on this. Defaults to `null`. If non-`null`, it is expected to be
+  a byte count as described in
+  [`ByteCount`](./2-common-configuration.md#bytecount). The amount counted is
+  `heapTotal + external` from `process.memoryUsage()`. Defaults to `null`.
+  **Note:** In order to catch probably-unintentional misconfiguration, if a
+  number, must be at least one megabyte.
+* `maxRss` &mdash; How many bytes of RSS is considered "over limit," or `null`
+  for no limit on this. Defaults to `null`. If non-`null`, it is expected to be
+  a byte count as described in
+  [`ByteCount`](./2-common-configuration.md#bytecount). **Note:** In order to
+  catch probably-unintentional misconfiguration, if non-`null`, must be at least
+  one megabyte.
 
 ```js
 import { MemoryMonitor } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
-    name:         'memory',
-    class:        MemoryMonitor,
-    checkPeriod:  '5 min',
-    gracePeriod:  '1 min',
-    maxHeapBytes: 100 * 1024 * 1024,
-    maxRssBytes:  150 * 1024 * 1024
+    name:        'memory',
+    class:       MemoryMonitor,
+    checkPeriod: '5 min',
+    gracePeriod: '1 min',
+    maxHeap:     '100 MiB',
+    maxRss:      '150 MiB'
   }
 ];
 ```
