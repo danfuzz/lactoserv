@@ -55,7 +55,7 @@ export class Mutex {
    *   called.
    */
   async lock() {
-    const key = Symbol('mutex_key'); // Uninterned symbol and so unique.
+    const key = Symbol('mutexKey'); // Uninterned, therefore a unique object.
 
     if (this.#lockedBy !== null) {
       // There's contention, so we have to queue up. The function queued up on
