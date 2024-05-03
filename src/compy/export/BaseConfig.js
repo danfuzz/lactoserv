@@ -3,8 +3,6 @@
 
 import { MustBe } from '@this/typey';
 
-import { Names } from '#x/Names';
-
 
 /**
  * Base class for configuration representation classes. Each concrete subclass
