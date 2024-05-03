@@ -176,17 +176,26 @@ export class BaseFileService extends BaseService {
     // @defaultConstructor
 
     /**
-     * The maximum number of old-file bytes to allow, if so limited.
+     * The maximum size of old files to allow (in aggregate), or `null` to not
+     * have such a size limit. if so limited. If passed as a string, it is
+     * parsed by {@link ByteCount#parse}.
      *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?ByteCount} Accepted configuration value.
      */
-    _config_maxOldBytes(value = null) {
+    _config_maxOldSize(value = null) {
       if (value === null) {
         return null;
       }
 
-      return MustBe.number(value, { finite: true, minInclusive: 1 });
+      const result = ByteCount.parse(value, { range: { minInclusive: 1 } });
+
+      if (result === null) {
+        throw new Error(`Could not parse \`maxOldSize\`: ${value}`);
+      }
+
+      return result;
     }
 
     /**
@@ -235,7 +244,7 @@ export class BaseFileService extends BaseService {
      * file size. If passed as a string, it is parsed by {@link
      * ByteCount#parse}.
      *
-     * @param {?string|ByteCount} value Proposed configuration value. Default
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
      *   `null`.
      * @returns {?ByteCount} Accepted configuration value.
      */

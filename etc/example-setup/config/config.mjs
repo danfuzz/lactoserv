@@ -71,7 +71,7 @@ const services = [
     rotate: {
       atSize:      '1 MiB',
       onStart:     true,
-      maxOldBytes: 10 * 1024 * 1024,
+      maxOldSize: '10 MiB',
       checkPeriod: '1 min'
     }
   },
@@ -85,7 +85,7 @@ const services = [
       atSize:      '2 MiB',
       onStart:     true,
       onStop:      true,
-      maxOldBytes: 10 * 1024 * 1024,
+      maxOldSize:  '10 MiB',
       maxOldCount: 10,
       checkPeriod: '1 min'
     }
