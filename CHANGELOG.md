@@ -11,6 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* configuration / `webapp-builtins`:
+  * Changed `MemoryMonitor` to use `ByteCount`s for the limit configuration.
 * `compy`:
   * Reworked how component classes define their configuration properties, to
     be way more ergonomic, avoiding a lot of formerly-required boilerplate and
