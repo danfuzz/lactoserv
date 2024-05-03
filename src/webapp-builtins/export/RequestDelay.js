@@ -166,7 +166,13 @@ export class RequestDelay extends BaseApplication {
      * @returns {Duration} The parsed value.
      */
     static #parseDelay(value) {
-      return Duration.parse(value, { range: { minInclusive: 0 } });
+      const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+      if (result === null) {
+        throw new Error(`Could not parse delay value: ${value}`);
+      }
+
+      return result;
     }
   };
 }

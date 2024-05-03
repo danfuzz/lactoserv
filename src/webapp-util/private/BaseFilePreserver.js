@@ -155,12 +155,14 @@ export class BaseFilePreserver {
    * Deletes old (post-preservation) files, as configured.
    */
   async #deleteOldFiles() {
-    const { maxOldCount = null, maxOldBytes = null } = this.#config.save;
+    const { maxOldCount = null, maxOldSize = null } = this.#config.save;
 
-    if ((maxOldCount === null) && (maxOldBytes === null)) {
+    if ((maxOldCount === null) && (maxOldSize === null)) {
       // Not configured to do a deletion pass.
       return;
     }
+
+    const maxOldBytes = maxOldSize?.byte ?? null;
 
     // Find all the files, and sort from newest to oldest.
     const files = await this.#findFiles({ today: true, pastDays: true });

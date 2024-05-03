@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
 import { BaseConfig } from '@this/compy';
-import { Duration } from '@this/data-values';
+import { ByteCount, Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
@@ -176,17 +176,26 @@ export class BaseFileService extends BaseService {
     // @defaultConstructor
 
     /**
-     * The maximum number of old-file bytes to allow, if so limited.
+     * The maximum size of old files to allow (in aggregate), or `null` to not
+     * have such a size limit. if so limited. If passed as a string, it is
+     * parsed by {@link ByteCount#parse}.
      *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?ByteCount} Accepted configuration value.
      */
-    _config_maxOldBytes(value = null) {
+    _config_maxOldSize(value = null) {
       if (value === null) {
         return null;
       }
 
-      return MustBe.number(value, { finite: true, minInclusive: 1 });
+      const result = ByteCount.parse(value, { range: { minInclusive: 1 } });
+
+      if (result === null) {
+        throw new Error(`Could not parse \`maxOldSize\`: ${value}`);
+      }
+
+      return result;
     }
 
     /**
@@ -231,17 +240,26 @@ export class BaseFileService extends BaseService {
     // @defaultConstructor
 
     /**
-     * The file size at which to rotate, if ever.
+     * The file size at which to rotate, or `null` not to do rotation based on
+     * file size. If passed as a string, it is parsed by {@link
+     * ByteCount#parse}.
      *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?ByteCount} Accepted configuration value.
      */
     _config_atSize(value = null) {
       if (value === null) {
         return null;
       }
 
-      return MustBe.number(value, { finite: true, minInclusive: 1 });
+      const result = ByteCount.parse(value, { range: { minInclusive: 1 } });
+
+      if (result === null) {
+        throw new Error(`Could not parse \`atSize\`: ${value}`);
+      }
+
+      return result;
     }
 
     /**

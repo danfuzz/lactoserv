@@ -69,9 +69,9 @@ const services = [
     format:       'human',
     bufferPeriod: '0.25 sec',
     rotate: {
-      atSize:      1024 * 1024,
+      atSize:      '1 MiB',
       onStart:     true,
-      maxOldBytes: 10 * 1024 * 1024,
+      maxOldSize: '10 MiB',
       checkPeriod: '1 min'
     }
   },
@@ -82,10 +82,10 @@ const services = [
     format:       'json',
     bufferPeriod: '0.25 sec',
     rotate: {
-      atSize:      2 * 1024 * 1024,
+      atSize:      '2 MiB',
       onStart:     true,
       onStop:      true,
-      maxOldBytes: 10 * 1024 * 1024,
+      maxOldSize:  '10 MiB',
       maxOldCount: 10,
       checkPeriod: '1 min'
     }
@@ -97,7 +97,7 @@ const services = [
     bufferPeriod: '0.25 sec',
     maxUrlLength: 120,
     rotate: {
-      atSize:       10000,
+      atSize:       '10000 B',
       maxOldCount:  10,
       checkPeriod:  '1 min'
     }

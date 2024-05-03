@@ -19,17 +19,20 @@ file rotation and cleanup. A `rotate` configuration is an object with the
 following bindings:
 
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
-  greater. Optional, and if not specified (or if `null`), does not rotate based
-  on size.
+  greater, specified as a byte count as described in
+  [`ByteCount`](./2-common-configuration.md#bytecount), or `null` to not rotate
+  based on size. Optional, and defaults to `null`.
 * `checkPeriod` &mdash; How often to check for a rotation condition, specified
   as a duration value as described in
   [`Duration`](./2-common-configuration.md#duration), or `null` to
   indicate "never check." Optional and defaults to `5 min`. If specified, the
   value must be at least one second (so as to prevent excessive churn). This is
   only meaningful if `atSize` is also specified.
-* `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
-  should be allowed, or `null` not to have a limit. The oldest files over the
-  limit get deleted after a rotation. Optional, and defaults to `null`.
+* `maxOldSize` &mdash; How many bytes' worth of old (post-rotation) files
+  should be allowed, specified as a byte count as described in
+  [`ByteCount`](./2-common-configuration.md#bytecount), or `null` not to have a
+  limit. The oldest files over the limit get deleted after a rotation. Optional,
+  and defaults to `null`.
 * `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
   `null` not to have a limit. The oldest files over the limit get deleted after
    a rotation. Optional, and defaults to `null`.
@@ -46,7 +49,7 @@ available. This is an object with bindings with the same meanings and defaults
 as `rotate`, except that rotation-specific ones are not recognized. These are
 the ones that are used by `save`:
 
-* `maxOldBytes`
+* `maxOldSize`
 * `maxOldCount`
 * `onStart`
 * `onStop`
