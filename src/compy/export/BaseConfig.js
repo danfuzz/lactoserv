@@ -148,7 +148,12 @@ export class BaseConfig {
       const keys = Reflect.ownKeys(target);
 
       for (const k of keys) {
+        if (typeof k !== 'string') {
+          continue;
+        }
+
         const name = k.match(/^_config_(?<name>.*)$/)?.groups.name ?? null;
+
         if (name && !result.has(name)) {
           const pd = Reflect.getOwnPropertyDescriptor(target, k);
           if (typeof pd.value === 'function') {
