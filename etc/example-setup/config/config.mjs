@@ -37,12 +37,12 @@ const hosts = [
 // Service definitions.
 const services = [
   {
-    name:         'memory',
-    class:        MemoryMonitor,
-    checkPeriod:  '10 min',
-    gracePeriod:  '1 min',
-    maxHeapBytes: 100 * 1024 * 1024,
-    maxRssBytes:  150 * 1024 * 1024
+    name:        'memory',
+    class:       MemoryMonitor,
+    checkPeriod: '10 min',
+    gracePeriod: '1 min',
+    maxHeap:     '100 MiB',
+    maxRss:      '150 MiB'
   },
   {
     name:         'process',

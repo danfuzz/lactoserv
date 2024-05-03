@@ -5,9 +5,8 @@ import { memoryUsage } from 'node:process';
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { Duration, Moment } from '@this/data-values';
+import { ByteCount, Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
-import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 
 
@@ -76,7 +75,9 @@ export class MemoryMonitor extends BaseService {
       actionAt:  this.#lastSnapshot?.actionAt ?? null
     };
 
-    const { maxHeapBytes, maxRssBytes } = this.config;
+    const { maxHeap, maxRss } = this.config;
+    const maxHeapBytes        = maxHeap?.byte;
+    const maxRssBytes         = maxRss?.byte;
 
     if (   (maxHeapBytes && (snapshot.heap >= maxHeapBytes))
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
@@ -207,27 +208,47 @@ export class MemoryMonitor extends BaseService {
     }
 
     /**
-     * Maximum allowed size of heap usage, in bytes, or `null` for no limit.
+     * Maximum allowed size of heap usage, or `null` for no limit. If passed as
+     * a string, it is parsed by {@link ByteCount#parse}.
      *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?ByteCount} Accepted configuration value.
      */
-    _config_maxHeapBytes(value = null) {
-      return (value === null)
-        ? null
-        : MustBe.number(value, { finite: true, minInclusive: 1024 * 1024 });
+    _config_maxHeap(value = null) {
+      if (value === null) {
+        return null;
+      }
+
+      const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
+
+      if (!result) {
+        throw new Error(`Could not parse \`maxHeap\`: ${value}`);
+      }
+
+      return result;
     }
 
     /**
-     * Maximum allowed size of RSS, in bytes, or `null` for no limit.
+     * Maximum allowed size of RSS, or `null` for no limit. If passed as a
+     * string, it is parsed by {@link ByteCount#parse}.
      *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
+     * @param {?string|ByteCount} [value] Proposed configuration value. Default
+     *   `null`.
+     * @returns {?ByteCount} Accepted configuration value.
      */
-    _config_maxRssBytes(value = null) {
-      return (value === null)
-        ? null
-        : MustBe.number(value, { finite: true, minInclusive: 1024 * 1024 });
+    _config_maxRss(value = null) {
+      if (value === null) {
+        return null;
+      }
+
+      const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
+
+      if (!result) {
+        throw new Error(`Could not parse \`maxRss\`: ${value}`);
+      }
+
+      return result;
     }
   };
 }
