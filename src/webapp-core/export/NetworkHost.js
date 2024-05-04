@@ -126,7 +126,78 @@ export class NetworkHost extends BaseComponent {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseComponent.Config {
+      // @defaultConstructor
+
+      /**
+       * Single string or array thereof, indicating the hostnames which are to
+       * be covered by the instance. Hostnames can be absolute, partial
+       * wildcards, or a full wildcard.
+       *
+       * @param {string|Array<string>} value Proposed configuration value.
+       * @returns {Array<string>} Accepted configuration value.
+       */
+      _config_hostnames(value) {
+        return StringUtil.checkAndFreezeStrings(
+          value,
+          (item) => HostUtil.checkHostname(item, true));
+      }
+
+      /**
+       * The certificate for the hosts, as PEM-encoded data. Allowed to be
+       * `null` _only_ if `selfSigned` is configured as `true`.
+       *
+       * @param {?string} value Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_certificate(value = null) {
+        return (value === null)
+          ? null
+          : CertUtil.checkCertificateChain(NetworkHost.#bufferFilter(value));
+      }
+
+      /**
+       * The private key for the hosts, as PEM-encoded data. Allowed to be
+       * `null` _only_ if `selfSigned` is configured as `true`.
+       *
+       * @param {?string} value Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_privateKey(value = null) {
+        return (value === null)
+          ? null
+          : CertUtil.checkPrivateKey(NetworkHost.#bufferFilter(value));
+      }
+
+      /**
+       * Is this to be a self-signed certificate?
+       *
+       * @param {boolean} [value] Proposed configuration value. Default `false`.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_selfSigned(value = false) {
+        return MustBe.boolean(value);
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        const { certificate, privateKey, selfSigned } = config;
+
+        if (selfSigned) {
+          if (certificate || privateKey) {
+            throw new Error('Cannot use `certificate` with `selfSigned === true`.');
+          }
+        } else if (!(certificate && privateKey)) {
+          throw new Error('Need either `certificate` and `privateKey`, or `selfSigned: true`.');
+        } else if (!certificate) {
+          throw new Error('Missing option `certificate`.');
+        } else if (!privateKey) {
+          throw new Error('Missing option `privateKey`.');
+        }
+
+        return super._impl_validate(config);
+      }
+    };
   }
 
   /**
@@ -195,80 +266,4 @@ export class NetworkHost extends BaseComponent {
       privateKey:  pemResult.clientKey
     };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseComponent.Config {
-    // @defaultConstructor
-
-    /**
-     * Single string or array thereof, indicating the hostnames which are to be
-     * covered by the instance. Hostnames can be absolute, partial wildcards, or
-     * a full wildcard.
-     *
-     * @param {string|Array<string>} value Proposed configuration value.
-     * @returns {Array<string>} Accepted configuration value.
-     */
-    _config_hostnames(value) {
-      return StringUtil.checkAndFreezeStrings(
-        value,
-        (item) => HostUtil.checkHostname(item, true));
-    }
-
-    /**
-     * The certificate for the hosts, as PEM-encoded data. Allowed to be `null`
-     * _only_ if `selfSigned` is configured as `true`.
-     *
-     * @param {?string} value Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_certificate(value = null) {
-      return (value === null)
-        ? null
-        : CertUtil.checkCertificateChain(NetworkHost.#bufferFilter(value));
-    }
-
-    /**
-     * The private key for the hosts, as PEM-encoded data. Allowed to be `null`
-     * _only_ if `selfSigned` is configured as `true`.
-     *
-     * @param {?string} value Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_privateKey(value = null) {
-      return (value === null)
-        ? null
-        : CertUtil.checkPrivateKey(NetworkHost.#bufferFilter(value));
-    }
-
-    /**
-     * Is this to be a self-signed certificate?
-     *
-     * @param {boolean} [value] Proposed configuration value. Default `false`.
-     * @returns {boolean} Accepted configuration value.
-     */
-    _config_selfSigned(value = false) {
-      return MustBe.boolean(value);
-    }
-
-    /** @override */
-    _impl_validate(config) {
-      const { certificate, privateKey, selfSigned } = config;
-
-      if (selfSigned) {
-        if (certificate || privateKey) {
-          throw new Error('Cannot use `certificate` with `selfSigned === true`.');
-        }
-      } else if (!(certificate && privateKey)) {
-        throw new Error('Need either `certificate` and `privateKey`, or `selfSigned: true`.');
-      } else if (!certificate) {
-        throw new Error('Missing option `certificate`.');
-      } else if (!privateKey) {
-        throw new Error('Missing option `privateKey`.');
-      }
-
-      return super._impl_validate(config);
-    }
-  };
 }
