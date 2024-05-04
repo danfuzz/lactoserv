@@ -93,31 +93,4 @@ export class BaseApplication extends BaseComponent {
       throw error('async-returned something other than a valid response object or `null`');
     }
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {function(new:BaseApplication.Config)} The class {@link #Config}.
-   *
-   * @override
-   */
-  static _impl_configClass() {
-    return BaseApplication.Config;
-  }
-
-  /**
-   * Default configuration subclass for this (outer) class, which adds no
-   * configuration options.
-   *
-   * This class mostly exists to be an easy target to use when subclasses want
-   * to define configuration classes in the usual way, without having to
-   * remember the persnickety detail of which class in the `compy` module is the
-   * most appropriate one to derive from.
-   */
-  static Config = class Config extends super.prototype.constructor.CONFIG_CLASS {
-    // @emptyBlock
-  };
 }
