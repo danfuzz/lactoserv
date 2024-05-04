@@ -29,22 +29,11 @@ export const TemplRootComponent = (className, superclass) => {
     // Static members
     //
 
-    /**
-     * @returns {function(new:BaseComponent.Config)} The class {@link
-     * #Config}.
-     *
-     * @override
-     */
+    /** @override */
     static _impl_configClass() {
-      return RootComponent.Config;
+      return class Config extends superclass.CONFIG_CLASS {
+        // @emptyBlock
+      };
     }
-
-    /**
-     * Default configuration subclass for this (outer) class, which adds no
-     * configuration options.
-     */
-    static Config = class Config extends superclass.CONFIG_CLASS {
-      // @emptyBlock
-    };
   };
 };
