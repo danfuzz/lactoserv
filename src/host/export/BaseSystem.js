@@ -195,12 +195,4 @@ export class BaseSystem extends RootComponent {
 
     await this.#wrappedHierarchy.restart();
   }
-
-  //
-  // Static members
-  //
-
-  static #CallbackHandler = class CallbackHandler extends BaseThreadComponent {
-
-  };
 }
