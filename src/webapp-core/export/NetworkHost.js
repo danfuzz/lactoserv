@@ -222,7 +222,7 @@ export class NetworkHost extends BaseComponent {
    * Makes the parameters for a newly-generated self-signed certificate and
    * corresponding key.
    *
-   * @param {NetworkHost.Config} config Parsed configuration item.
+   * @param {NetworkHost.CONFIG_CLASS} config Parsed configuration item.
    * @returns {{certificate: string, privateKey: string}} The parameters.
    */
   static async #makeSelfSignedParameters(config) {

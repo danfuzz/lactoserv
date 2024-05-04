@@ -201,8 +201,7 @@ export class WebappRoot extends RootComponent {
        * (which would be unusual). On input, this is expected to be an object
        * suitable as an argument to {@link BaseComponent#evalArray} (see which).
        *
-       * @param {?object|Array<BaseApplication|BaseApplication.Config>} [value]
-       *   Proposed configuration value. Default `null`.
+       * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {Array<BaseApplication>} Accepted configuration value.
        */
       _config_applications(value = null) {
@@ -214,8 +213,7 @@ export class WebappRoot extends RootComponent {
        * would be unusual). On input, this is expected to be an object suitable
        * as an argument to {@link BaseComponent#evalArray} (see which).
        *
-       * @param {?object|Array<NetworkEndpoint|NetworkEndpoint.Config>} [value]
-       *   Proposed configuration value. Default `null`.
+       * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {Array<NetworkEndpoint>} Accepted configuration value.
        */
       _config_endpoints(value = null) {
@@ -227,8 +225,7 @@ export class WebappRoot extends RootComponent {
        * input, this is expected to be an object suitable as an argument to
        * {@link BaseComponent#evalArray} (see which).
        *
-       * @param {?object|Array<NetworkHost|NetworkHost.Config>} [value] Proposed
-       *   configuration value. Default `null`.
+       * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {Array<NetworkHost>} Accepted configuration value.
        */
       _config_hosts(value = null) {
@@ -240,8 +237,7 @@ export class WebappRoot extends RootComponent {
        * this is expected to be an object suitable as an argument to {@link
        * BaseComponent#evalArray} (see which).
        *
-       * @param {?object|Array<BaseService|BaseService.Config>} [value] Proposed
-       *   configuration value. Default `null`.
+       * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {Array<BaseService>} Accepted configuration value.
        */
       _config_services(value = null) {

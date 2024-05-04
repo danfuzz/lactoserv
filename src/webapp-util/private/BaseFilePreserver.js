@@ -23,7 +23,7 @@ export class BaseFilePreserver {
   /**
    * Configuration to use.
    *
-   * @type {BaseFileService.Config}
+   * @type {BaseFileService.CONFIG_CLASS}
    */
   #config;
 
@@ -65,7 +65,7 @@ export class BaseFilePreserver {
   /**
    * Constructs an instance.
    *
-   * @param {BaseFileService.Config} config Configuration to use.
+   * @param {BaseFileService.CONFIG_CLASS} config Configuration to use.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
