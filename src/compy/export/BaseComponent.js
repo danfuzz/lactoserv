@@ -407,9 +407,8 @@ export class BaseComponent {
   static #configClass = new Map();
 
   /**
-   * @returns {?function(new:object, object)} The expected configuration class
-   * for this class, or `null` if this class does not use a configuration class.
-   * Defaults to `null`. Subclasses are expected to override this as necessary.
+   * @returns {function(new:object, object)} The expected configuration class
+   * for this class. Subclasses are expected to override this as necessary.
    */
   static get CONFIG_CLASS() {
     const already = BaseComponent.#configClass.get(this);
