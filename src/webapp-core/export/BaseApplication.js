@@ -117,7 +117,7 @@ export class BaseApplication extends BaseComponent {
    * remember the persnickety detail of which class in the `compy` module is the
    * most appropriate one to derive from.
    */
-  static Config = class Config extends BaseComponent.Config {
+  static Config = class Config extends super.prototype.constructor.CONFIG_CLASS {
     // @emptyBlock
   };
 }

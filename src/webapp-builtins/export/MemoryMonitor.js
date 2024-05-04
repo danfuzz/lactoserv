@@ -162,7 +162,7 @@ export class MemoryMonitor extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends BaseService.Config {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**

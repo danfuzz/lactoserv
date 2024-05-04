@@ -114,7 +114,7 @@ export class SimpleResponse extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends BaseApplication.Config {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**

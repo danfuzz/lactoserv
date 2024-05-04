@@ -193,7 +193,7 @@ export class AccessLogToFile extends BaseFileService {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends BaseFileService.Config {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**

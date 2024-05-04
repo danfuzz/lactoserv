@@ -60,7 +60,7 @@ export class BaseFileService extends BaseService {
   /**
    * Configuration class for this (outer) class.
    */
-  static Config = class Config extends BaseService.Config {
+  static Config = class Config extends super.prototype.constructor.CONFIG_CLASS {
     /**
      * Path parts, or `null` if not yet calculated.
      *

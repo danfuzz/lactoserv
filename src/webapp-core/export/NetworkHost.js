@@ -126,7 +126,7 @@ export class NetworkHost extends BaseComponent {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends BaseComponent.Config {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**
