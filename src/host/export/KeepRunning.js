@@ -4,6 +4,7 @@
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { BaseThreadComponent } from '@this/compy';
+import { Duration } from '@this/data-values';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 
@@ -31,7 +32,7 @@ export class KeepRunning extends BaseThreadComponent {
     // (one way or another) when it's okay for the process to exit.
     while (!runnerAccess.shouldStop()) {
       await runnerAccess.raceWhenStopRequested([
-        WallClock.waitForMsec(KeepRunning.#MSEC_PER_DAY)
+        WallClock.waitFor(KeepRunning.#UPTIME_LOG_DELAY)
       ]);
 
       this.logger?.uptime(ProcessInfo.uptime);
@@ -46,9 +47,9 @@ export class KeepRunning extends BaseThreadComponent {
   //
 
   /**
-   * The number of milliseconds in a day.
+   * The amount of time between each "uptime" log.
    *
-   * @type {number}
+   * @type {Duration}
    */
-  static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
+  static #UPTIME_LOG_DELAY = Duration.parse('1 hour');
 }

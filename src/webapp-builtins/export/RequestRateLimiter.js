@@ -73,17 +73,12 @@ export class RequestRateLimiter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return TemplRateLimitConfig(
+      'RequestRateLimiterConfig',
+      BaseApplication.CONFIG_CLASS,
+      {
+        countType: RequestCount,
+        rateType:  RequestRate
+      });
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = TemplRateLimitConfig(
-    'DataRateLimiterConfig',
-    BaseApplication.Config,
-    {
-      countType: RequestCount,
-      rateType:  RequestRate
-    });
 }

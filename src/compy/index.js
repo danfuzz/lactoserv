@@ -9,3 +9,4 @@ export * from '#x/BaseWrappedHierarchy';
 export * from '#x/ControlContext';
 export * from '#x/Names';
 export * from '#x/RootControlContext';
+export * from '#x/TemplRootComponent';

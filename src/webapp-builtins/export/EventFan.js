@@ -97,26 +97,21 @@ export class EventFan extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
+
+      /**
+       * Names of services to fan out to. Each name must be a valid component
+       * name, per {@link Names#checkName}.
+       *
+       * @param {string|Array<string>} value Proposed configuration value.
+       * @returns {Array<string>} Accepted configuration value.
+       */
+      _config_services(value) {
+        return StringUtil.checkAndFreezeStrings(
+          value,
+          (item) => Names.checkName(item));
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseService.Config {
-    // @defaultConstructor
-
-    /**
-     * Names of services to fan out to. Each name must be a valid component
-     * name, per {@link Names#checkName}.
-     *
-     * @param {string|Array<string>} value Proposed configuration value.
-     * @returns {Array<string>} Accepted configuration value.
-     */
-    _config_services(value) {
-      return StringUtil.checkAndFreezeStrings(
-        value,
-        (item) => Names.checkName(item));
-    }
-  };
 }

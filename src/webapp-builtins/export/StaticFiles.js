@@ -262,77 +262,72 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
+
+      /**
+       * `cache-control` header to automatically include, or `null` not to
+       * include it. Can be passed either as a literal string or an object to be
+       * passed to {@link HttpUtil#cacheControlHeader}.
+       *
+       * @param {?string|object} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_cacheControl(value = null) {
+        if (value === null) {
+          return null;
+        } else if (typeof value === 'string') {
+          return value;
+        } else if (AskIf.plainObject(value)) {
+          return HttpUtil.cacheControlHeader(value);
+        } else {
+          throw new Error('Invalid `cacheControl` option.');
+        }
+      }
+
+      /**
+       * Etag-generating options, `true` for default options, or `null` not to
+       * include an `etag` header in responses.
+       *
+       * @param {?object|true} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?object} Accepted configuration value.
+       */
+      _config_etag(value = null) {
+        if (value === null) {
+          return null;
+        } else if (value === true) {
+          return EtagGenerator.expandOptions({});
+        } else if (AskIf.plainObject(value)) {
+          return EtagGenerator.expandOptions(value);
+        } else {
+          throw new Error('Invalid `etag` option.');
+        }
+      }
+
+      /**
+       * Absolute path to the file to serve for a not-found result, or `null` if
+       * not-found handling shouldn't be done.
+       *
+       * @param {?string} [value] Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_notFoundPath(value = null) {
+        return (value === null)
+          ? null
+          : Paths.checkAbsolutePath(value);
+      }
+
+      /**
+       * Absolute path to the base directory for the site files.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_siteDirectory(value) {
+        return Paths.checkAbsolutePath(value);
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * `cache-control` header to automatically include, or `null` not to include
-     * it. Can be passed either as a literal string or an object to be passed to
-     * {@link HttpUtil#cacheControlHeader}.
-     *
-     * @param {?string|object} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_cacheControl(value = null) {
-      if (value === null) {
-        return null;
-      } else if (typeof value === 'string') {
-        return value;
-      } else if (AskIf.plainObject(value)) {
-        return HttpUtil.cacheControlHeader(value);
-      } else {
-        throw new Error('Invalid `cacheControl` option.');
-      }
-    }
-
-    /**
-     * Etag-generating options, `true` for default options, or `null` not to
-     * include an `etag` header in responses.
-     *
-     * @param {?object|true} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?object} Accepted configuration value.
-     */
-    _config_etag(value = null) {
-      if (value === null) {
-        return null;
-      } else if (value === true) {
-        return EtagGenerator.expandOptions({});
-      } else if (AskIf.plainObject(value)) {
-        return EtagGenerator.expandOptions(value);
-      } else {
-        throw new Error('Invalid `etag` option.');
-      }
-    }
-
-    /**
-     * Absolute path to the file to serve for a not-found result, or `null` if
-     * not-found handling shouldn't be done.
-     *
-     * @param {?string} [value] Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_notFoundPath(value = null) {
-      return (value === null)
-        ? null
-        : Paths.checkAbsolutePath(value);
-    }
-
-    /**
-     * Absolute path to the base directory for the site files.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_siteDirectory(value) {
-      return Paths.checkAbsolutePath(value);
-    }
-  };
 }

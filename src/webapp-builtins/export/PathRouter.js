@@ -88,113 +88,109 @@ export class PathRouter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
-  }
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
 
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
+      /**
+       * Map which goes from a path prefix to the name of the application to
+       * handle that prefix. Each path prefix must be a valid
+       * possibly-wildcarded _absolute_ path prefix. Each name must be a valid
+       * component name, per {@link Names#checkName}. On input, the value must
+       * be a plain object.
+       *
+       * @param {object} value Proposed configuration value.
+       * @returns {TreeMap<string>} Accepted configuration value.
+       */
+      _config_paths(value) {
+        MustBe.plainObject(value);
 
-    /**
-     * Map which goes from a path prefix to the name of the application to
-     * handle that prefix. Each path prefix must be a valid possibly-wildcarded
-     * _absolute_ path prefix. Each name must be a valid component name, per
-     * {@link Names#checkName}. On input, the value must be a plain object.
-     *
-     * @param {object} value Proposed configuration value.
-     * @returns {TreeMap<string>} Accepted configuration value.
-     */
-    _config_paths(value) {
-      MustBe.plainObject(value);
+        const result = new TreeMap();
 
-      const result = new TreeMap();
-
-      for (const [path, name] of Object.entries(value)) {
-        Names.checkName(name);
-        const key = Config.#parsePath(path);
-        result.add(key, name);
-      }
-
-      return result;
-    }
-
-
-    //
-    // Static members
-    //
-
-    /**
-     * Parses a path.
-     *
-     * @param {string} path The path to parse.
-     * @returns {PathKey} The parsed form.
-     */
-    static #parsePath(path) {
-      const parts = path.split('/');
-
-      if (parts[0] !== '') {
-        throw new Error(`Path must start with a slash: ${path}`);
-      } else if (parts.length === 1) {
-        throw new Error('Empty path.');
-      }
-
-      parts.shift(); // Shift away the necessarily-empty first part.
-
-      let lastSpecial = null;
-
-      switch (parts[parts.length - 1]) {
-        case '': {
-          lastSpecial = 'directory';
-          parts.pop();
-          break;
+        for (const [path, name] of Object.entries(value)) {
+          Names.checkName(name);
+          const key = Config.#parsePath(path);
+          result.add(key, name);
         }
-        case '*': {
-          lastSpecial = 'wildcard';
-          parts.pop();
-          break;
-        }
+
+        return result;
       }
 
-      for (const p of parts) {
-        const error = (detail) => {
-          detail = detail ? ` (${detail})` : '';
-          return new Error(`Invalid path component \`${p}\`${detail} in: ${path}`);
-        };
 
-        switch (p) {
+      //
+      // Static members
+      //
+
+      /**
+       * Parses a path.
+       *
+       * @param {string} path The path to parse.
+       * @returns {PathKey} The parsed form.
+       */
+      static #parsePath(path) {
+        const parts = path.split('/');
+
+        if (parts[0] !== '') {
+          throw new Error(`Path must start with a slash: ${path}`);
+        } else if (parts.length === 1) {
+          throw new Error('Empty path.');
+        }
+
+        parts.shift(); // Shift away the necessarily-empty first part.
+
+        let lastSpecial = null;
+
+        switch (parts[parts.length - 1]) {
           case '': {
-            throw error('empty');
-          }
-          case '.':
-          case '..': {
-            throw error('navigation');
+            lastSpecial = 'directory';
+            parts.pop();
+            break;
           }
           case '*': {
-            throw error('non-final wildcard');
+            lastSpecial = 'wildcard';
+            parts.pop();
+            break;
           }
-          default: {
-            if (/^[*]+$/.test(p)) {
-              throw error();
-            } else if (!UriUtil.isPathComponent(p)) {
-              throw error();
+        }
+
+        for (const p of parts) {
+          const error = (detail) => {
+            detail = detail ? ` (${detail})` : '';
+            return new Error(`Invalid path component \`${p}\`${detail} in: ${path}`);
+          };
+
+          switch (p) {
+            case '': {
+              throw error('empty');
+            }
+            case '.':
+            case '..': {
+              throw error('navigation');
+            }
+            case '*': {
+              throw error('non-final wildcard');
+            }
+            default: {
+              if (/^[*]+$/.test(p)) {
+                throw error();
+              } else if (!UriUtil.isPathComponent(p)) {
+                throw error();
+              }
             }
           }
         }
-      }
 
-      switch (lastSpecial) {
-        case 'directory': {
-          return new PathKey([...parts, ''], false);
-        }
-        case 'wildcard': {
-          return new PathKey([...parts], true);
-        }
-        default: {
-          return new PathKey(parts, false);
+        switch (lastSpecial) {
+          case 'directory': {
+            return new PathKey([...parts, ''], false);
+          }
+          case 'wildcard': {
+            return new PathKey([...parts], true);
+          }
+          default: {
+            return new PathKey(parts, false);
+          }
         }
       }
-    }
-  };
+    };
+  }
 }

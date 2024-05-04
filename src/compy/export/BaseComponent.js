@@ -407,9 +407,8 @@ export class BaseComponent {
   static #configClass = new Map();
 
   /**
-   * @returns {?function(new:object, object)} The expected configuration class
-   * for this class, or `null` if this class does not use a configuration class.
-   * Defaults to `null`. Subclasses are expected to override this as necessary.
+   * @returns {function(new:object, object)} The expected configuration class
+   * for this class. Subclasses are expected to override this as necessary.
    */
   static get CONFIG_CLASS() {
     const already = BaseComponent.#configClass.get(this);
@@ -482,34 +481,32 @@ export class BaseComponent {
   /**
    * @returns {function(new:object, object)} The expected configuration class
    * for this class. This (base) class calls this method exactly once to get the
-   * value to return from {@link #CONFIG_CLASS} Defaults to {@link #Config}.
-   * Subclasses are expected to override this as necessary.
+   * value to return from {@link #CONFIG_CLASS}.
+   *
+   * The default value is a configuration class which adds `name` as an optional
+   * configuration property, on top of (optional) `class` as defined by {@link
+   * #BaseConfig}.
    */
   static _impl_configClass() {
-    return BaseComponent.Config;
+    return class Config extends BaseConfig {
+      // @defaultConstructor
+
+      /**
+       * Configuration property: The item's name, or `null` if it does not have
+       * a configured name. If `null`, the corresponding component will get a
+       * synthesized name as soon as it is attached to a hierarchy. If
+       * non-`null`, it must adhere to the syntax defined by {@link
+       * Names#checkName}. Names are used when finding a component in its
+       * hierarchy, and when logging.
+       *
+       * @param {?string} [value] Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_name(value = null) {
+        return (value === null)
+          ? null
+          : Names.checkName(value);
+      }
+    };
   }
-
-  /**
-   * Default configuration subclass for this (outer) class, which adds `name` as
-   * an optional configuration property.
-   */
-  static Config = class Config extends BaseConfig {
-    // @defaultConstructor
-
-    /**
-     * Configuration property: The item's name, or `null` if it does not have a
-     * configured name. If `null`, the corresponding component will get a
-     * synthesized name as soon as it is attached to a hierarchy. If non-`null`,
-     * it must adhere to the syntax defined by {@link Names#checkName}. Names
-     * are used when finding a component in its hierarchy, and when logging.
-     *
-     * @param {?string} [value] Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_name(value = null) {
-      return (value === null)
-        ? null
-        : Names.checkName(value);
-    }
-  };
 }

@@ -54,120 +54,118 @@ export class BaseFileService extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return BaseFileService.Config;
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      /**
+       * Path parts, or `null` if not yet calculated.
+       *
+       * @type {?object}
+       */
+      #pathParts = null;
+
+      // @defaultConstructor
+
+      /**
+       * The various parts of {@link #path}. The return value is a frozen plain
+       * object with the following properties:
+       *
+       * * `path` -- The original path (for convenience).
+       * * `directory` -- The directory leading to the final path component,
+       *   that is, everything but the final path component. This _not_ end with
+       *   a slash, so in the case of a root-level file, this is the empty
+       *   string.
+       * * `fileName` -- The final path component.
+       * * `filePrefix` -- The "prefix" portion of the file name, which is
+       *   defined as everything up to but not including the last dot (`.`) in
+       *   the name. If there is no dot in the name, then this is the same as
+       *   `fileName`.
+       * * `fileSuffix` -- The "suffix" portion of the file name, which is
+       *   everything not included in `filePrefix`. If there is no dot in the
+       *   name, then this is the empty string.
+       *
+       * @returns {object} The split path, as described.
+       */
+      get pathParts() {
+        if (!this.#pathParts) {
+          this.#pathParts = this.#makePathParts();
+        }
+
+        return this.#pathParts;
+      }
+
+      /**
+       * The absolute path to write to, with possible infixing of the final path
+       * component, depending on the specific use case.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_path(value) {
+        return Paths.checkAbsolutePath(value);
+      }
+
+      /**
+       * Rotation configuration, or `null` not to do rotation. On input, this is
+       * expected to be a plain object suitable to pass to {@link
+       * BaseFileService#RotateConfig.constructor}.
+       *
+       * @param {?object} [value] Proposed configuration value. Default `null`.
+       * @returns {?BaseFileService.RotateConfig} Accepted configuration value.
+       */
+      _config_rotate(value = null) {
+        return (value === null)
+          ? null
+          : new BaseFileService.RotateConfig(value);
+      }
+
+      /**
+       * File preservation configuration, or `null` not to do file preservation.
+       * On input, this is expected to be a plain object suitable to pass to
+       * {@link BaseFileService#SaveConfig.constructor}.
+       *
+       * @param {?object} [value] Proposed configuration value. Default `null`.
+       * @returns {?BaseFileService.SaveConfig} Accepted configuration value.
+       */
+      _config_save(value = null) {
+        return (value === null)
+          ? null
+          : new BaseFileService.SaveConfig(value);
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        const { rotate, save } = config;
+
+        if (rotate && save) {
+          throw new Error('Cannot specify both `rotate` and `save`.');
+        }
+
+        // `rotate` is also used as a `save` config, so copy it to that
+        // property.
+        const result = rotate
+          ? { ...config, save: rotate }
+          : config;
+
+        return super._impl_validate(result);
+      }
+
+      /**
+       * Calculates the value for {@link #pathParts}.
+       *
+       * @returns {object} The split path, as described.
+       */
+      #makePathParts() {
+        const { path } = this;
+
+        const { directory, fileName } =
+          path.match(/^(?<directory>.*)[/](?<fileName>[^/]+)$/).groups;
+
+        const { filePrefix, fileSuffix = '' } =
+          fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
+
+        return Object.freeze({ path, directory, fileName, filePrefix, fileSuffix });
+      }
+    };
   }
-
-  /**
-   * Configuration class for this (outer) class.
-   */
-  static Config = class Config extends BaseService.Config {
-    /**
-     * Path parts, or `null` if not yet calculated.
-     *
-     * @type {?object}
-     */
-    #pathParts = null;
-
-    // @defaultConstructor
-
-    /**
-     * The various parts of {@link #path}. The return value is a frozen plain
-     * object with the following properties:
-     *
-     * * `path` -- The original path (for convenience).
-     * * `directory` -- The directory leading to the final path component, that
-     *   is, everything but the final path component. This _not_ end with a
-     *   slash, so in the case of a root-level file, this is the empty string.
-     * * `fileName` -- The final path component.
-     * * `filePrefix` -- The "prefix" portion of the file name, which is defined
-     *   as everything up to but not including the last dot (`.`) in the name.
-     *   If there is no dot in the name, then this is the same as `fileName`.
-     * * `fileSuffix` -- The "suffix" portion of the file name, which is
-     *   everything not included in `filePrefix`. If there is no dot in the
-     *   name, then this is the empty string.
-     *
-     * @returns {object} The split path, as described.
-     */
-    get pathParts() {
-      if (!this.#pathParts) {
-        this.#pathParts = this.#makePathParts();
-      }
-
-      return this.#pathParts;
-    }
-
-    /**
-     * The absolute path to write to, with possible infixing of the final path
-     * component, depending on the specific use case.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_path(value) {
-      return Paths.checkAbsolutePath(value);
-    }
-
-    /**
-     * Rotation configuration, or `null` not to do rotation. On input, this is
-     * expected to be a plain object suitable to pass to {@link
-     * BaseFileService#RotateConfig.constructor}.
-     *
-     * @param {?object} [value] Proposed configuration value. Default `null`.
-     * @returns {?BaseFileService.RotateConfig} Accepted configuration value.
-     */
-    _config_rotate(value = null) {
-      return (value === null)
-        ? null
-        : new BaseFileService.RotateConfig(value);
-    }
-
-    /**
-     * File preservation configuration, or `null` not to do file preservation.
-     * On input, this is expected to be a plain object suitable to pass to
-     * {@link BaseFileService#SaveConfig.constructor}.
-     *
-     * @param {?object} [value] Proposed configuration value. Default `null`.
-     * @returns {?BaseFileService.SaveConfig} Accepted configuration value.
-     */
-    _config_save(value = null) {
-      return (value === null)
-        ? null
-        : new BaseFileService.SaveConfig(value);
-    }
-
-    /** @override */
-    _impl_validate(config) {
-      const { rotate, save } = config;
-
-      if (rotate && save) {
-        throw new Error('Cannot specify both `rotate` and `save`.');
-      }
-
-      // `rotate` is also used as a `save` config, so copy it to that property.
-      const result = rotate
-        ? { ...config, save: rotate }
-        : config;
-
-      return super._impl_validate(result);
-    }
-
-    /**
-     * Calculates the value for {@link #pathParts}.
-     *
-     * @returns {object} The split path, as described.
-     */
-    #makePathParts() {
-      const { path } = this;
-
-      const { directory, fileName } =
-        path.match(/^(?<directory>.*)[/](?<fileName>[^/]+)$/).groups;
-
-      const { filePrefix, fileSuffix = '' } =
-        fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
-
-      return Object.freeze({ path, directory, fileName, filePrefix, fileSuffix });
-    }
-  };
 
   /**
    * Configuration class for `save` bindings.

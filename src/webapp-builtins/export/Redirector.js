@@ -83,54 +83,49 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
-  }
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
 
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * The redirect status code to use.
-     *
-     * @param {number} [value] Proposed configuration value. Default `308`.
-     * @returns {number} Accepted configuration value.
-     */
-    _config_statusCode(value = 308) {
-      return MustBe.number(value, { minInclusive: 300, maxInclusive: 399 });
-    }
-
-    /**
-     * The target base URI.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_target(value) {
-      return UriUtil.checkBasicUri(value);
-    }
-
-    /**
-     * `cache-control` header to automatically include, or `null` not to include
-     * it. Can be passed either as a literal string or an object to be passed to
-     * {@link HttpUtil#cacheControlHeader}.
-     *
-     * @param {?string|object} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_cacheControl(value = null) {
-      if (value === null) {
-        return null;
-      } else if (typeof value === 'string') {
-        return value;
-      } else if (AskIf.plainObject(value)) {
-        return HttpUtil.cacheControlHeader(value);
-      } else {
-        throw new Error('Invalid `cacheControl` option.');
+      /**
+       * The redirect status code to use.
+       *
+       * @param {number} [value] Proposed configuration value. Default `308`.
+       * @returns {number} Accepted configuration value.
+       */
+      _config_statusCode(value = 308) {
+        return MustBe.number(value, { minInclusive: 300, maxInclusive: 399 });
       }
-    }
-  };
+
+      /**
+       * The target base URI.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_target(value) {
+        return UriUtil.checkBasicUri(value);
+      }
+
+      /**
+       * `cache-control` header to automatically include, or `null` not to
+       * include it. Can be passed either as a literal string or an object to be
+       * passed to {@link HttpUtil#cacheControlHeader}.
+       *
+       * @param {?string|object} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_cacheControl(value = null) {
+        if (value === null) {
+          return null;
+        } else if (typeof value === 'string') {
+          return value;
+        } else if (AskIf.plainObject(value)) {
+          return HttpUtil.cacheControlHeader(value);
+        } else {
+          throw new Error('Invalid `cacheControl` option.');
+        }
+      }
+    };
+  }
 }

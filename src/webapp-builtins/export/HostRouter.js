@@ -82,35 +82,30 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
-  }
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      /**
+       * Map which goes from a host prefix to the name of an application which
+       * should handle that prefix. Each host must be a valid
+       * possibly-wildcarded host name, per {@link HostUtil#parseHostname}. Each
+       * name must be a valid component name, per {@link Names#checkName}. On
+       * input, the value must be a plain object.
+       *
+       * @param {object} value Proposed configuration value.
+       * @returns {TreeMap<string>} Accepted configuration value.
+       */
+      _config_hosts(value) {
+        MustBe.plainObject(value);
 
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    /**
-     * Map which goes from a host prefix to the name of an application which
-     * should handle that prefix. Each host must be a valid possibly-wildcarded
-     * host name, per {@link HostUtil#parseHostname}. Each name must be a valid
-     * component name, per {@link Names#checkName}. On input, the value must be
-     * a plain object.
-     *
-     * @param {object} value Proposed configuration value.
-     * @returns {TreeMap<string>} Accepted configuration value.
-     */
-    _config_hosts(value) {
-      MustBe.plainObject(value);
+        const result = new TreeMap();
 
-      const result = new TreeMap();
+        for (const [host, name] of Object.entries(value)) {
+          Names.checkName(name);
+          const key = HostUtil.parseHostname(host, true);
+          result.add(key, name);
+        }
 
-      for (const [host, name] of Object.entries(value)) {
-        Names.checkName(name);
-        const key = HostUtil.parseHostname(host, true);
-        result.add(key, name);
+        return Object.freeze(result);
       }
-
-      return Object.freeze(result);
-    }
-  };
+    };
+  }
 }

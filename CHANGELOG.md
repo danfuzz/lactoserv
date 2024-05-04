@@ -20,8 +20,10 @@ Breaking changes:
     be way more ergonomic, avoiding a lot of formerly-required boilerplate and
     adding a modicum of error checking that all components get "for free."
     **Note:** While this is a breaking change for how components are built, it
-    doesn't affect how components are instantiated. That is, this doesn't make
-    you change your config files.
+    doesn't affect how components are instantiated. For example, this doesn't
+    make you change your standalone config files.
+  * New template class `TemplRootComponent` to make a base class for root
+    components.
 
 Other notable changes:
 * None.

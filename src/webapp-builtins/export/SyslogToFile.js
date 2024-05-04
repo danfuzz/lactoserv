@@ -112,52 +112,47 @@ export class SyslogToFile extends BaseFileService {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
+
+      /**
+       * How long to buffer updates for, or `null` to not do any buffering. If
+       * passed as a string, it is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_bufferPeriod(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+        if (!result) {
+          throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
+        }
+
+        return (result === 0) ? null : result;
+      }
+
+      /**
+       * The output format name. Must be valid per {@link
+       * TextFileSink#isValidFormat}.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_format(value) {
+        MustBe.string(value);
+
+        if (!TextFileSink.isValidFormat(value)) {
+          throw new Error(`Unknown log format: ${value}`);
+        }
+
+        return value;
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseFileService.Config {
-    // @defaultConstructor
-
-    /**
-     * How long to buffer updates for, or `null` to not do any buffering. If
-     * passed as a string, it is parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_bufferPeriod(value = null) {
-      if (value === null) {
-        return null;
-      }
-
-      const result = Duration.parse(value, { range: { minInclusive: 0 } });
-
-      if (!result) {
-        throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
-      }
-
-      return (result === 0) ? null : result;
-    }
-
-    /**
-     * The output format name. Must be valid per {@link
-     * TextFileSink#isValidFormat}.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_format(value) {
-      MustBe.string(value);
-
-      if (!TextFileSink.isValidFormat(value)) {
-        throw new Error(`Unknown log format: ${value}`);
-      }
-
-      return value;
-    }
-  };
 }

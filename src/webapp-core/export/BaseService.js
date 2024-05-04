@@ -201,11 +201,6 @@ export class BaseService extends BaseComponent {
     return BaseService.#UNHANDLED_VALUE;
   }
 
-  /** @override */
-  static _impl_configClass() {
-    return BaseService.Config;
-  }
-
   /**
    * Gets the name-specific call handler name for the given method name.
    *
@@ -263,17 +258,4 @@ export class BaseService extends BaseComponent {
 
     return new Error(`${methodStr} ${verbPhrase}`);
   }
-
-  /**
-   * Default configuration subclass for this (outer) class, which adds no
-   * configuration options.
-   *
-   * This class mostly exists to be an easy target to use when subclasses want
-   * to define configuration classes in the usual way, without having to
-   * remember the persnickety detail of which class in the `compy` module is the
-   * most appropriate one to derive from.
-   */
-  static Config = class Config extends BaseComponent.Config {
-    // @emptyBlock
-  };
 }

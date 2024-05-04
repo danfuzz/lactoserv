@@ -153,82 +153,77 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+      // @defaultConstructor
+
+      /**
+       * Indicates whether the protocol requires host certificate configuration.
+       *
+       * @returns {boolean} `true` iff certificates are required.
+       */
+      requiresCertificates() {
+        return this.protocol !== 'http';
+      }
+
+      /**
+       * Name of the application to send requests to.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_application(value) {
+        return Names.checkName(value);
+      }
+
+      /**
+       * List of hostnames to recognize as valid, including possibly subdomain
+       * wildcards and/or a full wildcard.
+       *
+       * @param {string|Array<string>} [value] Proposed configuration value.
+       *   Default `'*'`.
+       * @returns {Array<string>} Accepted configuration value.
+       */
+      _config_hostnames(value = '*') {
+        return StringUtil.checkAndFreezeStrings(
+          value,
+          (item) => HostUtil.checkHostname(item, true));
+      }
+
+      /**
+       * Interface to listen on. When passed in, this is expected to be a string
+       * which can be parsed by {@link UriUtil#parseInterface}.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {object} Accepted configuration value, as parsed by {@link
+       *   UriUtil#parseInterface}.
+       */
+      _config_interface(value) {
+        return Object.freeze(HostUtil.parseInterface(value));
+      }
+
+      /**
+       * High-level protocol to speak. Accepted values are `http`, `http2`, and
+       * `https`.
+       *
+       * @param {string} value Proposed configuration value.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_protocol(value) {
+        return ProtocolWranglers.checkProtocol(value);
+      }
+
+      /**
+       * Role-to-service configuration. When passed in, this is expected to be a
+       * plain object that can be parsed by the {@link ServiceUseConfig}
+       * constructor.
+       *
+       * @param {object} [value] Proposed configuration value. Default `{}`
+       *   (that is, no services).
+       * @returns {ServiceUseConfig} Accepted configuration value.
+       */
+      _config_services(value = {}) {
+        return new ServiceUseConfig(value);
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseComponent.Config {
-    // @defaultConstructor
-
-    /**
-     * Indicates whether the protocol requires host certificate configuration.
-     *
-     * @returns {boolean} `true` iff certificates are required.
-     */
-    requiresCertificates() {
-      return this.protocol !== 'http';
-    }
-
-    /**
-     * Name of the application to send requests to.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_application(value) {
-      return Names.checkName(value);
-    }
-
-    /**
-     * List of hostnames to recognize as valid, including possibly subdomain
-     * wildcards and/or a full wildcard.
-     *
-     * @param {string|Array<string>} [value] Proposed configuration value.
-     *   Default `'*'`.
-     * @returns {Array<string>} Accepted configuration value.
-     */
-    _config_hostnames(value = '*') {
-      return StringUtil.checkAndFreezeStrings(
-        value,
-        (item) => HostUtil.checkHostname(item, true));
-    }
-
-    /**
-     * Interface to listen on. When passed in, this is expected to be a string
-     * which can be parsed by {@link UriUtil#parseInterface}.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {object} Accepted configuration value, as parsed by {@link
-     *   UriUtil#parseInterface}.
-     */
-    _config_interface(value) {
-      return Object.freeze(HostUtil.parseInterface(value));
-    }
-
-    /**
-     * High-level protocol to speak. Accepted values are `http`, `http2`, and
-     * `https`.
-     *
-     * @param {string} value Proposed configuration value.
-     * @returns {string} Accepted configuration value.
-     */
-    _config_protocol(value) {
-      return ProtocolWranglers.checkProtocol(value);
-    }
-
-    /**
-     * Role-to-service configuration. When passed in, this is expected to be a
-     * plain object that can be parsed by the {@link ServiceUseConfig}
-     * constructor.
-     *
-     * @param {object} [value] Proposed configuration value. Default `{}` (that
-     *   is, no services).
-     * @returns {ServiceUseConfig} Accepted configuration value.
-     */
-    _config_services(value = {}) {
-      return new ServiceUseConfig(value);
-    }
-  };
 }
