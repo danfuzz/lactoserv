@@ -3,7 +3,7 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseComponent, RootControlContext }
+import { BaseComponent, BaseRootComponent, RootControlContext }
   from '@this/compy';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -26,7 +26,7 @@ import { ThisModule } from '#p/ThisModule';
  * system will press on with the `stop()` actions if an earlier layer is taking
  * too long.
  */
-export class WebappRoot extends BaseComponent {
+export class WebappRoot extends BaseRootComponent {
   /**
    * Application manager.
    *
@@ -192,7 +192,7 @@ export class WebappRoot extends BaseComponent {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends BaseComponent.Config {
+  static #Config = class Config extends BaseRootComponent.Config {
     // @defaultConstructor
 
     /**
