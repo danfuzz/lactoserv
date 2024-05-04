@@ -114,146 +114,141 @@ export class SimpleResponse extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
-  }
+    return class Config extends BaseApplication.Config {
+      // @defaultConstructor
 
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * Body contents of the response, or `null` to use `filePath` if present
-     * _or_ respond with no body.
-     *
-     * @param {?string|Buffer} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?string|Buffer} Accepted configuration value.
-     */
-    _config_body(value = null) {
-      if (value === null) {
-        return value;
-      } else if ((value instanceof Buffer) || (typeof value === 'string')) {
-        return value;
-      } else {
-        throw new Error('Invalid `body` option.');
-      }
-    }
-
-    /**
-     * `cache-control` header to automatically include, or `null` not to include
-     * it. Can be passed either as a literal string or an object to be passed to
-     * {@link HttpUtil#cacheControlHeader}.
-     *
-     * @param {?string|object} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_cacheControl(value = null) {
-      if (value === null) {
-        return null;
-      } else if (typeof value === 'string') {
-        return value;
-      } else if (AskIf.plainObject(value)) {
-        return HttpUtil.cacheControlHeader(value);
-      } else {
-        throw new Error('Invalid `cacheControl` option.');
-      }
-    }
-
-    /**
-     * Content type of the response, or `null` to infer it from `filePath`.
-     *
-     * @param {?string} [value] Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_contentType(value = null) {
-      // Note: Conversion is done in `_impl_validate()`, because we don't know
-      // what options to pass to the MIME type converter until we see if we
-      // have `body` or `filePath`.
-      return (value === null) ? null : MustBe.string(value);
-    }
-
-    /**
-     * Etag-generating options, `true` for default options, or `null` not to
-     * include an `etag` header in responses.
-     *
-     * @param {?object|true} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?object} Accepted configuration value.
-     */
-    _config_etag(value = null) {
-      if (value === null) {
-        return null;
-      } else if (value === true) {
-        return EtagGenerator.expandOptions({});
-      } else if (AskIf.plainObject(value)) {
-        return EtagGenerator.expandOptions(value);
-      } else {
-        throw new Error('Invalid `etag` option.');
-      }
-    }
-
-    /**
-     * Absolute path to a file for the body contents, or `null` if `body` is
-     * being used _or_ if this is to be a no-body response.
-     *
-     * @param {?string} [value] Proposed configuration value. Default `null`.
-     * @returns {?string} Accepted configuration value.
-     */
-    _config_filePath(value = null) {
-      return (value === null)
-        ? null
-        : Paths.checkAbsolutePath(value);
-    }
-
-    /**
-     * Predefined status code of the response, or `null` to use the most
-     * appropriate "success" status code (usually but not always `200`).
-     *
-     * @param {?number} [value] Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
-     */
-    _config_statusCode(value = null) {
-      if (value === null) {
-        return null;
+      /**
+       * Body contents of the response, or `null` to use `filePath` if present
+       * _or_ respond with no body.
+       *
+       * @param {?string|Buffer} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?string|Buffer} Accepted configuration value.
+       */
+      _config_body(value = null) {
+        if (value === null) {
+          return value;
+        } else if ((value instanceof Buffer) || (typeof value === 'string')) {
+          return value;
+        } else {
+          throw new Error('Invalid `body` option.');
+        }
       }
 
-      return MustBe.number(value, {
-        safeInteger:  true,
-        minInclusive: 100,
-        maxInclusive: 599
-      });
-    }
+      /**
+       * `cache-control` header to automatically include, or `null` not to
+       * include it. Can be passed either as a literal string or an object to be
+       * passed to {@link HttpUtil#cacheControlHeader}.
+       *
+       * @param {?string|object} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_cacheControl(value = null) {
+        if (value === null) {
+          return null;
+        } else if (typeof value === 'string') {
+          return value;
+        } else if (AskIf.plainObject(value)) {
+          return HttpUtil.cacheControlHeader(value);
+        } else {
+          throw new Error('Invalid `cacheControl` option.');
+        }
+      }
 
-    /** @override */
-    _impl_validate(config) {
-      const { body, filePath } = config;
-      let   { contentType }    = config;
+      /**
+       * Content type of the response, or `null` to infer it from `filePath`.
+       *
+       * @param {?string} [value] Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_contentType(value = null) {
+        // Note: Conversion is done in `_impl_validate()`, because we don't know
+        // what options to pass to the MIME type converter until we see if we
+        // have `body` or `filePath`.
+        return (value === null) ? null : MustBe.string(value);
+      }
 
-      if (body !== null) {
-        if (contentType === null) {
-          throw new Error('Must specify `contentType` if `body` is used.');
-        } else if (filePath !== null) {
-          throw new Error('Cannot specify both `body` and `filePath`.');
+      /**
+       * Etag-generating options, `true` for default options, or `null` not to
+       * include an `etag` header in responses.
+       *
+       * @param {?object|true} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?object} Accepted configuration value.
+       */
+      _config_etag(value = null) {
+        if (value === null) {
+          return null;
+        } else if (value === true) {
+          return EtagGenerator.expandOptions({});
+        } else if (AskIf.plainObject(value)) {
+          return EtagGenerator.expandOptions(value);
+        } else {
+          throw new Error('Invalid `etag` option.');
+        }
+      }
+
+      /**
+       * Absolute path to a file for the body contents, or `null` if `body` is
+       * being used _or_ if this is to be a no-body response.
+       *
+       * @param {?string} [value] Proposed configuration value. Default `null`.
+       * @returns {?string} Accepted configuration value.
+       */
+      _config_filePath(value = null) {
+        return (value === null)
+          ? null
+          : Paths.checkAbsolutePath(value);
+      }
+
+      /**
+       * Predefined status code of the response, or `null` to use the most
+       * appropriate "success" status code (usually but not always `200`).
+       *
+       * @param {?number} [value] Proposed configuration value. Default `null`.
+       * @returns {?number} Accepted configuration value.
+       */
+      _config_statusCode(value = null) {
+        if (value === null) {
+          return null;
         }
 
-        contentType = MimeTypes.typeFromExtensionOrType(contentType, {
-          isText: (typeof body === 'string')
+        return MustBe.number(value, {
+          safeInteger:  true,
+          minInclusive: 100,
+          maxInclusive: 599
         });
-      } else if (filePath !== null) {
-        contentType = (contentType === null)
-          ? MimeTypes.typeFromPathExtension(filePath)
-          : MimeTypes.typeFromExtensionOrType(contentType);
-      } else {
-        // It's a no-body response.
-        if (contentType !== null) {
-          throw new Error('Cannot specify `contentType` on a no-body response.');
-        }
       }
 
-      return super._impl_validate({ ...config, contentType });
-    }
-  };
+      /** @override */
+      _impl_validate(config) {
+        const { body, filePath } = config;
+        let   { contentType }    = config;
+
+        if (body !== null) {
+          if (contentType === null) {
+            throw new Error('Must specify `contentType` if `body` is used.');
+          } else if (filePath !== null) {
+            throw new Error('Cannot specify both `body` and `filePath`.');
+          }
+
+          contentType = MimeTypes.typeFromExtensionOrType(contentType, {
+            isText: (typeof body === 'string')
+          });
+        } else if (filePath !== null) {
+          contentType = (contentType === null)
+            ? MimeTypes.typeFromPathExtension(filePath)
+            : MimeTypes.typeFromExtensionOrType(contentType);
+        } else {
+          // It's a no-body response.
+          if (contentType !== null) {
+            throw new Error('Cannot specify `contentType` on a no-body response.');
+          }
+        }
+
+        return super._impl_validate({ ...config, contentType });
+      }
+    };
+  }
 }

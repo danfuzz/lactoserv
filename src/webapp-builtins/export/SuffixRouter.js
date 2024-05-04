@@ -91,131 +91,126 @@ export class SuffixRouter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseApplication.Config {
+      // @defaultConstructor
+
+      /**
+       * Should directory paths get matched?
+       *
+       * @param {boolean} [value] Proposed configuration value. Default `false`.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_handleDirectories(value = false) {
+        return MustBe.boolean(value);
+      }
+
+      /**
+       * Should file paths (non-directories) get matched?
+       *
+       * @param {boolean} [value] Proposed configuration value. Default `true`.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_handleFiles(value = true) {
+        return MustBe.boolean(value);
+      }
+
+      /**
+       * Map from each file name suffix spec (e.g. with `*` prefixes) to the
+       * name of the application to handle that spec. On input, the value must
+       * be a plain object.
+       *
+       * @param {object} value Proposed configuration value.
+       * @returns {{ routeMap: Map<string, string>, suffixMatcher: RegExp }}
+       *   Accepted configuration value.
+       */
+      _config_suffixes(value) {
+        MustBe.plainObject(value);
+
+        const routeMap   = new Map();
+        const regexParts = [];
+
+        for (const [suffix, name] of Object.entries(value)) {
+          const { text, regex } = Config.#parseSuffix(suffix);
+          if (routeMap.has(text)) {
+            throw new Error(`Duplicate suffix spec: ${suffix}`);
+          }
+          routeMap.set(text, name);
+          regexParts.push(regex);
+        }
+
+        // This is a regex which matches the longest handled suffix of a given
+        // file name. It ends up having a form along the lines of
+        // `/(?<!^)(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
+        const suffixMatcher = new RegExp(`(?<!^)(?:${regexParts.join('|')})$`);
+
+        return { routeMap, suffixMatcher };
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        const { handleDirectories, handleFiles } = config;
+
+        if (!(handleDirectories || handleFiles)) {
+          throw new Error('Must configure at least one of `handleDirectories` or `handleFiles` as true');
+        }
+
+        // Replace `suffixes` with its elements.
+        const result = { ...config, ...(config.suffixes) };
+        delete result.suffixes;
+
+        return super._impl_validate(result);
+      }
+
+
+      //
+      // Static members
+      //
+
+      /**
+       * Parses a suffix specifier.
+       *
+       * @param {string} spec The suffix specifier to parse.
+       * @returns {{ text: string, regex: string }} The parsed form, including
+       *   the pure text and regex-matching fragment.
+       */
+      static #parseSuffix(spec) {
+        if (spec === '*') {
+          // This is easier than trying to shoehorn a match of just `*` into the
+          // `spec.match(...)` below.
+          return { text: '', regex: '(?:)' };
+        }
+
+        const text = spec.match(/(?<=^[*])[-._+][-._+A-Za-z0-9]+$/)?.[0] ?? null;
+
+        if (text === null) {
+          if (text === '') {
+            throw new Error('Suffix match specs cannot be empty; maybe you mean `*`?');
+          } else if (!text.startsWith('*')) {
+            throw new Error(`Not a valid suffix match spec (must start with \`*\`): ${spec}`);
+          } else {
+            throw new Error(`Not a valid suffix match spec: ${spec}`);
+          }
+        }
+
+        const chars = [];
+        for (const c of text) {
+          switch (c) {
+            case '.':
+            case '+': {
+              // Escape regex syntax characters.
+              chars.push(`[${c}]`);
+              break;
+            }
+            default: {
+              chars.push(c);
+            }
+          }
+        }
+
+        const regex = `(?:${chars.join('')})`;
+
+        return { text, regex };
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * Should directory paths get matched?
-     *
-     * @param {boolean} [value] Proposed configuration value. Default `false`.
-     * @returns {boolean} Accepted configuration value.
-     */
-    _config_handleDirectories(value = false) {
-      return MustBe.boolean(value);
-    }
-
-    /**
-     * Should file paths (non-directories) get matched?
-     *
-     * @param {boolean} [value] Proposed configuration value. Default `true`.
-     * @returns {boolean} Accepted configuration value.
-     */
-    _config_handleFiles(value = true) {
-      return MustBe.boolean(value);
-    }
-
-    /**
-     * Map from each file name suffix spec (e.g. with `*` prefixes) to the name
-     * of the application to handle that spec. On input, the value must be a
-     * plain object.
-     *
-     * @param {object} value Proposed configuration value.
-     * @returns {{ routeMap: Map<string, string>, suffixMatcher: RegExp }}
-     *   Accepted configuration value.
-     */
-    _config_suffixes(value) {
-      MustBe.plainObject(value);
-
-      const routeMap   = new Map();
-      const regexParts = [];
-
-      for (const [suffix, name] of Object.entries(value)) {
-        const { text, regex } = Config.#parseSuffix(suffix);
-        if (routeMap.has(text)) {
-          throw new Error(`Duplicate suffix spec: ${suffix}`);
-        }
-        routeMap.set(text, name);
-        regexParts.push(regex);
-      }
-
-      // This is a regex which matches the longest handled suffix of a given
-      // file name. It ends up having a form along the lines of
-      // `/(?<!^)(?:(?:[.]bar)|(?:[.]baz)|(?:-bar[.]baz)|(?:))$/`.
-      const suffixMatcher = new RegExp(`(?<!^)(?:${regexParts.join('|')})$`);
-
-      return { routeMap, suffixMatcher };
-    }
-
-    /** @override */
-    _impl_validate(config) {
-      const { handleDirectories, handleFiles } = config;
-
-      if (!(handleDirectories || handleFiles)) {
-        throw new Error('Must configure at least one of `handleDirectories` or `handleFiles` as true');
-      }
-
-      // Replace `suffixes` with its elements.
-      const result = { ...config, ...(config.suffixes) };
-      delete result.suffixes;
-
-      return super._impl_validate(result);
-    }
-
-
-    //
-    // Static members
-    //
-
-    /**
-     * Parses a suffix specifier.
-     *
-     * @param {string} spec The suffix specifier to parse.
-     * @returns {{ text: string, regex: string }} The parsed form, including the
-     *   pure text and regex-matching fragment.
-     */
-    static #parseSuffix(spec) {
-      if (spec === '*') {
-        // This is easier than trying to shoehorn a match of just `*` into the
-        // `spec.match(...)` below.
-        return { text: '', regex: '(?:)' };
-      }
-
-      const text = spec.match(/(?<=^[*])[-._+][-._+A-Za-z0-9]+$/)?.[0] ?? null;
-
-      if (text === null) {
-        if (text === '') {
-          throw new Error('Suffix match specs cannot be empty; maybe you mean `*`?');
-        } else if (!text.startsWith('*')) {
-          throw new Error(`Not a valid suffix match spec (must start with \`*\`): ${spec}`);
-        } else {
-          throw new Error(`Not a valid suffix match spec: ${spec}`);
-        }
-      }
-
-      const chars = [];
-      for (const c of text) {
-        switch (c) {
-          case '.':
-          case '+': {
-            // Escape regex syntax characters.
-            chars.push(`[${c}]`);
-            break;
-          }
-          default: {
-            chars.push(c);
-          }
-        }
-      }
-
-      const regex = `(?:${chars.join('')})`;
-
-      return { text, regex };
-    }
-  };
 }

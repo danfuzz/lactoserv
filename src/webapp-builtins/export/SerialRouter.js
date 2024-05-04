@@ -72,26 +72,21 @@ export class SerialRouter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseApplication.Config {
+      // @defaultConstructor
+
+      /**
+       * List of the names of all the applications to route to, in order. Each
+       * name must be a valid component name, per {@link Names#checkName}.
+       *
+       * @param {Array<string>} value Proposed configuration value.
+       * @returns {Array<string>} Accepted configuration value.
+       */
+      _config_applications(value) {
+        return StringUtil.checkAndFreezeStrings(
+          value,
+          (item) => Names.checkName(item));
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * List of the names of all the applications to route to, in order. Each
-     * name must be a valid component name, per {@link Names#checkName}.
-     *
-     * @param {Array<string>} value Proposed configuration value.
-     * @returns {Array<string>} Accepted configuration value.
-     */
-    _config_applications(value) {
-      return StringUtil.checkAndFreezeStrings(
-        value,
-        (item) => Names.checkName(item));
-    }
-  };
 }

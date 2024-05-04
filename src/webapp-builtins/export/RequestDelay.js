@@ -66,113 +66,108 @@ export class RequestDelay extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseApplication.Config {
+      // @defaultConstructor
+
+      /**
+       * Delay time, or `null` if `minDelay` and `maxDelay` are being used. If
+       * passed as a string, it is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_delay(value = null) {
+        return (value === null) ? null : Config.#parseDelay(value);
+      }
+
+      /**
+       * Maximum delay time, inclusive, if delays are to be made randomly within
+       * a range, or `null` if `delay` is being used. If passed as a string, it
+       * is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_maxDelay(value = null) {
+        return (value === null) ? null : Config.#parseDelay(value);
+      }
+
+      /**
+       * Minimum delay time, inclusive, if delays are to be made randomly within
+       * a range, or `null` if `delay` is being used. If passed as a string, it
+       * is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_minDelay(value = null) {
+        return (value === null) ? null : Config.#parseDelay(value);
+      }
+
+      /**
+       * Time source, or `null` to use the standard time source. This
+       * configuration option is mostly intended for testing.
+       *
+       * @param {?IntfTimeSource} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {IntfTimeSource} Accepted configuration value.
+       */
+      _config_timeSource(value = null) {
+        // TODO: Check that a non-`null` `value` actually implements
+        // `IntfTimeSource`.
+
+        return (value === null)
+          ? StdTimeSource.INSTANCE
+          : MustBe.object(value);
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        const { delay } = config;
+        let   { maxDelay, minDelay } = config;
+
+        if (!!delay === !!(maxDelay || minDelay)) {
+          throw new Error('Must specify either `delay` or both `minDelay` and `maxDelay`.');
+        } else if (delay) {
+          maxDelay = minDelay = delay;
+        } else if (!(maxDelay && minDelay)) {
+          throw new Error('Must specify both `minDelay` and `maxDelay` if either is used.');
+        } else if (minDelay.gt(maxDelay)) {
+          throw new Error('`minDelay` must not be greater than `maxDelay`.');
+        } else if (minDelay.eq(maxDelay)) {
+          // This allows a `===` comparison in the handler to work.
+          minDelay = maxDelay;
+        }
+
+        const result = { ...config, maxDelay, minDelay };
+        delete result.delay;
+
+        return super._impl_validate(result);
+      }
+
+
+      //
+      // Static members
+      //
+
+      /**
+       * Parses and checks a delay value for validity.
+       *
+       * @param {string|Duration} value The delay value.
+       * @returns {Duration} The parsed value.
+       */
+      static #parseDelay(value) {
+        const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+        if (result === null) {
+          throw new Error(`Could not parse delay value: ${value}`);
+        }
+
+        return result;
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseApplication.Config {
-    // @defaultConstructor
-
-    /**
-     * Delay time, or `null` if `minDelay` and `maxDelay` are being used. If
-     * passed as a string, it is parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_delay(value = null) {
-      return (value === null) ? null : Config.#parseDelay(value);
-    }
-
-    /**
-     * Maximum delay time, inclusive, if delays are to be made randomly within a
-     * range, or `null` if `delay` is being used. If passed as a string, it is
-     * parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_maxDelay(value = null) {
-      return (value === null) ? null : Config.#parseDelay(value);
-    }
-
-    /**
-     * Minimum delay time, inclusive, if delays are to be made randomly within a
-     * range, or `null` if `delay` is being used. If passed as a string, it is
-     * parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_minDelay(value = null) {
-      return (value === null) ? null : Config.#parseDelay(value);
-    }
-
-    /**
-     * Time source, or `null` to use the standard time source. This
-     * configuration option is mostly intended for testing.
-     *
-     * @param {?IntfTimeSource} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {IntfTimeSource} Accepted configuration value.
-     */
-    _config_timeSource(value = null) {
-      // TODO: Check that a non-`null` `value` actually implements
-      // `IntfTimeSource`.
-
-      return (value === null)
-        ? StdTimeSource.INSTANCE
-        : MustBe.object(value);
-    }
-
-    /** @override */
-    _impl_validate(config) {
-      const { delay } = config;
-      let   { maxDelay, minDelay } = config;
-
-      if (!!delay === !!(maxDelay || minDelay)) {
-        throw new Error('Must specify either `delay` or both `minDelay` and `maxDelay`.');
-      } else if (delay) {
-        maxDelay = minDelay = delay;
-      } else if (!(maxDelay && minDelay)) {
-        throw new Error('Must specify both `minDelay` and `maxDelay` if either is used.');
-      } else if (minDelay.gt(maxDelay)) {
-        throw new Error('`minDelay` must not be greater than `maxDelay`.');
-      } else if (minDelay.eq(maxDelay)) {
-        // This allows a `===` comparison in the handler to work.
-        minDelay = maxDelay;
-      }
-
-      const result = { ...config, maxDelay, minDelay };
-      delete result.delay;
-
-      return super._impl_validate(result);
-    }
-
-
-    //
-    // Static members
-    //
-
-    /**
-     * Parses and checks a delay value for validity.
-     *
-     * @param {string|Duration} value The delay value.
-     * @returns {Duration} The parsed value.
-     */
-    static #parseDelay(value) {
-      const result = Duration.parse(value, { range: { minInclusive: 0 } });
-
-      if (result === null) {
-        throw new Error(`Could not parse delay value: ${value}`);
-      }
-
-      return result;
-    }
-  };
 }
