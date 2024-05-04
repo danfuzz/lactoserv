@@ -216,45 +216,40 @@ export class ProcessIdFile extends BaseFileService {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
-  }
+    return class Config extends BaseFileService.Config {
+      // @defaultConstructor
 
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseFileService.Config {
-    // @defaultConstructor
+      /**
+       * Allow multiple processes to be listed in the file?
+       *
+       * @param {boolean} [value] Proposed configuration value. Default `false`.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_multiprocess(value = false) {
+        return MustBe.boolean(value);
+      };
 
-    /**
-     * Allow multiple processes to be listed in the file?
-     *
-     * @param {boolean} [value] Proposed configuration value. Default `false`.
-     * @returns {boolean} Accepted configuration value.
-     */
-    _config_multiprocess(value = false) {
-      return MustBe.boolean(value);
+      /**
+       * How often to update the process ID file, or `null` to not perform
+       * updates. If passed as a string, it is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_updatePeriod(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = Duration.parse(value, { range: { minInclusive: 1 } });
+
+        if (!result) {
+          throw new Error(`Could not parse \`updatePeriod\`: ${value}`);
+        }
+
+        return result;
+      }
     };
-
-    /**
-     * How often to update the process ID file, or `null` to not perform
-     * updates. If passed as a string, it is parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_updatePeriod(value = null) {
-      if (value === null) {
-        return null;
-      }
-
-      const result = Duration.parse(value, { range: { minInclusive: 1 } });
-
-      if (!result) {
-        throw new Error(`Could not parse \`updatePeriod\`: ${value}`);
-      }
-
-      return result;
-    }
-  };
+  }
 }

@@ -162,93 +162,88 @@ export class MemoryMonitor extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseService.Config {
+      // @defaultConstructor
+
+      /**
+       * How often to check, in seconds. If passed as a string, it is parsed by
+       * {@link Duration#parse}.
+       *
+       * @param {string|Duration} [value] Proposed configuration value. Default
+       *   `5 min`.
+       * @returns {Duration} Accepted configuration value.
+       */
+      _config_checkPeriod(value = '5 min') {
+        const result = Duration.parse(value, { range: { minInclusive: 1 } });
+
+        if (!result) {
+          throw new Error(`Could not parse \`checkPeriod\`: ${value}`);
+        }
+
+        return result;
+      }
+
+      /**
+       * Grace period before triggering an action. If passed as a string, it is
+       * parsed by {@link Duration#parse}.
+       *
+       * @param {string|Duration} [value] Proposed configuration value. Default
+       *   `0 sec` (that is, no grace period).
+       * @returns {Duration} Accepted configuration value.
+       */
+      _config_gracePeriod(value = '0 sec') {
+        const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+        if (!result) {
+          throw new Error(`Could not parse \`gracePeriod\`: ${value}`);
+        }
+
+        return result;
+      }
+
+      /**
+       * Maximum allowed size of heap usage, or `null` for no limit. If passed
+       * as a string, it is parsed by {@link ByteCount#parse}.
+       *
+       * @param {?string|ByteCount} [value] Proposed configuration value.
+       *   Default `null`.
+       * @returns {?ByteCount} Accepted configuration value.
+       */
+      _config_maxHeap(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
+
+        if (!result) {
+          throw new Error(`Could not parse \`maxHeap\`: ${value}`);
+        }
+
+        return result;
+      }
+
+      /**
+       * Maximum allowed size of RSS, or `null` for no limit. If passed as a
+       * string, it is parsed by {@link ByteCount#parse}.
+       *
+       * @param {?string|ByteCount} [value] Proposed configuration value.
+       *   Default `null`.
+       * @returns {?ByteCount} Accepted configuration value.
+       */
+      _config_maxRss(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
+
+        if (!result) {
+          throw new Error(`Could not parse \`maxRss\`: ${value}`);
+        }
+
+        return result;
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseService.Config {
-    // @defaultConstructor
-
-    /**
-     * How often to check, in seconds. If passed as a string, it is parsed by
-     * {@link Duration#parse}.
-     *
-     * @param {string|Duration} [value] Proposed configuration value. Default `5
-     *   min`
-     * @returns {Duration} Accepted configuration value.
-     */
-    _config_checkPeriod(value = '5 min') {
-      const result = Duration.parse(value, { range: { minInclusive: 1 } });
-
-      if (!result) {
-        throw new Error(`Could not parse \`checkPeriod\`: ${value}`);
-      }
-
-      return result;
-    }
-
-    /**
-     * Grace period before triggering an action. If passed as a string, it is
-     * parsed by {@link Duration#parse}.
-     *
-     * @param {string|Duration} [value] Proposed configuration value. Default `0
-     *   sec` (that is, no grace period).
-     * @returns {Duration} Accepted configuration value.
-     */
-    _config_gracePeriod(value = '0 sec') {
-      const result = Duration.parse(value, { range: { minInclusive: 0 } });
-
-      if (!result) {
-        throw new Error(`Could not parse \`gracePeriod\`: ${value}`);
-      }
-
-      return result;
-    }
-
-    /**
-     * Maximum allowed size of heap usage, or `null` for no limit. If passed as
-     * a string, it is parsed by {@link ByteCount#parse}.
-     *
-     * @param {?string|ByteCount} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?ByteCount} Accepted configuration value.
-     */
-    _config_maxHeap(value = null) {
-      if (value === null) {
-        return null;
-      }
-
-      const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
-
-      if (!result) {
-        throw new Error(`Could not parse \`maxHeap\`: ${value}`);
-      }
-
-      return result;
-    }
-
-    /**
-     * Maximum allowed size of RSS, or `null` for no limit. If passed as a
-     * string, it is parsed by {@link ByteCount#parse}.
-     *
-     * @param {?string|ByteCount} [value] Proposed configuration value. Default
-     *   `null`.
-     * @returns {?ByteCount} Accepted configuration value.
-     */
-    _config_maxRss(value = null) {
-      if (value === null) {
-        return null;
-      }
-
-      const result = ByteCount.parse(value, { minInclusive: 1024 * 1024 });
-
-      if (!result) {
-        throw new Error(`Could not parse \`maxRss\`: ${value}`);
-      }
-
-      return result;
-    }
-  };
 }

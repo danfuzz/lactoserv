@@ -193,47 +193,42 @@ export class AccessLogToFile extends BaseFileService {
 
   /** @override */
   static _impl_configClass() {
-    return this.#Config;
+    return class Config extends BaseFileService.Config {
+      // @defaultConstructor
+
+      /**
+       * How long to buffer updates for, or `null` to not do any buffering. If
+       * passed as a string, it is parsed by {@link Duration#parse}.
+       *
+       * @param {?string|Duration} value Proposed configuration value. Default
+       *   `null`.
+       * @returns {?Duration} Accepted configuration value.
+       */
+      _config_bufferPeriod(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = Duration.parse(value, { range: { minInclusive: 0 } });
+
+        if (!result) {
+          throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
+        }
+
+        return (result === 0) ? null : result;
+      }
+
+      /**
+       * Maximum rendered URL length, or `null` for no maximum.
+       *
+       * @param {?number} value Proposed configuration value. Default `null`.
+       * @returns {?number} Accepted configuration value.
+       */
+      _config_maxUrlLength(value = null) {
+        return (value === null)
+          ? null
+          : MustBe.number(value, { safeInteger: true, minInclusive: 20 });
+      }
+    };
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseFileService.Config {
-    // @defaultConstructor
-
-    /**
-     * How long to buffer updates for, or `null` to not do any buffering. If
-     * passed as a string, it is parsed by {@link Duration#parse}.
-     *
-     * @param {?string|Duration} value Proposed configuration value. Default
-     *   `null`.
-     * @returns {?Duration} Accepted configuration value.
-     */
-    _config_bufferPeriod(value = null) {
-      if (value === null) {
-        return null;
-      }
-
-      const result = Duration.parse(value, { range: { minInclusive: 0 } });
-
-      if (!result) {
-        throw new Error(`Could not parse \`bufferPeriod\`: ${value}`);
-      }
-
-      return (result === 0) ? null : result;
-    }
-
-    /**
-     * Maximum rendered URL length, or `null` for no maximum.
-     *
-     * @param {?number} value Proposed configuration value. Default `null`.
-     * @returns {?number} Accepted configuration value.
-     */
-    _config_maxUrlLength(value = null) {
-      return (value === null)
-        ? null
-        : MustBe.number(value, { safeInteger: true, minInclusive: 20 });
-    }
-  };
 }
