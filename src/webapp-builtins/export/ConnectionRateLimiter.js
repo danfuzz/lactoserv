@@ -79,7 +79,7 @@ export class ConnectionRateLimiter extends BaseService {
   static _impl_configClass() {
     return TemplRateLimitConfig(
       'ConnectionRateLimiterConfig',
-      BaseService.Config,
+      BaseService.CONFIG_CLASS,
       {
         countType: ConnectionCount,
         rateType:  ConnectionRate

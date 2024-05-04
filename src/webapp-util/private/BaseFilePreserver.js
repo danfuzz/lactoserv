@@ -69,7 +69,7 @@ export class BaseFilePreserver {
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
-    this.#config = MustBe.instanceOf(config, BaseFileService.Config);
+    this.#config = MustBe.instanceOf(config, BaseFileService.CONFIG_CLASS);
     this.#logger = logger?.saver;
   }
 

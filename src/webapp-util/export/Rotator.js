@@ -39,7 +39,7 @@ export class Rotator extends BaseFilePreserver {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#config      = MustBe.instanceOf(config, BaseFileService.Config);
+    this.#config      = MustBe.instanceOf(config, BaseFileService.CONFIG_CLASS);
     this.#checkPeriod = config.rotate.checkPeriod;
   }
 
