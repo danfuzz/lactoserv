@@ -12,4 +12,26 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export class BaseRootComponent extends BaseComponent {
   // @defaultConstructor
+
+  //
+  // Static members
+  //
+
+  /**
+   * @returns {function(new:BaseRootComponent.Config)} The class {@link
+   * #Config}.
+   *
+   * @override
+   */
+  static _impl_configClass() {
+    return BaseRootComponent.Config;
+  }
+
+  /**
+   * Default configuration subclass for this (outer) class, which adds no
+   * configuration options.
+   */
+  static Config = class Config extends BaseComponent.Config {
+    // @emptyBlock
+  };
 }
