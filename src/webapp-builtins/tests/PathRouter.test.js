@@ -58,7 +58,7 @@ describe('constructor', () => {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new MockRootComponent({ name: 'root' }, new RootControlContext(null));
+    const root = new MockRootComponent();
     await root.start();
 
     root.applicationManager = {

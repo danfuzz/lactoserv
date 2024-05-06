@@ -7,7 +7,7 @@ import { TemplAggregateComponent, BaseComponent, MockComponent,
 
 describe('constructor', () => {
   test('picks appropriate names for otherwise-nameless components', async () => {
-    const root = new MockRootComponent({}, new RootControlContext(null));
+    const root = new MockRootComponent();
     await root.start();
 
     class SomeName extends MockComponent {

@@ -56,7 +56,7 @@ export class BaseSystem
    * @param {?IntfLogger} logger The logger to use, if any.
    */
   constructor(logger) {
-    super(null, new RootControlContext(logger));
+    super({ rootLogger: logger });
   }
 
   /**
