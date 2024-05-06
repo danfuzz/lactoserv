@@ -73,8 +73,7 @@ export class BaseComponent {
    *   other instance.
    */
   constructor(rawConfig = null, rootContext = null) {
-    const configClass = new.target.CONFIG_CLASS;
-    this.#config = configClass.eval(rawConfig, { targetClass: this.constructor });
+    this.#config = new.target.CONFIG_CLASS.eval(rawConfig, { targetClass: new.target });
 
     const name = this.#config?.name;
     if (name) {

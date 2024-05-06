@@ -32,8 +32,7 @@ export class BaseRootComponent extends BaseComponent {
     // We need to recapitulate the config parsing our superclass would have done
     // so that we will only get a valid `rootLogger` value. (That is, if we're
     // passed a bogus `rawConfig`, the `eval()` call will throw.)
-    const configClass = new.target.CONFIG_CLASS;
-    rawConfig = configClass.eval(rawConfig, {
+    rawConfig = new.target.CONFIG_CLASS.eval(rawConfig, {
       targetClass: new.target
     });
 
