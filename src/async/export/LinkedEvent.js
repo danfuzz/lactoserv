@@ -83,7 +83,7 @@ export class LinkedEvent {
       this.#hasEmitter = false;
       this.#next       = (next instanceof EventOrPromise)
         ? next
-        : new EventOrPromise(next, this.constructor);
+        : new EventOrPromise(next, new.target);
     }
   }
 

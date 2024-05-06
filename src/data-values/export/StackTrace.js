@@ -60,9 +60,9 @@ export class StackTrace {
     maxCount ??= Number.POSITIVE_INFINITY;
 
     if (original === null) {
-      // `this.constructor` because of the call to `_impl_newError()` which can
-      // be overridden in a subclass.
-      this.#frames = this.constructor.framesNow(omitCount + 1, maxCount);
+      // `new.target` because of the call to `_impl_newError()` which can be
+      // overridden in a subclass.
+      this.#frames = new.target.framesNow(omitCount + 1, maxCount);
     } else {
       this.#frames = StackTrace.framesFrom(original, omitCount, maxCount);
     }
