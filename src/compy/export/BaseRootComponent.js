@@ -5,6 +5,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { AskIf } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
+import { Names } from '#x/Names';
 import { RootControlContext } from '#x/RootControlContext';
 
 
@@ -28,17 +29,15 @@ export class BaseRootComponent extends BaseComponent {
    *   correct) configuration for this instance. Default `null`.
    */
   constructor(rawConfig = null) {
-    if ((rawConfig === null) || AskIf.plainObject(rawConfig)) {
-      // Set up defaults.
-      rawConfig = {
-        name: 'root',
-        rootLogger: null, // Should not be necessary. TODO: Fix!
-        ...rawConfig
-      };
-    }
+    // We need to recapitulate the config parsing our superclass would have done
+    // so that we will only get a valid `rootLogger` value. (That is, if we're
+    // passed a bogus `rawConfig`, the `eval()` call will throw.)
+    const configClass = new.target.CONFIG_CLASS;
+    rawConfig = configClass.eval(rawConfig, {
+      targetClass: new.target
+    });
 
-    // TODO: Fix the use of the config here!
-    const context = new RootControlContext(rawConfig.rootLogger ?? null);
+    const context = new RootControlContext(rawConfig.rootLogger);
 
     super(rawConfig, context);
   }
@@ -52,6 +51,17 @@ export class BaseRootComponent extends BaseComponent {
   static _impl_configClass() {
     return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
+
+      /**
+       * Component name. This is an override of the base class in order to
+       * force the name to be non-`null`.
+       *
+       * @param {string} [value] Proposed configuration value. Default `'root'`.
+       * @returns {string} Accepted configuration value.
+       */
+      _config_name(value = 'root') {
+         return Names.checkName(value);
+      }
 
       /**
        * Root logger to use, or `null` if the component hierarchy will not do
