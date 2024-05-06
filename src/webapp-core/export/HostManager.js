@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreeMap } from '@this/collections';
-import { BaseAggregateComponent } from '@this/compy';
+import { BaseComponent, TemplAggregateComponent } from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
@@ -21,7 +21,7 @@ import { NetworkHost } from '#x/NetworkHost';
  *
  * @implements {IntfHostManager}
  */
-export class HostManager extends BaseAggregateComponent {
+export class HostManager extends TemplAggregateComponent('HostAggregate', BaseComponent) {
   /**
    * Main implementation.
    *
