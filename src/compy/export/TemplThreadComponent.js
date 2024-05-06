@@ -10,11 +10,6 @@ import { MustBe } from '@this/typey';
  * implementation: When the component is started or stopped, the
  * internally-defined thread is likewise started or stopped (respectively).
  *
- * If a subclass overrides any of the `BaseComponent` `_impl_*` methods, it must
- * always call `super._impl_*`, in order for this class to operate correctly.
- * That said, it should usually be the case that subclasses only need to
- * implement {@link #_impl_threadStart} and {@link #_impl_threadRun}.
- *
  * @param {string} className The name of the resulting class.
  * @param {function(new:*)} superclass The superclass to extend (inherit from).
  * @returns {function(new:*)} The instantiated template class.
@@ -29,9 +24,7 @@ export const TemplThreadComponent = (className, superclass) => {
      *
      * @type {Threadlet}
      */
-    #threadlet = new Threadlet(
-      (runnerAccess) => this.#start(runnerAccess),
-      (runnerAccess) => this.#main(runnerAccess));
+    #threadlet = new Threadlet((runnerAccess) => this.#main(runnerAccess));
 
     // @defaultConstructor
 
@@ -48,20 +41,6 @@ export const TemplThreadComponent = (className, superclass) => {
     }
 
     /**
-     * Runs subclass-specific start-time actions. This corresponds to the "start
-     * function" described by {@link Threadlet}. Subclasses that wish to have
-     * start actions must override this. By default it does nothing except
-     * return `null`.
-     *
-     * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
-     * @returns {*} Arbitrary result of starting.
-     * @throws {Error} Arbitrary error from starting.
-     */
-    async _impl_threadStart(runnerAccess) { // eslint-disable-line no-unused-vars
-      return null;
-    }
-
-    /**
      * Runs the subclass-specific main thread action. This corresponds to the
      * "main function" described by {@link Threadlet}. Subclasses that wish to
      * have any main action must override this. By default it does nothing
@@ -73,17 +52,6 @@ export const TemplThreadComponent = (className, superclass) => {
      */
     async _impl_threadRun(runnerAccess) { // eslint-disable-line no-unused-vars
       return null;
-    }
-
-    /**
-     * Threadlet start function.
-     *
-     * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
-     * @returns {*} Arbitrary result of starting.
-     * @throws {Error} Arbitrary error from starting.
-     */
-    async #start(runnerAccess) {
-      return this._impl_threadStart(runnerAccess);
     }
 
     /**
