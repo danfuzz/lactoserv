@@ -79,6 +79,8 @@ export class SuffixRouter extends BaseApplication {
     }
 
     this.#routeMap = routeMap;
+
+    await super._impl_start();
   }
 
   /** @override */

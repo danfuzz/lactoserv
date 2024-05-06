@@ -133,6 +133,7 @@ export class WebappRoot extends BaseRootComponent {
     await this.#serviceManager.start();
     await this.#applicationManager.start();
     await this.#endpointManager.start();
+    await super._impl_start();
   }
 
   /** @override */

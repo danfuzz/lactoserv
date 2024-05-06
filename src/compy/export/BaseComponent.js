@@ -206,11 +206,13 @@ export class BaseComponent {
     this.#context = context;
 
     this.logger?.initializing();
+
     this.#context[ThisModule.SYM_setState]('initializing');
     await this._impl_init();
     if (this.state !== 'stopped') {
       throw new Error('`super._impl_init()` never called on base class.');
     }
+
     this.logger?.initialized();
   }
 
@@ -262,8 +264,13 @@ export class BaseComponent {
     }
 
     this.logger?.starting();
+
+    this.#context[ThisModule.SYM_setState]('starting');
     await this._impl_start();
-    this.#context[ThisModule.SYM_setState]('running');
+    if (this.state !== 'running') {
+      throw new Error('`super._impl_start()` never called on base class.');
+    }
+
     this.logger?.started();
   }
 
@@ -331,13 +338,13 @@ export class BaseComponent {
 
   /**
    * Subclass-specific implementation of {@link #start}. Subclasses should
-   * generally call through to `super` so that all the base classes get a chance
-   * to take action. That said, the base class implementation is a no-op.
+   * always call through to `super` so that all the base classes get a chance to
+   * take action.
    *
    * @abstract
    */
   async _impl_start() {
-    // @emptyBody
+    this.#context[ThisModule.SYM_setState]('running');
   }
 
   /**

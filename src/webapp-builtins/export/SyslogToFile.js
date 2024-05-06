@@ -57,6 +57,8 @@ export class SyslogToFile extends BaseFileService {
 
     await this.#sink.start();
     this.logger.running();
+
+    await super._impl_start();
   }
 
   /** @override */

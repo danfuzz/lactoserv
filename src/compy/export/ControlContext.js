@@ -341,7 +341,7 @@ export class ControlContext {
    *
    * @type {Set<string>}
    */
-  static #VALID_STATES = new Set(['initializing', 'running', 'stopped']);
+  static #VALID_STATES = new Set(['initializing', 'running', 'starting', 'stopped']);
 
   /**
    * Checks a state string for validity.

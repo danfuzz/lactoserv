@@ -82,11 +82,6 @@ export class RequestFilter extends BaseApplication {
   }
 
   /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_stop(willReload_unused) {
     // @emptyBlock
   }

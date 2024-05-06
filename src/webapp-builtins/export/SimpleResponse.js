@@ -95,6 +95,8 @@ export class SimpleResponse extends BaseApplication {
     }
 
     this.#response = response;
+
+    await super._impl_start();
   }
 
   /** @override */

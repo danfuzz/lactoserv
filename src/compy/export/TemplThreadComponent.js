@@ -38,6 +38,7 @@ export const TemplThreadComponent = (className, superclass) => {
     /** @override */
     async _impl_start() {
       await this.#threadlet.start();
+      await super._impl_start();
     }
 
     /** @override */

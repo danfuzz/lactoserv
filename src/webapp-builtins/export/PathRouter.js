@@ -76,6 +76,8 @@ export class PathRouter extends BaseApplication {
     }
 
     this.#routeTree = routeTree;
+
+    await super._impl_start();
   }
 
   /** @override */

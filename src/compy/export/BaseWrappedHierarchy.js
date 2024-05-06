@@ -76,6 +76,7 @@ export class BaseWrappedHierarchy extends BaseComponent {
   /** @override */
   async _impl_start() {
     await this.#startOrRestart();
+    await super._impl_start();
   }
 
   /** @override */

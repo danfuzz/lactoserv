@@ -107,6 +107,8 @@ export class NetworkHost extends BaseComponent {
       const { certificate, privateKey } = config;
       this.#parameters = { certificate, privateKey };
     }
+
+    await super._impl_start();
   }
 
   /** @override */

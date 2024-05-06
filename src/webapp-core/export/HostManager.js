@@ -71,6 +71,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
     const results = hosts.map((h) => h.start());
 
     await Promise.all(results);
+    await super._impl_start();
   }
 
   /** @override */

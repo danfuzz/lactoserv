@@ -75,6 +75,7 @@ export class ProcessInfoFile extends BaseFileService {
     }
 
     await this.#runner.start();
+    await super._impl_start();
   }
 
   /** @override */

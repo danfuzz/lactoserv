@@ -84,6 +84,8 @@ export class EventFan extends BaseService {
     }
 
     this.#services = services;
+
+    await super._impl_start();
   }
 
   /** @override */

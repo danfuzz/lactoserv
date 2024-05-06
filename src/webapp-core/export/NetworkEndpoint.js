@@ -136,6 +136,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     await this.#wrangler.init(this.logger);
     await this.#wrangler.start();
+    await super._impl_start();
   }
 
   /**

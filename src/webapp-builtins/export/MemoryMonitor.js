@@ -38,6 +38,7 @@ export class MemoryMonitor extends BaseService {
   /** @override */
   async _impl_start() {
     await this.#runner.start();
+    await super._impl_start();
   }
 
   /** @override */

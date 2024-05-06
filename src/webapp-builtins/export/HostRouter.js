@@ -70,6 +70,8 @@ export class HostRouter extends BaseApplication {
     }
 
     this.#routeTree = routeTree;
+
+    await super._impl_start();
   }
 
   /** @override */

@@ -136,6 +136,7 @@ export class AccessLogToFile extends BaseFileService {
     await this._prot_createDirectoryIfNecessary();
     await this._prot_touchPath();
     await this.#rotator?.start();
+    await super._impl_start();
   }
 
   /** @override */

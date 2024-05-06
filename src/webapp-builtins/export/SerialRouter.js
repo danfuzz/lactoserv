@@ -59,6 +59,8 @@ export class SerialRouter extends BaseApplication {
     }
 
     this.#routeList = routeList;
+
+    await super._impl_start();
   }
 
   /** @override */

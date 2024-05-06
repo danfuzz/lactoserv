@@ -147,6 +147,8 @@ export class StaticFiles extends BaseApplication {
 
       this.#notFoundResponse = response;
     }
+
+    await super._impl_start();
   }
 
   /** @override */

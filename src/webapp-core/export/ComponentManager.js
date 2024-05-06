@@ -65,6 +65,7 @@ export class ComponentManager extends TemplAggregateComponent('ComponentAggregat
     const results   = instances.map((c) => c.start());
 
     await Promise.all(results);
+    await super._impl_start();
   }
 
   /** @override */
