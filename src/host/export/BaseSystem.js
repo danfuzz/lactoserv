@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, BaseRootComponent, TemplWrappedHierarchy,
-  TemplThreadComponent }
+import { BaseComponent, BaseRootComponent, TemplThreadComponent,
+  TemplWrappedHierarchy }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -11,6 +11,7 @@ import { Methods } from '@this/typey';
 import { CallbackList } from '#x/CallbackList';
 import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
+
 
 /**
  * Superclass of this class, which consists of two template mixins on top of the
