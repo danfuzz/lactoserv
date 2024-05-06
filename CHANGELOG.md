@@ -24,6 +24,8 @@ Breaking changes:
     make you change your standalone config files.
   * New template class `TemplRootComponent` to make a base class for root
     components.
+  * Switched `BaseThreadComponent` to instead be a template class,
+    `TemplThreadComponent`.
 
 Other notable changes:
 * None.
