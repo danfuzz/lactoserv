@@ -105,6 +105,7 @@ export class BaseConfig {
         }
       } catch (e) {
         if (!hasConfig) {
+          // This could also be due to a bug in the config class.
           throw new Error(`Missing required configuration property: \`${name}\``);
         }
         throw e;
