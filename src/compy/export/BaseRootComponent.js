@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
-import { AskIf } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { Names } from '#x/Names';
@@ -59,7 +58,7 @@ export class BaseRootComponent extends BaseComponent {
        * @returns {string} Accepted configuration value.
        */
       _config_name(value = 'root') {
-         return Names.checkName(value);
+        return Names.checkName(value);
       }
 
       /**
