@@ -26,9 +26,6 @@ export class BaseRootComponent extends BaseComponent {
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance. Default `null`.
-   * @param {?RootControlContext} [rootContext] Associated context if this
-   *   instance is to be the root of its control hierarchy, or `null` for any
-   *   other instance.
    */
   constructor(rawConfig = null) {
     if ((rawConfig === null) || AskIf.plainObject(rawConfig)) {
@@ -37,7 +34,7 @@ export class BaseRootComponent extends BaseComponent {
         name: 'root',
         rootLogger: null, // Should not be necessary. TODO: Fix!
         ...rawConfig
-      }
+      };
     }
 
     // TODO: Fix the use of the config here!
