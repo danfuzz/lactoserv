@@ -22,8 +22,7 @@ Breaking changes:
     **Note:** While this is a breaking change for how components are built, it
     doesn't affect how components are instantiated. For example, this doesn't
     make you change your standalone config files.
-  * New template class `TemplRootComponent` to make a base class for root
-    components.
+  * New base class `BaseRootComponent` to be the superclass for root components.
   * Switched `BaseThreadComponent` to instead be a template class,
     `TemplThreadComponent`.
 

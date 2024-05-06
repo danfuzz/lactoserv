@@ -3,7 +3,7 @@
 
 import { Condition } from '@this/async';
 import { BaseComponent, TemplThreadComponent, BaseWrappedHierarchy,
-  RootControlContext, TemplRootComponent }
+  RootControlContext, BaseRootComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -13,24 +13,14 @@ import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
 
 
-const BaseRootComponent =
-  TemplRootComponent('RootComponent', BaseComponent);
-
-/**
- * Root component class to use.
- *
- * @type {function(new:BaseComponent)}
- */
-const SystemThread =
-  TemplThreadComponent('SystemThread', BaseRootComponent);
-
 /**
  * Base class to operate the top level of a system, in the usual fashion. This
  * takes care of coordinating initialization, running, and shutdown, leaving
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends SystemThread {
+export class BaseSystem
+  extends TemplThreadComponent('SystemThread', BaseRootComponent) {
   /**
    * List of registered callbacks.
    *

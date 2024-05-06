@@ -3,7 +3,7 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseComponent, TemplRootComponent, RootControlContext }
+import { BaseComponent, BaseRootComponent, RootControlContext }
   from '@this/compy';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -16,13 +16,6 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Root component class to use.
- *
- * @type {function(new:BaseComponent)}
- */
-const RootComponent = TemplRootComponent('RootComponent', BaseComponent);
-
-/**
  * Root component which contains all the subcomponents required to operate a
  * specific webapp. Instances of this class can reasonably be called "webapps"
  * per se.
@@ -33,7 +26,7 @@ const RootComponent = TemplRootComponent('RootComponent', BaseComponent);
  * system will press on with the `stop()` actions if an earlier layer is taking
  * too long.
  */
-export class WebappRoot extends RootComponent {
+export class WebappRoot extends BaseRootComponent {
   /**
    * Application manager.
    *
@@ -193,7 +186,7 @@ export class WebappRoot extends RootComponent {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends RootComponent.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**
