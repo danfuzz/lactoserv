@@ -1,29 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TemplAggregateComponent, BaseComponent, RootControlContext }
-  from '@this/compy';
+import { TemplAggregateComponent, BaseComponent, MockComponent,
+  RootControlContext } from '@this/compy';
 
-
-/**
- * Fake component that implements just enough stuff for the tests here.
- */
-class MockComponent extends TemplAggregateComponent('MockAggregate', BaseComponent) {
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-}
 
 describe('constructor', () => {
   test('picks appropriate names for otherwise-nameless components', async () => {
