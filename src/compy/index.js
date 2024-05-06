@@ -10,3 +10,4 @@ export * from '#x/ControlContext';
 export * from '#x/Names';
 export * from '#x/RootControlContext';
 export * from '#x/TemplRootComponent';
+export * from '#x/TemplThreadComponent';
