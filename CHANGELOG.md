@@ -22,6 +22,9 @@ Breaking changes:
     **Note:** While this is a breaking change for how components are built, it
     doesn't affect how components are instantiated. For example, this doesn't
     make you change your standalone config files.
+  * Similarly, reworked the component lifecycle methods to all be "must call
+    `super`" instead of the former "must _not_ call `super`" style. The latter
+    stopped making sense with the introduction of the template mixin classes.
   * New base class `BaseRootComponent` to be the superclass for root components.
   * Switched a few classes from _base_ classes to _template_ classes:
     * `BaseThreadComponent` -> `TemplThreadComponent`.
