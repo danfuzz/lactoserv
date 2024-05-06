@@ -3,7 +3,7 @@
 
 import { Condition } from '@this/async';
 import { BaseComponent, TemplThreadComponent, BaseWrappedHierarchy,
-  RootControlContext, BaseRootComponent }
+  BaseRootComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
