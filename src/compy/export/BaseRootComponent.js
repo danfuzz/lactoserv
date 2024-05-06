@@ -9,8 +9,8 @@ import { RootControlContext } from '#x/RootControlContext';
 
 
 /**
- * Base class for root components, that is, for components which are meant
- * to be used as the root component for their hierarchies.
+ * Base class for root components, that is, for components which are meant to be
+ * used as the root component for their hierarchies.
  *
  * TODO: This class doesn't actually do anything... yet.
  *
@@ -51,8 +51,8 @@ export class BaseRootComponent extends BaseComponent {
       // @defaultConstructor
 
       /**
-       * Component name. This is an override of the base class in order to
-       * force the name to be non-`null`.
+       * Component name. This is an override of the base class in order to force
+       * the name to be non-`null`.
        *
        * @param {string} [value] Proposed configuration value. Default `'root'`.
        * @returns {string} Accepted configuration value.

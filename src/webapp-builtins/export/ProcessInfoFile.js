@@ -3,8 +3,8 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
+import { TemplThreadComponent } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
@@ -20,7 +20,7 @@ import { BaseFileService, Saver } from '@this/webapp-util';
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
  * information about active processes.
  */
-export class ProcessInfoFile extends BaseFileService {
+export class ProcessInfoFile extends TemplThreadComponent('FileThread', BaseFileService) {
   /**
    * Current info file contents, if known.
    *
@@ -34,13 +34,6 @@ export class ProcessInfoFile extends BaseFileService {
    * @type {?Saver}
    */
   #saver = null;
-
-  /**
-   * Threadlet which runs this service.
-   *
-   * @type {Threadlet}
-   */
-  #runner = new Threadlet(() => this.#start(), (ra) => this.#run(ra));
 
   // @defaultConstructor
 
@@ -74,14 +67,15 @@ export class ProcessInfoFile extends BaseFileService {
       };
     }
 
-    await this.#runner.start();
+    this.#contents = await this.#makeContents();
+
     await super._impl_start();
   }
 
   /** @override */
   async _impl_stop(willReload) {
-    await this.#runner.stop();
-    await this.#stop(willReload);
+    await this._prot_threadStop();
+    await this.#updateContentsForStop(willReload);
 
     if (this.#saver) {
       // Note: We stopped our runner before telling the saver, so that the final
@@ -91,6 +85,23 @@ export class ProcessInfoFile extends BaseFileService {
     }
 
     await super._impl_stop(willReload);
+  }
+
+  /** @override */
+  async _impl_threadRun(runnerAccess) {
+    const updateMsec = this.config.updatePeriod?.msec ?? null;
+
+    while (!runnerAccess.shouldStop()) {
+      this.#updateContents();
+      await this.#writeFile();
+
+      if (updateMsec) {
+        const timeout = WallClock.waitForMsec(updateMsec);
+        await runnerAccess.raceWhenStopRequested([timeout]);
+      } else {
+        await runnerAccess.whenStopRequested();
+      }
+    }
   }
 
   /**
@@ -194,39 +205,27 @@ export class ProcessInfoFile extends BaseFileService {
   }
 
   /**
-   * Runs the service thread.
-   *
-   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
+   * Updates {@link #contents} to reflect the latest conditions.
    */
-  async #run(runnerAccess) {
-    const updateMsec = this.config.updatePeriod?.msec ?? null;
+  #updateContents() {
+    this.#contents.disposition = {
+      running:   true,
+      updatedAt: WallClock.now().toPlainObject(),
+      uptime:    ProcessInfo.uptime.toPlainObject()
+    };
 
-    while (!runnerAccess.shouldStop()) {
-      this.#updateContents();
-      await this.#writeFile();
+    const ephemera = ProcessInfo.ephemeralInfo;
+    delete ephemera.uptime; // Redundant with what we put into `disposition`.
 
-      if (updateMsec) {
-        const timeout = WallClock.waitForMsec(updateMsec);
-        await runnerAccess.raceWhenStopRequested([timeout]);
-      } else {
-        await runnerAccess.whenStopRequested();
-      }
-    }
+    Object.assign(this.#contents, ephemera);
   }
 
   /**
-   * Starts the service thread.
-   */
-  async #start() {
-    this.#contents = await this.#makeContents();
-  }
-
-  /**
-   * Stops the service thread.
+   * Updates the info file when the system is about to stop or reload.
    *
    * @param {boolean} willReload Is the system going to be reloaded in-process?
    */
-  async #stop(willReload) {
+  async #updateContentsForStop(willReload) {
     const contents  = this.#contents;
     const stoppedAt = WallClock.now();
     const uptimeSec = stoppedAt.atSec - contents.startedAt.atSec;
@@ -245,8 +244,8 @@ export class ProcessInfoFile extends BaseFileService {
     contents.disposition.stoppedAt = stoppedAt.toPlainObject();
     contents.disposition.uptime    = Duration.plainObjectFromSec(uptimeSec);
 
-    // Try to get `earlierRuns` to be at the end of the object when it gets
-    // encoded to JSON, for easier (human) reading.
+    // Get `earlierRuns` to be at the end of the object when it gets encoded to
+    // JSON, for easier reading (for a human).
     if (contents.earlierRuns) {
       const earlierRuns = contents.earlierRuns;
       delete contents.earlierRuns;
@@ -258,22 +257,6 @@ export class ProcessInfoFile extends BaseFileService {
     if (willReload) {
       ProcessInfoFile.#INTENDED_TO_RELOAD = true;
     }
-  }
-
-  /**
-   * Updates {@link #contents} to reflect the latest conditions.
-   */
-  #updateContents() {
-    this.#contents.disposition = {
-      running:   true,
-      updatedAt: WallClock.now().toPlainObject(),
-      uptime:    ProcessInfo.uptime.toPlainObject()
-    };
-
-    const ephemera = ProcessInfo.ephemeralInfo;
-    delete ephemera.uptime; // Redundant with what we put into `disposition`.
-
-    Object.assign(this.#contents, ephemera);
   }
 
   /**

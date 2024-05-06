@@ -34,7 +34,13 @@ Breaking changes:
     `MockRootComponent`.
 
 Other notable changes:
-* None.
+* `compy`:
+  * Fixed bug in `BaseComponent.CONFIG_CLASS` which caused it to sometimes
+    call base classes' `_impl_configClass()` multiple times (which isn't
+    supposed to happen, ever).
+* `webapp-builtins`:
+  * Took advantage of `TemplThreadComponent` in a few classes that could use it,
+    now that it's a template (and not a direct subclass of `BaseComponent`).
 
 ### v0.7.1 -- 2024-05-01
 

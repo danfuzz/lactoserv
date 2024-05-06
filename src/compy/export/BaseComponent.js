@@ -64,8 +64,8 @@ export class BaseComponent {
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance. It must either be an instance
-   *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which
-   *   is acceptable to the constructor of that class, or `null` (equivalent to
+   *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which is
+   *   acceptable to the constructor of that class, or `null` (equivalent to
    *   `{}`, that is, an empty object) to have no configuration properties.
    *   Default `null`.
    * @param {?RootControlContext} [rootContext] Associated context if this
@@ -353,9 +353,9 @@ export class BaseComponent {
   }
 
   /**
-   * Subclass-specific implementation of {@link #stop}. Subclasses should
-   * always call through to `super` so that all the base classes get a chance to
-   * take action.
+   * Subclass-specific implementation of {@link #stop}. Subclasses should always
+   * call through to `super` so that all the base classes get a chance to take
+   * action.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
@@ -420,12 +420,30 @@ export class BaseComponent {
       return already;
     }
 
-    const configClass = this._impl_configClass();
+    // We can't just call `this._impl_configClass()` because `this` might
+    // inherit it, and if it does we only want to call the inherited method once
+    // ever, for all subclasses. So we need to find what class actually defines
+    // it, and proceed from there.
 
-    MustBe.constructorFunction(configClass);
-    BaseComponent.#configClass.set(this, configClass);
+    let definedOn = this;
+    for (;;) {
+      if (Object.hasOwn(definedOn, '_impl_configClass')) {
+        break;
+      }
+      definedOn = Reflect.getPrototypeOf(definedOn);
+    }
 
-    return configClass;
+    let result;
+
+    if (definedOn === this) {
+      result = this._impl_configClass();
+      MustBe.constructorFunction(result);
+    } else {
+      result = definedOn.CONFIG_CLASS;
+    }
+
+    BaseComponent.#configClass.set(this, result);
+    return result;
   }
 
   /**

@@ -49,8 +49,8 @@ export const TemplWrappedHierarchy = (className, superclass) => {
 
     /**
      * Restarts the wrapped hierarchy. This is only valid to call after a
-     * successful call to {@link #_prot_prepareToRestart}. The concrete
-     * subclass is expected to call this when appropriate.
+     * successful call to {@link #_prot_prepareToRestart}. The concrete subclass
+     * is expected to call this when appropriate.
      */
     async _prot_restart() {
       await this.#startOrRestart();

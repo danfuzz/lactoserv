@@ -41,6 +41,15 @@ export const TemplThreadComponent = (className, superclass) => {
     }
 
     /**
+     * Tells the threadlet controlled by this instance to stop. Normally, it
+     * will just stop when the component as a whole is stopped; this method
+     * gives the subclass the ability to do it "off-cycle."
+     */
+    async _prot_threadStop() {
+      await this.#threadlet.stop();
+    }
+
+    /**
      * Runs the subclass-specific main thread action. This corresponds to the
      * "main function" described by {@link Threadlet}. Subclasses that wish to
      * have any main action must override this. By default it does nothing

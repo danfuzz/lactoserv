@@ -4,8 +4,8 @@
 import * as fs from 'node:fs/promises';
 import { pid as processPid } from 'node:process';
 
-import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
+import { TemplThreadComponent } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
@@ -23,26 +23,25 @@ import { BaseFileService } from '@this/webapp-util';
  * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.
  */
-export class ProcessIdFile extends BaseFileService {
-  /**
-   * Threadlet which runs this service.
-   *
-   * @type {Threadlet}
-   */
-  #runner = new Threadlet((ra) => this.#run(ra));
-
+export class ProcessIdFile extends TemplThreadComponent('FileThread', BaseFileService) {
   // @defaultConstructor
 
   /** @override */
-  async _impl_start() {
-    await this.#runner.start();
-    await super._impl_start();
-  }
+  async _impl_threadRun(runnerAccess) {
+    const updateMsec = this.config.updatePeriod?.msec ?? null;
 
-  /** @override */
-  async _impl_stop(willReload) {
-    await this.#runner.stop();
-    await super._impl_stop(willReload);
+    while (!runnerAccess.shouldStop()) {
+      await this.#updateFile(true);
+
+      if (updateMsec) {
+        const timeout = WallClock.waitForMsec(updateMsec);
+        await runnerAccess.raceWhenStopRequested([timeout]);
+      } else {
+        await runnerAccess.whenStopRequested();
+      }
+    }
+
+    await this.#updateFile(false);
   }
 
   /**
@@ -114,28 +113,6 @@ export class ProcessIdFile extends BaseFileService {
       this.logger?.errorReadingFile(e);
       return '';
     }
-  }
-
-  /**
-   * Runs the service thread.
-   *
-   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
-   */
-  async #run(runnerAccess) {
-    const updateMsec = this.config.updatePeriod?.msec ?? null;
-
-    while (!runnerAccess.shouldStop()) {
-      await this.#updateFile(true);
-
-      if (updateMsec) {
-        const timeout = WallClock.waitForMsec(updateMsec);
-        await runnerAccess.raceWhenStopRequested([timeout]);
-      } else {
-        await runnerAccess.whenStopRequested();
-      }
-    }
-
-    await this.#updateFile(false);
   }
 
   /**
