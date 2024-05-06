@@ -420,12 +420,30 @@ export class BaseComponent {
       return already;
     }
 
-    const configClass = this._impl_configClass();
+    // We can't just call `this._impl_configClass()` because `this` might
+    // inherit it, and if it does we only want to call the inherited method once
+    // ever, for all subclasses. So we need to find what class actually defines
+    // it, and proceed from there.
 
-    MustBe.constructorFunction(configClass);
-    BaseComponent.#configClass.set(this, configClass);
+    let definedOn = this;
+    for (;;) {
+      if (Object.hasOwn(definedOn, '_impl_configClass')) {
+        break;
+      }
+      definedOn = Reflect.getPrototypeOf(definedOn);
+    }
 
-    return configClass;
+    let result;
+
+    if (definedOn === this) {
+      result = this._impl_configClass();
+      MustBe.constructorFunction(result);
+    } else {
+      result = definedOn.CONFIG_CLASS;
+    }
+
+    BaseComponent.#configClass.set(this, result);
+    return result;
   }
 
   /**
