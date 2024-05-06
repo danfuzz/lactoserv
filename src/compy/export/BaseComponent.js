@@ -101,7 +101,7 @@ export class BaseComponent {
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
-    return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
+    return (this.#contextReady ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
   /**
@@ -171,7 +171,7 @@ export class BaseComponent {
    * * `running` -- Currently running.
    */
   get state() {
-    return this.#initialized
+    return this.#contextReady
       ? this.context.state
       : 'new';
   }
@@ -197,7 +197,7 @@ export class BaseComponent {
   async init(context) {
     MustBe.instanceOf(context, ControlContext);
 
-    if (this.#initialized) {
+    if (this.#contextReady) {
       throw new Error('Already initialized.');
     } else if ((this.#context !== null) && (this.#context.nascentRoot !== context)) {
       throw new Error('Inconsistent context setup.');
@@ -248,7 +248,7 @@ export class BaseComponent {
    * this method if the instance is not already running.
    */
   async start() {
-    if (!this.#initialized) {
+    if (!this.#contextReady) {
       if (this.#context === null) {
         throw new Error('No context was set up in constructor or `init()`.');
       }
@@ -352,9 +352,9 @@ export class BaseComponent {
   async _prot_addChild(child) {
     MustBe.instanceOf(child, BaseComponent);
 
-    if (!this.#initialized) {
+    if (!this.#contextReady) {
       throw new Error('Cannot add child to uninitialized component.');
-    } else if (child.#initialized) {
+    } else if (child.#contextReady) {
       throw new Error('Child already initialized; cannot add to different parent.');
     }
 
@@ -367,8 +367,10 @@ export class BaseComponent {
     }
   }
 
-  /** @returns {boolean} Whether or not this instance is initialized. */
-  get #initialized() {
+  /**
+   * @returns {boolean} Whether or not this instance's context is ready for use.
+   */
+  get #contextReady() {
     return this.#context instanceof ControlContext;
   }
 
