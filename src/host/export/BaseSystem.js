@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, BaseThreadComponent, BaseWrappedHierarchy,
+import { BaseComponent, TemplThreadComponent, BaseWrappedHierarchy,
   RootControlContext, TemplRootComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
@@ -13,12 +13,16 @@ import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
 
 
+const BaseRootComponent =
+  TemplRootComponent('RootComponent', BaseComponent);
+
 /**
  * Root component class to use.
  *
  * @type {function(new:BaseComponent)}
  */
-const RootComponent = TemplRootComponent('RootComponent', BaseThreadComponent);
+const SystemThread =
+  TemplThreadComponent('SystemThread', BaseRootComponent);
 
 /**
  * Base class to operate the top level of a system, in the usual fashion. This
@@ -26,7 +30,7 @@ const RootComponent = TemplRootComponent('RootComponent', BaseThreadComponent);
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends RootComponent {
+export class BaseSystem extends SystemThread {
   /**
    * List of registered callbacks.
    *
