@@ -45,19 +45,4 @@ export class AccessLogToSyslog extends BaseService {
   _impl_implementedInterfaces() {
     return [IntfAccessLog];
   }
-
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
 }

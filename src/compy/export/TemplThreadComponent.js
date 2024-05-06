@@ -36,18 +36,15 @@ export const TemplThreadComponent = (className, superclass) => {
     // @defaultConstructor
 
     /** @override */
-    async _impl_init() {
-      // @emptyBlock
-    }
-
-    /** @override */
     async _impl_start() {
       await this.#threadlet.start();
+      await super._impl_start();
     }
 
     /** @override */
-    async _impl_stop(willReload_unused) {
+    async _impl_stop(willReload) {
       await this.#threadlet.stop();
+      await super._impl_stop(willReload);
     }
 
     /**

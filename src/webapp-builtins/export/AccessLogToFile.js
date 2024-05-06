@@ -127,6 +127,8 @@ export class AccessLogToFile extends BaseFileService {
 
     this.#appender = new FileAppender(path, bufferPeriod);
     this.#rotator  = rotate ? new Rotator(config, this.logger) : null;
+
+    await super._impl_init();
   }
 
   /** @override */
@@ -134,11 +136,13 @@ export class AccessLogToFile extends BaseFileService {
     await this._prot_createDirectoryIfNecessary();
     await this._prot_touchPath();
     await this.#rotator?.start();
+    await super._impl_start();
   }
 
   /** @override */
   async _impl_stop(willReload) {
     await this.#rotator?.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
   /**

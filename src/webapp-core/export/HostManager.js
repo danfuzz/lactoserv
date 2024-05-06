@@ -60,6 +60,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
   /** @override */
   async _impl_init() {
     this.#hostMap = new HostManager.HostMap(this.logger);
+    await super._impl_init();
   }
 
   /** @override */
@@ -70,6 +71,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
     const results = hosts.map((h) => h.start());
 
     await Promise.all(results);
+    await super._impl_start();
   }
 
   /** @override */
@@ -78,6 +80,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
     const results = hosts.map((h) => h.stop(willReload));
 
     await Promise.all(results);
+    await super._impl_stop(willReload);
   }
 
   /** @override */

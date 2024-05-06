@@ -41,6 +41,7 @@ export class SerialRouter extends BaseApplication {
   /** @override */
   async _impl_init() {
     this.logger?.routes(this.config.applications);
+    await super._impl_init();
   }
 
   /** @override */
@@ -58,11 +59,8 @@ export class SerialRouter extends BaseApplication {
     }
 
     this.#routeList = routeList;
-  }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
+    await super._impl_start();
   }
 
 

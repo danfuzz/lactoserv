@@ -3,7 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
-import { AskIf, Methods, MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConfig } from '#x/BaseConfig';
 import { ControlContext } from '#x/ControlContext';
@@ -101,7 +101,7 @@ export class BaseComponent {
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
-    return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
+    return (this.#contextReady ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
   /**
@@ -171,7 +171,7 @@ export class BaseComponent {
    * * `running` -- Currently running.
    */
   get state() {
-    return this.#initialized
+    return this.#contextReady
       ? this.context.state
       : 'new';
   }
@@ -197,7 +197,7 @@ export class BaseComponent {
   async init(context) {
     MustBe.instanceOf(context, ControlContext);
 
-    if (this.#initialized) {
+    if (this.#contextReady) {
       throw new Error('Already initialized.');
     } else if ((this.#context !== null) && (this.#context.nascentRoot !== context)) {
       throw new Error('Inconsistent context setup.');
@@ -206,7 +206,13 @@ export class BaseComponent {
     this.#context = context;
 
     this.logger?.initializing();
+
+    this.#context[ThisModule.SYM_setState]('initializing');
     await this._impl_init();
+    if (this.state !== 'stopped') {
+      throw new Error('`super._impl_init()` never called on base class.');
+    }
+
     this.logger?.initialized();
   }
 
@@ -248,7 +254,7 @@ export class BaseComponent {
    * this method if the instance is not already running.
    */
   async start() {
-    if (!this.#initialized) {
+    if (!this.#contextReady) {
       if (this.#context === null) {
         throw new Error('No context was set up in constructor or `init()`.');
       }
@@ -258,8 +264,13 @@ export class BaseComponent {
     }
 
     this.logger?.starting();
+
+    this.#context[ThisModule.SYM_setState]('starting');
     await this._impl_start();
-    this.#context[ThisModule.SYM_setState]('running');
+    if (this.state !== 'running') {
+      throw new Error('`super._impl_start()` never called on base class.');
+    }
+
     this.logger?.started();
   }
 
@@ -282,8 +293,13 @@ export class BaseComponent {
     const fate = willReload ? 'willReload' : 'shutdown';
 
     this.logger?.stopping(fate);
+
+    this.#context[ThisModule.SYM_setState]('stopping');
     await this._impl_stop(willReload);
-    this.#context[ThisModule.SYM_setState]('stopped');
+    if (this.state !== 'stopped') {
+      throw new Error('`super._impl_stop()` never called on base class.');
+    }
+
     this.logger?.stopped(fate);
   }
 
@@ -311,7 +327,9 @@ export class BaseComponent {
 
   /**
    * Subclass-specific implementation of {@link #init}. By the time this is
-   * called, the {@link #context} will have been set.
+   * called, the {@link #context} will have been set. Subclasses should always
+   * call through to `super` so that all the base classes get a chance to take
+   * action.
    *
    * **Note:** It is not appropriate to take any overt external action in this
    * method (such as writing files to the filesystem or opening a network
@@ -320,27 +338,31 @@ export class BaseComponent {
    * @abstract
    */
   async _impl_init() {
-    Methods.abstract();
+    this.#context[ThisModule.SYM_setState]('stopped');
   }
 
   /**
-   * Subclass-specific implementation of {@link #start}.
+   * Subclass-specific implementation of {@link #start}. Subclasses should
+   * always call through to `super` so that all the base classes get a chance to
+   * take action.
    *
    * @abstract
    */
   async _impl_start() {
-    Methods.abstract();
+    this.#context[ThisModule.SYM_setState]('running');
   }
 
   /**
-   * Subclass-specific implementation of {@link #stop}.
+   * Subclass-specific implementation of {@link #stop}. Subclasses should
+   * always call through to `super` so that all the base classes get a chance to
+   * take action.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
-  async _impl_stop(willReload) {
-    Methods.abstract(willReload);
+  async _impl_stop(willReload) { // eslint-disable-line no-unused-vars
+    this.#context[ThisModule.SYM_setState]('stopped');
   }
 
   /**
@@ -352,9 +374,9 @@ export class BaseComponent {
   async _prot_addChild(child) {
     MustBe.instanceOf(child, BaseComponent);
 
-    if (!this.#initialized) {
+    if (!this.#contextReady) {
       throw new Error('Cannot add child to uninitialized component.');
-    } else if (child.#initialized) {
+    } else if (child.#contextReady) {
       throw new Error('Child already initialized; cannot add to different parent.');
     }
 
@@ -367,8 +389,10 @@ export class BaseComponent {
     }
   }
 
-  /** @returns {boolean} Whether or not this instance is initialized. */
-  get #initialized() {
+  /**
+   * @returns {boolean} Whether or not this instance's context is ready for use.
+   */
+  get #contextReady() {
     return this.#context instanceof ControlContext;
   }
 

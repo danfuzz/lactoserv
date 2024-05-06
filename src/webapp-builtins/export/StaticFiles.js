@@ -120,11 +120,6 @@ export class StaticFiles extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     const siteDirectory = this.#siteDirectory;
 
@@ -152,11 +147,8 @@ export class StaticFiles extends BaseApplication {
 
       this.#notFoundResponse = response;
     }
-  }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
+    await super._impl_start();
   }
 
   /**

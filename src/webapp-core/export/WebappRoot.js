@@ -123,6 +123,8 @@ export class WebappRoot extends BaseRootComponent {
     await this.#hostManager.addChildren(hosts);
     await this.#endpointManager.addChildren(endpoints);
     await this.#serviceManager.addChildren(services);
+
+    await super._impl_init();
   }
 
   /** @override */
@@ -131,6 +133,7 @@ export class WebappRoot extends BaseRootComponent {
     await this.#serviceManager.start();
     await this.#applicationManager.start();
     await this.#endpointManager.start();
+    await super._impl_start();
   }
 
   /** @override */
@@ -154,6 +157,8 @@ export class WebappRoot extends BaseRootComponent {
       this.#serviceManager.stop(willReload),
       this.#hostManager.stop(willReload)
     ]);
+
+    await super._impl_stop(willReload);
   }
 
 

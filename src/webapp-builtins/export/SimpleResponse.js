@@ -44,11 +44,6 @@ export class SimpleResponse extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     if (this.#response) {
       return;
@@ -100,11 +95,8 @@ export class SimpleResponse extends BaseApplication {
     }
 
     this.#response = response;
-  }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
+    await super._impl_start();
   }
 
 

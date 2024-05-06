@@ -60,6 +60,8 @@ export class SuffixRouter extends BaseApplication {
     }
 
     this.logger?.routes(routes);
+
+    await super._impl_init();
   }
 
   /** @override */
@@ -77,11 +79,8 @@ export class SuffixRouter extends BaseApplication {
     }
 
     this.#routeMap = routeMap;
-  }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
+    await super._impl_start();
   }
 
 

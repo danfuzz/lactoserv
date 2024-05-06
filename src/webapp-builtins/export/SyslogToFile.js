@@ -41,6 +41,8 @@ export class SyslogToFile extends BaseFileService {
 
     const { config } = this;
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
+
+    await super._impl_init();
   }
 
   /** @override */
@@ -55,6 +57,8 @@ export class SyslogToFile extends BaseFileService {
 
     await this.#sink.start();
     this.logger.running();
+
+    await super._impl_start();
   }
 
   /** @override */
@@ -74,6 +78,7 @@ export class SyslogToFile extends BaseFileService {
 
     await this.#sink.drainAndStop();
     await this.#rotator?.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
   /**

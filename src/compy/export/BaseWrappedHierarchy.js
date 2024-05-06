@@ -70,11 +70,13 @@ export class BaseWrappedHierarchy extends BaseComponent {
   /** @override */
   async _impl_init() {
     await this.#loadOrReload();
+    await super._impl_init();
   }
 
   /** @override */
   async _impl_start() {
     await this.#startOrRestart();
+    await super._impl_start();
   }
 
   /** @override */
@@ -83,6 +85,8 @@ export class BaseWrappedHierarchy extends BaseComponent {
     // perspective it's always getting shut down, not reloaded.
     await this.#rootComponent.stop(false);
     this.#rootComponent = null;
+
+    await super._impl_stop();
   }
 
   /**

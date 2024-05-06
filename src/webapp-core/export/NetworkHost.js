@@ -97,11 +97,6 @@ export class NetworkHost extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     const { config } = this;
     const { selfSigned } = config;
@@ -112,11 +107,8 @@ export class NetworkHost extends BaseComponent {
       const { certificate, privateKey } = config;
       this.#parameters = { certificate, privateKey };
     }
-  }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
+    await super._impl_start();
   }
 
 

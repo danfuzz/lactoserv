@@ -25,21 +25,6 @@ export class RequestDelay extends BaseApplication {
     return null;
   }
 
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
   /**
    * Picks a delay for a request.
    *

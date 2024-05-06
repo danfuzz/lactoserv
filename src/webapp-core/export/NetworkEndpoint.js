@@ -84,6 +84,8 @@ export class NetworkEndpoint extends BaseComponent {
       interface: FormatUtils.networkInterfaceString(iface),
       application
     });
+
+    await super._impl_init();
   }
 
   /** @override */
@@ -134,6 +136,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     await this.#wrangler.init(this.logger);
     await this.#wrangler.start();
+    await super._impl_start();
   }
 
   /**
@@ -144,6 +147,7 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async _impl_stop(willReload) {
     await this.#wrangler.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
 
