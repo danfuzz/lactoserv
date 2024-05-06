@@ -117,7 +117,7 @@ export class BaseSystem
   }
 
   /** @override */
-  async _impl_threadStart(runnerAccess_unused) {
+  async _impl_start() {
     // We do this first, so that if there was trouble starting the wrapped
     // hierarchy, we don't bother trying to do anything else.
     await this.#startOrReload();
@@ -127,6 +127,7 @@ export class BaseSystem
       Host.registerShutdownCallback(() => this.stop()));
 
     await this.#keepRunning.start();
+    await super._impl_start();
   }
 
   /** @override */

@@ -24,9 +24,7 @@ export const TemplThreadComponent = (className, superclass) => {
      *
      * @type {Threadlet}
      */
-    #threadlet = new Threadlet(
-      (runnerAccess) => this.#start(runnerAccess),
-      (runnerAccess) => this.#main(runnerAccess));
+    #threadlet = new Threadlet((runnerAccess) => this.#main(runnerAccess));
 
     // @defaultConstructor
 
@@ -43,20 +41,6 @@ export const TemplThreadComponent = (className, superclass) => {
     }
 
     /**
-     * Runs subclass-specific start-time actions. This corresponds to the "start
-     * function" described by {@link Threadlet}. Subclasses that wish to have
-     * start actions must override this. By default it does nothing except
-     * return `null`.
-     *
-     * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
-     * @returns {*} Arbitrary result of starting.
-     * @throws {Error} Arbitrary error from starting.
-     */
-    async _impl_threadStart(runnerAccess) { // eslint-disable-line no-unused-vars
-      return null;
-    }
-
-    /**
      * Runs the subclass-specific main thread action. This corresponds to the
      * "main function" described by {@link Threadlet}. Subclasses that wish to
      * have any main action must override this. By default it does nothing
@@ -68,17 +52,6 @@ export const TemplThreadComponent = (className, superclass) => {
      */
     async _impl_threadRun(runnerAccess) { // eslint-disable-line no-unused-vars
       return null;
-    }
-
-    /**
-     * Threadlet start function.
-     *
-     * @param {Threadlet.RunnerAccess} runnerAccess The runner access instance.
-     * @returns {*} Arbitrary result of starting.
-     * @throws {Error} Arbitrary error from starting.
-     */
-    async #start(runnerAccess) {
-      return this._impl_threadStart(runnerAccess);
     }
 
     /**
