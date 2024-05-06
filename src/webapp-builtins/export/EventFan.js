@@ -66,6 +66,7 @@ export class EventFan extends BaseService {
   /** @override */
   async _impl_init() {
     this.logger?.targets(this.config.services);
+    await super._impl_init();
   }
 
   /** @override */

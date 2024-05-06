@@ -123,6 +123,8 @@ export class WebappRoot extends BaseRootComponent {
     await this.#hostManager.addChildren(hosts);
     await this.#endpointManager.addChildren(endpoints);
     await this.#serviceManager.addChildren(services);
+
+    await super._impl_init();
   }
 
   /** @override */

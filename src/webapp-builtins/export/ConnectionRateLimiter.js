@@ -56,11 +56,6 @@ export class ConnectionRateLimiter extends BaseService {
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     // @emptyBlock
   }

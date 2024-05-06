@@ -206,7 +206,11 @@ export class BaseComponent {
     this.#context = context;
 
     this.logger?.initializing();
+    this.#context[ThisModule.SYM_setState]('initializing');
     await this._impl_init();
+    if (this.state !== 'stopped') {
+      throw new Error('`super._impl_init()` never called on base class.');
+    }
     this.logger?.initialized();
   }
 
@@ -311,7 +315,9 @@ export class BaseComponent {
 
   /**
    * Subclass-specific implementation of {@link #init}. By the time this is
-   * called, the {@link #context} will have been set.
+   * called, the {@link #context} will have been set. Subclasses should always
+   * call through to `super` so that all the base classes get a chance to take
+   * action.
    *
    * **Note:** It is not appropriate to take any overt external action in this
    * method (such as writing files to the filesystem or opening a network
@@ -320,27 +326,31 @@ export class BaseComponent {
    * @abstract
    */
   async _impl_init() {
-    Methods.abstract();
+    this.#context[ThisModule.SYM_setState]('stopped');
   }
 
   /**
-   * Subclass-specific implementation of {@link #start}.
+   * Subclass-specific implementation of {@link #start}. Subclasses should
+   * generally call through to `super` so that all the base classes get a chance
+   * to take action. That said, the base class implementation is a no-op.
    *
    * @abstract
    */
   async _impl_start() {
-    Methods.abstract();
+    // @emptyBody
   }
 
   /**
-   * Subclass-specific implementation of {@link #stop}.
+   * Subclass-specific implementation of {@link #stop}. Subclasses should
+   * generally call through to `super` so that all the base classes get a chance
+   * to take action. That said, the base class implementation is a no-op.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
-  async _impl_stop(willReload) {
-    Methods.abstract(willReload);
+  async _impl_stop(willReload) { // eslint-disable-line no-unused-vars
+    // @emptyBody
   }
 
   /**

@@ -41,6 +41,7 @@ export class SerialRouter extends BaseApplication {
   /** @override */
   async _impl_init() {
     this.logger?.routes(this.config.applications);
+    await super._impl_init();
   }
 
   /** @override */

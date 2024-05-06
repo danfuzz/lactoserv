@@ -84,6 +84,8 @@ export class NetworkEndpoint extends BaseComponent {
       interface: FormatUtils.networkInterfaceString(iface),
       application
     });
+
+    await super._impl_init();
   }
 
   /** @override */

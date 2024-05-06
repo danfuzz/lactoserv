@@ -127,6 +127,8 @@ export class AccessLogToFile extends BaseFileService {
 
     this.#appender = new FileAppender(path, bufferPeriod);
     this.#rotator  = rotate ? new Rotator(config, this.logger) : null;
+
+    await super._impl_init();
   }
 
   /** @override */

@@ -51,6 +51,8 @@ export class HostRouter extends BaseApplication {
     }
 
     this.logger?.routes(routes);
+
+    await super._impl_init();
   }
 
   /** @override */

@@ -120,11 +120,6 @@ export class StaticFiles extends BaseApplication {
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     const siteDirectory = this.#siteDirectory;
 

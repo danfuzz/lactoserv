@@ -60,11 +60,6 @@ export class ComponentManager extends TemplAggregateComponent('ComponentAggregat
   }
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     const instances = [...this.children()];
     const results   = instances.map((c) => c.start());

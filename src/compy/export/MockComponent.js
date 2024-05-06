@@ -14,11 +14,6 @@ export class MockComponent extends TemplAggregateComponent('MockAggregate', Base
   // @defaultConstructor
 
   /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
   async _impl_start() {
     // @emptyBlock
   }

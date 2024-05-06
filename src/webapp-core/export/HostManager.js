@@ -60,6 +60,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
   /** @override */
   async _impl_init() {
     this.#hostMap = new HostManager.HostMap(this.logger);
+    await super._impl_init();
   }
 
   /** @override */

@@ -48,6 +48,8 @@ export class ProcessInfoFile extends BaseFileService {
   async _impl_init() {
     const { config } = this;
     this.#saver = config.save ? new Saver(config, this.logger) : null;
+
+    await super._impl_init();
   }
 
   /** @override */
