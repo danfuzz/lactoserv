@@ -4,7 +4,6 @@
 export * from '#x/BaseComponent';
 export * from '#x/BaseConfig';
 export * from '#x/BaseRootComponent';
-export * from '#x/BaseWrappedHierarchy';
 export * from '#x/ControlContext';
 export * from '#x/MockComponent';
 export * from '#x/MockRootComponent';
