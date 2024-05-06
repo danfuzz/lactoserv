@@ -66,7 +66,7 @@ export class BaseComponent {
    *   correct) configuration for this instance. It must either be an instance
    *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which
    *   is acceptable to the constructor of that class, or `null` (equivalent to
-   *   `{}`, that is, an empt object) to have no configuration properties.
+   *   `{}`, that is, an empty object) to have no configuration properties.
    *   Default `null`.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
