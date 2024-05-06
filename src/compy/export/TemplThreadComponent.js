@@ -10,11 +10,6 @@ import { MustBe } from '@this/typey';
  * implementation: When the component is started or stopped, the
  * internally-defined thread is likewise started or stopped (respectively).
  *
- * If a subclass overrides any of the `BaseComponent` `_impl_*` methods, it must
- * always call `super._impl_*`, in order for this class to operate correctly.
- * That said, it should usually be the case that subclasses only need to
- * implement {@link #_impl_threadStart} and {@link #_impl_threadRun}.
- *
  * @param {string} className The name of the resulting class.
  * @param {function(new:*)} superclass The superclass to extend (inherit from).
  * @returns {function(new:*)} The instantiated template class.
