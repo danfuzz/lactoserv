@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -170,5 +170,62 @@ export class BaseConfig {
     }
 
     return result;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * "Evaluate" a configuration argument that was passed to the constructor of
+   * a configurable class. This is where the usual rules (e.g. as described by
+   * the `BaseComponent` constructor) are actually implemented. This method is
+   * expected to be called on a concrete subclass of this (base) class, and the
+   * actual called class is used to drive the salient portion of the error
+   * checking.
+   *
+   * @param {?object} rawConfig Raw configuration object, including allowing
+   *   `null` to be equivalent to `{}`, and accepting an instance of this class.
+   * @param {object} options Evaluation options.
+   * @param {function(new:*)} options.targetClass The class that `rawConfig` is
+   *   supposed to be constructing.
+   * @returns {BaseConfig} Instance of the concrete class that this method was
+   *   called on.
+   */
+  static eval(rawConfig, { targetClass }) {
+    rawConfig ??= {};
+
+    if (rawConfig instanceof this) {
+      return rawConfig;
+    } else if (rawConfig instanceof BaseConfig) {
+      // It's the wrong concrete config class.
+      const gotName = rawConfig.constructor.name;
+      throw new Error(`Incompatible configuration class: expected ${this.name}, got ${gotName}`);
+    } else if (!AskIf.plainObject(rawConfig)) {
+      if (typeof rawConfig === 'object') {
+        const gotName = rawConfig.constructor.name;
+        throw new Error(`Cannot convert non-configuration object: expected ${this.name}, got ${gotName}`);
+      } else {
+        const gotType = typeof rawConfig;
+        throw new Error(`Cannot evaluate non-object as configuration: expected ${this.name}, got ${gotType}`);
+      }
+    }
+
+    // It's a plain object.
+
+    const rawClass = rawConfig.class;
+
+    if ((rawClass === null) || (rawClass === undefined)) {
+      rawConfig = { ...rawConfig, class: targetClass };
+    } else if (rawClass !== targetClass) {
+      if (!AskIf.constructorFunction(rawClass)) {
+        throw new Error('Expected class (constructor function) for `rawConfig.class`.');
+      } else {
+        throw new Error(`Mismatch on \`rawConfig.class\`: expected ${targetClass.name}, got ${rawClass.name}`);
+      }
+    }
+
+    return new this(rawConfig);
   }
 }

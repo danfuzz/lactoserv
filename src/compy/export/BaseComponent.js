@@ -73,28 +73,8 @@ export class BaseComponent {
    *   other instance.
    */
   constructor(rawConfig = null, rootContext = null) {
-    rawConfig ??= {};
-
     const configClass = this.constructor.CONFIG_CLASS;
-
-    if (rawConfig instanceof configClass) {
-      this.#config = rawConfig;
-    } else if (AskIf.plainObject(rawConfig)) {
-      const thisClass = this.constructor;
-      const rawClass  = rawConfig.class;
-      if ((rawClass !== null) && (rawClass !== undefined)) {
-        if (!AskIf.constructorFunction(rawClass)) {
-          throw new Error('Expected class for `rawConfig.class`.');
-        } else if (rawConfig.class !== thisClass) {
-          throw new Error(`Mismatch on \`rawConfig.class\`: this ${thisClass.name}, got ${rawClass.name}`);
-        }
-      } else {
-        rawConfig = { ...rawConfig, class: thisClass };
-      }
-      this.#config = new configClass(rawConfig);
-    } else {
-      throw new Error('Expected plain object or config instance for `rawConfig`.');
-    }
+    this.#config = configClass.eval(rawConfig, { targetClass: this.constructor });
 
     const name = this.#config?.name;
     if (name) {
