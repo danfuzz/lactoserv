@@ -12,3 +12,4 @@ export * from '#x/Names';
 export * from '#x/RootControlContext';
 export * from '#x/TemplAggregateComponent';
 export * from '#x/TemplThreadComponent';
+export * from '#x/TemplWrappedHierarchy';

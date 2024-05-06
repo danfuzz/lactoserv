@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, BaseRootComponent, BaseWrappedHierarchy,
+import { BaseComponent, BaseRootComponent, TemplWrappedHierarchy,
   TemplThreadComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
@@ -12,6 +12,17 @@ import { CallbackList } from '#x/CallbackList';
 import { Host } from '#x/Host';
 import { KeepRunning } from '#x/KeepRunning';
 
+/**
+ * Superclass of this class, which consists of two template mixins on top of the
+ * base class.
+ *
+ * @type {function(new:BaseRootComponent)}
+ */
+const superclass = TemplThreadComponent(
+  'SystemThread',
+  TemplWrappedHierarchy(
+    'SystemWrappedHierarchy',
+    BaseRootComponent));
 
 /**
  * Base class to operate the top level of a system, in the usual fashion. This
@@ -19,8 +30,7 @@ import { KeepRunning } from '#x/KeepRunning';
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem
-  extends TemplThreadComponent('SystemThread', BaseRootComponent) {
+export class BaseSystem extends superclass {
   /**
    * List of registered callbacks.
    *
@@ -42,13 +52,6 @@ export class BaseSystem
    * @type {?KeepRunning}
    */
   #keepRunning = null;
-
-  /**
-   * The wrapped component hierarchy. Set up in {@link #_impl_init}.
-   *
-   * @type {BaseWrappedHierarchy}
-   */
-  #wrappedHierarchy = null;
 
   /**
    * Constructs an instance.
@@ -91,37 +94,15 @@ export class BaseSystem
 
   /** @override */
   async _impl_init() {
-    super._impl_init();
+    await super._impl_init();
 
-    const makeHierarchy = (oldRoot) => this._impl_makeHierarchy(oldRoot);
+    this.#keepRunning = new KeepRunning({ name: 'keepRunning' });
 
-    /**
-     * Wee subclass to hook up `_impl_makeHierarchy()`.
-     *
-     * TODO: There's gotta be a better way to do this.
-     */
-    class SystemWrappedHierarchy extends BaseWrappedHierarchy {
-      /** @override */
-      async _impl_makeHierarchy(oldRoot) {
-        return makeHierarchy(oldRoot);
-      }
-    }
-
-    this.#wrappedHierarchy = new SystemWrappedHierarchy({ name: 'hierarchy' });
-    this.#keepRunning      = new KeepRunning({ name: 'keepRunning' });
-
-    await Promise.all([
-      this._prot_addChild(this.#keepRunning),
-      this._prot_addChild(this.#wrappedHierarchy)
-    ]);
+    await this._prot_addChild(this.#keepRunning);
   }
 
   /** @override */
   async _impl_start() {
-    // We do this first, so that if there was trouble starting the wrapped
-    // hierarchy, we don't bother trying to do anything else.
-    await this.#startOrReload();
-
     this.#callbacks.push(
       Host.registerReloadCallback(() => this.#requestReload()),
       Host.registerShutdownCallback(() => this.stop()));
@@ -134,7 +115,7 @@ export class BaseSystem
   async _impl_threadRun(runnerAccess) {
     while (!runnerAccess.shouldStop()) {
       if (this.#reloadRequested.value === true) {
-        await this.#startOrReload();
+        await this.#reload();
         this.#reloadRequested.value = false;
       }
 
@@ -145,10 +126,7 @@ export class BaseSystem
 
     // We're stopping.
 
-    await Promise.all([
-      this.#wrappedHierarchy.stop(),
-      this.#keepRunning.stop()
-    ]);
+    await this.#keepRunning.stop();
 
     for (const cb of this.#callbacks) {
       cb.unregister();
@@ -171,23 +149,16 @@ export class BaseSystem
   }
 
   /**
-   * System start function. Called when starting from scratch as well as when
-   * reloading.
+   * Reloads / restarts the wrapped hierarchy.
    */
-  async #startOrReload() {
-    if (this.#wrappedHierarchy.state !== 'running') {
-      await this.#wrappedHierarchy.start();
-      return;
-    }
-
+  async #reload() {
     try {
-      await this.#wrappedHierarchy.prepareToRestart();
+      await this._prot_prepareToRestart();
+      await this._prot_restart();
     } catch {
       // Ignore the error (the wrapper will have logged the problem), and just
       // let the not-yet-stopped existing system keep running.
       return;
     }
-
-    await this.#wrappedHierarchy.restart();
   }
 }
