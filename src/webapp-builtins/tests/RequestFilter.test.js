@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { RootControlContext } from '@this/compy';
+import { MockRootComponent } from '@this/compy';
 import { DispatchInfo, StatusResponse } from '@this/net-util';
 import { RequestFilter } from '@this/webapp-builtins';
 
@@ -67,8 +67,12 @@ describe('constructor', () => {
 describe('_impl_handleRequest()', () => {
   async function makeInstance(opts) {
     opts = { name: 'theOne', ...opts };
-    const rf = new RequestFilter(opts, new RootControlContext(null));
-    await rf.start();
+
+    const root = new MockRootComponent();
+    const rf   = new RequestFilter(opts);
+
+    await root.start();
+    await root.addChildren(rf);
 
     return rf;
   }
