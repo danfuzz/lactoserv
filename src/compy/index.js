@@ -7,6 +7,7 @@ export * from '#x/BaseRootComponent';
 export * from '#x/BaseWrappedHierarchy';
 export * from '#x/ControlContext';
 export * from '#x/MockComponent';
+export * from '#x/MockRootComponent';
 export * from '#x/Names';
 export * from '#x/RootControlContext';
 export * from '#x/TemplAggregateComponent';

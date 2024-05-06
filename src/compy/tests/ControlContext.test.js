@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TemplAggregateComponent, BaseComponent, MockComponent,
-  RootControlContext } from '@this/compy';
+  MockRootComponent, RootControlContext } from '@this/compy';
 
 
 describe('constructor', () => {
   test('picks appropriate names for otherwise-nameless components', async () => {
-    const root = new MockComponent({}, new RootControlContext(null));
+    const root = new MockRootComponent({}, new RootControlContext(null));
     await root.start();
 
     class SomeName extends MockComponent {
