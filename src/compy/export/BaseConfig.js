@@ -179,9 +179,9 @@ export class BaseConfig {
   //
 
   /**
-   * "Evaluate" a configuration argument that was passed to the constructor of
-   * a configurable class. This is where the usual rules (e.g. as described by
-   * the `BaseComponent` constructor) are actually implemented. This method is
+   * "Evaluate" a configuration argument that was passed to the constructor of a
+   * configurable class. This is where the usual rules (e.g. as described by the
+   * `BaseComponent` constructor) are actually implemented. This method is
    * expected to be called on a concrete subclass of this (base) class, and the
    * actual called class is used to drive the salient portion of the error
    * checking.
