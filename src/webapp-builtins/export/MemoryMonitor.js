@@ -3,8 +3,8 @@
 
 import { memoryUsage } from 'node:process';
 
-import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
+import { TemplThreadComponent } from '@this/compy';
 import { ByteCount, Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
 import { BaseService } from '@this/webapp-core';
@@ -16,14 +16,7 @@ import { BaseService } from '@this/webapp-core';
  *
  * See `doc/configuration` for configuration object details.
  */
-export class MemoryMonitor extends BaseService {
-  /**
-   * Threadlet which runs this service.
-   *
-   * @type {Threadlet}
-   */
-  #runner = new Threadlet((ra) => this.#run(ra));
-
+export class MemoryMonitor extends TemplThreadComponent('MemoryThread', BaseService) {
   /**
    * Most recent memory snapshot (along with timing info), or `null` if a
    * snapshot has not yet been taken.
@@ -36,15 +29,37 @@ export class MemoryMonitor extends BaseService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_start() {
-    await this.#runner.start();
-    await super._impl_start();
-  }
+  async _impl_threadRun(runnerAccess) {
+    const checkMsec = this.config.checkPeriod.msec;
 
-  /** @override */
-  async _impl_stop(willReload) {
-    await this.#runner.stop();
-    await super._impl_stop(willReload);
+    while (!runnerAccess.shouldStop()) {
+      const snapshot = this.#takeSnapshot();
+
+      if (snapshot.actionAt && (snapshot.actionAt.atSec < snapshot.at.atSec)) {
+        this.logger?.takingAction();
+        // No `await`, because then the shutdown handler would end up deadlocked
+        // with the stopping of this threadlet.
+        Host.exit(1);
+        break;
+      }
+
+      let timeoutMsec = checkMsec;
+      if (snapshot.actionAt) {
+        const msecUntilAction =
+          snapshot.actionAt.subtract(snapshot.at).sec * 1000;
+        const msecUntilCheck = Math.min(
+          checkMsec,
+          Math.max(
+            msecUntilAction * MemoryMonitor.#TROUBLE_CHECK_FRACTION,
+            MemoryMonitor.#MIN_TROUBLE_CHECK_MSEC));
+
+        timeoutMsec = msecUntilCheck;
+      }
+
+      await runnerAccess.raceWhenStopRequested([
+        WallClock.waitForMsec(timeoutMsec)
+      ]);
+    }
   }
 
   /**
@@ -96,44 +111,6 @@ export class MemoryMonitor extends BaseService {
 
     this.#lastSnapshot = snapshot;
     return snapshot;
-  }
-
-  /**
-   * Runs the service thread.
-   *
-   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
-   */
-  async #run(runnerAccess) {
-    const checkMsec = this.config.checkPeriod.msec;
-
-    while (!runnerAccess.shouldStop()) {
-      const snapshot = this.#takeSnapshot();
-
-      if (snapshot.actionAt && (snapshot.actionAt.atSec < snapshot.at.atSec)) {
-        this.logger?.takingAction();
-        // No `await`, because then the shutdown handler would end up deadlocked
-        // with the stopping of this threadlet.
-        Host.exit(1);
-        break;
-      }
-
-      let timeoutMsec = checkMsec;
-      if (snapshot.actionAt) {
-        const msecUntilAction =
-          snapshot.actionAt.subtract(snapshot.at).sec * 1000;
-        const msecUntilCheck = Math.min(
-          checkMsec,
-          Math.max(
-            msecUntilAction * MemoryMonitor.#TROUBLE_CHECK_FRACTION,
-            MemoryMonitor.#MIN_TROUBLE_CHECK_MSEC));
-
-        timeoutMsec = msecUntilCheck;
-      }
-
-      await runnerAccess.raceWhenStopRequested([
-        WallClock.waitForMsec(timeoutMsec)
-      ]);
-    }
   }
 
 
