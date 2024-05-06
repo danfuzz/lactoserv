@@ -47,8 +47,9 @@ export class DataRateLimiter extends BaseService {
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
+  async _impl_stop(willReload) {
     await this.#bucket.denyAllRequests();
+    await super._impl_stop(willReload);
   }
 
 

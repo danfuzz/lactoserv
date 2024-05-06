@@ -89,6 +89,8 @@ export class ProcessInfoFile extends BaseFileService {
       // configured).
       this.#saver.stop(willReload);
     }
+
+    await super._impl_stop(willReload);
   }
 
   /**

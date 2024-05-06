@@ -61,11 +61,6 @@ export class Redirector extends BaseApplication {
     return response;
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
 
   //
   // Static members

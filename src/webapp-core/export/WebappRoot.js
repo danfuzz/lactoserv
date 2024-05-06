@@ -157,6 +157,8 @@ export class WebappRoot extends BaseRootComponent {
       this.#serviceManager.stop(willReload),
       this.#hostManager.stop(willReload)
     ]);
+
+    await super._impl_stop(willReload);
   }
 
 

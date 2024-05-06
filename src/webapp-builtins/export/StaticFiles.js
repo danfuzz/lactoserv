@@ -151,11 +151,6 @@ export class StaticFiles extends BaseApplication {
     await super._impl_start();
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
   /**
    * Figures out the absolute path to serve for the given request path.
    *

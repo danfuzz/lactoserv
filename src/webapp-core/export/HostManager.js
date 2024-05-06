@@ -80,6 +80,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
     const results = hosts.map((h) => h.stop(willReload));
 
     await Promise.all(results);
+    await super._impl_stop(willReload);
   }
 
   /** @override */

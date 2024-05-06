@@ -12,9 +12,4 @@ import { TemplAggregateComponent } from '#x/TemplAggregateComponent';
  */
 export class MockComponent extends TemplAggregateComponent('MockAggregate', BaseComponent) {
   // @defaultConstructor
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
 }

@@ -147,6 +147,7 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async _impl_stop(willReload) {
     await this.#wrangler.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
 

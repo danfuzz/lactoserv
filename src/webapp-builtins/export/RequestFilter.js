@@ -81,11 +81,6 @@ export class RequestFilter extends BaseApplication {
     return null;
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
   /**
    * Returns the appropriate handler response for a request which has been
    * filtered out.

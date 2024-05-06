@@ -51,12 +51,6 @@ export class RequestRateLimiter extends BaseApplication {
     return null;
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
-
   //
   // Static members
   //

@@ -25,11 +25,6 @@ export class RequestDelay extends BaseApplication {
     return null;
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
   /**
    * Picks a delay for a request.
    *

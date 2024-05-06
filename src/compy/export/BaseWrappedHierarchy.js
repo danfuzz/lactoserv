@@ -85,6 +85,8 @@ export class BaseWrappedHierarchy extends BaseComponent {
     // perspective it's always getting shut down, not reloaded.
     await this.#rootComponent.stop(false);
     this.#rootComponent = null;
+
+    await super._impl_stop();
   }
 
   /**

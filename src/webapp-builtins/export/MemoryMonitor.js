@@ -42,8 +42,9 @@ export class MemoryMonitor extends BaseService {
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
+  async _impl_stop(willReload) {
     await this.#runner.stop();
+    await super._impl_stop(willReload);
   }
 
   /**

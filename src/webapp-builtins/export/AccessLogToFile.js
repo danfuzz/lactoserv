@@ -142,6 +142,7 @@ export class AccessLogToFile extends BaseFileService {
   /** @override */
   async _impl_stop(willReload) {
     await this.#rotator?.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
   /**

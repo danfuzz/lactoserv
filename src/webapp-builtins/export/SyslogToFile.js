@@ -78,6 +78,7 @@ export class SyslogToFile extends BaseFileService {
 
     await this.#sink.drainAndStop();
     await this.#rotator?.stop(willReload);
+    await super._impl_stop(willReload);
   }
 
   /**

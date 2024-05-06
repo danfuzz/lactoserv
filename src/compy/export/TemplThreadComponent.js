@@ -42,8 +42,9 @@ export const TemplThreadComponent = (className, superclass) => {
     }
 
     /** @override */
-    async _impl_stop(willReload_unused) {
+    async _impl_stop(willReload) {
       await this.#threadlet.stop();
+      await super._impl_stop(willReload);
     }
 
     /**

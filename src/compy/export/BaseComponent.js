@@ -3,7 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
-import { AskIf, Methods, MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConfig } from '#x/BaseConfig';
 import { ControlContext } from '#x/ControlContext';
@@ -293,8 +293,13 @@ export class BaseComponent {
     const fate = willReload ? 'willReload' : 'shutdown';
 
     this.logger?.stopping(fate);
+
+    this.#context[ThisModule.SYM_setState]('stopping');
     await this._impl_stop(willReload);
-    this.#context[ThisModule.SYM_setState]('stopped');
+    if (this.state !== 'stopped') {
+      throw new Error('`super._impl_stop()` never called on base class.');
+    }
+
     this.logger?.stopped(fate);
   }
 
@@ -349,15 +354,15 @@ export class BaseComponent {
 
   /**
    * Subclass-specific implementation of {@link #stop}. Subclasses should
-   * generally call through to `super` so that all the base classes get a chance
-   * to take action. That said, the base class implementation is a no-op.
+   * always call through to `super` so that all the base classes get a chance to
+   * take action.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
   async _impl_stop(willReload) { // eslint-disable-line no-unused-vars
-    // @emptyBody
+    this.#context[ThisModule.SYM_setState]('stopped');
   }
 
   /**

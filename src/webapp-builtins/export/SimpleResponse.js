@@ -99,11 +99,6 @@ export class SimpleResponse extends BaseApplication {
     await super._impl_start();
   }
 
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-
 
   //
   // Static members

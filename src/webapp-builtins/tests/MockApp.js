@@ -36,9 +36,4 @@ export class MockApp extends BaseApplication {
       return null;
     }
   }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
 }
