@@ -26,6 +26,8 @@ Breaking changes:
   * Switched a couple classes from _base_ classes to _template_ classes:
     * `BaseThreadComponent` -> `TemplThreadComponent`.
     * `BaseAggregateComponent` -> `TemplAggregateComponent`.
+  * New exported classes to help with testing: `MockComponent` and
+    `MockRootComponent`.
 
 Other notable changes:
 * None.
