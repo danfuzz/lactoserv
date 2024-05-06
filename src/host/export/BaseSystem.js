@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, TemplThreadComponent, BaseWrappedHierarchy,
-  BaseRootComponent }
+import { BaseComponent, BaseRootComponent, BaseWrappedHierarchy,
+  TemplThreadComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
