@@ -188,12 +188,14 @@ export class BaseConfig {
    * @param {?object} rawConfig Raw configuration object, including allowing
    *   `null` to be equivalent to `{}`, and accepting an instance of this class.
    * @param {object} options Evaluation options.
+   * @param {object} [options.defaults] Default values when evaluating a plain
+   *   object. Defaults to `{}`.
    * @param {function(new:*)} options.targetClass The class that `rawConfig` is
    *   supposed to be constructing.
    * @returns {BaseConfig} Instance of the concrete class that this method was
    *   called on.
    */
-  static eval(rawConfig, { targetClass }) {
+  static eval(rawConfig, { defaults = {}, targetClass }) {
     rawConfig ??= {};
 
     if (rawConfig instanceof this) {
@@ -214,18 +216,33 @@ export class BaseConfig {
 
     // It's a plain object.
 
-    const rawClass = rawConfig.class;
+    let configObj = rawConfig; // Might get replaced by a modified copy.
 
-    if ((rawClass === null) || (rawClass === undefined)) {
-      rawConfig = { ...rawConfig, class: targetClass };
-    } else if (rawClass !== targetClass) {
-      if (!AskIf.constructorFunction(rawClass)) {
+    const defaultProp = (k, v, force = false) => {
+      if (force || !Reflect.has(configObj, k)) {
+        if (configObj === rawConfig) {
+          configObj = { ...rawConfig };
+        }
+        configObj[k] = v;
+      }
+    };
+
+    for (const [k, v] of Object.entries(defaults)) {
+      defaultProp(k, v);
+    }
+
+    const configTargetClass = configObj.class;
+
+    if ((configTargetClass === null) || (configTargetClass === undefined)) {
+      defaultProp('class', targetClass);
+    } else if (configTargetClass !== targetClass) {
+      if (!AskIf.constructorFunction(configTargetClass)) {
         throw new Error('Expected class (constructor function) for `rawConfig.class`.');
       } else {
-        throw new Error(`Mismatch on \`rawConfig.class\`: expected ${targetClass.name}, got ${rawClass.name}`);
+        throw new Error(`Mismatch on \`rawConfig.class\`: expected ${targetClass.name}, got ${configTargetClass.name}`);
       }
     }
 
-    return new this(rawConfig);
+    return new this(configObj);
   }
 }
