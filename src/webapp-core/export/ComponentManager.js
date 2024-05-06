@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, BaseComponent } from '@this/compy';
+import { BaseComponent, TemplAggregateComponent } from '@this/compy';
 import { MustBe } from '@this/typey';
 
 
@@ -11,7 +11,7 @@ import { MustBe } from '@this/typey';
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
-export class ComponentManager extends BaseAggregateComponent {
+export class ComponentManager extends TemplAggregateComponent('ComponentAggregate', BaseComponent) {
   /**
    * Base class of all components to be managed by this instance.
    *

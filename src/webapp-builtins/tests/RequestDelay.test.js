@@ -6,7 +6,7 @@ import { setImmediate } from 'node:timers/promises';
 import { PromiseState } from '@this/async';
 import { MockTimeSource } from '@this/clocky';
 import { PathKey } from '@this/collections';
-import { RootControlContext } from '@this/compy';
+import { MockRootComponent } from '@this/compy';
 import { Duration } from '@this/data-values';
 import { DispatchInfo } from '@this/net-util';
 import { RequestDelay } from '@this/webapp-builtins';
@@ -79,10 +79,14 @@ describe('_impl_handleRequest()', () => {
 
   async function makeInstance(opts) {
     opts = { name: 'theOne', timeSource, ...opts };
-    const rf = new RequestDelay(opts, new RootControlContext(null));
-    await rf.start();
 
-    return rf;
+    const root = new MockRootComponent();
+    const rd   = new RequestDelay(opts);
+
+    await root.start();
+    await root.addChildren(rd);
+
+    return rd;
   }
 
   beforeEach(() => {

@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { RootControlContext } from '@this/compy';
+import { MockComponent, MockRootComponent } from '@this/compy';
 import { DispatchInfo } from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
 
 import { MockApp } from '#test/MockApp';
-import { NopComponent } from '#test/NopComponent';
 import { RequestUtil } from '#test/RequestUtil';
 
 
@@ -58,7 +57,7 @@ describe('constructor', () => {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopComponent({ name: 'root' }, new RootControlContext(null));
+    const root = new MockRootComponent();
     await root.start();
 
     root.applicationManager = {
@@ -67,7 +66,7 @@ describe('_impl_handleRequest()', () => {
       }
     };
 
-    const apps = new NopComponent({ name: 'application' });
+    const apps = new MockComponent({ name: 'application' });
     await root.addChildren(apps);
 
     for (let i = 1; i <= appCount; i++) {

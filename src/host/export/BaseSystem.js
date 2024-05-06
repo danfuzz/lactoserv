@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition } from '@this/async';
-import { BaseComponent, BaseThreadComponent, BaseWrappedHierarchy,
-  RootControlContext, TemplRootComponent }
+import { BaseComponent, BaseRootComponent, BaseWrappedHierarchy,
+  TemplThreadComponent }
   from '@this/compy';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -14,19 +14,13 @@ import { KeepRunning } from '#x/KeepRunning';
 
 
 /**
- * Root component class to use.
- *
- * @type {function(new:BaseComponent)}
- */
-const RootComponent = TemplRootComponent('RootComponent', BaseThreadComponent);
-
-/**
  * Base class to operate the top level of a system, in the usual fashion. This
  * takes care of coordinating initialization, running, and shutdown, leaving
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends RootComponent {
+export class BaseSystem
+  extends TemplThreadComponent('SystemThread', BaseRootComponent) {
   /**
    * List of registered callbacks.
    *
@@ -62,7 +56,7 @@ export class BaseSystem extends RootComponent {
    * @param {?IntfLogger} logger The logger to use, if any.
    */
   constructor(logger) {
-    super(null, new RootControlContext(logger));
+    super({ rootLogger: logger });
   }
 
   /**

@@ -1,33 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseAggregateComponent, RootControlContext }
-  from '@this/compy';
+import { MockComponent, MockRootComponent } from '@this/compy';
 
-
-/**
- * Fake component that implements just enough stuff for the tests here.
- */
-class MockComponent extends BaseAggregateComponent {
-  /** @override */
-  async _impl_init() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_start() {
-    // @emptyBlock
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // @emptyBlock
-  }
-}
 
 describe('constructor', () => {
   test('picks appropriate names for otherwise-nameless components', async () => {
-    const root = new MockComponent({}, new RootControlContext(null));
+    const root = new MockRootComponent();
     await root.start();
 
     class SomeName extends MockComponent {

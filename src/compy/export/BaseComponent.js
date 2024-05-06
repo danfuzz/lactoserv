@@ -66,35 +66,14 @@ export class BaseComponent {
    *   correct) configuration for this instance. It must either be an instance
    *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which
    *   is acceptable to the constructor of that class, or `null` (equivalent to
-   *   `{}`, that is, an empt object) to have no configuration properties.
+   *   `{}`, that is, an empty object) to have no configuration properties.
    *   Default `null`.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
    */
   constructor(rawConfig = null, rootContext = null) {
-    rawConfig ??= {};
-
-    const configClass = this.constructor.CONFIG_CLASS;
-
-    if (rawConfig instanceof configClass) {
-      this.#config = rawConfig;
-    } else if (AskIf.plainObject(rawConfig)) {
-      const thisClass = this.constructor;
-      const rawClass  = rawConfig.class;
-      if ((rawClass !== null) && (rawClass !== undefined)) {
-        if (!AskIf.constructorFunction(rawClass)) {
-          throw new Error('Expected class for `rawConfig.class`.');
-        } else if (rawConfig.class !== thisClass) {
-          throw new Error(`Mismatch on \`rawConfig.class\`: this ${thisClass.name}, got ${rawClass.name}`);
-        }
-      } else {
-        rawConfig = { ...rawConfig, class: thisClass };
-      }
-      this.#config = new configClass(rawConfig);
-    } else {
-      throw new Error('Expected plain object or config instance for `rawConfig`.');
-    }
+    this.#config = new.target.CONFIG_CLASS.eval(rawConfig, { targetClass: new.target });
 
     const name = this.#config?.name;
     if (name) {

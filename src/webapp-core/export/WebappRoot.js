@@ -3,8 +3,7 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseComponent, TemplRootComponent, RootControlContext }
-  from '@this/compy';
+import { BaseComponent, BaseRootComponent } from '@this/compy';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -14,13 +13,6 @@ import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { NetworkHost } from '#x/NetworkHost';
 import { ThisModule } from '#p/ThisModule';
 
-
-/**
- * Root component class to use.
- *
- * @type {function(new:BaseComponent)}
- */
-const RootComponent = TemplRootComponent('RootComponent', BaseComponent);
 
 /**
  * Root component which contains all the subcomponents required to operate a
@@ -33,7 +25,7 @@ const RootComponent = TemplRootComponent('RootComponent', BaseComponent);
  * system will press on with the `stop()` actions if an earlier layer is taking
  * too long.
  */
-export class WebappRoot extends RootComponent {
+export class WebappRoot extends BaseRootComponent {
   /**
    * Application manager.
    *
@@ -68,14 +60,10 @@ export class WebappRoot extends RootComponent {
    * @param {object} rawConfig Raw configuration object.
    */
   constructor(rawConfig) {
-    // Note: `super()` is called with a second argument exactly because this
-    // instance is the root of its hierarchy.
-    super(
-      {
-        ...rawConfig,
-        name: 'root'
-      },
-      new RootControlContext(ThisModule.logger));
+    super({
+      rootLogger: ThisModule.logger,
+      ...rawConfig
+    });
 
     this.#applicationManager = new ComponentManager({
       baseClass: BaseApplication,
@@ -193,7 +181,7 @@ export class WebappRoot extends RootComponent {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends RootComponent.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
 
       /**
