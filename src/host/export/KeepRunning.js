@@ -3,7 +3,7 @@
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { BaseThreadComponent } from '@this/compy';
+import { BaseComponent, TemplThreadComponent } from '@this/compy';
 import { Duration } from '@this/data-values';
 
 import { ProcessInfo } from '#x/ProcessInfo';
@@ -15,7 +15,8 @@ import { ProcessInfo } from '#x/ProcessInfo';
  * any pending actions. However, some systems still want to be able to keep the
  * process up, for some reason or other.
  */
-export class KeepRunning extends BaseThreadComponent {
+export class KeepRunning
+  extends TemplThreadComponent('KeepRunningThread', BaseComponent) {
   // @defaultConstructor
 
   /**
