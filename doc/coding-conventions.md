@@ -107,7 +107,7 @@ use the following comment in place of an intentionally omitted constructor:
   are more or less `protected final` methods defined by a base class.
 
 With very few exceptions, members _not_ marked with `_impl_` should be treated
-as effectively `final`, that is, not overridden.
+as effectively `final`, that is, not to be overridden.
 
 ### Ledger of arbitrary decisions
 
