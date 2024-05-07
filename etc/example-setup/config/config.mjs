@@ -322,6 +322,7 @@ const config = {
   endpoints,
   hosts,
   services
+  // logging: { ... }
 };
 
 export default config;
