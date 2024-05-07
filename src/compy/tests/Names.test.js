@@ -4,6 +4,7 @@
 import { PathKey } from '@this/collections';
 import { Names } from '@this/compy';
 
+
 describe.each`
 methodName      | throws
 ${'checkName'}  | ${true}
