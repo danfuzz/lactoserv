@@ -68,7 +68,7 @@ export class BaseRootComponent extends BaseComponent {
         for (const [k, v] of Object.entries(value)) {
           const path = Names.parsePath(k, true);
           MustBe.boolean(v);
-          result.set(path, v);
+          result.add(path, v);
         }
 
         return result;
