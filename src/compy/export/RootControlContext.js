@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreeMap } from '@this/collections';
+import { PathKey, TreeMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ControlContext } from '#x/ControlContext';
@@ -80,5 +80,27 @@ export class RootControlContext extends ControlContext {
       const names = `[${classes.map((c) => c.name).join(', ')}]`;
       throw new Error(`${errPrefix} classes: ${names}`);
     }
+  }
+
+  /**
+   * Gets the logger to use for the given component path.
+   *
+   * @param {PathKey} componentPath The component path.
+   * @returns {?IntfLogger} The logger, or `null` if the indicated component
+   *   should not do logging.
+   */
+  getLoggerForPath(componentPath) {
+    const rootLogger = this.#rootLogger;
+
+    if (!rootLogger) {
+      return null;
+    }
+
+    let logger = rootLogger;
+    for (const k of componentPath.path) {
+      logger = logger[k];
+    }
+
+    return logger;
   }
 }

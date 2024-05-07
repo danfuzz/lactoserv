@@ -121,13 +121,7 @@ export class ControlContext {
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     if (this.#logger === false) {
-      let logger = this.#root.rootLogger ?? null;
-      if (logger) {
-        for (const k of this.#namePath.path) {
-          logger = logger[k];
-        }
-      }
-      this.#logger = logger;
+      this.#logger = this.#root.getLoggerForPath(this.#namePath);
     }
 
     return this.#logger;
