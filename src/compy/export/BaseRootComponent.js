@@ -12,7 +12,7 @@ import { RootControlContext } from '#x/RootControlContext';
  * Base class for root components, that is, for components which are meant to be
  * used as the root component for their hierarchies.
  *
- * TODO: This class doesn't actually do anything... yet.
+ * TODO: This class doesn't do much... yet.
  *
  * @returns {function(new:*)} The instantiated template class.
  */
