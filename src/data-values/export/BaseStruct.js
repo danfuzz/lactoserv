@@ -189,7 +189,7 @@ export class BaseStruct {
    * @returns {BaseStruct} Instance of the concrete class that this method was
    *   called on.
    */
-  static eval(rawObject, { defaults = {}, targetClass }) {
+  static eval(rawObject, { defaults = {} }) {
     rawObject ??= {};
 
     if (rawObject instanceof this) {
