@@ -100,7 +100,7 @@ use the following comment in place of an intentionally omitted constructor:
   for subclasses to fill in (as specified by the base class), or with a
   reasonable default implementation. _Not_ supposed to be called except by the
   defining base class (not even subclasses). These are more or less `protected`
-  and (mostly) `abstract` methods declared by a base class.
+  and methods declared by a base class, often (but not always) also `abstract`.
 
 * `_prot_<name>` &mdash; Defined in base classes and _not_ to be overridden. To
   be called by subclasses; _not_ supposed to be used outside of the class. These
