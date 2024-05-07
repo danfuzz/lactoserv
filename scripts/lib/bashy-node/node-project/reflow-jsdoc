@@ -113,7 +113,7 @@ function calcIndent(firstIndent, _locals_, result) {
 }
 
 # Emit one paragraph of comment.
-function autoflowLines(_locals_, curIndent, i, line, text) {
+function autoflowLines(_locals_, curIndent, i, line, maxLength, text) {
   if (count == 0) return;
 
   text = "";
@@ -129,30 +129,39 @@ function autoflowLines(_locals_, curIndent, i, line, text) {
 
   while (text != "") {
     if (length(text) + length(curIndent) <= 80) {
-      i = length(text);
+      line = text;
+      text = "";
     } else {
-      for (i = 81 - length(curIndent); i > 0; i--) {
-        if (substr(text, i, 1) == " ") break;
-      }
-      if (i == 0) {
-        # Very long word. Just emit it on its own line.
-        match(text, /^[^ ]+/);
-        i = RLENGTH;
+      line = "";
+      maxLength = 80 - length(curIndent);
+      for (;;) {
+        i = firstWordLength(text);
+        # `line != ""` is to let a very long word just have its own line.
+        if ((line != "") && ((i + 1 + length(line)) > maxLength)) {
+          break;
+        }
+        if (line != "") line = line " ";
+        line = line substr(text, 1, i);
+        text = substr(text, i + 1);
+        sub(/^ /, "", text);
       }
     }
 
-    line = substr(text, 1, i);
-    sub(/^ */, "", line);
-    sub(/ *$/, "", line);
     print curIndent line;
     curIndent = indent;
-
-    text = substr(text, i + 1);
   }
 
   count = 0;
   indent = "";
   firstIndent = "";
+}
+
+# Get the length of the first word of the given string.
+function firstWordLength(str, _locals_, got) {
+  # Note: Because of a JSDoc deficiency, `{@link` has to be on the same line as
+  # the next word in order to be recognized.
+  got = match(str, /^[^ ]+|\{@link [^\}]+\}[^ ]*/);
+  return (got == 0) ? 0 : RLENGTH;
 }
 '
 
