@@ -1,7 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreeMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
+import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { Names } from '#x/Names';
@@ -49,6 +51,28 @@ export class BaseRootComponent extends BaseComponent {
   static _impl_configClass() {
     return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
+
+      /**
+       * Logging control.
+       *
+       * @param {?object|TreeMap} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?TreeMap} Accepted configuration value.
+       */
+      _config_logging(value = null) {
+        if ((value instanceof TreeMap) || (value === null)) {
+          return value;
+        }
+
+        const result = new TreeMap();
+        for (const [k, v] of Object.entries(value)) {
+          const path = Names.parsePath(k, true);
+          MustBe.boolean(v);
+          result.set(path, v);
+        }
+
+        return result;
+      }
 
       /**
        * Component name. This is an override of the base class in order to force
