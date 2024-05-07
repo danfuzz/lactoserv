@@ -218,6 +218,15 @@ export class Sexp extends BaseDataClass {
   }
 
   /**
+   * Helper for the setters, to check for frozen-ness and respond accordingly.
+   */
+  #frozenCheck() {
+    if (Object.isFrozen(this)) {
+      throw new Error('Cannot modify frozen instance.');
+    }
+  }
+
+  /**
    * Helper for {@link #toJSON}, which converts {@link #functor} to something
    * better, if possible, for conversion to JSON.
    *
@@ -232,15 +241,6 @@ export class Sexp extends BaseDataClass {
       return `@${functor?.name ?? 'anonymous'}`;
     } else {
       return functor;
-    }
-  }
-
-  /**
-   * Helper for the setters, to check for frozen-ness and respond accordingly.
-   */
-  #frozenCheck() {
-    if (Object.isFrozen(this)) {
-      throw new Error('Cannot modify frozen instance.');
     }
   }
 
