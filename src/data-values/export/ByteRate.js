@@ -35,8 +35,8 @@ export class ByteRate extends UnitQuantity {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the value.
    *
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromBytePerSec}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromBytePerSec}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
@@ -97,9 +97,10 @@ export class ByteRate extends UnitQuantity {
   /**
    * Parses a string representing a byte data rate, returning an instance of
    * this class. See {@link UnitQuantity#parse} for details on the allowed
-   * syntax. The allowed units are as with {@link ByteCount} and {@link
-   * Frequency}, except that `hz` / `hertz` is not allowed. Argument values must
-   * have both a valid numerator unit and denominator unit to be parsed.
+   * syntax. The allowed units are as with {@link ByteCount} and
+   * {@link Frequency}, except that `hz` / `hertz` is not allowed. Argument
+   * values must have both a valid numerator unit and denominator unit to be
+   * parsed.
    *
    * @param {string|ByteRate|UnitQuantity} valueToParse The value to parse, or
    *   the value itself.

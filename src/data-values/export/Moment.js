@@ -198,8 +198,8 @@ export class Moment {
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
    *
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
    * @returns {object} Friendly representation object.
    */
   toPlainObject(options = {}) {
@@ -211,8 +211,8 @@ export class Moment {
    * and understandable form. The result is a string representing the date-time
    * in UTC.
    *
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
    * @returns {string} The friendly time string.
    */
   toString(options = {}) {
@@ -277,8 +277,8 @@ export class Moment {
    *
    * @param {number} atSec The moment to represent, in the form of seconds since
    *   the Unix Epoch.
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
    * @returns {object} Friendly representation object.
    */
   static plainObjectFromSec(atSec, options = {}) {

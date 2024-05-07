@@ -406,8 +406,8 @@ export class UnitQuantity {
 
   /**
    * @returns {symbol} Symbol used for a getter on subclass instances, whose
-   * value indicates the preferred class for the result of calls to {@link
-   * #inverse}.
+   * value indicates the preferred class for the result of calls to
+   * {@link #inverse}.
    */
   static get INVERSE() {
     return INVERSE_SYMBOL;

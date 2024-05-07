@@ -26,8 +26,9 @@ export class ProtocolWranglers {
 
   /**
    * Constructs an instance for the given protocol. The given `options` must
-   * include `protocol` to specify the protocol. Beyond that, see {@link
-   * ProtocolWrangler} -- especially its constructor -- for more information.
+   * include `protocol` to specify the protocol. Beyond that, see
+   * {@link ProtocolWrangler} -- especially its constructor -- for more
+   * information.
    *
    * @param {object} options Configuration options, per above.
    * @returns {ProtocolWrangler} Appropriately-constructed instance of a

@@ -97,9 +97,9 @@ export class LinkedEvent {
   }
 
   /**
-   * Gets a function which emits the next event -- that is, which causes {@link
-   * #nextNow} to become known and thus appends a new event to the chain -- and
-   * then returns the emitter function for the next-next event.
+   * Gets a function which emits the next event -- that is, which causes
+   * {@link #nextNow} to become known and thus appends a new event to the chain
+   * -- and then returns the emitter function for the next-next event.
    *
    * The returned function takes one argument, the payload to emit. When called,
    * it may throw for these reasons:
@@ -241,8 +241,8 @@ export class LinkedEvent {
    *
    * @param {*} payload The event payload.
    * @returns {LinkedEvent} The event which was emitted on the chain.
-   * @throws {Error} Thrown for any of the reasons described by {@link
-   *   #emitter}.
+   * @throws {Error} Thrown for any of the reasons described by
+   *   {@link #emitter}.
    */
   #emit(payload) {
     if (this.#next && ((this.#next.isRejected() || this.#next.eventNow))) {

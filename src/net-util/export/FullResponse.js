@@ -108,8 +108,8 @@ export class FullResponse {
    * indicates that a response is possibly cacheable, using a request method
    * that also allows for caching, or `null` not to do automatic `cache-control`
    * header insertion. (See {@link HttpUtil#responseIsCacheableFor}.) If this is
-   * non-`null`, then it is an error to include `cache-control` in {@link
-   * #headers}.
+   * non-`null`, then it is an error to include `cache-control` in
+   * {@link #headers}.
    *
    * @type {?string}
    */
@@ -501,9 +501,9 @@ export class FullResponse {
    *     Status `416` ("Range Not Satisfiable") allows `content-range`.
    * * If there is a content body:
    *   * Checking that `status` allows a body.
-   *   * Checking that a `content-type` header is present _or_ {@link
-   *     #setBodyString} was used (which includes an explicit `contentType`
-   *     argument).
+   *   * Checking that a `content-type` header is present _or_
+   *     {@link #setBodyString} was used (which includes an explicit
+   *     `contentType` argument).
    *   * Checking that a `content-length` header is _not_ present (because this
    *     class will generate it).
    * * If there is a "message" (meta-information) body:
@@ -879,8 +879,8 @@ export class FullResponse {
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
 
   /**
-   * Key to use on response objects to hold a result from {@link
-   * #whenResponseDone}. See comment at use site for more explanation.
+   * Key to use on response objects to hold a result from
+   * {@link #whenResponseDone}. See comment at use site for more explanation.
    *
    * @type {symbol}
    */
@@ -904,8 +904,8 @@ export class FullResponse {
    * appropriate, that is, when the request method / status combo allows it.
    *
    * @param {number} status The status code to report.
-   * @param {?object} [messageOptions] Options to pass to {@link
-   *   #setBodyMessage}.
+   * @param {?object} [messageOptions] Options to pass to
+   *   {@link #setBodyMessage}.
    * @returns {FullResponse} Constructed instance.
    */
   static makeMetaResponse(status, messageOptions = null) {
@@ -931,8 +931,8 @@ export class FullResponse {
    * Makes an instance of this class representing a not-found response (status
    * `404`).
    *
-   * @param {?object} [messageOptions] Options to pass to {@link
-   *   #setBodyMessage}.
+   * @param {?object} [messageOptions] Options to pass to
+   *   {@link #setBodyMessage}.
    * @returns {FullResponse} Constructed instance.
    */
   static makeNotFound(messageOptions = null) {

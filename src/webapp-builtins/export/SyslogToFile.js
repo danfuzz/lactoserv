@@ -143,8 +143,8 @@ export class SyslogToFile extends BaseFileService {
       }
 
       /**
-       * The output format name. Must be valid per {@link
-       * TextFileSink#isValidFormat}.
+       * The output format name. Must be valid per
+       * {@link TextFileSink#isValidFormat}.
        *
        * @param {string} value Proposed configuration value.
        * @returns {string} Accepted configuration value.

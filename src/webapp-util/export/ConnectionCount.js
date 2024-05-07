@@ -34,8 +34,8 @@ export class ConnectionCount extends UnitQuantity {
   }));
 
   /**
-   * Parses a string representing a connection count. See {@link
-   * UnitQuantity#parse} for details.
+   * Parses a string representing a connection count. See
+   * {@link UnitQuantity#parse} for details.
    *
    * @param {string|ConnectionCount|UnitQuantity} valueToParse The value to
    *   parse, or the value itself.

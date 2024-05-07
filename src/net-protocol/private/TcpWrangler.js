@@ -42,8 +42,8 @@ export class TcpWrangler extends ProtocolWrangler {
   #asyncServerArgs;
 
   /**
-   * Underlying server socket, wrapped for `async` friendliness. Set in {@link
-   * #init}.
+   * Underlying server socket, wrapped for `async` friendliness. Set in
+   * {@link #init}.
    *
    * @type {?AsyncServerSocket}
    */
@@ -339,8 +339,8 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /**
-   * Runs the low-level stack. This is called as the main function of the {@link
-   * #runner}.
+   * Runs the low-level stack. This is called as the main function of the
+   * {@link #runner}.
    *
    * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */

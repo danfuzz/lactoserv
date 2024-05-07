@@ -89,9 +89,9 @@ export class EventSource {
    *   use `options.kickoffPayload` (below). It is not valid to specify both
    *   this and `kickoffPayload`.
    * @param {?EventPayload} [options.kickoffPayload] Payload for the "kickoff"
-   *   event, or `null` to use the default of the result of a call to {@link
-   *   EventPayload#makeKickoffInstance}. The event itself is a direct instance
-   *   of {@link LinkedEvent}. It is not valid to specify both this and
+   *   event, or `null` to use the default of the result of a call to
+   *   {@link EventPayload#makeKickoffInstance}. The event itself is a direct
+   *   instance of {@link LinkedEvent}. It is not valid to specify both this and
    *   `kickoffEvent`.
    */
   constructor(options = null) {
@@ -191,8 +191,8 @@ export class EventSource {
   /**
    * @returns {number} The number of already-emitted events that this instance
    * keeps track of, not including the current (most-recently emitted) event.
-   * Might be infinite. The earliest such event is available as {@link
-   * #earliestEvent} and {@link #earliestEventNow}.
+   * Might be infinite. The earliest such event is available as
+   * {@link #earliestEvent} and {@link #earliestEventNow}.
    */
   get keepCount() {
     return this.#keepCount;

@@ -451,8 +451,8 @@ export class TokenBucket {
   }
 
   /**
-   * Token grant helper, which implements the core functionality of {@link
-   * #takeNow} and is used by other token-granting methods. Notably:
+   * Token grant helper, which implements the core functionality of
+   * {@link #takeNow} and is used by other token-granting methods. Notably:
    *
    * * It assumes its arguments are valid, including (effectively) being
    *   processed by {@link #parseQuantity}.

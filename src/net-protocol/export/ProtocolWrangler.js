@@ -523,8 +523,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Runs the "network stack." This is called as the main function of the {@link
-   * #runner}.
+   * Runs the "network stack." This is called as the main function of the
+   * {@link #runner}.
    *
    * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */

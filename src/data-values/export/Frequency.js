@@ -80,10 +80,10 @@ export class Frequency extends UnitQuantity {
 
   /**
    * @returns {Map<string, number>} The set of units which are used as
-   * denominators for this class, in the form used by {@link
-   * UnitQuantity#convert} and {@link UnitQuantity@parse}. This is meant to make
-   * it easier to define rate classes that use non-empty denominators (that is,
-   * to avoid redundancy).
+   * denominators for this class, in the form used by
+   * {@link UnitQuantity#convert} and {@link UnitQuantity@parse}. This is meant
+   * to make it easier to define rate classes that use non-empty denominators
+   * (that is, to avoid redundancy).
    *
    * **Note:** This getter produces a new instance every time it is used,
    * because JavaScript doesn't provide a straightforward way to produce a

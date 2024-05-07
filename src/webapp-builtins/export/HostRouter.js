@@ -14,9 +14,9 @@ import { BaseApplication } from '@this/webapp-core';
  */
 export class HostRouter extends BaseApplication {
   /**
-   * Map which goes from a host prefix to a handler (typically a {@link
-   * BaseApplication}) which should handle that prefix. Gets set in {@link
-   * #_impl_start}.
+   * Map which goes from a host prefix to a handler (typically a
+   * {@link BaseApplication}) which should handle that prefix. Gets set in
+   * {@link #_impl_start}.
    *
    * @type {?TreeMap<IntfRequestHandler>}
    */

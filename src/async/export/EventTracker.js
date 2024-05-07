@@ -17,10 +17,10 @@ import { TypeEventPredicate } from '#x/TypeEventPredicate';
 // of that fact (as noted in the code).
 
 /**
- * Event tracker, which makes it convenient to walk down a chain of {@link
- * LinkedEvent} instances. This class strictly _consumes_ events; it does not
- * produce them. This class functions approximately as an iterator over an event
- * chain, but implements much more than the basic iterator functionality.
+ * Event tracker, which makes it convenient to walk down a chain of
+ * {@link LinkedEvent} instances. This class strictly _consumes_ events; it does
+ * not produce them. This class functions approximately as an iterator over an
+ * event chain, but implements much more than the basic iterator functionality.
  *
  * Several methods on this class accept a "predicate" to determine if an event
  * matches a particular criterion. These are allowed to take several forms:
@@ -85,8 +85,9 @@ export class EventTracker {
   }
 
   /**
-   * Advances this instance -- possibly zero times -- to a point where {@link
-   * #headNow} is (or will necessarily become) satisfied by the given predicate.
+   * Advances this instance -- possibly zero times -- to a point where
+   * {@link #headNow} is (or will necessarily become) satisfied by the given
+   * predicate.
    *
    * It is possible to use this method to advance the instance past the end of
    * the synchronously "settled" chain, in which case {@link #headNow} will
@@ -95,8 +96,8 @@ export class EventTracker {
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
-   * promise (as it must be given this method is declared `async`), but {@link
-   * #headNow} will synchronously reflect the updated state of affairs.
+   * promise (as it must be given this method is declared `async`), but
+   * {@link #headNow} will synchronously reflect the updated state of affairs.
    *
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
@@ -191,11 +192,11 @@ export class EventTracker {
   }
 
   /**
-   * Advances the head of this instance with the same semantics as {@link
-   * #advance}, returning the same event that {@link #advance} would have, but
-   * _then_ -- after this method async-returns -- advancing past the returned
-   * event (possibly past the end of the settled event chain). In the common
-   * case of calling this with a default predicate, this behaves like an
+   * Advances the head of this instance with the same semantics as
+   * {@link #advance}, returning the same event that {@link #advance} would
+   * have, but _then_ -- after this method async-returns -- advancing past the
+   * returned event (possibly past the end of the settled event chain). In the
+   * common case of calling this with a default predicate, this behaves like an
    * iterator's `next()` method, "consuming" exactly one item.
    *
    * **Note:** This method async-returns after the initial advancing is done; it
@@ -241,10 +242,10 @@ export class EventTracker {
   }
 
   /**
-   * Finds an event on the tracked chain, with the same semantics as {@link
-   * #advance} except -- unlike that method -- _without_ actually advancing the
-   * instance to the found event. For example, `peek()` and `peek(0)` are
-   * equivalent to just accessing {@link #headPromise}.
+   * Finds an event on the tracked chain, with the same semantics as
+   * {@link #advance} except -- unlike that method -- _without_ actually
+   * advancing the instance to the found event. For example, `peek()` and
+   * `peek(0)` are equivalent to just accessing {@link #headPromise}.
    *
    * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
    * @returns {LinkedEvent} The earliest event on the tracked chain that matches
@@ -289,8 +290,8 @@ export class EventTracker {
   //
 
   /**
-   * Validates and appropriately-transforms a predicate as defined by {@link
-   * #advance} and {@link #advanceSync}
+   * Validates and appropriately-transforms a predicate as defined by
+   * {@link #advance} and {@link #advanceSync}
    *
    * @param {TypeEventPredicate} predicate Predicate to satisfy.
    * @returns {function(LinkedEvent): boolean} The validated / transformed
@@ -378,8 +379,8 @@ class AdvanceAction {
    * Completes this operation -- or dies trying -- asynchronously.
    *
    * @returns {LinkedEvent} The result of the operation -- that is, the event
-   *   that was found -- if successful. This is the same value as {@link
-   *   #result.eventNow} will subsequently return.
+   *   that was found -- if successful. This is the same value as
+   *   {@link #result.eventNow} will subsequently return.
    * @throws {Error} Thrown if there was any problem.
    */
   async handleAsync() {

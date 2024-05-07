@@ -97,9 +97,9 @@ export class EventSink {
   /**
    * As a clarification to the interface's contract for this method, this method
    * causes this instance to stop processing events immediately, even if there
-   * are events which are synchronously known to have been emitted. Use {@link
-   * #drainAndStop} to let synchronously-known events to get processed before
-   * stopping.
+   * are events which are synchronously known to have been emitted. Use
+   * {@link #drainAndStop} to let synchronously-known events to get processed
+   * before stopping.
    *
    * @override
    */

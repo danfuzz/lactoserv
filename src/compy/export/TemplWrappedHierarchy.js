@@ -29,8 +29,8 @@ export const TemplWrappedHierarchy = (className, superclass) => {
     #rootComponent = null;
 
     /**
-     * Next root component to manage. This is a return value from {@link
-     * #_impl_makeHierarchy}.
+     * Next root component to manage. This is a return value from
+     * {@link #_impl_makeHierarchy}.
      *
      * @type {?BaseComponent}
      */

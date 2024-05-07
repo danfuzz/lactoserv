@@ -32,8 +32,8 @@ export class BaseComponent {
   /**
    * Associated context, if known, possibly wrapped in an object for the special
    * case of the root context before this instance is considered initialized. If
-   * `null` or wrapped, will get set (to a proper instance) during {@link
-   * #init}.
+   * `null` or wrapped, will get set (to a proper instance) during
+   * {@link #init}.
    *
    * @type {?ControlContext|{ nascentRoot: RootControlContext }}
    */
@@ -55,11 +55,11 @@ export class BaseComponent {
    * object).
    *
    * **Note:** When passing `rawConfig` as a plain object, this constructor
-   * will attempt to construct the concrete class's defined {@link
-   * #CONFIG_CLASS}, and then set that as the final {@link #config}. When doing
-   * so, the constructor is passed the given `rawConfig` augmented with the
-   * additional binding of `class` to the concrete class being constructed (that
-   * is, the concrete subclass of this class whose constructor call landed
+   * will attempt to construct the concrete class's defined
+   * {@link #CONFIG_CLASS}, and then set that as the final {@link #config}. When
+   * doing so, the constructor is passed the given `rawConfig` augmented with
+   * the additional binding of `class` to the concrete class being constructed
+   * (that is, the concrete subclass of this class whose constructor call landed
    * here).
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
@@ -249,9 +249,9 @@ export class BaseComponent {
    * started.
    *
    * It is only valid to call this after {@link #init} has been called, _except_
-   * if this instance is the root, in which case this method will call {@link
-   * #init} itself before doing the start-per-se. It is also only valid to call
-   * this method if the instance is not already running.
+   * if this instance is the root, in which case this method will call
+   * {@link #init} itself before doing the start-per-se. It is also only valid
+   * to call this method if the instance is not already running.
    */
   async start() {
     if (!this.#contextReady) {
@@ -500,8 +500,8 @@ export class BaseComponent {
    * value to return from {@link #CONFIG_CLASS}.
    *
    * The default value is a configuration class which adds `name` as an optional
-   * configuration property, on top of (optional) `class` as defined by {@link
-   * #BaseConfig}.
+   * configuration property, on top of (optional) `class` as defined by
+   * {@link #BaseConfig}.
    */
   static _impl_configClass() {
     return class Config extends BaseConfig {

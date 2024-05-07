@@ -26,9 +26,9 @@ export class TreeMap {
   #rootNode = new TreeMapNode();
 
   /**
-   * Total number of bindings. This defined here instead of on {@link
-   * TreeMapNode}, because internal nodes don't need to keep track of their
-   * overall size.
+   * Total number of bindings. This defined here instead of on
+   * {@link TreeMapNode}, because internal nodes don't need to keep track of
+   * their overall size.
    *
    * @type {number}
    */
@@ -63,8 +63,8 @@ export class TreeMap {
   }
 
   /**
-   * Standard iteration protocol method. This is the same as calling {@link
-   * #entries}.
+   * Standard iteration protocol method. This is the same as calling
+   * {@link #entries}.
    *
    * @returns {object} Iterator over the entries of this instance.
    */

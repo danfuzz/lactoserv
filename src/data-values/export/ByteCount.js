@@ -34,8 +34,8 @@ export class ByteCount extends UnitQuantity {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the value.
    *
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromByteCount}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromByteCount}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {

@@ -149,8 +149,8 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
   };
 
   /**
-   * Recommended -- and convenient -- way to construct an instance of {@link
-   * #NoCache}.
+   * Recommended -- and convenient -- way to construct an instance of
+   * {@link #NoCache}.
    *
    * @param {*} value The property value to not-cache.
    * @returns {this.NoCache} Cache-preventing instance.

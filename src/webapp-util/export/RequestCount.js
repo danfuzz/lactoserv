@@ -34,8 +34,8 @@ export class RequestCount extends UnitQuantity {
   }));
 
   /**
-   * Parses a string representing a request count. See {@link
-   * UnitQuantity#parse} for details.
+   * Parses a string representing a request count. See
+   * {@link UnitQuantity#parse} for details.
    *
    * @param {string|RequestCount|UnitQuantity} valueToParse The value to parse,
    *   or the value itself.

@@ -125,8 +125,8 @@ export class MustBe {
   }
 
   /**
-   * Checks for type "constructor function" (a/k/a "class"). See {@link
-   * AskIf#constructorFunction} for details.
+   * Checks for type "constructor function" (a/k/a "class"). See
+   * {@link AskIf#constructorFunction} for details.
    *
    * @param {*} value Arbitrary value.
    * @returns {boolean} `value` if it is of the indicated type.

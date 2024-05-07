@@ -33,8 +33,8 @@ export class Cookies {
   }
 
   /**
-   * Standard iteration protocol method. This is the same as calling {@link
-   * #entries}.
+   * Standard iteration protocol method. This is the same as calling
+   * {@link #entries}.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -121,9 +121,9 @@ export class Cookies {
 
   /**
    * Gets an array-like iterator of `Set-Cookie` response header strings, one
-   * per entry in this instance. This is equivalent to applying {@link
-   * #responseHeaderFrom} to each set of attributes yielded from {@link
-   * #attributeSets}.
+   * per entry in this instance. This is equivalent to applying
+   * {@link #responseHeaderFrom} to each set of attributes yielded from
+   * {@link #attributeSets}.
    *
    * @yields {string} A `Set-Cookie` header string.
    */

@@ -227,8 +227,8 @@ export class WebappRoot extends BaseRootComponent {
 
       /**
        * Service instances, or `null` to have no configured services. On input,
-       * this is expected to be an object suitable as an argument to {@link
-       * BaseComponent#evalArray} (see which).
+       * this is expected to be an object suitable as an argument to
+       * {@link BaseComponent#evalArray} (see which).
        *
        * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {Array<BaseService>} Accepted configuration value.

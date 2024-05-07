@@ -175,8 +175,8 @@ export class WranglerContext {
 
   /**
    * Emits an event with an {@link AsyncLocalStorage} instance bound to this
-   * instance, which can be recovered in follow-on event handlers by {@link
-   * #currentInstance}.
+   * instance, which can be recovered in follow-on event handlers by
+   * {@link #currentInstance}.
    *
    * ### What's going on here?
    *

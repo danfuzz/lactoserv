@@ -15,9 +15,9 @@ import { BaseApplication } from '@this/webapp-core';
  */
 export class PathRouter extends BaseApplication {
   /**
-   * Map which goes from a path prefix to a handler (typically a {@link
-   * BaseApplication}) which should handle that prefix. Gets set in {@link
-   * #_impl_start}.
+   * Map which goes from a path prefix to a handler (typically a
+   * {@link BaseApplication}) which should handle that prefix. Gets set in
+   * {@link #_impl_start}.
    *
    * @type {?TreeMap<IntfRequestHandler>}
    */

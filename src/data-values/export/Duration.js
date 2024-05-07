@@ -56,8 +56,8 @@ export class Duration extends UnitQuantity {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the duration.
    *
-   * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSec}.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {

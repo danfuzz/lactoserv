@@ -18,16 +18,16 @@ import { ServiceUseConfig } from '#p/ServiceUseConfig';
 /**
  * Component (in the sense of `compy`) which completely handles a single network
  * endpoint. Instances of this class have a {@link ProtocolWrangler} to deal
- * with the lower-level networking details and a map from mount points to {@link
- * BaseApplication} instances. This class is the connection between these two
- * things.
+ * with the lower-level networking details and a map from mount points to
+ * {@link BaseApplication} instances. This class is the connection between these
+ * two things.
  *
  * @implements {IntfRequestHandler}
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
-   * Application to send requests to. Becomes non-`null` during {@link
-   * #_impl_start()}.
+   * Application to send requests to. Becomes non-`null` during
+   * {@link #_impl_start()}.
    *
    * @type {?BaseApplication}
    */
@@ -198,8 +198,8 @@ export class NetworkEndpoint extends BaseComponent {
        * which can be parsed by {@link UriUtil#parseInterface}.
        *
        * @param {string} value Proposed configuration value.
-       * @returns {object} Accepted configuration value, as parsed by {@link
-       *   UriUtil#parseInterface}.
+       * @returns {object} Accepted configuration value, as parsed by
+       *   {@link UriUtil#parseInterface}.
        */
       _config_interface(value) {
         return Object.freeze(HostUtil.parseInterface(value));

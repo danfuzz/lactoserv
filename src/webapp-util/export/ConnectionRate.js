@@ -43,8 +43,8 @@ export class ConnectionRate extends UnitQuantity {
   static #UNIT_PER_SEC = Frequency.DENOMINATOR_UNITS;
 
   /**
-   * Parses a string representing a connection rate. See {@link
-   * UnitQuantity#parse} for details.
+   * Parses a string representing a connection rate. See
+   * {@link UnitQuantity#parse} for details.
    *
    * @param {string|ConnectionRate|UnitQuantity} valueToParse The value to
    *   parse, or the value itself.

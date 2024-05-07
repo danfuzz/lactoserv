@@ -163,9 +163,9 @@ export class PromiseUtil {
   }
 
   /**
-   * Helper for {@link #race}, which adds a new race contender to the {@link
-   * #raceMap}. This method is called once ever per contender, even when that
-   * contender is involved in multiple races.
+   * Helper for {@link #race}, which adds a new race contender to the
+   * {@link #raceMap}. This method is called once ever per contender, even when
+   * that contender is involved in multiple races.
    *
    * **Note:** This method (a) is separate from {@link #race} (that is, the code
    * isn't just inlined at the sole call site) and (b) does not accept any
@@ -175,8 +175,8 @@ export class PromiseUtil {
    * of this "safe race" code in fact had the implied problem.)
    *
    * @param {Promise} contender The contender.
-   * @returns {object} The record for the contender, as was added to {@link
-   *   #raceMap}.
+   * @returns {object} The record for the contender, as was added to
+   *   {@link #raceMap}.
    */
   static #addRaceContender(contender) {
     const races  = new Set();

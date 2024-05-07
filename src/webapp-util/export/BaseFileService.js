@@ -104,8 +104,8 @@ export class BaseFileService extends BaseService {
 
       /**
        * Rotation configuration, or `null` not to do rotation. On input, this is
-       * expected to be a plain object suitable to pass to {@link
-       * BaseFileService#RotateConfig.constructor}.
+       * expected to be a plain object suitable to pass to
+       * {@link BaseFileService#RotateConfig.constructor}.
        *
        * @param {?object} [value] Proposed configuration value. Default `null`.
        * @returns {?BaseFileService.RotateConfig} Accepted configuration value.
@@ -238,8 +238,8 @@ export class BaseFileService extends BaseService {
 
     /**
      * The file size at which to rotate, or `null` not to do rotation based on
-     * file size. If passed as a string, it is parsed by {@link
-     * ByteCount#parse}.
+     * file size. If passed as a string, it is parsed by
+     * {@link ByteCount#parse}.
      *
      * @param {?string|ByteCount} [value] Proposed configuration value. Default
      *   `null`.

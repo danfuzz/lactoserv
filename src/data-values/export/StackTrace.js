@@ -32,8 +32,8 @@ export class StackTrace {
   /**
    * Constructs an instance, either from the current call, or from another
    * stack-trace-containing item (an instance of this class, an instance of an
-   * `Error`-like object, or an array of objects as if produced by {@link
-   * #framesNow} or {@link #framesFrom}).
+   * `Error`-like object, or an array of objects as if produced by
+   * {@link #framesNow} or {@link #framesFrom}).
    *
    * **Note:** This constructor's signature is effectively `([original],
    * [omitCount, [maxCount]])`. That is, `original` does not have to be passed
