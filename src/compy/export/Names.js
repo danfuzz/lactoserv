@@ -53,8 +53,8 @@ export class Names {
    *   `allowWildcard === true`, otherwise is an error. Elements are checked for
    *   validity.
    * * an array of strings -- Contructed into, with elements checked for
-   *   validity. If `allowWildcard === true`, a final element of `*` indicates
-   *   a wildcard.
+   *   validity. If `allowWildcard === true`, a final element of `*` indicates a
+   *   wildcard.
    * * a string -- Parsed as a slash--separated list of elements, which must
    *   begin with a slash. Elements are checked for validity. If `allowWildcard
    *   === true`, a final element of `*` indicates a wildcard.
