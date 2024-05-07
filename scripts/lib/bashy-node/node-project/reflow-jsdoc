@@ -11,11 +11,14 @@
 #
 
 define-usage --with-help $'
-    ${name} [<opt> ...] <version>
+    ${name} [<opt> ...] [<file> ...]
 
-    Reflows all JSDoc comments in the source, in a way that is imperfect yet
-    sufficiently decent to be reasonably human-vetted.
+    Reflows JSDoc comments in the source, in a way that is imperfect yet
+    sufficiently decent to be reasonably human-vetted. By default, processes all
+    source files, but optionally accepts a list of files to process.
 '
+
+rest-arg --var=sources --filter='/./' file
 
 process-args "$@" || exit "$?"
 
@@ -174,13 +177,15 @@ function process-file {
 
 baseDir="$(base-dir)"
 
-sourceArray="$(
-    lib buildy ls-files --output=array --full-paths --include='\.(js|mjs|cjs)'
-)" \
-|| exit "$?"
+if (( ${#sources} == 0 )); then
+    sourceArray="$(
+        lib buildy ls-files --output=array --full-paths --include='\.(js|mjs|cjs)'
+    )" \
+    || exit "$?"
 
-jset-array --raw sources "${sourceArray}" \
-|| exit "$?"
+    jset-array --raw sources "${sourceArray}" \
+    || exit "$?"
+fi
 
 for file in "${sources[@]}"; do
     progress-msg "${file}..."
