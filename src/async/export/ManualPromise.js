@@ -197,6 +197,8 @@ export class ManualPromise {
    * Node is concerned. See {@link #rejectAndHandle} for a little more context.
    */
   #handleRejection() {
+    // Ignored because it shouldn't be possible to trigger this condition.
+    /* c8 ignore next 3 */
     if (!this.isRejected()) {
       throw new Error('Shouldn\'t happen: Promise is not rejected.');
     }
