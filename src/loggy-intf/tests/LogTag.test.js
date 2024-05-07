@@ -214,7 +214,7 @@ describe('[BaseConverter.ENCODE]()', () => {
     const result = tag[BaseConverter.ENCODE]();
 
     expect(result).toBeInstanceOf(Sexp);
-    expect(result.type).toBe(LogTag);
+    expect(result.functor).toBe(LogTag);
     expect(result.options).toStrictEqual({});
     expect(result.args).toStrictEqual(expected);
   };

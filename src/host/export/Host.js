@@ -154,17 +154,17 @@ export class Host {
     }
 
     const fixed = {
-      class: encoded.type,
+      class: encoded.functor,
       ...encoded.args[0],
       ...(encoded.options ?? {})
     };
 
-    if (fixed.name === fixed.type) {
+    if (fixed.name === fixed.functor) {
       delete fixed.name;
     }
 
     if (   (fixed.stack instanceof Sexp)
-        && (fixed.stack.type === 'StackTrace')) {
+        && (fixed.stack.functor === 'StackTrace')) {
       fixed.stack = fixed.stack.args[0];
     }
 
