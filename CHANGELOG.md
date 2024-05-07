@@ -34,8 +34,8 @@ Breaking changes:
     `MockRootComponent`.
 * `data-values`:
   * Renamed `Struct` -> `Sexp`, because it's really this project's version of
-    the "sexp" concept. And this will make room for a new `Struct`. And for
-    similar reasons, renamed the `type` field of it to `functor`.
+    the "sexp" concept. And for similar reasons, renamed the `type` field of it
+    to `functor`. This rename also makes room for a new `Struct`.
 
 Other notable changes:
 * `compy`:
