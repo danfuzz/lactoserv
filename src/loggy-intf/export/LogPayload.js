@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { BaseConverter, Moment, StackTrace, Sexp } from '@this/data-values';
+import { BaseConverter, Moment, Sexp, StackTrace } from '@this/data-values';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 

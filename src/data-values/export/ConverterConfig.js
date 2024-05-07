@@ -3,10 +3,11 @@
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { BaseConfig } from '#x/BaseConfig';
 import { BaseConverter } from '#x/BaseConverter';
 import { Ref } from '#x/Ref';
-import { SpecialConverters } from '#x/SpecialConverters';
 import { Sexp } from '#x/Sexp';
+import { SpecialConverters } from '#x/SpecialConverters';
 
 
 /**
@@ -35,164 +36,93 @@ import { Sexp } from '#x/Sexp';
  * In cases where these values are allowed, a function is also sometimes
  * allowed, which can be called on to provide a replacement value.
  */
-export class ConverterConfig {
-  /**
-   * Classes whose instances are treated as data values.
-   *
-   * @type {Array<function(new:*)>}
-   */
-  #dataClasses;
+export class ConverterConfig extends BaseConfig {
+  // @defaultConstructor
 
   /**
-   * Are converted data values to be frozen?
+   * Classes whose instances are treated as data values. This value is always
+   * frozen; if passed in upon construction as an unfrozen value, then a frozen
+   * clone is used.
    *
-   * @type {boolean}
+   * @param {Array<function(new:*)>} [value] Proposed configuration value.
+   *   Default `[Ref, Sexp]`.
+   * @returns {Array<function(new:*)>} Accepted configuration value.
    */
-  #freeze;
+  _config_dataClasses(value = Object.freeze([Ref, Sexp])) {
+    MustBe.arrayOf(value, AskIf.constructorFunction);
+
+    return Object.isFrozen(value) ? value : Object.freeze([...value]);
+  }
 
   /**
-   * Action to take when asked to encode a function.
+   * Are converted data values to be frozen? If `false`, then no frozen data
+   * values will be returned, even if they required no other conversion during
+   * encoding.
    *
-   * @type {string|(function(*): *)}
+   * @param {boolean} [value] Proposed configuration value. Default `true`.
+   * @returns {boolean} Accepted configuration value.
    */
-  #functionAction;
+  _config_freeze(value = true) {
+    return MustBe.boolean(value);
+  }
+
+  /**
+   * Action to take when asked to encode a function. See class header comment
+   * for details.
+   *
+   * @param {string|(function(*): *)} [value] Proposed configuration value.
+   *   Default `'wrap'`.
+   * @returns {string|(function(*): *)} Accepted configuration value.
+   */
+  _config_functionAction(value = 'wrap') {
+    return ConverterConfig.#checkAction(value);
+  }
 
   /**
    * Should instance-defined `ENCODE()` methods be honored?
    *
-   * @type {boolean}
+   * @param {boolean} [value] Proposed configuration value. Default `true`.
+   * @returns {boolean} Accepted configuration value.
    */
-  #honorEncodeMethod;
+  _config_honorEncodeMethod(value = true) {
+    return MustBe.boolean(value);
+  }
 
   /**
    * Action to take when asked to encode an instance (object with a class) which
    * is not otherwise covered by other configuration options.
    *
-   * @type {string|(function(*): *)}
+   * @param {string|(function(*): *)} [value] Proposed configuration value.
+   *   Default `'wrap'`.
+   * @returns {string|(function(*): *)} Accepted configuration value.
    */
-  #instanceAction;
+  _config_instanceAction(value = 'wrap') {
+    return ConverterConfig.#checkAction(value);
+  }
 
   /**
-   * {?BaseConverter} Converter to handle any special cases that take precedence
-   * over other configuration options.
+   * Converter to handle any special cases that take precedence over other
+   * configuration options, or `null` if there are no special cases.
+   *
+   * @param {?BaseConverter} [value] Proposed configuration value. Default
+   *   {@link SpecialConverters#STANDARD}.
+   * @returns {?BaseConverter} Accepted configuration value.
    */
-  #specialCases;
+  _config_specialCases(value = SpecialConverters.STANDARD) {
+    return (value === null)
+      ? null
+      : MustBe.instanceOf(value, BaseConverter);
+  }
 
   /**
    * Action to take when encountering a symbol-keyed object or array property.
    * Allowed to be either `error` or `omit`.
    *
-   * @type {string}
+   * @param {string} [value] Proposed configuration value. Default `'omit'`.
+   * @returns {string} Accepted configuration value.
    */
-  #symbolKeyAction;
-
-  /**
-   * Constructs an instance. See the accessors on this class for details on the
-   * options, including defaults.
-   *
-   * @param {?object} [options] Configuration options, or `null` to use the
-   *   default configuration.
-   */
-  constructor(options = null) {
-    options = (options === null) ? {} : MustBe.plainObject(options);
-
-    const {
-      dataClasses       = [Ref, Sexp],
-      freeze            = true,
-      functionAction    = 'wrap',
-      honorEncodeMethod = true,
-      instanceAction    = 'wrap',
-      specialCases      = SpecialConverters.STANDARD,
-      symbolKeyAction   = 'omit'
-    } = options;
-
-    this.#dataClasses       = Object.freeze(
-      MustBe.arrayOf(dataClasses, AskIf.constructorFunction));
-    this.#freeze            = MustBe.boolean(freeze);
-    this.#functionAction    = ConverterConfig.#checkAction(functionAction);
-    this.#honorEncodeMethod = MustBe.boolean(honorEncodeMethod);
-    this.#instanceAction    = ConverterConfig.#checkAction(instanceAction);
-    this.#specialCases      = (specialCases === null)
-      ? null
-      : MustBe.instanceOf(specialCases, BaseConverter);
-    this.#symbolKeyAction   =
-      ConverterConfig.#checkSymbolKeyAction(symbolKeyAction);
-  }
-
-  /**
-   * @returns {Array<function(new:*)>} Classes whose instances are treated as
-   * data values.
-   *
-   * Default value if not passed during construction: `[Ref, Sexp]`.
-   *
-   * This value is always frozen; if passed in upon construction as an unfrozen
-   * value, then frozen clone is used.
-   */
-  get dataClasses() {
-    return this.#dataClasses;
-  }
-
-  /**
-   * @returns {boolean} Are converted data values to be frozen? If `false`, then
-   * no frozen data values will be returned, even if they required no other
-   * conversion during encoding.
-   *
-   * Default value if not passed during construction: `true`
-   */
-  get freeze() {
-    return this.#freeze;
-  }
-
-  /**
-   * @returns {string|(function(*): *)} Action to take when asked to encode a
-   * function.
-   *
-   * Default value if not passed during construction: `wrap`
-   */
-  get functionAction() {
-    return this.#functionAction;
-  }
-
-  /**
-   * @returns {boolean} Should instance-defined `ENCODE()` methods be honored?
-   *
-   * Default value if not passed during construction: `true`
-   */
-  get honorEncodeMethod() {
-    return this.#honorEncodeMethod;
-  }
-
-  /**
-   * @returns {string|(function(*): *)} Action to take when asked to encode an
-   * instance (object with a class) which is not otherwise covered by other
-   * configuration options.
-   *
-   * Default value if not passed during construction: `wrap`
-   */
-  get instanceAction() {
-    return this.#instanceAction;
-  }
-
-  /**
-   * @returns {?BaseConverter} Converter to handle any special cases that take
-   * precedence over other configuration options, or `null` if there are no
-   * special cases.
-   *
-   * Default value if not passed during construction: {@link
-   * SpecialConverters#STANDARD}.
-   */
-  get specialCases() {
-    return this.#specialCases;
-  }
-
-  /**
-   * @returns {string} Action to take when encountering a symbol-keyed object or
-   * array property. Allowed to be either `error` or `omit`.
-   *
-   * Default value if not passed during construction: `omit`
-   */
-  get symbolKeyAction() {
-    return this.#symbolKeyAction;
+  _config_symbolKeyAction(value = 'omit') {
+    return ConverterConfig.#checkSymbolKeyAction(value);
   }
 
   /**
@@ -204,7 +134,7 @@ export class ConverterConfig {
    *   data classes.
    */
   isDataInstance(value) {
-    for (const cls of this.#dataClasses) {
+    for (const cls of this.dataClasses) {
       if (value instanceof cls) {
         return true;
       }
