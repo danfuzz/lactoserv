@@ -29,7 +29,10 @@ const config = {
   ],
   applications: [
     // ... configuration ...
-  ]
+  ],
+  logging: {
+    // ... configuration ...
+  }
 };
 
 export default config;
@@ -269,6 +272,30 @@ const endpoints = [
     },
     application: 'mySite'
   },
+```
+
+### `logging`
+
+`logging` is an object which provides fine-grained control over which
+components (subsystems) produce system logs. Each property is a "path key" that
+names a component or (with a `/*` suffix) wildcard covering a component and all
+its subcomponents, and a boolean value indicating whether or not the covered
+component(s) should produce logs. For any given component, the most-specific
+path is what controls it. And, if logging is on at all, then the default (if no
+path covers a component) is for logging to be _on_.
+
+To figure out what to turn on or off, just look at the logs produced by the
+system by default. Anything tagged with the prefix `webapp.` can be controlled,
+with the path to use here being everything after that prefix, with dots replaced
+with slashes. So, `webapp.service.myService` in the logs would be controlled by
+the key `/service/myService`.
+
+```js
+const logging = {
+  '/endpoints/*':              false,
+  '/endpoints/loggedEndpoint': true,
+  // ... more ...
+};
 ```
 
 ## Custom Applications and Services
