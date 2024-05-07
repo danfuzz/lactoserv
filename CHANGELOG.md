@@ -32,6 +32,9 @@ Breaking changes:
     * `BaseWrappedHierarchy` -> `TemplWrappedHierarchy`.
   * New exported classes to help with testing: `MockComponent` and
     `MockRootComponent`.
+* `data-values`:
+  * Renamed `Struct` -> `Sexp`, because it's really this project's version of
+    the "sexp" concept. And this will make room for a new `Struct`.
 
 Other notable changes:
 * `compy`:
