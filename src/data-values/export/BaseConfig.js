@@ -17,12 +17,11 @@ export class BaseConfig extends BaseStruct {
   // @defaultConstructor
 
   /**
-   * Configuration property: The concrete class of the component to create, or
-   * `null` if the class is (going to be) implied by context (such as by passing
-   * an instance directly to the corresponding component constructor). This
-   * property isn't required in general, but it _is_ required if the
-   * configuration instance gets used in a context where the concrete component
-   * class is not in fact implied.
+   * The concrete class of the component to create, or `null` if the class is
+   * (going to be) implied by context (such as by passing an instance directly
+   * to the corresponding component constructor). This property isn't required
+   * in general, but it _is_ required if the configuration instance gets used in
+   * a context where the concrete component class is not in fact implied.
    *
    * @param {?function(new:object)} [value] Proposed configuration value.
    *   Default `null`;
