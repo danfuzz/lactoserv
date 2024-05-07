@@ -15,29 +15,29 @@ describe('constructor()', () => {
   });
 });
 
-describe('get type', () => {
-  test('is the `type` passed in the constructor', () => {
-    const type1 = ['a'];
-    const type2 = { name: 'blort' };
-    const type3 = 'stuff';
+describe('.functor', () => {
+  test('is the `functor` passed in the constructor', () => {
+    const func1 = ['a'];
+    const func2 = { name: 'blort' };
+    const func3 = 'stuff';
 
-    expect(new Sexp(type1, {}).type).toBe(type1);
-    expect(new Sexp(type2, { a: 'boop' }, 'yes').type).toBe(type2);
-    expect(new Sexp(type3, null, 123, true).type).toBe(type3);
+    expect(new Sexp(func1, {}).functor).toBe(func1);
+    expect(new Sexp(func2, { a: 'boop' }, 'yes').functor).toBe(func2);
+    expect(new Sexp(func3, null, 123, true).functor).toBe(func3);
   });
 });
 
-describe('set type', () => {
+describe('.functor =', () => {
   test('is disallowed on a frozen instance', () => {
     const sexp = new Sexp('boop', null);
     Object.freeze(sexp);
-    expect(() => { sexp.type = 'florp'; }).toThrow();
+    expect(() => { sexp.functor = 'florp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const sexp = new Sexp('boop', null);
-    expect(() => { sexp.type = 'florp'; }).not.toThrow();
-    expect(sexp.type).toBe('florp');
+    expect(() => { sexp.functor = 'florp'; }).not.toThrow();
+    expect(sexp.functor).toBe('florp');
   });
 });
 
