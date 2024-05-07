@@ -92,8 +92,8 @@ use the following comment in place of an intentionally omitted constructor:
 ### Member naming (and details)
 
 * `_config_<name>` &mdash; Method defined by configuration classes which are
-  (direct or indirect) subclasses of `compy.BaseConfig`. Each such method is
-  responsible for validating and parsing/converting the correspondingly named
+  (direct or indirect) subclasses of `data-values.BaseConfig`. Each such method
+  is responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
 
 * `_impl_<name>` &mdash; Declared in base classes, _either_ as abstract and left

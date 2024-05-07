@@ -4,8 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
-import { BaseConfig } from '@this/compy';
-import { ByteCount, Duration } from '@this/data-values';
+import { BaseConfig, ByteCount, Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
