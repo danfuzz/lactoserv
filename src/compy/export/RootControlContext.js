@@ -96,7 +96,18 @@ export class RootControlContext extends ControlContext {
       return null;
     }
 
+    const loggingMap = this.#rootConfig.logging;
+
+    if (loggingMap) {
+      const found = loggingMap.find(componentPath);
+      if (found?.value === false) {
+        // The match indicates that logging should be off for this component.
+        return null;
+      }
+    }
+
     let logger = rootLogger;
+
     for (const k of componentPath.path) {
       logger = logger[k];
     }
