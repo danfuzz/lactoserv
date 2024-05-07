@@ -49,19 +49,34 @@ export class Names {
   /**
    * Parses an absolute component path into a key. This accepts all of:
    *
-   * * a `PathKey` -- Returned directly if not a wildcard, otherwise returns the
-   *   non-wildcard version. Elements are checked for validity.
-   * * an array of strings -- Contructed into a non-wildcard-key, with elements
-   *   checked for validity.
+   * * a `PathKey` -- Returned directly if not a wildcard or if a wildcard and
+   *   `allowWildcard === true`, otherwise is an error. Elements are checked for
+   *   validity.
+   * * an array of strings -- Contructed into, with elements checked for
+   *   validity. If `allowWildcard === true`, a final element of `*` indicates
+   *   a wildcard.
    * * a string -- Parsed as a slash--separated list of elements, which must
-   *   begin with a slash. Elements are checked for validity.
+   *   begin with a slash. Elements are checked for validity. If `allowWildcard
+   *   === true`, a final element of `*` indicates a wildcard.
    *
    * @param {string|Array<string>|PathKey} path The absolute path to parse.
+   * @param {boolean} [allowWildcard] Allow wildcard paths?
    * @returns {PathKey} The parsed path.
    */
-  static parsePath(path) {
+  static parsePath(path, allowWildcard = false) {
+    // Note: All the `freeze()`ing is so that `new PathKey()` can avoid making a
+    // copy of the path arrays.
+
     if (Array.isArray(path)) {
-      path = new PathKey(path, false);
+      const len = path.length;
+      if ((len >= 1) && (path[len - 1] === '*')) {
+        if (!allowWildcard) {
+          throw new Error('Wildcard not allowed.');
+        }
+        path = new PathKey(Object.freeze(path.slice(0, len - 1)), true);
+      } else {
+        path = new PathKey(path, false);
+      }
     } else if (typeof path === 'string') {
       const elements = path.split('/');
       const len      = elements.length;
@@ -70,22 +85,39 @@ export class Names {
         throw new Error(`Not an absolute component path: ${path}`);
       }
 
-      // Drop the initial empty element, and freeze so `PathKey` can avoid
-      // making a copy.
-      Object.freeze(elements.pop());
+      const isWildcard = (elements[len - 1] === '*');
 
-      path = new PathKey(elements, false);
-    } else if (!(path instanceof PathKey)) {
+      if (isWildcard) {
+        if (!allowWildcard) {
+          throw new Error(`Wildcard not allowed: ${path}`);
+        }
+        elements.pop(); // Drop the wildcard element.
+      }
+
+      // Drop the initial empty element.
+      elements.shift();
+
+      if ((elements.length === 1) && (elements[0] === '')) {
+        // It's the root path.
+        elements.pop();
+      }
+
+      path = new PathKey(Object.freeze(elements), isWildcard);
+    } else if (path instanceof PathKey) {
+      if (path.wildcard && !allowWildcard) {
+        throw new Error(`Wildcard not allowed: \`${this.pathStringFrom(path)}\``);
+      }
+    } else {
       throw new Error(`Not an absolute component path: ${path}`);
     }
 
     for (const p of path.path) {
       if (!this.isName(p)) {
-        throw new Error(`Not a valid component name: ${p}, in ${this.pathStringFrom(path)}`);
+        throw new Error(`Not a valid component name: \`${p}\`, in \`${this.pathStringFrom(path)}\``);
       }
     }
 
-    return path.withWildcard(false);
+    return (allowWildcard) ? path : path.withWildcard(false);
   }
 
   /**
