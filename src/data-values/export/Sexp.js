@@ -124,15 +124,6 @@ export class Sexp extends BaseDataClass {
     return this.functor;
   }
 
-  /**
-   * Alias for {@link #functor}, which -- TODO -- is to be removed.
-   *
-   * @param {*} functor The new functor value.
-   */
-  set type(functor) {
-    this.functor = functor;
-  }
-
   /** @override */
   toEncodableValue() {
     return [this.#functor, this.#options, ...this.#args];
