@@ -334,8 +334,6 @@ export class BaseComponent {
    * **Note:** It is not appropriate to take any overt external action in this
    * method (such as writing files to the filesystem or opening a network
    * connection) beyond "sensing" (e.g., reading a file).
-   *
-   * @abstract
    */
   async _impl_init() {
     this.#context[ThisModule.SYM_setState]('stopped');
@@ -345,8 +343,6 @@ export class BaseComponent {
    * Subclass-specific implementation of {@link #start}. Subclasses should
    * always call through to `super` so that all the base classes get a chance to
    * take action.
-   *
-   * @abstract
    */
   async _impl_start() {
     this.#context[ThisModule.SYM_setState]('running');
@@ -357,7 +353,6 @@ export class BaseComponent {
    * call through to `super` so that all the base classes get a chance to take
    * action.
    *
-   * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
