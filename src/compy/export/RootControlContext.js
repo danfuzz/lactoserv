@@ -32,7 +32,8 @@ export class RootControlContext extends ControlContext {
   /**
    * Constructs an instance. It initially has no `associate`.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?IntfLogger} logger Root logger to use as the base for all logging,
+   *   or `null` to not do any logging in this hierarchy.
    */
   constructor(logger) {
     super('root', null);
