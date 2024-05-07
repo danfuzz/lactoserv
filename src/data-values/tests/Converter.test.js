@@ -326,7 +326,7 @@ describe('encode()', () => {
 
         expect(got).not.toBe(value);
         expect(got).toBeFrozen();
-        expect(got.type).toBe(value.type);
+        expect(got.functor).toBe(value.functor);
         expect(got.args).toStrictEqual(value.args);
         expect(got.options).toStrictEqual(value.options);
       });
@@ -340,8 +340,8 @@ describe('encode()', () => {
         const got  = conv.encode(err);
 
         expect(got).toBeInstanceOf(Sexp);
-        expect(got.type).toBeInstanceOf(Ref);
-        expect(got.type.value).toBe(Error);
+        expect(got.functor).toBeInstanceOf(Ref);
+        expect(got.functor.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
         expect(got.args[0]).toStrictEqual({
           name:    'Error',
@@ -362,8 +362,8 @@ describe('encode()', () => {
         const got  = conv.encode(err);
 
         expect(got).toBeInstanceOf(Sexp);
-        expect(got.type).toBeInstanceOf(Ref);
-        expect(got.type.value).toBe(Error);
+        expect(got.functor).toBeInstanceOf(Ref);
+        expect(got.functor.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
         expect(got.args[0]).toContainAllKeys(['cause', 'code', 'message', 'name', 'stack']);
         expect(got.options).toStrictEqual({ blueberries: true });
@@ -374,8 +374,8 @@ describe('encode()', () => {
         expect(name).toBe(err.name);
         expect(stack).toBe(err.stack);
         expect(convCause).toBeInstanceOf(Sexp);
-        expect(convCause.type).toBeInstanceOf(Ref);
-        expect(convCause.type.value).toBe(TypeError);
+        expect(convCause.functor).toBeInstanceOf(Ref);
+        expect(convCause.functor.value).toBe(TypeError);
         expect(convCause.args).toBeArrayOfSize(1);
         expect(convCause.args[0]).toStrictEqual({
           name:    cause.name,
