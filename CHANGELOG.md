@@ -35,7 +35,9 @@ Breaking changes:
 * `data-values`:
   * Renamed `Struct` -> `Sexp`, because it's really this project's version of
     the "sexp" concept. And for similar reasons, renamed the `type` field of it
-    to `functor`. This rename also makes room for a new `Struct`.
+    to `functor`. This rename also makes room for the new `Struct`-y thing.
+  * New class `BaseStruct`, extracted from `BaseConfig`, because _most_ of what
+    `BaseConfig` did was not particularly specific to configuration, per se.
 
 Other notable changes:
 * `compy`:
