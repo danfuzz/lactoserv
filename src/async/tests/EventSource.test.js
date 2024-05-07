@@ -85,6 +85,16 @@ describe.each`
   });
 });
 
+describe('constructor()', () => {
+  test('throws when given both `kickoffPayload` and `kickoffInstance`', () => {
+    const opts = {
+      kickoffPayload: new ZanyPayload('x'),
+      kickoffEvent:   new ZanyEvent(payload1)
+    };
+    expect(() => new EventSource(opts)).toThrow();
+  });
+});
+
 describe('.currentEvent', () => {
   test('is a promise', async () => {
     const source = new EventSource();
