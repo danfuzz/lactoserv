@@ -41,7 +41,7 @@ describe('.functor =', () => {
   });
 });
 
-describe('get args', () => {
+describe('.args', () => {
   test('is an array', () => {
     expect(new Sexp('x', null).args).toBeArray();
     expect(new Sexp('x', {}, 1).args).toBeArray();
@@ -73,7 +73,7 @@ describe('get args', () => {
   }
 });
 
-describe('set args', () => {
+describe('.args =', () => {
   test('is disallowed on a frozen instance', () => {
     const sexp = new Sexp('boop', null);
     Object.freeze(sexp);
@@ -95,7 +95,7 @@ describe('set args', () => {
   });
 });
 
-describe('get options', () => {
+describe('.options', () => {
   test.each`
   opts
   ${null}
@@ -144,7 +144,7 @@ describe('get options', () => {
   });
 });
 
-describe('set options', () => {
+describe('.options =', () => {
   test('is disallowed on a frozen instance', () => {
     const sexp = new Sexp('boop', null);
     Object.freeze(sexp);
