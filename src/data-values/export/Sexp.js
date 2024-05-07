@@ -158,9 +158,9 @@ export class Sexp extends BaseDataClass {
       else if (hasArgs)          return { [functor]: args };
       else                       return { [functor]: options };
     } else {
-      if (hasOptions && hasArgs) return { '@struct': { functor, options, args } };
-      else if (hasArgs)          return { '@struct': { functor, args } };
-      else                       return { '@struct': { functor, options } };
+      if (hasOptions && hasArgs) return { '@sexp': { functor, options, args } };
+      else if (hasArgs)          return { '@sexp': { functor, args } };
+      else                       return { '@sexp': { functor, options } };
     }
   }
 
