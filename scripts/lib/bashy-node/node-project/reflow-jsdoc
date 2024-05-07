@@ -116,6 +116,7 @@ function autoflowLines(_locals_, curIndent, i, line, text) {
   text = "";
   for (i = 0; i < count; i++) {
     line = lines[i];
+    gsub(/  +/, " ", line); # Turn double+ spaces into single spaces.
     sub(/^ */, "", line);
     if (i == 0) text = line;
     else text = text " " line;
