@@ -29,15 +29,15 @@ describe('get type', () => {
 
 describe('set type', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Sexp('boop', null);
-    Object.freeze(struct);
-    expect(() => { struct.type = 'florp'; }).toThrow();
+    const sexp = new Sexp('boop', null);
+    Object.freeze(sexp);
+    expect(() => { sexp.type = 'florp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
-    const struct = new Sexp('boop', null);
-    expect(() => { struct.type = 'florp'; }).not.toThrow();
-    expect(struct.type).toBe('florp');
+    const sexp = new Sexp('boop', null);
+    expect(() => { sexp.type = 'florp'; }).not.toThrow();
+    expect(sexp.type).toBe('florp');
   });
 });
 
@@ -75,23 +75,23 @@ describe('get args', () => {
 
 describe('set args', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Sexp('boop', null);
-    Object.freeze(struct);
-    expect(() => { struct.args = [1, 2, 3]; }).toThrow();
+    const sexp = new Sexp('boop', null);
+    Object.freeze(sexp);
+    expect(() => { sexp.args = [1, 2, 3]; }).toThrow();
   });
 
   test('throws if passed a non-array', () => {
-    const struct = new Sexp('boop', null);
-    expect(() => { struct.args = 'blorp'; }).toThrow();
+    const sexp = new Sexp('boop', null);
+    expect(() => { sexp.args = 'blorp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newArgs = [1, 2, 3];
-    const struct  = new Sexp('boop', null, 4, 5, 6);
-    expect(() => { struct.args = newArgs; }).not.toThrow();
-    expect(struct.args).toStrictEqual(newArgs);
-    expect(struct.args).not.toBe(newArgs);
-    expect(struct.args).toBeFrozen();
+    const sexp  = new Sexp('boop', null, 4, 5, 6);
+    expect(() => { sexp.args = newArgs; }).not.toThrow();
+    expect(sexp.args).toStrictEqual(newArgs);
+    expect(sexp.args).not.toBe(newArgs);
+    expect(sexp.args).toBeFrozen();
   });
 });
 
@@ -103,9 +103,9 @@ describe('get options', () => {
   ${{ x: 10 }}
   ${new Map()}
   `('is a plain object, given $opts', ({ opts }) => {
-    const struct = new Sexp('x', opts);
-    expect(struct.options).toBeObject();
-    expect(AskIf.plainObject(struct.options)).toBeTrue();
+    const sexp = new Sexp('x', opts);
+    expect(sexp.options).toBeObject();
+    expect(AskIf.plainObject(sexp.options)).toBeTrue();
   });
 
   test('is frozen', () => {
@@ -139,24 +139,24 @@ describe('get options', () => {
   ${'instance with no extra properties'} | ${new Map()}  | ${{}}
   ${'instance with extra properties'}    | ${extraProps} | ${{ whee: 'yay' }}
   `('converts $label as expected', ({ opts, expected }) => {
-    const struct = new Sexp('x', opts);
-    expect(struct.options).toStrictEqual(expected);
+    const sexp = new Sexp('x', opts);
+    expect(sexp.options).toStrictEqual(expected);
   });
 });
 
 describe('set options', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Sexp('boop', null);
-    Object.freeze(struct);
-    expect(() => { struct.options = { a: 10 }; }).toThrow();
+    const sexp = new Sexp('boop', null);
+    Object.freeze(sexp);
+    expect(() => { sexp.options = { a: 10 }; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newOpts = { a: 10, b: 20 };
-    const struct  = new Sexp('boop', { c: 30 }, 123);
-    expect(() => { struct.options = newOpts; }).not.toThrow();
-    expect(struct.options).toStrictEqual(newOpts);
-    expect(struct.options).not.toBe(newOpts);
-    expect(struct.options).toBeFrozen();
+    const sexp  = new Sexp('boop', { c: 30 }, 123);
+    expect(() => { sexp.options = newOpts; }).not.toThrow();
+    expect(sexp.options).toStrictEqual(newOpts);
+    expect(sexp.options).not.toBe(newOpts);
+    expect(sexp.options).toBeFrozen();
   });
 });
