@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Converter, ConverterConfig, Struct } from '@this/data-values';
+import { Converter, ConverterConfig, Sexp } from '@this/data-values';
 
 import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
@@ -147,24 +147,24 @@ export class Host {
    * @returns {*} The fixed (maximally human-friendly) form.
    */
   static #fixEncodedError(encoded) {
-    if (!(encoded instanceof Struct)) {
+    if (!(encoded instanceof Sexp)) {
       // Something weird happened; just leave it, which will hopefully get at
       // least _some_ info out the door.
       return encoded;
     }
 
     const fixed = {
-      class: encoded.type,
+      class: encoded.functor,
       ...encoded.args[0],
       ...(encoded.options ?? {})
     };
 
-    if (fixed.name === fixed.type) {
+    if (fixed.name === fixed.functor) {
       delete fixed.name;
     }
 
-    if (   (fixed.stack instanceof Struct)
-        && (fixed.stack.type === 'StackTrace')) {
+    if (   (fixed.stack instanceof Sexp)
+        && (fixed.stack.functor === 'StackTrace')) {
       fixed.stack = fixed.stack.args[0];
     }
 

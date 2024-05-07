@@ -5,7 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { StackTrace } from '#x/StackTrace';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 
 
 /**
@@ -64,7 +64,7 @@ export class ConvError extends BaseConverter {
     if (!main.code)  delete main.code;
     if (!main.stack) delete main.stack;
 
-    return new Struct(type, rest, main);
+    return new Sexp(type, rest, main);
   }
 
   /**

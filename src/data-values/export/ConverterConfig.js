@@ -6,7 +6,7 @@ import { AskIf, MustBe } from '@this/typey';
 import { BaseConverter } from '#x/BaseConverter';
 import { Ref } from '#x/Ref';
 import { SpecialConverters } from '#x/SpecialConverters';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 
 
 /**
@@ -97,7 +97,7 @@ export class ConverterConfig {
     options = (options === null) ? {} : MustBe.plainObject(options);
 
     const {
-      dataClasses       = [Ref, Struct],
+      dataClasses       = [Ref, Sexp],
       freeze            = true,
       functionAction    = 'wrap',
       honorEncodeMethod = true,
@@ -123,7 +123,7 @@ export class ConverterConfig {
    * @returns {Array<function(new:*)>} Classes whose instances are treated as
    * data values.
    *
-   * Default value if not passed during construction: `[Ref, Struct]`.
+   * Default value if not passed during construction: `[Ref, Sexp]`.
    *
    * This value is always frozen; if passed in upon construction as an unfrozen
    * value, then frozen clone is used.

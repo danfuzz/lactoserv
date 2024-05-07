@@ -5,7 +5,7 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { StackFrame } from '#x/StackFrame';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 
 
 /**
@@ -78,10 +78,10 @@ export class StackTrace {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(StackTrace, null, this.#frames);
+    return new Sexp(StackTrace, null, this.#frames);
   }
 
 

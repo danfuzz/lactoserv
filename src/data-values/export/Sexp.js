@@ -9,20 +9,23 @@ import { BaseDataClass } from '#x/BaseDataClass';
 
 
 /**
- * Data value that represents a typed (but otherwise fairly free-form) structure
- * of some sort. Instances of this class are commonly used as the "distillate"
- * data of behavior-bearing class instances.
+ * Data value that represents a free-form would-be method call (or
+ * method-call-like thing). This is nearly equivalent to what is historically
+ * sometimes called an "s expression" or more tersely a "sexp," hence the name
+ * of this class. _This_ class has a little more structure than a classic sexp,
+ * to be clear. Instances of this class are commonly used as bearers of
+ * "distillate" data of behavior-bearing class instances.
  *
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
  */
-export class Struct extends BaseDataClass {
+export class Sexp extends BaseDataClass {
   /**
-   * Value representing the type (or class) of the structure.
+   * Value representing the thing-to-be-called when "applying" this instance.
    *
    * @type {*}
    */
-  #type;
+  #functor;
 
   /**
    * Named "options" of the structure.
@@ -38,21 +41,20 @@ export class Struct extends BaseDataClass {
    */
   #args;
 
-
   /**
    * Constructs an instance.
    *
-   * @param {*} type Value representing the type (or class) of the structure.
+   * @param {*} functor Value representing the thing-that-is-to-be-called.
    * @param {?object} [options] Named "options" of the structure, if any. If
    *   non-`null` and not a frozen plain object, it will get cloned and frozen.
    *   If `null`, becomes a frozen version of `{}` (the empty object).
    * @param {...*} args Positional "arguments" of the structure.
    */
-  constructor(type, options, ...args) {
+  constructor(functor, options, ...args) {
     super();
 
-    this.#type    = type;
-    this.#options = Struct.#fixOptions(options);
+    this.#functor = functor;
+    this.#options = Sexp.#fixOptions(options);
     this.#args    = Object.freeze(args);
   }
 
@@ -77,6 +79,26 @@ export class Struct extends BaseDataClass {
   }
 
   /**
+   * @returns {*} Value representing the thing-to-be-called when "applying" this
+   * instance (in some contextually-relevant way). Depending on context, this
+   * might be akin to a function, a method name, a class (i.e. a constructor
+   * function), or a type of some sort.
+   */
+  get functor() {
+    return this.#functor;
+  }
+
+  /**
+   * Sets the functor. This is only allowed if this instance is not frozen.
+   *
+   * @param {*} functor The new functor value.
+   */
+  set functor(functor) {
+    this.#frozenCheck();
+    this.#functor = functor;
+  }
+
+  /**
    * @returns {object} Named "options" of the structure, if any. This is always
    * a frozen plain object.
    */
@@ -92,27 +114,12 @@ export class Struct extends BaseDataClass {
    */
   set options(options) {
     this.#frozenCheck();
-    this.#options = Struct.#fixOptions(options);
-  }
-
-  /** @returns {*} Value representing the type (or class) of the structure. */
-  get type() {
-    return this.#type;
-  }
-
-  /**
-   * Sets the type. This is only allowed if this instance is not frozen.
-   *
-   * @param {*} type The new type value.
-   */
-  set type(type) {
-    this.#frozenCheck();
-    this.#type = type;
+    this.#options = Sexp.#fixOptions(options);
   }
 
   /** @override */
   toEncodableValue() {
-    return [this.#type, this.#options, ...this.#args];
+    return [this.#functor, this.#options, ...this.#args];
   }
 
   /**
@@ -138,26 +145,26 @@ export class Struct extends BaseDataClass {
   toJSON() {
     const args    = this.#args;
     const options = this.#options;
-    const type    = this.#fixJsonType();
+    const functor = this.#jsonFunctor();
 
-    const hasStringType = (typeof type === 'string');
+    const hasStringFunc = (typeof functor === 'string');
     const hasOptions    = (Object.keys(options).length !== 0);
     const hasArgs       = (args.length !== 0);
 
-    if (hasStringType) {
-      if (hasOptions && hasArgs) return { [type]: { options, args } };
-      else if (hasArgs)          return { [type]: args };
-      else                       return { [type]: options };
+    if (hasStringFunc) {
+      if (hasOptions && hasArgs) return { [functor]: { options, args } };
+      else if (hasArgs)          return { [functor]: args };
+      else                       return { [functor]: options };
     } else {
-      if (hasOptions && hasArgs) return { '@struct': { type, options, args } };
-      else if (hasArgs)          return { '@struct': { type, args } };
-      else                       return { '@struct': { type, options } };
+      if (hasOptions && hasArgs) return { '@sexp': { functor, options, args } };
+      else if (hasArgs)          return { '@sexp': { functor, args } };
+      else                       return { '@sexp': { functor, options } };
     }
   }
 
   /** @override */
   withEncodedValue(innerValue) {
-    return new Struct(...innerValue);
+    return new Sexp(...innerValue);
   }
 
   /**
@@ -170,7 +177,7 @@ export class Struct extends BaseDataClass {
    */
   [util.inspect.custom](depth, options, inspect) {
     if (depth < 0) {
-      return '[Struct]';
+      return '[Sexp]';
     }
 
     const innerOptions = Object.assign({}, options, {
@@ -179,9 +186,9 @@ export class Struct extends BaseDataClass {
 
     const parts = [
       '@',
-      (typeof this.#type === 'string')
-        ? this.#type
-        : inspect(this.#type, innerOptions),
+      (typeof this.#functor === 'string')
+        ? this.#functor
+        : inspect(this.#functor, innerOptions),
       ' { '
     ];
 
@@ -209,24 +216,6 @@ export class Struct extends BaseDataClass {
   }
 
   /**
-   * Helper for {@link #toJSON}, which converts {@link #type} to something
-   * better, if possible, for conversion to JSON.
-   *
-   * @returns {*} The JSON-encodable type value.
-   */
-  #fixJsonType() {
-    const type = this.#type;
-
-    if (typeof type === 'string') {
-      return type.startsWith('@') ? type : `@${type}`;
-    } else if (typeof type === 'function') {
-      return `@${type?.name ?? 'anonymous'}`;
-    } else {
-      return type;
-    }
-  }
-
-  /**
    * Helper for the setters, to check for frozen-ness and respond accordingly.
    */
   #frozenCheck() {
@@ -234,6 +223,25 @@ export class Struct extends BaseDataClass {
       throw new Error('Cannot modify frozen instance.');
     }
   }
+
+  /**
+   * Helper for {@link #toJSON}, which converts {@link #functor} to something
+   * better, if possible, for conversion to JSON.
+   *
+   * @returns {*} The JSON-encodable functor value.
+   */
+  #jsonFunctor() {
+    const functor = this.#functor;
+
+    if (typeof functor === 'string') {
+      return functor.startsWith('@') ? functor : `@${functor}`;
+    } else if (typeof functor === 'function') {
+      return `@${functor?.name ?? 'anonymous'}`;
+    } else {
+      return functor;
+    }
+  }
+
 
   //
   // Static members

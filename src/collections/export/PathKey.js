@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, Struct } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';
@@ -103,10 +103,10 @@ export class PathKey {
    * Standard `data-values` method to produce an encoded version of this
    * instance.
    *
-   * @returns {Struct} The encoded form.
+   * @returns {Sexp} The encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(PathKey, null, this.#path, this.#wildcard);
+    return new Sexp(PathKey, null, this.#path, this.#wildcard);
   }
 
   /**
