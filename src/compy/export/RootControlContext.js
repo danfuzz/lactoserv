@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreeMap } from '@this/collections';
+import { PathKey, TreeMap } from '@this/collections';
+import { BaseConfig } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ControlContext } from '#x/ControlContext';
@@ -15,12 +16,12 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class RootControlContext extends ControlContext {
   /**
-   * The "root" logger to use, or `null` if the hierarchy isn't doing logging at
-   * all.
+   * The configuration object for the root component. This notably contains
+   * logging-related info needed by this class.
    *
-   * @type {?IntfLogger}
+   * @type {BaseConfig}
    */
-  #rootLogger;
+  #rootConfig;
 
   /**
    * Tree which maps each component path to its context instance.
@@ -32,12 +33,12 @@ export class RootControlContext extends ControlContext {
   /**
    * Constructs an instance. It initially has no `associate`.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {BaseConfig} config Root component configuration.
    */
-  constructor(logger) {
+  constructor(config) {
     super('root', null);
 
-    this.#rootLogger = logger;
+    this.#rootConfig = config;
   }
 
   /**
@@ -46,7 +47,7 @@ export class RootControlContext extends ControlContext {
    * hierarchy is _not_ doing logging at all.
    */
   get rootLogger() {
-    return this.#rootLogger;
+    return this.#rootConfig.rootLogger;
   }
 
   /**
@@ -79,5 +80,38 @@ export class RootControlContext extends ControlContext {
       const names = `[${classes.map((c) => c.name).join(', ')}]`;
       throw new Error(`${errPrefix} classes: ${names}`);
     }
+  }
+
+  /**
+   * Gets the logger to use for the given component path.
+   *
+   * @param {PathKey} componentPath The component path.
+   * @returns {?IntfLogger} The logger, or `null` if the indicated component
+   *   should not do logging.
+   */
+  getLoggerForPath(componentPath) {
+    const rootLogger = this.rootLogger;
+
+    if (!rootLogger) {
+      return null;
+    }
+
+    const loggingMap = this.#rootConfig.logging;
+
+    if (loggingMap) {
+      const found = loggingMap.find(componentPath);
+      if (found?.value === false) {
+        // The match indicates that logging should be off for this component.
+        return null;
+      }
+    }
+
+    let logger = rootLogger;
+
+    for (const k of componentPath.path) {
+      logger = logger[k];
+    }
+
+    return logger;
   }
 }

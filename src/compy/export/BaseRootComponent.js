@@ -1,7 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreeMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
+import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { Names } from '#x/Names';
@@ -29,15 +31,15 @@ export class BaseRootComponent extends BaseComponent {
    */
   constructor(rawConfig = null) {
     // We need to recapitulate the config parsing our superclass would have done
-    // so that we will only get a valid `rootLogger` value. (That is, if we're
-    // passed a bogus `rawConfig`, the `eval()` call will throw.)
-    rawConfig = new.target.CONFIG_CLASS.eval(rawConfig, {
+    // so that we can pass the parsed config to the `RootControlContext`
+    // constructor.
+    const config = new.target.CONFIG_CLASS.eval(rawConfig, {
       targetClass: new.target
     });
 
-    const context = new RootControlContext(rawConfig.rootLogger);
+    const context = new RootControlContext(config);
 
-    super(rawConfig, context);
+    super(config, context);
   }
 
 
@@ -49,6 +51,28 @@ export class BaseRootComponent extends BaseComponent {
   static _impl_configClass() {
     return class Config extends super.prototype.constructor.CONFIG_CLASS {
       // @defaultConstructor
+
+      /**
+       * Logging control.
+       *
+       * @param {?object|TreeMap} [value] Proposed configuration value. Default
+       *   `null`.
+       * @returns {?TreeMap} Accepted configuration value.
+       */
+      _config_logging(value = null) {
+        if ((value instanceof TreeMap) || (value === null)) {
+          return value;
+        }
+
+        const result = new TreeMap();
+        for (const [k, v] of Object.entries(value)) {
+          const path = Names.parsePath(k, true);
+          MustBe.boolean(v);
+          result.add(path, v);
+        }
+
+        return result;
+      }
 
       /**
        * Component name. This is an override of the base class in order to force

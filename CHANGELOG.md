@@ -41,6 +41,9 @@ Breaking changes:
     `BaseConfig` did was not particularly specific to configuration, per se.
 
 Other notable changes:
+* configuration:
+  * New top-level (`WebappRoot`) configuration `logging`, to do fine-grained
+    control over which components produce system logs.
 * `compy`:
   * Fixed bug in `BaseComponent.CONFIG_CLASS` which caused it to sometimes
     call base classes' `_impl_configClass()` multiple times (which isn't
