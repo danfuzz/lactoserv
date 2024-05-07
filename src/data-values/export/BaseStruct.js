@@ -7,9 +7,9 @@ import { AskIf, MustBe } from '@this/typey';
 /**
  * Base class for type-checked "structures." Each concrete subclass is expected
  * to pass a plain object in its `super()` constructor call (or pass nothing or
- * `null` for an all-default construction) which is suitable for parsing by
- * this (base) class. This class defines the mechanism by which a plain object
- * gets mapped into properties on the constructed instance, including running
+ * `null` for an all-default construction) which is suitable for parsing by this
+ * (base) class. This class defines the mechanism by which a plain object gets
+ * mapped into properties on the constructed instance, including running
  * validation on each property and a final overall validation.
  */
 export class BaseStruct {
@@ -39,11 +39,11 @@ export class BaseStruct {
   }
 
   /**
-   * Validates a processed struct object, optionally changing properties,
-   * prior to actually setting its properties on this instance. Subclasses
-   * should override this if they need to do any final validation or tweakage.
-   * The base class implementation of this method returns its argument (that is,
-   * it does nothing), but concrete subclasses should check their own immediate
+   * Validates a processed struct object, optionally changing properties, prior
+   * to actually setting its properties on this instance. Subclasses should
+   * override this if they need to do any final validation or tweakage. The base
+   * class implementation of this method returns its argument (that is, it does
+   * nothing), but concrete subclasses should check their own immediate
    * superclasses for requirements about calling `super()`.
    *
    * @param {object} lessRawObject Processed object (which started as a

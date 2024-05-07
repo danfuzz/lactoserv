@@ -101,9 +101,8 @@ export class ConverterConfig extends BaseConfig {
   }
 
   /**
-   * Converter to handle any special cases that take precedence
-   * over other configuration options, or `null` if there are no
-   * special cases.
+   * Converter to handle any special cases that take precedence over other
+   * configuration options, or `null` if there are no special cases.
    *
    * @param {?BaseConverter} [value] Proposed configuration value. Default
    *   {@link SpecialConverters#STANDARD}.
