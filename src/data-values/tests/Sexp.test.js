@@ -87,7 +87,7 @@ describe('.args =', () => {
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newArgs = [1, 2, 3];
-    const sexp  = new Sexp('boop', null, 4, 5, 6);
+    const sexp    = new Sexp('boop', null, 4, 5, 6);
     expect(() => { sexp.args = newArgs; }).not.toThrow();
     expect(sexp.args).toStrictEqual(newArgs);
     expect(sexp.args).not.toBe(newArgs);
@@ -153,10 +153,95 @@ describe('.options =', () => {
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newOpts = { a: 10, b: 20 };
-    const sexp  = new Sexp('boop', { c: 30 }, 123);
+    const sexp    = new Sexp('boop', { c: 30 }, 123);
     expect(() => { sexp.options = newOpts; }).not.toThrow();
     expect(sexp.options).toStrictEqual(newOpts);
     expect(sexp.options).not.toBe(newOpts);
     expect(sexp.options).toBeFrozen();
+  });
+});
+
+describe('.toJSON()', () => {
+  describe('with an at-string for `functor`', () => {
+    test('includes neither `args` nor `options` when both are empty', () => {
+      const sexp1    = new Sexp('@x', null);
+      const sexp2    = new Sexp('@x', {});
+      const sexp3    = new Sexp('@x');
+      const expected = { '@x': {} };
+
+      expect(sexp1.toJSON()).toEqual(expected);
+      expect(sexp2.toJSON()).toEqual(expected);
+      expect(sexp3.toJSON()).toEqual(expected);
+    });
+
+    test('includes just non-empty `options` when `args` is empty', () => {
+      const sexp     = new Sexp('@x', { a: 12 });
+      const expected = { '@x': { a: 12 } };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+
+    test('includes just non-empty `args` when `options` is empty', () => {
+      const sexp     = new Sexp('@x', null, 'a', 'b', 123);
+      const expected = { '@x': ['a', 'b', 123] };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+
+    test('includes a sub-object with both `args` and `options` when both are non-empty', () => {
+      const sexp     = new Sexp('@x', { xyz: true }, 'a', 'b', 123);
+      const expected = { '@x': { args: ['a', 'b', 123], options: { xyz: true } } };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+  });
+
+  describe('with an arbitrary value (not otherwise covered) for `functor`', () => {
+    test('includes just `functor` when both `args` and `options` are empty', () => {
+      const functor  = ['non', 'string', 'functor'];
+      const sexp1    = new Sexp(functor, null);
+      const sexp2    = new Sexp(functor, {});
+      const sexp3    = new Sexp(functor);
+      const expected = { '@sexp': { functor } };
+
+      expect(sexp1.toJSON()).toEqual(expected);
+      expect(sexp2.toJSON()).toEqual(expected);
+      expect(sexp3.toJSON()).toEqual(expected);
+    });
+
+    test('includes just `functor` and non-empty `options` when `args` is empty', () => {
+      const functor  = false;
+      const sexp     = new Sexp(functor, { a: 12 });
+      const expected = { '@sexp': { functor, options: { a: 12 } } };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+
+    test('includes just `functor` and non-empty `args` when `options` is empty', () => {
+      const functor  = 12345;
+      const sexp     = new Sexp(functor, null, 'a', 'b', 123);
+      const expected = { '@sexp': { functor, args: ['a', 'b', 123] } };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+
+    test('includes a sub-object with all bits when both `args` and `options` are non-empty', () => {
+      const functor  = { zoiks: 'a-functor' };
+      const sexp     = new Sexp(functor, { xyz: true }, 'a', 'b', 123);
+      const expected = { '@sexp': { functor, args: ['a', 'b', 123], options: { xyz: true } } };
+
+      expect(sexp.toJSON()).toEqual(expected);
+    });
+  });
+
+  test('prefixes a string functor with an at-sign if it doesn\'t already have one', () => {
+    expect(new Sexp('florp').toJSON()).toEqual({ '@florp': {} });
+  });
+
+  test('converts a function functor (including a class) to its name with an at-prefix', () => {
+    function florp() { return null; }
+
+    expect(new Sexp(Map).toJSON()).toEqual({ '@Map': {} });
+    expect(new Sexp(florp).toJSON()).toEqual({ '@florp': {} });
   });
 });
