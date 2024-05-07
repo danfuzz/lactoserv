@@ -186,8 +186,6 @@ export class BaseStruct {
    * @param {object} options Evaluation options.
    * @param {object} [options.defaults] Default values when evaluating a plain
    *   object. Defaults to `{}`.
-   * @param {function(new:*)} options.targetClass The class that `rawObject` is
-   *   supposed to be constructing.
    * @returns {BaseStruct} Instance of the concrete class that this method was
    *   called on.
    */
@@ -225,18 +223,6 @@ export class BaseStruct {
 
     for (const [k, v] of Object.entries(defaults)) {
       defaultProp(k, v);
-    }
-
-    const objTargetClass = finalObj.class;
-
-    if ((objTargetClass === null) || (objTargetClass === undefined)) {
-      defaultProp('class', targetClass);
-    } else if (objTargetClass !== targetClass) {
-      if (!AskIf.constructorFunction(objTargetClass)) {
-        throw new Error('Expected class (constructor function) for `rawObject.class`.');
-      } else {
-        throw new Error(`Mismatch on \`rawObject.class\`: expected ${targetClass.name}, got ${objTargetClass.name}`);
-      }
     }
 
     return new this(finalObj);
