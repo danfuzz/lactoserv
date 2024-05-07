@@ -121,7 +121,7 @@ export class ProtocolWrangler {
    *   use. If not specified, the instance won't do data rate limiting.
    * @param {object} options.hostManager Host manager to use. Ignored for
    *   instances which don't do need to do host-based security (certs, etc.).
-   * @param {object} options.interface  Options to use for creation of and/or
+   * @param {object} options.interface Options to use for creation of and/or
    *   listening on the low-level server socket. See docs for
    *   `net.createServer()` and `net.Server.listen()` for details on all the
    *   available options, though with the following exceptions (done in order to
