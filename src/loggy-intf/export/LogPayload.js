@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
+import { BaseConverter, Moment, StackTrace, Sexp } from '@this/data-values';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
@@ -86,10 +86,10 @@ export class LogPayload extends EventPayload {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(LogPayload, {
+    return new Sexp(LogPayload, {
       when:  this.#when,
       tag:   this.#tag,
       stack: this.#stack,

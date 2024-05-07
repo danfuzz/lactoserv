@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Converter, ConverterConfig, Ref, Struct }
+import { BaseConverter, Converter, ConverterConfig, Ref, Sexp }
   from '@this/data-values';
 import { AskIf } from '@this/typey';
 
@@ -291,7 +291,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = Object.freeze(new Struct('x', null, 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', null, 1, 2, 3));
         const value2 = new Ref(['blort']);
 
         const conv = new Converter();
@@ -301,7 +301,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = Object.freeze(new Struct('x', { x: 123 }, 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', { x: 123 }, 1, 2, 3));
         const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
@@ -319,8 +319,8 @@ describe('encode()', () => {
         expect(got.both[1]).toBe(value2);
       });
 
-      test('copies a non-frozen `Struct` that requires no inner encoding', () => {
-        const value = new Struct('floop', { a: 10, b: 20 }, 1, 2, 3);
+      test('copies a non-frozen `Sexp` that requires no inner encoding', () => {
+        const value = new Sexp('floop', { a: 10, b: 20 }, 1, 2, 3);
         const conv  = new Converter();
         const got   = conv.encode(value);
 
@@ -339,7 +339,7 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Struct);
+        expect(got).toBeInstanceOf(Sexp);
         expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
@@ -361,7 +361,7 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Struct);
+        expect(got).toBeInstanceOf(Sexp);
         expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
@@ -373,7 +373,7 @@ describe('encode()', () => {
         expect(message).toBe(err.message);
         expect(name).toBe(err.name);
         expect(stack).toBe(err.stack);
-        expect(convCause).toBeInstanceOf(Struct);
+        expect(convCause).toBeInstanceOf(Sexp);
         expect(convCause.type).toBeInstanceOf(Ref);
         expect(convCause.type.value).toBe(TypeError);
         expect(convCause.args).toBeArrayOfSize(1);

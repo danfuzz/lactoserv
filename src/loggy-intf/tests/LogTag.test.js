@@ -3,7 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseConverter, Struct } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/data-values';
 import { LogTag } from '@this/loggy-intf';
 
 
@@ -213,7 +213,7 @@ describe('[BaseConverter.ENCODE]()', () => {
     const tag    = new LogTag(...expected);
     const result = tag[BaseConverter.ENCODE]();
 
-    expect(result).toBeInstanceOf(Struct);
+    expect(result).toBeInstanceOf(Sexp);
     expect(result.type).toBe(LogTag);
     expect(result.options).toStrictEqual({});
     expect(result.args).toStrictEqual(expected);

@@ -1,17 +1,17 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Struct } from '@this/data-values';
+import { Sexp } from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
 describe('constructor()', () => {
   test('does not throw', () => {
-    expect(() => new Struct('x', null)).not.toThrow();
+    expect(() => new Sexp('x', null)).not.toThrow();
   });
 
   test('produces a non-frozen instance', () => {
-    expect(new Struct(['y'], {})).not.toBeFrozen();
+    expect(new Sexp(['y'], {})).not.toBeFrozen();
   });
 });
 
@@ -21,21 +21,21 @@ describe('get type', () => {
     const type2 = { name: 'blort' };
     const type3 = 'stuff';
 
-    expect(new Struct(type1, {}).type).toBe(type1);
-    expect(new Struct(type2, { a: 'boop' }, 'yes').type).toBe(type2);
-    expect(new Struct(type3, null, 123, true).type).toBe(type3);
+    expect(new Sexp(type1, {}).type).toBe(type1);
+    expect(new Sexp(type2, { a: 'boop' }, 'yes').type).toBe(type2);
+    expect(new Sexp(type3, null, 123, true).type).toBe(type3);
   });
 });
 
 describe('set type', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Struct('boop', null);
+    const struct = new Sexp('boop', null);
     Object.freeze(struct);
     expect(() => { struct.type = 'florp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
-    const struct = new Struct('boop', null);
+    const struct = new Sexp('boop', null);
     expect(() => { struct.type = 'florp'; }).not.toThrow();
     expect(struct.type).toBe('florp');
   });
@@ -43,13 +43,13 @@ describe('set type', () => {
 
 describe('get args', () => {
   test('is an array', () => {
-    expect(new Struct('x', null).args).toBeArray();
-    expect(new Struct('x', {}, 1).args).toBeArray();
+    expect(new Sexp('x', null).args).toBeArray();
+    expect(new Sexp('x', {}, 1).args).toBeArray();
   });
 
   test('is frozen', () => {
-    expect(new Struct('x', null, 'a', 'b').args).toBeFrozen();
-    expect(new Struct('x', { y: null }, 'a', 'b', 'c').args).toBeFrozen();
+    expect(new Sexp('x', null, 'a', 'b').args).toBeFrozen();
+    expect(new Sexp('x', { y: null }, 'a', 'b', 'c').args).toBeFrozen();
   });
 
   const argses = [
@@ -65,7 +65,7 @@ describe('get args', () => {
       argsAt = (argsAt + 1) % argsAt.length;
     }
     test(`works with ${count} argument(s)`, () => {
-      const got = new Struct('x', null, ...args).args;
+      const got = new Sexp('x', null, ...args).args;
       expect(got).toBeArray();
       expect(got).toBeFrozen();
       expect(got).toStrictEqual(args);
@@ -75,19 +75,19 @@ describe('get args', () => {
 
 describe('set args', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Struct('boop', null);
+    const struct = new Sexp('boop', null);
     Object.freeze(struct);
     expect(() => { struct.args = [1, 2, 3]; }).toThrow();
   });
 
   test('throws if passed a non-array', () => {
-    const struct = new Struct('boop', null);
+    const struct = new Sexp('boop', null);
     expect(() => { struct.args = 'blorp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newArgs = [1, 2, 3];
-    const struct  = new Struct('boop', null, 4, 5, 6);
+    const struct  = new Sexp('boop', null, 4, 5, 6);
     expect(() => { struct.args = newArgs; }).not.toThrow();
     expect(struct.args).toStrictEqual(newArgs);
     expect(struct.args).not.toBe(newArgs);
@@ -103,29 +103,29 @@ describe('get options', () => {
   ${{ x: 10 }}
   ${new Map()}
   `('is a plain object, given $opts', ({ opts }) => {
-    const struct = new Struct('x', opts);
+    const struct = new Sexp('x', opts);
     expect(struct.options).toBeObject();
     expect(AskIf.plainObject(struct.options)).toBeTrue();
   });
 
   test('is frozen', () => {
-    expect(new Struct('x', null).options).toBeFrozen();
-    expect(new Struct('x', { y: null }, 'a').options).toBeFrozen();
+    expect(new Sexp('x', null).options).toBeFrozen();
+    expect(new Sexp('x', { y: null }, 'a').options).toBeFrozen();
   });
 
   test('is the same object as passed in, if given a frozen plain object', () => {
     const opts = Object.freeze({ yes: 'indeed' });
-    expect(new Struct('x', opts).options).toBe(opts);
+    expect(new Sexp('x', opts).options).toBe(opts);
   });
 
   test('is not the same object as passed in, if not given a plain object', () => {
     const opts = Object.freeze(new Map());
-    expect(new Struct('x', opts).options).not.toBe(opts);
+    expect(new Sexp('x', opts).options).not.toBe(opts);
   });
 
   test('is not the same object as passed in, if not given a frozen object', () => {
     const opts = { no: 'siree' };
-    expect(new Struct('x', opts).options).not.toBe(opts);
+    expect(new Sexp('x', opts).options).not.toBe(opts);
   });
 
   const extraProps = new Set();
@@ -139,21 +139,21 @@ describe('get options', () => {
   ${'instance with no extra properties'} | ${new Map()}  | ${{}}
   ${'instance with extra properties'}    | ${extraProps} | ${{ whee: 'yay' }}
   `('converts $label as expected', ({ opts, expected }) => {
-    const struct = new Struct('x', opts);
+    const struct = new Sexp('x', opts);
     expect(struct.options).toStrictEqual(expected);
   });
 });
 
 describe('set options', () => {
   test('is disallowed on a frozen instance', () => {
-    const struct = new Struct('boop', null);
+    const struct = new Sexp('boop', null);
     Object.freeze(struct);
     expect(() => { struct.options = { a: 10 }; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newOpts = { a: 10, b: 20 };
-    const struct  = new Struct('boop', { c: 30 }, 123);
+    const struct  = new Sexp('boop', { c: 30 }, 123);
     expect(() => { struct.options = newOpts; }).not.toThrow();
     expect(struct.options).toStrictEqual(newOpts);
     expect(struct.options).not.toBe(newOpts);

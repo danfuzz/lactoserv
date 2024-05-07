@@ -9,16 +9,21 @@ import { BaseDataClass } from '#x/BaseDataClass';
 
 
 /**
- * Data value that represents a typed (but otherwise fairly free-form) structure
- * of some sort. Instances of this class are commonly used as the "distillate"
- * data of behavior-bearing class instances.
+ * Data value that represents a free-form would-be method call (or
+ * method-call-like thing). This is nearly equivalent to what has historically
+ * sometimes been called an "s expression" or more tersely a "sexp," hence the
+ * name of this class. _This_ class has a little more structure than a classic
+ * sexp, to be clear. Instances of this class are commonly used as bearers of
+ * "distillate" data of behavior-bearing class instances.
  *
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
  */
-export class Struct extends BaseDataClass {
+export class Sexp extends BaseDataClass {
   /**
    * Value representing the type (or class) of the structure.
+   *
+   * TODO: This should be called `functor`.
    *
    * @type {*}
    */
@@ -38,7 +43,6 @@ export class Struct extends BaseDataClass {
    */
   #args;
 
-
   /**
    * Constructs an instance.
    *
@@ -52,7 +56,7 @@ export class Struct extends BaseDataClass {
     super();
 
     this.#type    = type;
-    this.#options = Struct.#fixOptions(options);
+    this.#options = Sexp.#fixOptions(options);
     this.#args    = Object.freeze(args);
   }
 
@@ -92,7 +96,7 @@ export class Struct extends BaseDataClass {
    */
   set options(options) {
     this.#frozenCheck();
-    this.#options = Struct.#fixOptions(options);
+    this.#options = Sexp.#fixOptions(options);
   }
 
   /** @returns {*} Value representing the type (or class) of the structure. */
@@ -157,7 +161,7 @@ export class Struct extends BaseDataClass {
 
   /** @override */
   withEncodedValue(innerValue) {
-    return new Struct(...innerValue);
+    return new Sexp(...innerValue);
   }
 
   /**
@@ -170,7 +174,7 @@ export class Struct extends BaseDataClass {
    */
   [util.inspect.custom](depth, options, inspect) {
     if (depth < 0) {
-      return '[Struct]';
+      return '[Sexp]';
     }
 
     const innerOptions = Object.assign({}, options, {

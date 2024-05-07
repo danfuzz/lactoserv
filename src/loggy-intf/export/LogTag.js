@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Struct } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/data-values';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
@@ -167,10 +167,10 @@ export class LogTag {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(LogTag, null, this.#main, ...this.#context);
+    return new Sexp(LogTag, null, this.#main, ...this.#context);
   }
 
 

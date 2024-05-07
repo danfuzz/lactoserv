@@ -4,7 +4,7 @@
 import { BaseConverter } from '#x/BaseConverter';
 import { ByteCount } from '#x/ByteCount';
 import { Frequency } from '#x/Frequency';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -46,7 +46,7 @@ export class ByteRate extends UnitQuantity {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
     // Note: This string is included for the convenience of humans who happen to
@@ -54,7 +54,7 @@ export class ByteRate extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return new Struct(ByteRate, null, this.bytePerSec, str);
+    return new Sexp(ByteRate, null, this.bytePerSec, str);
   }
 
 

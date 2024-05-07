@@ -4,7 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 
 
 /**
@@ -114,10 +114,10 @@ export class UnitQuantity {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(this.constructor, null,
+    return new Sexp(this.constructor, null,
       this.#value, this.#numeratorUnit, this.#denominatorUnit);
   }
 

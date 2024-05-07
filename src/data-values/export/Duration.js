@@ -3,7 +3,7 @@
 
 import { BaseConverter } from '#x/BaseConverter';
 import { Frequency } from '#x/Frequency';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -67,7 +67,7 @@ export class Duration extends UnitQuantity {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
     // Note: This string is included for the convenience of humans who happen to
@@ -75,7 +75,7 @@ export class Duration extends UnitQuantity {
     // an instance.
     const str = Duration.stringFromSec(this.sec);
 
-    return new Struct(Duration, null, this.sec, str);
+    return new Sexp(Duration, null, this.sec, str);
   }
 
 

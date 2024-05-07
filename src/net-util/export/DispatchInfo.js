@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { BaseConverter, Struct } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { IncomingRequest } from '#x/IncomingRequest';
@@ -51,10 +51,10 @@ export class DispatchInfo {
    * Standard `data-values` method to produce an encoded version of this
    * instance.
    *
-   * @returns {Struct} The encoded form.
+   * @returns {Sexp} The encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(DispatchInfo, null, this.#base, this.#extra);
+    return new Sexp(DispatchInfo, null, this.#base, this.#extra);
   }
 
   /**

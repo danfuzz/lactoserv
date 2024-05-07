@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -45,7 +45,7 @@ export class ByteCount extends UnitQuantity {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
     // Note: This string is included for the convenience of humans who happen to
@@ -53,7 +53,7 @@ export class ByteCount extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return new Struct(ByteCount, null, this.byte, str);
+    return new Sexp(ByteCount, null, this.byte, str);
   }
 
 

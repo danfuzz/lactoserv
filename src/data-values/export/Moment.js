@@ -5,7 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { Duration } from '#x/Duration';
-import { Struct } from '#x/Struct';
+import { Sexp } from '#x/Sexp';
 
 
 /**
@@ -222,7 +222,7 @@ export class Moment {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Struct} Encoded form.
+   * @returns {Sexp} Encoded form.
    */
   [BaseConverter.ENCODE]() {
     // Note: This string is included for the convenience of humans who happen to
@@ -230,7 +230,7 @@ export class Moment {
     // an instance.
     const str = this.toString({ decimals: 6 });
 
-    return new Struct(Moment, null, this.#atSec, str);
+    return new Sexp(Moment, null, this.#atSec, str);
   }
 
 
