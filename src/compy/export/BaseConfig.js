@@ -8,9 +8,9 @@ import { AskIf, MustBe } from '@this/typey';
 /**
  * Base class for configuration representation classes. Each concrete subclass
  * is expected to pass a plain object in its `super()` call which is suitable
- * for parsing by the base class. This (base) class defines a small handful of
- * core bindings, and it is up to each subclass to define other bindings
- * specific to the things-they-are-configuring.
+ * for parsing by the base class. This (base) class defines just one property,
+ * `class`, and it is up to each subclass to define other bindings specific to
+ * the things-they-are-configuring.
  */
 export class BaseConfig extends BaseStruct {
   // @defaultConstructor
