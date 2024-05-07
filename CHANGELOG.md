@@ -35,7 +35,7 @@ Breaking changes:
 * `data-values`:
   * Renamed `Struct` -> `Sexp`, because it's really this project's version of
     the "sexp" concept. And this will make room for a new `Struct`. And for
-    similar reasons, rename the `type` field of it to `functor`.
+    similar reasons, renamed the `type` field of it to `functor`.
 
 Other notable changes:
 * `compy`:
