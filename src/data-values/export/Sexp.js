@@ -79,6 +79,26 @@ export class Sexp extends BaseDataClass {
   }
 
   /**
+   * @returns {*} Value representing the thing-to-be-called when "applying" this
+   * instance (in some contextually-relevant way). Depending on context, this
+   * might be akin to a function, a method name, a class (i.e. a constructor
+   * function), or a type of some sort.
+   */
+  get functor() {
+    return this.#functor;
+  }
+
+  /**
+   * Sets the functor. This is only allowed if this instance is not frozen.
+   *
+   * @param {*} functor The new functor value.
+   */
+  set functor(functor) {
+    this.#frozenCheck();
+    this.#functor = functor;
+  }
+
+  /**
    * @returns {object} Named "options" of the structure, if any. This is always
    * a frozen plain object.
    */
@@ -98,25 +118,19 @@ export class Sexp extends BaseDataClass {
   }
 
   /**
-   * @returns {*} Value representing the thing-to-be-called when "applying" this
-   * instance (in some contextually-relevant way). Depending on context, this
-   * might be akin to a function, a method name, a class (i.e. a constructor
-   * function), or a type of some sort.
-   *
-   * TODO: This property should be called `functor`.
+   * @returns {*} Alias for {@link #functor}, which -- TODO -- is to be removed.
    */
   get type() {
-    return this.#functor;
+    return this.functor;
   }
 
   /**
-   * Sets the functor. This is only allowed if this instance is not frozen.
+   * Alias for {@link #functor}, which -- TODO -- is to be removed.
    *
    * @param {*} functor The new functor value.
    */
   set type(functor) {
-    this.#frozenCheck();
-    this.#functor = functor;
+    this.functor = functor;
   }
 
   /** @override */
