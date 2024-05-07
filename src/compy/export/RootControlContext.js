@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey, TreeMap } from '@this/collections';
+import { BaseConfig } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { ControlContext } from '#x/ControlContext';
@@ -15,12 +16,12 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class RootControlContext extends ControlContext {
   /**
-   * The "root" logger to use, or `null` if the hierarchy isn't doing logging at
-   * all.
+   * The configuration object for the root component. This notably contains
+   * logging-related info needed by this class.
    *
-   * @type {?IntfLogger}
+   * @type {BaseConfig}
    */
-  #rootLogger;
+  #rootConfig;
 
   /**
    * Tree which maps each component path to its context instance.
@@ -32,13 +33,12 @@ export class RootControlContext extends ControlContext {
   /**
    * Constructs an instance. It initially has no `associate`.
    *
-   * @param {?IntfLogger} logger Root logger to use as the base for all logging,
-   *   or `null` to not do any logging in this hierarchy.
+   * @param {BaseConfig} config Root component configuration.
    */
-  constructor(logger) {
+  constructor(config) {
     super('root', null);
 
-    this.#rootLogger = logger;
+    this.#rootConfig = config;
   }
 
   /**
@@ -47,7 +47,7 @@ export class RootControlContext extends ControlContext {
    * hierarchy is _not_ doing logging at all.
    */
   get rootLogger() {
-    return this.#rootLogger;
+    return this.#rootConfig.rootLogger;
   }
 
   /**
@@ -90,7 +90,7 @@ export class RootControlContext extends ControlContext {
    *   should not do logging.
    */
   getLoggerForPath(componentPath) {
-    const rootLogger = this.#rootLogger;
+    const rootLogger = this.rootLogger;
 
     if (!rootLogger) {
       return null;
