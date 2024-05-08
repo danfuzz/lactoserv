@@ -217,10 +217,19 @@ export class Converter extends BaseConverter {
       case 'unhandled': return BaseConverter.UNHANDLED;
       case 'wrap':      return new Ref(orig);
       case 'name': {
-        const name = orig.name;
-        return ((typeof name === 'string') && name !== '')
-          ? name
-          : '<no-name>';
+        if (typeof orig === 'function') {
+          const rawName = orig.name;
+          const name    = ((typeof rawName === 'string') && (rawName !== '')) ? rawName : '<anonymous>';
+          return AskIf.constructorFunction(orig)
+            ? `class ${name}`
+            : `${name}()`;
+        } else if (AskIf.plainObject(orig)) {
+          return `object {...}`;
+        } else {
+          const rawName = orig.constructor?.name;
+          const name    = ((typeof rawName === 'string') && (rawName !== '')) ? rawName : '<anonymous>';
+          return `${name} {...}`;
+        }
       }
       default: {
         // `|| null` to make the call be a function (not method) call.

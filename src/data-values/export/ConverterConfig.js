@@ -21,9 +21,9 @@ import { SpecialConverters } from '#x/SpecialConverters';
  * * `error` -- Treat the case as an error.
  * * `inspect` -- Replace the value with the results of a call to
  *   `util.inspect()` on the value.
- * * `name` -- Replace the value with the `.name` property of the value if it is
- *    a non-empty string, or with `<no-name>` if it is unbound or anything else.
- *    This is most useful for functions (both regular and constructors).
+ * * `name` -- Replace the value with its name (or `<anonymous>`) and a bit of
+ *   decoration indicating its type (function, class, instance, or plain
+ *   object).
  * * `omit` -- Omit the value in question. If the value would be returned
  *   directly, instead `undefined` is returned. If the value would be incluided
  *   in a plain object or array, the key it would be bound to is omitted
@@ -165,7 +165,7 @@ export class ConverterConfig extends BaseConfig {
 
     return new this({
       functionAction: 'name',
-      instanceAction: 'inspect',
+      instanceAction: 'name',
       specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
       ...options
     });
