@@ -321,8 +321,12 @@ const config = {
   applications,
   endpoints,
   hosts,
-  services
-  // logging: { ... }
+  services,
+  logging: {
+    '/application/*': false,
+    '/application/mySite/*': true,
+    '/application/myRedirector/*': true
+  }
 };
 
 export default config;
