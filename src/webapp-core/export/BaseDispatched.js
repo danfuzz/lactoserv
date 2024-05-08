@@ -38,6 +38,17 @@ export class BaseDispatched extends BaseComponent {
     return this.#dispatchLogger;
   }
 
+  /**
+   * Gets a dispatch sub-logger with a new ID, or `null` if this instance is not
+   * doing dispatch logging.
+   *
+   * @returns {?IntfLogger} Logger to use for a specific dispatch cycle, or
+   *   `null` not to log it.
+   */
+  _prot_newDispatchLogger() {
+    return this._prot_dispatchLogger?.$newId;
+  }
+
 
   //
   // Static members
