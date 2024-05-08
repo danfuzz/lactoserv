@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Moment } from '@this/data-values';
+import { MustBe } from '@this/typey';
 
 
 /**
  * Generator of unique-enough IDs to track connections, requests, etc., in the
  * logs.
  *
- * The format of the IDs is `XX-MMMMM-NNNN`:
+ * The format of the IDs is `XX_MMMMM_NNNN`:
  *
  * * `XX` is an arbitrary (though not truly random) two-character string of
  *   lowercase letters, to make IDs easier for a human to visually distinguish.
@@ -42,6 +43,8 @@ export class IdGenerator {
    * @returns {string} An appropriately-constructed ID.
    */
   makeId(now) {
+    MustBe.instanceOf(now, Moment);
+
     const nowSec       = now.atSec;
     const minuteNumber = Math.trunc(nowSec * IdGenerator.#MINS_PER_SEC) & 0xfffff;
 
@@ -59,7 +62,7 @@ export class IdGenerator {
       ? sequenceNumber.toString(16).padStart(4, '0')
       : sequenceNumber.toString(16).padStart(8, '0');
 
-    return `${preStr}-${minStr}-${seqStr}`;
+    return `${preStr}_${minStr}_${seqStr}`;
   }
 
 
