@@ -1,11 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent } from '@this/compy';
 import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
   StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
+
+import { BaseDispatched } from '#x/BaseDispatched';
 
 
 /**
@@ -13,12 +14,12 @@ import { Methods } from '@this/typey';
  *
  * @implements {IntfRequestHandler}
  */
-export class BaseApplication extends BaseComponent {
+export class BaseApplication extends BaseDispatched {
   // @defaultConstructor
 
   /** @override */
   async handleRequest(request, dispatch) {
-    const logger    = this.logger;
+    const logger    = this._prot_newDispatchLogger();
     const requestId = logger ? request.id : null;
     const startTime = logger?.$env.now();
 

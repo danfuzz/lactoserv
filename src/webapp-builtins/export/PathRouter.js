@@ -34,10 +34,12 @@ export class PathRouter extends BaseApplication {
         dispatch.base.concat(pathMatch.key),
         pathMatch.keyRemainder);
 
-      request.logger?.dispatchingPath({
-        application: application.name,
-        ...(subDispatch.infoForLog)
-      });
+      if (this._prot_dispatchLogging) {
+        request.logger?.dispatchingPath({
+          application: application.name,
+          ...(subDispatch.infoForLog)
+        });
+      }
 
       const result = await application.handleRequest(request, subDispatch);
       if (result !== null) {

@@ -159,6 +159,22 @@ const services = [
 ];
 ```
 
+## Logging
+
+Applications and services both offer the option to log their dispatch processes
+in detail, which is off by default. To turn it on, use the configuration option
+`dispatchLogging: true`.
+
+```js
+const applications = [
+  {
+    name:            'chattyAppy',
+    class:           ChattyAppy,
+    dispatchLogging: true,
+    // ... more ...
+  }
+];
+```
 
 - - - - - - - - - -
 ```

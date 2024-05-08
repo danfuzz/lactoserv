@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseComponent } from '@this/compy';
+
+import { BaseDispatched } from '#x/BaseDispatched';
 
 
 /**
  * Base class for system services.
  */
-export class BaseService extends BaseComponent {
+export class BaseService extends BaseDispatched {
   // @defaultConstructor
 
   /**
@@ -52,10 +53,24 @@ export class BaseService extends BaseComponent {
    *   are not suppressed.)
    */
   async handleCall(payload) {
+    const logger = this._prot_newDispatchLogger();
+
+    logger?.calling(payload.type, payload.args);
+
     try {
-      return await this._impl_handleCall(payload);
+      const result = await this._impl_handleCall(payload);
+
+      if (logger) {
+        if (result === BaseService.#UNHANDLED_VALUE) {
+          logger.callNotHandled();
+        } else {
+          logger.result(result);
+        }
+      }
+
+      return result;
     } catch (e) {
-      this.logger?.threw(e);
+      logger?.callThrew(e);
       throw e;
     }
   }
@@ -79,12 +94,24 @@ export class BaseService extends BaseComponent {
    *   are not suppressed.)
    */
   async handleEvent(payload) {
+    const logger = this._prot_newDispatchLogger();
+
+    logger?.event(payload.type, payload.args);
+
     try {
       const result = await this._impl_handleEvent(payload);
 
       if (typeof result !== 'boolean') {
         // Caught, logged, and rethrown immediately below.
         throw BaseService.#makeResultError(payload, result);
+      }
+
+      if (logger) {
+        if (result) {
+          logger.eventHandled();
+        } else {
+          logger.eventNotHandled();
+        }
       }
 
       return result;
