@@ -50,7 +50,6 @@ export class SyslogToFile extends BaseFileService {
     this.#sink = new TextFileSink(format, path, earliestEvent, bufferPeriod);
 
     await this.#sink.start();
-    this.logger?.running();
 
     await super._impl_start();
   }
