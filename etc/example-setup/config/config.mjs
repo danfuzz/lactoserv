@@ -109,7 +109,8 @@ const services = [
   {
     name:     'accessLog',
     class:    EventFan,
-    services: ['accessFile', 'accessSyslog']
+    services: ['accessFile', 'accessSyslog'],
+    dispatchLogging: true
   },
   {
     name: 'dataRateLimiter',
@@ -133,8 +134,9 @@ const applications = [
   // Top-level dispatch bits.
 
   {
-    name:  'myRedirector',
-    class: SerialRouter,
+    name:            'myRedirector',
+    class:           SerialRouter,
+    dispatchLogging: true,
     applications: [
       'requestRate',
       'actuallyRedirect'
@@ -149,8 +151,9 @@ const applications = [
   },
 
   {
-    name:  'mySite',
-    class: SerialRouter,
+    name:            'mySite',
+    class:           SerialRouter,
+    dispatchLogging: true,
     applications: [
       'requestRate',
       'myHosts'
@@ -324,6 +327,7 @@ const config = {
   services,
   logging: {
     '/application/*': false,
+    '/application/mySeries/*': true,
     '/application/mySite/*': true,
     '/application/myRedirector/*': true
   }
