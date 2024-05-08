@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload } from '@this/async';
-import { BaseComponent } from '@this/compy';
+
+import { BaseDispatched } from '#x/BaseDispatched';
 
 
 /**
  * Base class for system services.
  */
-export class BaseService extends BaseComponent {
+export class BaseService extends BaseDispatched {
   // @defaultConstructor
 
   /**
@@ -52,7 +53,7 @@ export class BaseService extends BaseComponent {
    *   are not suppressed.)
    */
   async handleCall(payload) {
-    const logger = this.logger?.$newId;
+    const logger = this._prot_newDispatchLogger();
 
     logger?.calling(payload.type, payload.args);
 
@@ -93,7 +94,7 @@ export class BaseService extends BaseComponent {
    *   are not suppressed.)
    */
   async handleEvent(payload) {
-    const logger = this.logger?.$newId;
+    const logger = this._prot_newDispatchLogger();
 
     logger?.event(payload.type, payload.args);
 
