@@ -33,12 +33,6 @@ export class SyslogToFile extends BaseFileService {
 
   /** @override */
   async _impl_init() {
-    // Having a logger available is optional for most classes, but for this one
-    // it is essential!
-    if (!this.logger) {
-      throw new Error('Cannot use this class without a logger.');
-    };
-
     const { config } = this;
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
 
@@ -56,7 +50,7 @@ export class SyslogToFile extends BaseFileService {
     this.#sink = new TextFileSink(format, path, earliestEvent, bufferPeriod);
 
     await this.#sink.start();
-    this.logger.running();
+    this.logger?.running();
 
     await super._impl_start();
   }
@@ -74,7 +68,7 @@ export class SyslogToFile extends BaseFileService {
     // during a same-process system restart (e.g. in response to a restart
     // signal). In particular, this is an attempt to minimize double-logging
     // events.
-    this.logger[SyslogToFile.#END_EVENT_TYPE]();
+    this.logger?.[SyslogToFile.#END_EVENT_TYPE]();
 
     await this.#sink.drainAndStop();
     await this.#rotator?.stop(willReload);
@@ -93,7 +87,13 @@ export class SyslogToFile extends BaseFileService {
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
     const tracker       = new EventTracker(earliestEvent);
-    const tagToFind     = this.logger.$meta.tag;
+    const tagToFind     = this.logger?.$meta.tag;
+
+    if (!tagToFind) {
+      // This service doesn't itself have a logger, so there's no previous-last
+      // event to look for.
+      return earliestEvent;
+    }
 
     const found = tracker.advanceSync((event) => {
       return (event.type === SyslogToFile.#END_EVENT_TYPE)
