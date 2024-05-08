@@ -11,6 +11,19 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.7.2 -- 2024-05-08
+
+This release contains most (if not all) of the breaking changes when using the
+system as a framework (i.e., building an app and not just running a static web
+server) that are currently anticipated for the v0.7.* release series. The hope
+is that v0.7.* will reach stability relatively soon.
+
+Breaking changes:
 * configuration / `webapp-builtins`:
   * Changed `MemoryMonitor` to use `ByteCount`s for the limit configuration.
   * Changed the file rotation / preservation configurations that had been plain
