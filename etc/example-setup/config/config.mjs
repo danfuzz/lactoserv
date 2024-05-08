@@ -110,15 +110,15 @@ const services = [
     name:     'accessLog',
     class:    EventFan,
     services: ['accessFile', 'accessSyslog'],
-    dispatchLogging: true
   },
   {
-    name: 'dataRateLimiter',
-    class: DataRateLimiter,
-    maxBurst:      '1 MiB',
-    flowRate:      '100 KiB / sec',
-    maxQueueGrant: '50 KiB',
-    maxQueue:      '2 MiB'
+    name:            'dataRateLimiter',
+    class:           DataRateLimiter,
+    dispatchLogging: true,
+    maxBurst:        '1 MiB',
+    flowRate:        '100 KiB / sec',
+    maxQueueGrant:   '50 KiB',
+    maxQueue:        '2 MiB'
   },
   {
     name:     'connectionRateLimiter',

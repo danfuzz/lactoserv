@@ -23,6 +23,13 @@ export class BaseDispatched extends BaseComponent {
   // @defaultConstructor
 
   /**
+   * @returns {boolean} Whether or not to do dipatch logging.
+   */
+  get _prot_dispatchLogging() {
+    return this.config.dispatchLogging;
+  }
+
+  /**
    * @returns {?IntfLogger} The logger to use for dispatch-related logging, or
    * `null` if that sort of logging shouldn't be done.
    */
@@ -31,7 +38,7 @@ export class BaseDispatched extends BaseComponent {
       return this.#dispatchLogger;
     }
 
-    this.#dispatchLogger = this.config.dispatchLogging
+    this.#dispatchLogger = this._prot_dispatchLogging
       ? this.logger?.dispatch
       : null;
 
