@@ -58,8 +58,8 @@ Other notable changes:
   * New top-level (`WebappRoot`) configuration `logging`, to do fine-grained
     control over which components produce system logs.
   * New per-application and per-service configuration `dispatchLogging` to
-    specifically enable/disable dispatch-related logging. It is very chatty, and
-    only rarely useful (though not totally useless).
+    specifically enable/disable dispatch-related logging. These logs can be
+    very chatty, and only rarely useful (though not totally useless).
 * `compy`:
   * Fixed bug in `BaseComponent.CONFIG_CLASS` which caused it to sometimes
     call base classes' `_impl_configClass()` multiple times (which isn't
