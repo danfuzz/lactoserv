@@ -108,9 +108,9 @@ export class BaseService extends BaseDispatched {
 
       if (logger) {
         if (result) {
-          logger.eventNotHandled();
-        } else {
           logger.eventHandled();
+        } else {
+          logger.eventNotHandled();
         }
       }
 
