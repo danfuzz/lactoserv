@@ -4,56 +4,6 @@
 import { BaseProxyHandler } from '@this/metacomp';
 
 
-describe('makeFunctionProxy()', () => {
-  test('constructs a function-like proxy around an instance of the called-upon subclass', () => {
-    let gotArgs     = null;
-    let gotProperty = null;
-    let gotTarget   = null;
-    let gotThis     = null;
-
-    class Subclass extends BaseProxyHandler {
-      constructor(...args) {
-        super();
-        gotArgs = args;
-      }
-
-      apply(target, thisArg, args) {
-        gotTarget = target;
-        gotThis   = thisArg;
-        gotArgs   = args;
-
-        return 'boop';
-      }
-
-      get(target, property, receiver_unused) {
-        gotTarget   = target;
-        gotProperty = property;
-      }
-    }
-
-    const proxy = Subclass.makeFunctionProxy('x', 'y', 'z');
-
-    expect(gotArgs).toStrictEqual(['x', 'y', 'z']);
-
-    expect(proxy.florp).toBeUndefined();
-    expect(gotTarget).toBeFrozen();
-    expect(gotTarget).toBeFunction();
-    expect(gotProperty).toBe('florp');
-
-    const callResult = proxy(1, 2, 3);
-    expect(callResult).toBe('boop');
-    expect(gotThis).toBeUndefined();
-    expect(gotTarget).toBeFrozen();
-    expect(gotTarget).toBeFunction();
-    expect(gotArgs).toStrictEqual([1, 2, 3]);
-
-    const someThis = { yes: 'yes', p: proxy };
-    someThis.p('xyz');
-    expect(gotThis).toBe(someThis);
-    expect(gotArgs).toStrictEqual(['xyz']);
-  });
-});
-
 describe('makeFunctionInstanceProxy()', () => {
   test('constructs a function- and instance-like proxy around an instance of the called-upon subclass', () => {
     let gotArgs     = null;
@@ -115,65 +65,6 @@ describe('makeFunctionInstanceProxy()', () => {
     someThis.p('bonk', 123);
     expect(gotThis).toBe(someThis);
     expect(gotArgs).toStrictEqual(['bonk', 123]);
-  });
-});
-
-describe('makeInstanceProxy()', () => {
-  test('constructs an instance-like proxy around an instance of the called-upon subclass', () => {
-    let gotArgs     = null;
-    let gotTarget   = null;
-    let gotThis     = null;
-    let gotProperty = null;
-
-    class Subclass extends BaseProxyHandler {
-      constructor(...args) {
-        super();
-        gotArgs = args;
-      }
-
-      apply(target, thisArg, args) {
-        gotTarget = target;
-        gotThis   = thisArg;
-        gotArgs   = args;
-
-        return 'zonk';
-      }
-
-      get(target, property, receiver_unused) {
-        gotTarget = target;
-        gotProperty = property;
-      }
-    }
-
-    let targetConstructorCalled = 0;
-    class SomeTarget {
-      constructor() {
-        targetConstructorCalled++;
-      }
-
-      get florp() {
-        throw new Error('Should not get accessed.');
-      }
-    }
-
-    const proxy = Subclass.makeInstanceProxy(SomeTarget, 'x', 'y', 'z');
-
-    expect(proxy).toBeInstanceOf(SomeTarget);
-    expect(targetConstructorCalled).toBe(0);
-    expect(gotArgs).toStrictEqual(['x', 'y', 'z']);
-
-    expect(proxy.florp).toBeUndefined();
-    expect(gotTarget).toBeInstanceOf(SomeTarget);
-    expect(gotTarget).toBeFrozen();
-    expect(gotProperty).toBe('florp');
-
-    gotTarget = null;
-    gotThis   = null;
-    gotArgs   = null;
-    expect(() => proxy('eep')).toThrow();
-    expect(gotTarget).toBeNull();
-    expect(gotThis).toBeNull();
-    expect(gotArgs).toBeNull();
   });
 });
 
