@@ -81,9 +81,9 @@ The `run` target of `dev` lets you pass arbitrary arguments to the server, by
 using the `--run[]` option, and it also makes the default `dev` target be `run`.
 TLDR very useful:
 
-* `dev --run[]='--inspect'` or `dev --run[]='--inspect=<arg>'`
-  &mdash; Pass an `inspect` option to Node (to start the inspector/debugger
-  immediately).
+* `dev --run[]='--node-opts --inspect --'` or `dev --run[]='--node-opts
+  --inspect=<arg>' --` &mdash; Pass an `inspect` option to Node (to start the
+  inspector/debugger immediately).
 
 You can also do a build first:
 
