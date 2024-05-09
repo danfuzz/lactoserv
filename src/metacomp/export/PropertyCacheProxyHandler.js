@@ -35,9 +35,9 @@ import { BaseProxyHandler } from '#x/BaseProxyHandler';
  */
 export class PropertyCacheProxyHandler extends BaseProxyHandler {
   /**
-   * Cached property values, as a map from name to handler.
+   * Cached property values, as a map from name to value.
    *
-   * @type {Map<string, *>}
+   * @type {Map<string|symbol, { value: * }>}
    */
   #properties = new Map();
 
@@ -47,20 +47,24 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    * Standard `Proxy` handler method. This defers to {@link #_impl_valueFor} to
    * generate property values that aren't yet cached.
    *
-   * @param {object} target_unused The proxy target.
+   * @param {object} target The proxy target.
    * @param {string|symbol} property The property name.
    * @param {object} receiver_unused The original receiver of the request.
    * @returns {*} The property, or `undefined` if there is no such property
    *   defined.
    */
-  get(target_unused, property, receiver_unused) {
-    const method = this.#properties.get(property);
+  get(target, property, receiver_unused) {
+    const already = this.#properties.get(property);
 
-    if (method) {
-      return method;
-    } else if (PropertyCacheProxyHandler.#VERBOTEN_METHODS.has(property)) {
+    if (already) {
+      return already.value;
+    }
+
+    let result = null;
+
+    if (PropertyCacheProxyHandler.#VERBOTEN_METHODS.has(property)) {
       // This property is on the blacklist of ones to never proxy.
-      return undefined;
+      result = { value: undefined };
     } else if (property === util.inspect.custom) {
       // Very special case: We're being asked for the standard "custom
       // inspector" method name. Return a straightforward implementation. This
@@ -69,18 +73,36 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
       // calling through to the `_impl` and doing something totally
       // inscrutable), which is a case that _has_ arisen in practice (while
       // debugging).
-      return () => '[object Proxy]';
+      result = { value: () => '[object Proxy]' };
     } else {
-      // The property is allowed to be proxied. Figure out the value, and cache
-      // it (unless asked not to).
-      const result = this._impl_valueFor(property);
-      if (result instanceof PropertyCacheProxyHandler.NoCache) {
-        return result.value;
-      } else {
-        this.#properties.set(property, result);
-        return result;
+      // JavaScript makes some requirements about what to report when the target
+      // actually defines the property. Violating them will typically cause the
+      // runtime to throw.
+      const targetDescriptor = Reflect.getOwnPropertyDescriptor(target, property);
+
+      if (targetDescriptor?.configurable === false) {
+        const { get, set, value, writable } = targetDescriptor;
+        if (set && !get) {
+          result = { value: undefined };
+        } else if (writable === false) {
+          result = { value };
+        }
       }
     }
+
+    if (!result) {
+      // The property is allowed to be proxied. Figure out the value, and cache
+      // it (unless asked not to).
+      const value = this._impl_valueFor(property);
+      if (value instanceof PropertyCacheProxyHandler.NoCache) {
+        return value.value;
+      } else {
+        result = { value };
+      }
+    }
+
+    this.#properties.set(property, result);
+    return result.value;
   }
 
   /**

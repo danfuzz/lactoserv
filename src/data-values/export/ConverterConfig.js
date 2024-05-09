@@ -101,6 +101,17 @@ export class ConverterConfig extends BaseConfig {
   }
 
   /**
+   * Action to take when asked to encode a proxy.
+   *
+   * @param {string|(function(*): *)} [value] Proposed configuration value.
+   *   Default `'wrap'`.
+   * @returns {string|(function(*): *)} Accepted configuration value.
+   */
+  _config_proxyAction(value = 'wrap') {
+    return ConverterConfig.#checkAction(value);
+  }
+
+  /**
    * Converter to handle any special cases that take precedence over other
    * configuration options, or `null` if there are no special cases.
    *
@@ -166,6 +177,7 @@ export class ConverterConfig extends BaseConfig {
     return new this({
       functionAction: 'name',
       instanceAction: 'name',
+      proxyAction:    'name',
       specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
       ...options
     });

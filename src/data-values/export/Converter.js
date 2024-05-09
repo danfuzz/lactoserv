@@ -106,7 +106,7 @@ export class Converter extends BaseConverter {
 
       case 'function': {
         if (types.isProxy(orig)) {
-          return new Ref(orig);
+          return this.#performReplacement(orig, config.proxyAction);
         } else {
           return this.#performReplacement(orig, config.functionAction);
         }
@@ -116,7 +116,7 @@ export class Converter extends BaseConverter {
         if (orig === null) {
           return null;
         } else if (types.isProxy(orig)) {
-          return new Ref(orig);
+          return this.#performReplacement(orig, config.proxyAction);
         } else if (Array.isArray(orig)) {
           return this.#objectOrArrayToData(orig, true);
         } else if (AskIf.plainObject(orig)) {

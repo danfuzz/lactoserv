@@ -181,80 +181,49 @@ export class BaseProxyHandler {
 
   /**
    * Constructs and returns a proxy which wraps an instance of this class, and
-   * with a frozen no-op function as the target. The instance of this class is
-   * constructed with whatever arguments get passed to this method.
-   *
-   * @param {...*} args Construction arguments to pass to this class's
-   *   constructor.
-   * @returns {Proxy} Proxy instance which uses an instance of this class as its
-   *   handler and which adopts a baseline identity as a function.
-   */
-  static makeFunctionProxy(...args) {
-    // **Note:** `this` in the context of a static method is the class.
-    const handler = new this(...args);
-
-    return new Proxy(Object.freeze(() => undefined), handler);
-  }
-
-  /**
-   * Constructs and returns a proxy which wraps an instance of this class, and
-   * with a frozen pseudo-instance of the given class as the target which is
-   * also considered to be a callable function. The instance of this class is
-   * constructed with whatever arguments get passed to this method.
-   *
-   * @param {function(new:*)} targetCls Class to pseudo-instantiate as the
-   *   target.
-   * @param {...*} args Construction arguments to pass to this class's
-   *   constructor.
-   * @returns {Proxy} Proxy instance which uses an instance of this class as its
-   *   handler and which adopts a baseline identity as a function.
-   */
-  static makeFunctionInstanceProxy(targetCls, ...args) {
-    // **Note:** `this` in the context of a static method is the class.
-    const handler = new this(...args);
-
-    const notQuiteInstance = () => undefined;
-    Object.setPrototypeOf(notQuiteInstance, targetCls.prototype);
-    Object.freeze(notQuiteInstance);
-
-    return new Proxy(notQuiteInstance, handler);
-  }
-
-  /**
-   * Constructs and returns a proxy which wraps an instance of this class, and
-   * with a frozen pseudo-instance of the given class as the target. The
+   * with a frozen empty object as the target (with optional configuration). The
    * instance of this class is constructed with whatever arguments get passed to
    * this method.
    *
-   * @param {function(new:*)} targetCls Class to pseudo-instantiate as the
-   *   target.
-   * @param {...*} args Construction arguments to pass to this class's
-   *   constructor.
-   * @returns {Proxy} Proxy instance which uses an instance of this class as its
-   *   handler and which adopts a baseline identity as a function.
-   */
-  static makeInstanceProxy(targetCls, ...args) {
-    // **Note:** `this` in the context of a static method is the class.
-    const handler = new this(...args);
-
-    const notQuiteInstance = Object.freeze(Object.create(targetCls.prototype));
-    return new Proxy(notQuiteInstance, handler);
-  }
-
-  /**
-   * Constructs and returns a proxy which wraps an instance of this class, and
-   * with a frozen empty object as the target. The instance of this class is
-   * constructed with whatever arguments get passed to this method.
-   *
+   * @param {object} options Proxy target options.
+   * @param {boolean} [options.callable] Use a function for the proxy target?
+   * @param {?function(new:*)} [options.class] Class to claim for the proxy
+   *   target, or `null` to simply claim to be a plain object (or function, if
+   *   `function === true`).
+   * @param {?string} [options.name] `name` property of the target, or `null` to
+   *   be anonymous. This is only used if `function === true`.
    * @param {...*} args Construction arguments to pass to this class's
    *   constructor.
    * @returns {Proxy} Proxy instance which uses an instance of this class as its
    *   handler.
    */
-  static makeProxy(...args) {
-    // **Note:** `this` in the context of a static method is the class.
+  static makeProxy({ callable = false, class: targetCls = null, name = null }, ...args) {
     const handler = new this(...args);
 
-    return new Proxy(Object.freeze({}), handler);
+    let target;
+    if (callable) {
+      if ((name ?? '') === '') {
+        // `null ??` to force the function to be anonymous, that is, to _not_
+        // "inherit" the name of the variable it's stored in.
+        target = null ?? (() => null);
+      } else {
+        // This bit of mishegas is about the best way to dynamically set the
+        // name of a function.
+        const forceName = {
+          [name]: () => null
+        };
+        target = forceName[name];
+      }
+
+      if (targetCls) {
+        Object.setPrototypeOf(target, targetCls.prototype);
+      }
+    } else if (targetCls) {
+      target = Object.create(targetCls.prototype);
+    } else {
+      target = {};
+    }
+
+    return new Proxy(Object.freeze(target), handler);
   }
 }

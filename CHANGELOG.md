@@ -11,13 +11,17 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `metacomp`:
+  * Distilled all the static `make*Proxy()` methods on `BaseProxyHandler` down
+    to just a single options-taking `makeProxy()`.
 
 Other notable changes:
 * Stopped complaining if run with Node v22.
 * `compy`:
   * New method `BaseComponent._prot_addAll()`, for multiple children.
   * Made it possible for a component to add children before it is initialized.
+* `data-values`:
+  * Add to `Converter` the ability to configure how to encode proxies.
 
 ### v0.7.2 -- 2024-05-08
 

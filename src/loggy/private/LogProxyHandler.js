@@ -123,14 +123,17 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
         return new LogProxyHandler.Meta(this);
       }
       case LogProxyHandler.#PROP_NEW_ID: {
-        const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
-        const proxy = LogProxyHandler.makeFunctionInstanceProxy(
-          IntfLogger, idTag, null, this.#environment);
+        const id    = this.#environment.makeId();
+        const idTag = this.#subTag.withAddedContext(id);
+        const proxy = LogProxyHandler.makeProxy(
+          { callable: true, class: IntfLogger, name: id },
+          idTag, null, this.#environment);
         return PropertyCacheProxyHandler.noCache(proxy);
       }
       default: {
-        return LogProxyHandler.makeFunctionInstanceProxy(
-          IntfLogger, this.#subTag, name, this.#environment);
+        return LogProxyHandler.makeProxy(
+          { callable: true, class: IntfLogger, name },
+          this.#subTag, name, this.#environment);
       }
     }
   }
@@ -237,6 +240,8 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       tag = new LogTag(...tag);
     }
 
-    return this.makeFunctionInstanceProxy(IntfLogger, tag, null, environment);
+    return this.makeProxy(
+      { callable: true, class: IntfLogger, name: tag.lastContext },
+      tag, null, environment);
   }
 }
