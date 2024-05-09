@@ -190,10 +190,10 @@ export class BaseProxyHandler {
    *   handler and which adopts a baseline identity as a function.
    */
   static makeFunctionProxy(...args) {
-    // **Note:** `this` in the context of a static method is the class.
-    const handler = new this(...args);
+    const handler      = new this(...args);
+    const fakeFunction = BaseProxyHandler.#makeNamedFunction();
 
-    return new Proxy(Object.freeze(() => undefined), handler);
+    return new Proxy(Object.freeze(fakeFunction), handler);
   }
 
   /**
@@ -210,16 +210,8 @@ export class BaseProxyHandler {
    *   handler and which adopts a baseline identity as a function.
    */
   static makeFunctionInstanceProxy(targetCls, ...args) {
-    // **Note:** `this` in the context of a static method is the class.
-    const handler = new this(...args);
-
-    // This bit of mishegas is about the best way to dynamically set the name of
-    // a function.
-    const name = targetCls.name ?? '<anonymous>';
-    const forceName = {
-      [name]: () => null
-    };
-    const fakeInstance = forceName[name];
+    const handler      = new this(...args);
+    const fakeInstance = BaseProxyHandler.#makeNamedFunction(targetCls);
 
     Object.setPrototypeOf(fakeInstance, targetCls.prototype);
     Object.freeze(fakeInstance);
@@ -263,5 +255,27 @@ export class BaseProxyHandler {
     const handler = new this(...args);
 
     return new Proxy(Object.freeze({}), handler);
+  }
+
+  /**
+   * Makes a no-op function with the same name as the given function.
+   *
+   * @param {?function()} [target] The target to imitate.
+   * @returns {function()} The function.
+   */
+  static #makeNamedFunction(target = null) {
+    const name = target?.name ?? '';
+
+    if (name === '') {
+      return () => null;
+    }
+
+    // This bit of mishegas is about the best way to dynamically set the name of
+    // a function.
+    const forceName = {
+      [name]: () => null
+    };
+
+    return forceName[name];
   }
 }
