@@ -196,7 +196,7 @@ describe('get()', () => {
     const target = {};
     Object.defineProperty(target, 'florp', {
       configurable: false,
-      set: () => null
+      set:          () => { return; }
     });
 
     const handler = new PropertyCacheProxyHandler();
@@ -204,7 +204,7 @@ describe('get()', () => {
 
     handler._impl_valueFor = () => {
       throw new Error('Nopers!');
-    }
+    };
 
     expect(handler.get(target, 'florp', proxy)).toBeUndefined();
     expect(proxy.florp).toBeUndefined();
@@ -223,7 +223,7 @@ describe('get()', () => {
 
     handler._impl_valueFor = () => {
       throw new Error('Nopers!');
-    }
+    };
 
     expect(handler.get(target, 'florp', proxy)).toBe('blorp');
     expect(proxy.florp).toBe('blorp');
