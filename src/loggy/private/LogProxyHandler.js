@@ -116,6 +116,12 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     }
 
     switch (name) {
+      case 'name': {
+        // We have to treat `name` specially, because every logger proxy is a
+        // proxy of a function, and all functions are supposed to have a fixed
+        // `name` property.
+        return 'IntfLogger';
+      }
       case LogProxyHandler.#PROP_ENV: {
         return this.#environment;
       }
