@@ -14,7 +14,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `compy`:
+  * New method `BaseComponent._prot_addAll()`, for multiple children.
+  * Made it possible for a component to add children before it is initialized.
 
 ### v0.7.2 -- 2024-05-08
 
