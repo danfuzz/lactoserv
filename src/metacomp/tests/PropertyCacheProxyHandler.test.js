@@ -191,6 +191,43 @@ describe('get()', () => {
     expect(result1b.blorp).toBe('blorp-zip-3');
     expect(result2b.blorp).toBe('blorp-zot-4');
   });
+
+  test('returns `undefined` without calling the `_impl`, for a non-configurable setter-only property on the target', () => {
+    const target = {};
+    Object.defineProperty(target, 'florp', {
+      configurable: false,
+      set: () => null
+    });
+
+    const handler = new PropertyCacheProxyHandler();
+    const proxy   = new Proxy(target, handler);
+
+    handler._impl_valueFor = () => {
+      throw new Error('Nopers!');
+    }
+
+    expect(handler.get(target, 'florp', proxy)).toBeUndefined();
+    expect(proxy.florp).toBeUndefined();
+  });
+
+  test('returns the target\'s property value without calling the `_impl`, for a non-configurable non-writable value property on the target', () => {
+    const target = {};
+    Object.defineProperty(target, 'florp', {
+      configurable: false,
+      writable:     false,
+      value:        'blorp'
+    });
+
+    const handler = new PropertyCacheProxyHandler();
+    const proxy   = new Proxy(target, handler);
+
+    handler._impl_valueFor = () => {
+      throw new Error('Nopers!');
+    }
+
+    expect(handler.get(target, 'florp', proxy)).toBe('blorp');
+    expect(proxy.florp).toBe('blorp');
+  });
 });
 
 describe('getOwnPropertyDescriptor()', () => {
