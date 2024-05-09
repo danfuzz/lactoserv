@@ -55,7 +55,7 @@ export class BaseService extends BaseDispatched {
   async handleCall(payload) {
     const logger = this._prot_newDispatchLogger();
 
-    logger?.calling(payload.type, payload.args);
+    logger?.calling(payload.type, ...payload.args);
 
     try {
       const result = await this._impl_handleCall(payload);
