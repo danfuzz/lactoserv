@@ -181,29 +181,6 @@ export class BaseProxyHandler {
 
   /**
    * Constructs and returns a proxy which wraps an instance of this class, and
-   * with a frozen pseudo-instance of the given class as the target which is
-   * also considered to be a callable function. The instance of this class is
-   * constructed with whatever arguments get passed to this method.
-   *
-   * @param {function(new:*)} targetCls Class to pseudo-instantiate as the
-   *   target.
-   * @param {...*} args Construction arguments to pass to this class's
-   *   constructor.
-   * @returns {Proxy} Proxy instance which uses an instance of this class as its
-   *   handler and which adopts a baseline identity as a function.
-   */
-  static makeFunctionInstanceProxy(targetCls, ...args) {
-    const handler      = new this(...args);
-    const fakeInstance = BaseProxyHandler.#makeNamedFunction(targetCls);
-
-    Object.setPrototypeOf(fakeInstance, targetCls.prototype);
-    Object.freeze(fakeInstance);
-
-    return new Proxy(fakeInstance, handler);
-  }
-
-  /**
-   * Constructs and returns a proxy which wraps an instance of this class, and
    * with a frozen empty object as the target (with optional configuration). The
    * instance of this class is constructed with whatever arguments get passed to
    * this method.
@@ -248,27 +225,5 @@ export class BaseProxyHandler {
     }
 
     return new Proxy(Object.freeze(target), handler);
-  }
-
-  /**
-   * Makes a no-op function with the same name as the given function.
-   *
-   * @param {?function()} [target] The target to imitate.
-   * @returns {function()} The function.
-   */
-  static #makeNamedFunction(target = null) {
-    const name = target?.name ?? '';
-
-    if (name === '') {
-      return () => null;
-    }
-
-    // This bit of mishegas is about the best way to dynamically set the name of
-    // a function.
-    const forceName = {
-      [name]: () => null
-    };
-
-    return forceName[name];
   }
 }
