@@ -213,11 +213,18 @@ export class BaseProxyHandler {
     // **Note:** `this` in the context of a static method is the class.
     const handler = new this(...args);
 
-    const notQuiteInstance = () => undefined;
-    Object.setPrototypeOf(notQuiteInstance, targetCls.prototype);
-    Object.freeze(notQuiteInstance);
+    // This bit of mishegas is about the best way to dynamically set the name of
+    // a function.
+    const name = targetCls.name ?? '<anonymous>';
+    const forceName = {
+      [name]: () => null
+    };
+    const fakeInstance = forceName[name];
 
-    return new Proxy(notQuiteInstance, handler);
+    Object.setPrototypeOf(fakeInstance, targetCls.prototype);
+    Object.freeze(fakeInstance);
+
+    return new Proxy(fakeInstance, handler);
   }
 
   /**
