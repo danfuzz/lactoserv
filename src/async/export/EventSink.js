@@ -172,7 +172,9 @@ export class EventSink {
     // This is a separate method only because _not_ doing so can trigger a bug
     // in V8 (found in v10.8.168.25 as present in Node v19.7.0), wherein
     // attaching a debugger can cause a permanent leak of a local variable's
-    // instantaneous value in a loop that uses `async`.
+    // instantaneous value in a loop that uses `async`. The bug appears to be
+    // fixed as of Node v22.1.0 (V8 v12.4.254.14) or possibly earlier. TODO:
+    // Undo this workaround once we can reasonably require users to have v22.
 
     const event = await this.#headEvent(runnerAccess);
     if (!event) {
@@ -189,11 +191,11 @@ export class EventSink {
 
     // Just for the record, here's the original `#run()`:
     //
-    // async #run() {
+    // async #run(runnerAccess) {
     //   this.#draining = false;
     //
     //   for (;;) {
-    //     const event = await this.#headEvent();
+    //     const event = await this.#headEvent(runnerAccess);
     //     if (!event) {
     //       break;
     //     }
@@ -204,8 +206,6 @@ export class EventSink {
     //       this.#head = this.#head.next;
     //     }
     //   }
-    //
-    //   return null;
     // }
   }
 }
