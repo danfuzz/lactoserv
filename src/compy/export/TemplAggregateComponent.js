@@ -32,7 +32,7 @@ export const TemplAggregateComponent = (className, superclass) => {
      * @param {...BaseComponent|Array<BaseComponent>} children Components to
      *   add.
      */
-    async addChildren(...children) {
+    async addAll(...children) {
       const flat = children.flat(1);
 
       for (const child of flat) {

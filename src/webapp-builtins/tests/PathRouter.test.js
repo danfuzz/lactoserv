@@ -67,19 +67,19 @@ describe('_impl_handleRequest()', () => {
     };
 
     const apps = new MockComponent({ name: 'application' });
-    await root.addChildren(apps);
+    await root.addAll(apps);
 
     for (let i = 1; i <= appCount; i++) {
       const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await apps.addChildren(app);
+      await apps.addAll(app);
     }
 
     const pr = new PathRouter({ name: 'myRouter', paths });
 
-    await apps.addChildren(pr);
+    await apps.addAll(pr);
 
     return pr;
   }

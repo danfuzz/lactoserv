@@ -72,7 +72,7 @@ describe('_impl_handleRequest()', () => {
     const rf   = new RequestFilter(opts);
 
     await root.start();
-    await root.addChildren(rf);
+    await root.addAll(rf);
 
     return rf;
   }

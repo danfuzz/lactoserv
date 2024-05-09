@@ -83,19 +83,19 @@ describe('_impl_handleRequest()', () => {
     };
 
     const apps = new MockComponent({ name: 'application' });
-    await root.addChildren(apps);
+    await root.addAll(apps);
 
     for (let i = 1; i <= appCount; i++) {
       const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
-      await apps.addChildren(app);
+      await apps.addAll(app);
     }
 
     const sr = new SuffixRouter({ name: 'myRouter', ...opts });
 
-    await apps.addChildren(sr);
+    await apps.addAll(sr);
 
     return sr;
   }

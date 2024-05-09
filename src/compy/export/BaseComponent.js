@@ -30,12 +30,12 @@ export class BaseComponent {
   #config;
 
   /**
-   * Associated context, if known, possibly wrapped in an object for the special
-   * case of the root context before this instance is considered initialized. If
-   * `null` or wrapped, will get set (to a proper instance) during
-   * {@link #init}.
+   * Associated context, if known, or a special "nascent" object to handle setup
+   * that can happen before the instance is considered initialized. If `null` or
+   * nascent, this will get set to an actual {@link ControlContext} instance
+   * during {@link #init}.
    *
-   * @type {?ControlContext|{ nascentRoot: RootControlContext }}
+   * @type {?ControlContext|BaseComponent.NascentContext}
    */
   #context = null;
 
@@ -83,7 +83,7 @@ export class BaseComponent {
     if (rootContext !== null) {
       // Note: We wrap `#context` here, so that it is recognized as
       // "uninitialized" by the time `start()` gets called.
-      this.#context = { nascentRoot: MustBe.instanceOf(rootContext, RootControlContext) };
+      this.#context = new BaseComponent.#NascentContext(rootContext);
       rootContext[ThisModule.SYM_linkRoot](this);
     }
   }
@@ -101,7 +101,7 @@ export class BaseComponent {
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
-    return (this.#contextReady ? this.#context : this.#context?.nascentRoot) ?? null;
+    return (this.#contextReady ? this.#context : this.#context?.rootContext) ?? null;
   }
 
   /**
@@ -199,9 +199,11 @@ export class BaseComponent {
 
     if (this.#contextReady) {
       throw new Error('Already initialized.');
-    } else if ((this.#context !== null) && (this.#context.nascentRoot !== context)) {
+    } else if ((this.#context !== null) && (this.#context.rootContext !== context)) {
       throw new Error('Inconsistent context setup.');
     }
+
+    const nascentChildren = this.#context?.children;
 
     this.#context = context;
 
@@ -211,6 +213,11 @@ export class BaseComponent {
     await this._impl_init();
     if (this.state !== 'stopped') {
       throw new Error('`super._impl_init()` never called on base class.');
+    }
+
+    if (nascentChildren) {
+      this.logger?.addingChildren();
+      await this._prot_addAll(nascentChildren);
     }
 
     this.logger?.initialized();
@@ -255,10 +262,11 @@ export class BaseComponent {
    */
   async start() {
     if (!this.#contextReady) {
-      if (this.#context === null) {
+      const context = this.#context?.rootContext;
+      if (!context) {
         throw new Error('No context was set up in constructor or `init()`.');
       }
-      await this.init(this.#context.nascentRoot);
+      await this.init(context);
     } else if (this.state !== 'stopped') {
       throw new Error('Already running.');
     }
@@ -361,34 +369,64 @@ export class BaseComponent {
   }
 
   /**
-   * Adds a child to this instance. This is a protected method which is intended
-   * to only be called by an instance to modify itself.
+   * Adds any number of children to this instance. Arguments can be either
+   * component instances or iterables (including arrays) which yield component
+   * instances. If any of the children turn out to be invalid arguments, then
+   * this method will throw an error and not add anything.
+   *
+   * **Note:** This is a protected method which is intended to only be called by
+   * an instance to modify itself.
+   *
+   * @param {...BaseComponent|Array<BaseComponent>|object} children Components
+   *   to add.
+   */
+  async _prot_addAll(...children) {
+    for (const c of BaseComponent.#flattenForAdd(...children)) {
+      await this.#addChild(c);
+    }
+  }
+
+  /**
+   * Adds a child to this instance.
+   *
+   * **Note:** This is a protected method which is intended to only be called by
+   * an instance to modify itself.
    *
    * @param {BaseComponent} child Child component to add.
    */
   async _prot_addChild(child) {
     MustBe.instanceOf(child, BaseComponent);
+    const arr = BaseComponent.#flattenForAdd(child);
+    await this.#addChild(arr[0]);
+  }
 
+  /**
+   * @returns {boolean} Indication of whether or not this instance's context is
+   * ready for use.
+   */
+  get #contextReady() {
+    return this.#context instanceof ControlContext;
+  }
+
+  /**
+   * Underlying implementation of {@link #_prot_addAll} and
+   * {@link #_prot_addChild}. Assumes it is given a valid argument.
+   *
+   * @param {BaseComponent} child Child component to add.
+   */
+  async #addChild(child) {
     if (!this.#contextReady) {
-      throw new Error('Cannot add child to uninitialized component.');
-    } else if (child.#contextReady) {
-      throw new Error('Child already initialized; cannot add to different parent.');
+      this.#context ??= new BaseComponent.#NascentContext();
+      this.#context.addChild(child);
+      return;
     }
 
-    const context = new ControlContext(child, this);
-    await child.init(context);
+    await child.init(new ControlContext(child, this));
 
     if (this.state === 'running') {
       // Get the child running, so as to match the parent.
       await child.start();
     }
-  }
-
-  /**
-   * @returns {boolean} Whether or not this instance's context is ready for use.
-   */
-  get #contextReady() {
-    return this.#context instanceof ControlContext;
   }
 
 
@@ -524,4 +562,111 @@ export class BaseComponent {
       }
     };
   }
+
+  /**
+   * Helper for the various child-adding methods, which flattens the arguments
+   * into a single array and does validity checking on the elements.
+   *
+   * @param {...BaseComponent|Array<BaseComponent>|object} children Components
+   *   or iterables thereof.
+   * @returns {Array<BaseComponent>} Array of validated components.
+   */
+  static #flattenForAdd(...children) {
+    const result = [];
+
+    for (const c of children) {
+      if (c[Symbol.iterator]) {
+        result.push(...c);
+      } else {
+        result.push(c);
+      }
+    }
+
+    for (const c of result) {
+      MustBe.instanceOf(c, BaseComponent);
+      const ctx = c.#context;
+      if (ctx) {
+        if (ctx instanceof ControlContext) {
+          if (ctx instanceof RootControlContext) {
+            throw new Error('Cannot add root component to a different hierarchy.');
+          } else {
+            throw new Error('Cannot add initialized component to multiple hierarchies.');
+          }
+        } else if (ctx.hasParent) {
+          throw new Error('Cannot add uninitialized component to multiple hierarchies.');
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Value for {@link #context} on an outer instance, for special cases that
+   * need to store context-related data before the real context is set up.
+   */
+  static #NascentContext = class NascentContext {
+    /**
+     * Root context instance, or `null` if never set.
+     *
+     * @type {?RootControlContext}
+     */
+    #rootContext;
+
+    /**
+     * Children of the outer instance.
+     *
+     * @type {Array<BaseComponent>}
+     */
+    #children = [];
+
+    /**
+     * Does the outer instance have a parent?
+     *
+     * @type {boolean}
+     */
+    #hasParent = false;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {?RootControlContext} [rootContext] Root context if the outer
+     *   instance is to be a root, or `null` if not.
+     */
+    constructor(rootContext = null) {
+      this.#rootContext = (rootContext === null)
+        ? null
+        : MustBe.instanceOf(rootContext, RootControlContext);
+    }
+
+    /**
+     * @returns {?RootControlContext} Root context instance to be used to
+     * initialize the outer instance, or `null` if the outer instance is not
+     * actually going to be a root.
+     */
+    get rootContext() {
+      return this.#rootContext;
+    }
+
+    /** @returns {Array<BaseComponent>} Children of the outer instance. */
+    get children() {
+      return this.#children;
+    }
+
+    /** @returns {boolean} Does the outer instance have a parent? */
+    get hasParent() {
+      return this.#hasParent;
+    }
+
+    /**
+     * Adds a child to this instance.
+     *
+     * @param {BaseComponent} child Component to add.
+     */
+    addChild(child) {
+      child.#context ??= new NascentContext();
+      child.#context.#hasParent = true;
+      this.#children.push(child);
+    }
+  };
 }

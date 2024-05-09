@@ -108,21 +108,18 @@ export class WebappRoot extends BaseRootComponent {
 
   /** @override */
   async _impl_init() {
-    const results = [
-      this._prot_addChild(this.#serviceManager),
-      this._prot_addChild(this.#applicationManager),
-      this._prot_addChild(this.#hostManager),
-      this._prot_addChild(this.#endpointManager)
-    ];
-
-    await Promise.all(results);
+    await this._prot_addAll(
+      this.#serviceManager,
+      this.#applicationManager,
+      this.#hostManager,
+      this.#endpointManager);
 
     const { applications, hosts, endpoints, services } = this.config;
 
-    await this.#applicationManager.addChildren(applications);
-    await this.#hostManager.addChildren(hosts);
-    await this.#endpointManager.addChildren(endpoints);
-    await this.#serviceManager.addChildren(services);
+    await this.#applicationManager.addAll(applications);
+    await this.#hostManager.addAll(hosts);
+    await this.#endpointManager.addAll(endpoints);
+    await this.#serviceManager.addAll(services);
 
     await super._impl_init();
   }
