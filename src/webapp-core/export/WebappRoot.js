@@ -119,10 +119,10 @@ export class WebappRoot extends BaseRootComponent {
 
     const { applications, hosts, endpoints, services } = this.config;
 
-    await this.#applicationManager.addChildren(applications);
-    await this.#hostManager.addChildren(hosts);
-    await this.#endpointManager.addChildren(endpoints);
-    await this.#serviceManager.addChildren(services);
+    await this.#applicationManager.addAll(applications);
+    await this.#hostManager.addAll(hosts);
+    await this.#endpointManager.addAll(endpoints);
+    await this.#serviceManager.addAll(services);
 
     await super._impl_init();
   }

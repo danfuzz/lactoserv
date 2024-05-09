@@ -23,11 +23,11 @@ describe('constructor', () => {
     const comp4 = new OtherName({});
     const comp5 = new OtherName({});
 
-    await root.addChildren(comp1);
-    await root.addChildren(comp2);
-    await root.addChildren(comp3);
-    await root.addChildren(comp4);
-    await root.addChildren(comp5);
+    await root.addAll(comp1);
+    await root.addAll(comp2);
+    await root.addAll(comp3);
+    await root.addAll(comp4);
+    await root.addAll(comp5);
 
     expect(comp1.namePath.path).toEqual(['someName1']);
     expect(comp2.namePath.path).toEqual(['someName2']);
@@ -38,8 +38,8 @@ describe('constructor', () => {
     const comp6 = new SomeName({});
     const comp7 = new SomeName({});
 
-    await comp1.addChildren(comp6);
-    await comp1.addChildren(comp7);
+    await comp1.addAll(comp6);
+    await comp1.addAll(comp7);
 
     expect(comp6.namePath.path).toEqual(['someName1', 'someName1']);
     expect(comp7.namePath.path).toEqual(['someName1', 'someName2']);

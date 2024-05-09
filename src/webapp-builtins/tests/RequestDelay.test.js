@@ -84,7 +84,7 @@ describe('_impl_handleRequest()', () => {
     const rd   = new RequestDelay(opts);
 
     await root.start();
-    await root.addChildren(rd);
+    await root.addAll(rd);
 
     return rd;
   }
