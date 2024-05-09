@@ -177,6 +177,7 @@ export class ConverterConfig extends BaseConfig {
     return new this({
       functionAction: 'name',
       instanceAction: 'name',
+      proxyAction:    'name',
       specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
       ...options
     });
