@@ -30,12 +30,12 @@ export class BaseComponent {
   #config;
 
   /**
-   * Associated context, if known, possibly wrapped in an object for the special
-   * case of the root context before this instance is considered initialized. If
-   * `null` or wrapped, will get set (to a proper instance) during
-   * {@link #init}.
+   * Associated context, if known, or a special "nascent" object to handle setup
+   * that can happen before the instance is considered initialized. If `null` or
+   * nascent, this will get set to an actual {@link ControlContext} instance
+   * during {@link #init}.
    *
-   * @type {?ControlContext|{ nascentRoot: RootControlContext }}
+   * @type {?ControlContext|BaseComponent.NascentContext}
    */
   #context = null;
 
@@ -83,7 +83,7 @@ export class BaseComponent {
     if (rootContext !== null) {
       // Note: We wrap `#context` here, so that it is recognized as
       // "uninitialized" by the time `start()` gets called.
-      this.#context = { nascentRoot: MustBe.instanceOf(rootContext, RootControlContext) };
+      this.#context = new BaseComponent.#NascentContext(rootContext);
       rootContext[ThisModule.SYM_linkRoot](this);
     }
   }
@@ -101,7 +101,7 @@ export class BaseComponent {
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
-    return (this.#contextReady ? this.#context : this.#context?.nascentRoot) ?? null;
+    return (this.#contextReady ? this.#context : this.#context?.rootContext) ?? null;
   }
 
   /**
@@ -199,7 +199,7 @@ export class BaseComponent {
 
     if (this.#contextReady) {
       throw new Error('Already initialized.');
-    } else if ((this.#context !== null) && (this.#context.nascentRoot !== context)) {
+    } else if ((this.#context !== null) && (this.#context.rootContext !== context)) {
       throw new Error('Inconsistent context setup.');
     }
 
@@ -255,10 +255,11 @@ export class BaseComponent {
    */
   async start() {
     if (!this.#contextReady) {
-      if (this.#context === null) {
+      const context = this.#context?.rootContext;
+      if (!context) {
         throw new Error('No context was set up in constructor or `init()`.');
       }
-      await this.init(this.#context.nascentRoot);
+      await this.init(context);
     } else if (this.state !== 'stopped') {
       throw new Error('Already running.');
     }
@@ -524,4 +525,52 @@ export class BaseComponent {
       }
     };
   }
+
+  /**
+   * Value for {@link #context} on an outer instance, for special cases that
+   * need to store context-related data before the real context is set up.
+   */
+  static #NascentContext = class {
+    /**
+     * Root context instance, or `null` if never set.
+     *
+     * @type {?RootControlContext}
+     */
+    #rootContext;
+
+    //#children = [];
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {?RootControlContext} [rootContext] Root context if the outer
+     *   instance is to be a root, or `null` if not.
+     */
+    constructor(rootContext = null) {
+      this.#rootContext = (rootContext === null)
+        ? null
+        : MustBe.instanceOf(rootContext, RootControlContext);
+    }
+
+    /*
+    addChildren(...children) {
+      this.#children.push(...children);
+    }
+    */
+
+    /**
+     * @returns {?RootControlContext} Root context instance to be used to
+     * initialize the outer instance, or `null` if the outer instance is not
+     * actually going to be a root.
+     */
+    get rootContext() {
+      return this.#rootContext;
+    }
+
+    /*
+    get children() {
+      return this.#children;
+    }
+    */
+  };
 }
