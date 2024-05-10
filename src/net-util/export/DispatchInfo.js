@@ -202,4 +202,16 @@ export class DispatchInfo {
     const lastComponent = this.lastComponent;
     return (lastComponent === null) || (lastComponent === '');
   }
+
+  /**
+   * Gets a new instance which is just like this one, except with replacements
+   * for `base` and `extra`.
+   *
+   * @param {PathKey} base The base path.
+   * @param {PathKey} extra The path suffix.
+   * @returns {DispatchInfo} An appropriately-constructed instance.
+   */
+  withPaths(base, extra) {
+    return new DispatchInfo(base, extra);
+  }
 }
