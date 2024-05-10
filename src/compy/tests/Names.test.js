@@ -125,24 +125,43 @@ describe('parsePath()', () => {
     });
   }
 
+  function errorCases(allowWildcard) {
+    test.each`
+    arg
+    ${undefined}
+    ${null}
+    ${false}
+    ${true}
+    ${123}
+    ${{ a: '/florp' }}
+    ${''}           // Can't be empty.
+    ${'florp'}      // Must start with a slash.
+    ${'/foo/'}      // Must not end with a slash.
+    ${'/foo//bar'}  // No empty components.
+    ${'/*/foo'}     // No star at beginning.
+    ${'/x/*/foo'}   // No star in the middle.
+    ${'/&/boop'}    // No invalid component characters.
+    `('throws given $arg', ({ arg }) => {
+      const wild = (allowWildcard === null) ? [] : [allowWildcard];
+      expect(() => Names.parsePath(arg, ...wild)).toThrow();
+    });
+  }
+
   describe('with default `allowWildcard` (of `false`)', () => {
     nonWildcardCases(null);
     wildcardCases(null);
-
-    // TODO: error cases.
+    errorCases(null);
   });
 
   describe('with `allowWildcard === false`', () => {
     nonWildcardCases(false);
     wildcardCases(false);
-
-    // TODO: error cases.
+    errorCases(false);
   });
 
   describe('with `allowWildcard === true`', () => {
     nonWildcardCases(true);
     wildcardCases(true);
-
-    // TODO: error cases.
+    errorCases(true);
   });
 });
