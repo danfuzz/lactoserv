@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TemplateUtil } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -20,9 +21,8 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export const TemplAggregateComponent = (className, superclass) => {
   MustBe.constructorFunction(superclass);
-  MustBe.string(className);
 
-  return class AggregateComponent extends superclass {
+  return TemplateUtil.make(className, class AggregateComponent extends superclass {
     // @defaultConstructor
 
     /**
@@ -73,5 +73,5 @@ export const TemplAggregateComponent = (className, superclass) => {
     async _impl_isChildAllowed(child) { // eslint-disable-line no-unused-vars
       return true;
     }
-  };
+  });
 };
