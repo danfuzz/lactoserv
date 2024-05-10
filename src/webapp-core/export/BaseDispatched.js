@@ -18,25 +18,9 @@ export class BaseDispatched extends BaseComponent {
    *
    * @type {?IntfLogger|false}
    */
-  #dispatchLogger = false;
+  #dispatchLoggerObj = false;
 
   // @defaultConstructor
-
-  /**
-   * @returns {?IntfLogger} The logger to use for dispatch-related logging, or
-   * `null` if that sort of logging shouldn't be done.
-   */
-  get _prot_dispatchLogger() {
-    if (this.#dispatchLogger !== false) {
-      return this.#dispatchLogger;
-    }
-
-    this.#dispatchLogger = this.config.dispatchLogging
-      ? this.logger?.dispatch
-      : null;
-
-    return this.#dispatchLogger;
-  }
 
   /**
    * Gets a dispatch logger to use for either a new dispatch or a
@@ -54,12 +38,26 @@ export class BaseDispatched extends BaseComponent {
    */
   _prot_newDispatchLogger(base = null) {
     if (base === null) {
-      return this._prot_dispatchLogger?.$newId ?? null;
+      return this.#dispatchLogger?.$newId ?? null;
     } else if (typeof base === 'string') {
-      return this._prot_dispatchLogger?.[base] ?? null;
+      return this.#dispatchLogger?.[base] ?? null;
     } else {
       return base[this.name];
     }
+  }
+
+  /**
+   * @returns {?IntfLogger} The base sub-logger to use for dispatch logging, or
+   * `null` if this instance isn't configured to initiate dispatch logging.
+   */
+  get #dispatchLogger() {
+    if (this.#dispatchLoggerObj === false) {
+      this.#dispatchLoggerObj = this.config.dispatchLogging
+        ? this.logger?.dispatch
+        : null;
+    }
+
+    return this.#dispatchLoggerObj;
   }
 
 
