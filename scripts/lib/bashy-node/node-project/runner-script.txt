@@ -131,6 +131,7 @@ if (( ${#RUNNER_NODE_VERSIONS[@]} == 0 )); then
 else
     versionStr="$(tr <<<"${RUNNER_NODE_VERSIONS[*]}" ' ' '|')"
     regex="^(${versionStr})\."
+    desc="${RUNNER_NODE_VERSIONS[*]}"
 fi
 printf $'    %q \\\n' "${regex}" "${desc}"
 #}#
