@@ -52,7 +52,7 @@ export class NetworkEndpoint extends BaseDispatched {
    */
   async handleRequest(request, dispatch_unused) {
     const application = this.#application;
-    const dispLogger  = this._prot_newDispatchLogger();
+    const dispLogger  = this._prot_newDispatchLogger(request?.id);
     const dispatch    = new DispatchInfo(PathKey.EMPTY, request.pathname, dispLogger);
 
     dispLogger?.dispatching({

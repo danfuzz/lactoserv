@@ -19,7 +19,7 @@ export class BaseApplication extends BaseDispatched {
 
   /** @override */
   async handleRequest(request, dispatch) {
-    const logger    = dispatch.logger?.[this.name] ?? this._prot_newDispatchLogger();
+    const logger    = this._prot_newDispatchLogger(dispatch.logger);
     const requestId = logger ? request.id : null;
     const startTime = logger?.$env.now();
 

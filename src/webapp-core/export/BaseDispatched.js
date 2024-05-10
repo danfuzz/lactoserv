@@ -39,14 +39,27 @@ export class BaseDispatched extends BaseComponent {
   }
 
   /**
-   * Gets a dispatch sub-logger with a new ID, or `null` if this instance is not
-   * doing dispatch logging.
+   * Gets a dispatch logger to use for either a new dispatch or a
+   * dispatch-in-progress. If given a non-`null` logger for `base`, this will
+   * augment it with this instance's `name`. Otherwise, if this instance is
+   * itself configured with `dispatchLogging: true`, this will return a
+   * sub-logger of _this_ logger with either the given string `base` for the ID
+   * or a newly- generated dispatch ID (if `base` is `null`). Otherwise, this
+   * returns `null`.
    *
+   * @param {?IntfLogger|string} [base] Logger to base the result on, string ID
+   *   to use, or `null` if neither of this is available..
    * @returns {?IntfLogger} Logger to use for a specific dispatch cycle, or
    *   `null` not to log it.
    */
-  _prot_newDispatchLogger() {
-    return this._prot_dispatchLogger?.$newId;
+  _prot_newDispatchLogger(base = null) {
+    if (base === null) {
+      return this._prot_dispatchLogger?.$newId ?? null;
+    } else if (typeof base === 'string') {
+      return this._prot_dispatchLogger?.[base] ?? null;
+    } else {
+      return base[this.name];
+    }
   }
 
 
