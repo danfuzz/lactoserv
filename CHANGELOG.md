@@ -17,6 +17,9 @@ Breaking changes:
 
 Other notable changes:
 * Stopped complaining if run with Node v22.
+* configuration:
+  * Added `dispatchLogging` configuration to `endpoint` entries (class
+    `NetworkEndpoint`).
 * `compy`:
   * New method `BaseComponent._prot_addAll()`, for multiple children.
   * Made it possible for a component to add children before it is initialized.

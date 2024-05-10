@@ -35,12 +35,10 @@ export class HostRouter extends BaseApplication {
 
     const application = found.value;
 
-    if (this._prot_dispatchLogging) {
-      request.logger?.dispatchingHost({
-        application: application.name,
-        host:        host.namePortString
-      });
-    }
+    dispatch.logger?.dispatchingHost({
+      application: application.name,
+      host:        host.namePortString
+    });
 
     return application.handleRequest(request, dispatch);
   }

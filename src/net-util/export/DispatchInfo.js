@@ -3,6 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { BaseConverter, Sexp } from '@this/data-values';
+import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { IncomingRequest } from '#x/IncomingRequest';
@@ -33,6 +34,13 @@ export class DispatchInfo {
   #extra;
 
   /**
+   * The dipatch logger, or `null` if none.
+   *
+   * @type {?IntfLogger}
+   */
+  #logger;
+
+  /**
    * Constructs an instance.
    *
    * @param {PathKey} base The base path (that is, the path prefix) to which the
@@ -41,10 +49,13 @@ export class DispatchInfo {
    * @param {PathKey} extra The remaining suffix portion of the original path,
    *   after removing `base`. This is expected to already have `.` and `..`
    *   components resolved away.
+   * @param {?IntfLogger} [logger] Logger to use for dispatch-related logging,
+   *   or `null` not to do dispatch logging.
    */
-  constructor(base, extra) {
-    this.#base  = MustBe.instanceOf(base, PathKey);
-    this.#extra = MustBe.instanceOf(extra, PathKey);
+  constructor(base, extra, logger = null) {
+    this.#base   = MustBe.instanceOf(base, PathKey);
+    this.#extra  = MustBe.instanceOf(extra, PathKey);
+    this.#logger = (logger === null) ? null : MustBe.callableFunction(logger);
   }
 
   /**
@@ -116,6 +127,13 @@ export class DispatchInfo {
           : last;
       }
     }
+  }
+
+  /**
+   * @returns {?IntfLogger} The dipatch logger, or `null` if none.
+   */
+  get logger() {
+    return this.#logger;
   }
 
   /**
@@ -201,5 +219,28 @@ export class DispatchInfo {
   isDirectory() {
     const lastComponent = this.lastComponent;
     return (lastComponent === null) || (lastComponent === '');
+  }
+
+  /**
+   * Gets a new instance which is just like this one, except with a replacement
+   * for `logger`.
+   *
+   * @param {?IntfLogger} [logger] Logger to use, if any.
+   * @returns {DispatchInfo} An appropriately-constructed instance.
+   */
+  withLogger(logger) {
+    return new DispatchInfo(this.#base, this.#extra, logger);
+  }
+
+  /**
+   * Gets a new instance which is just like this one, except with replacements
+   * for `base` and `extra`.
+   *
+   * @param {PathKey} base The base path.
+   * @param {PathKey} extra The path suffix.
+   * @returns {DispatchInfo} An appropriately-constructed instance.
+   */
+  withPaths(base, extra) {
+    return new DispatchInfo(base, extra, this.#logger);
   }
 }

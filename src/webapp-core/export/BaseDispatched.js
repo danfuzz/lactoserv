@@ -18,42 +18,46 @@ export class BaseDispatched extends BaseComponent {
    *
    * @type {?IntfLogger|false}
    */
-  #dispatchLogger = false;
+  #dispatchLoggerObj = false;
 
   // @defaultConstructor
 
   /**
-   * @returns {boolean} Whether or not to do dipatch logging.
-   */
-  get _prot_dispatchLogging() {
-    return this.config.dispatchLogging;
-  }
-
-  /**
-   * @returns {?IntfLogger} The logger to use for dispatch-related logging, or
-   * `null` if that sort of logging shouldn't be done.
-   */
-  get _prot_dispatchLogger() {
-    if (this.#dispatchLogger !== false) {
-      return this.#dispatchLogger;
-    }
-
-    this.#dispatchLogger = this._prot_dispatchLogging
-      ? this.logger?.dispatch
-      : null;
-
-    return this.#dispatchLogger;
-  }
-
-  /**
-   * Gets a dispatch sub-logger with a new ID, or `null` if this instance is not
-   * doing dispatch logging.
+   * Gets a dispatch logger to use for either a new dispatch or a
+   * dispatch-in-progress. If given a non-`null` logger for `base`, this will
+   * augment it with this instance's `name`. Otherwise, if this instance is
+   * itself configured with `dispatchLogging: true`, this will return a
+   * sub-logger of _this_ logger with either the given string `base` for the ID
+   * or a newly- generated dispatch ID (if `base` is `null`). Otherwise, this
+   * returns `null`.
    *
+   * @param {?IntfLogger|string} [base] Logger to base the result on, string ID
+   *   to use, or `null` if neither of this is available..
    * @returns {?IntfLogger} Logger to use for a specific dispatch cycle, or
    *   `null` not to log it.
    */
-  _prot_newDispatchLogger() {
-    return this._prot_dispatchLogger?.$newId;
+  _prot_newDispatchLogger(base = null) {
+    if (base === null) {
+      return this.#dispatchLogger?.$newId ?? null;
+    } else if (typeof base === 'string') {
+      return this.#dispatchLogger?.[base] ?? null;
+    } else {
+      return base[this.name];
+    }
+  }
+
+  /**
+   * @returns {?IntfLogger} The base sub-logger to use for dispatch logging, or
+   * `null` if this instance isn't configured to initiate dispatch logging.
+   */
+  get #dispatchLogger() {
+    if (this.#dispatchLoggerObj === false) {
+      this.#dispatchLoggerObj = this.config.dispatchLogging
+        ? this.logger?.dispatch
+        : null;
+    }
+
+    return this.#dispatchLoggerObj;
   }
 
 

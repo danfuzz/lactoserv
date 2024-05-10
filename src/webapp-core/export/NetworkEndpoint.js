@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { BaseComponent, Names } from '@this/compy';
+import { Names } from '@this/compy';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
@@ -12,6 +12,7 @@ import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
 import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
+import { BaseDispatched } from '#x/BaseDispatched';
 import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
@@ -24,7 +25,7 @@ import { ServiceUseConfig } from '#p/ServiceUseConfig';
  *
  * @implements {IntfRequestHandler}
  */
-export class NetworkEndpoint extends BaseComponent {
+export class NetworkEndpoint extends BaseDispatched {
   /**
    * Application to send requests to. Becomes non-`null` during
    * {@link #_impl_start()}.
@@ -51,7 +52,13 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async handleRequest(request, dispatch_unused) {
     const application = this.#application;
-    const dispatch    = new DispatchInfo(PathKey.EMPTY, request.pathname);
+    const dispLogger  = this._prot_newDispatchLogger(request?.id);
+    const dispatch    = new DispatchInfo(PathKey.EMPTY, request.pathname, dispLogger);
+
+    dispLogger?.dispatching({
+      application: application.name,
+      ...dispatch.infoForLog
+    });
 
     try {
       const result = await application.handleRequest(request, dispatch);

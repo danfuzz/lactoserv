@@ -134,9 +134,8 @@ const applications = [
   // Top-level dispatch bits.
 
   {
-    name:            'myRedirector',
-    class:           SerialRouter,
-    dispatchLogging: true,
+    name:  'myRedirector',
+    class: SerialRouter,
     applications: [
       'requestRate',
       'actuallyRedirect'
@@ -286,37 +285,38 @@ const applications = [
 // Endpoint defintions, including mount points for applications.
 const endpoints = [
   {
-    name:      'insecure',
-    protocol:  'http',
-    interface: '*:8080',
+    name:            'insecure',
+    protocol:        'http',
+    interface:       '*:8080',
+    application:     'myRedirector',
+    dispatchLogging: true,
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
       connectionRateLimiter: 'connectionRateLimiter'
-    },
-    application: 'myRedirector'
+    }
   },
   {
-    name:      'secure',
-    protocol:  'http2',
-    hostnames: ['*'],
-    interface: '*:8443',
+    name:        'secure',
+    protocol:    'http2',
+    hostnames:   ['*'],
+    interface:   '*:8443',
+    application: 'mySite',
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
       connectionRateLimiter: 'connectionRateLimiter'
-    },
-    application: 'mySite'
+    }
   },
   {
-    name: 'alsoSecure',
-    protocol:  'https',
-    hostnames: ['*'],
-    interface: '*:8444',
+    name:        'alsoSecure',
+    protocol:    'https',
+    hostnames:   ['*'],
+    interface:   '*:8444',
+    application: 'mySeries',
     services: {
       accessLog: 'accessLog'
-    },
-    application: 'mySeries'
+    }
   }
 ];
 

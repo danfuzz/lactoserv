@@ -161,9 +161,15 @@ const services = [
 
 ## Logging
 
-Applications and services both offer the option to log their dispatch processes
-in detail, which is off by default. To turn it on, use the configuration option
-`dispatchLogging: true`.
+Endpoints, applications, and services all offer the option to log their dispatch
+processes in detail. This is turned off by default. To turn it on, use the
+configuration option `dispatchLogging: true`.
+
+Turning on this option causes dispatch logging to be initiated at the item in
+question, but it won't turn _off_ logging if initiated earlier in the dispatch.
+For example, if an application has dispatch logging turned off, but the endpoint
+which dispatched to it has it on, then the application _will_ perform dispatch
+logging.
 
 ```js
 const applications = [

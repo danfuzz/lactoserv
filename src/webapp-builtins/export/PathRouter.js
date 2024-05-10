@@ -3,7 +3,7 @@
 
 import { PathKey, TreeMap } from '@this/collections';
 import { Names } from '@this/compy';
-import { DispatchInfo, IntfRequestHandler, UriUtil } from '@this/net-util';
+import { IntfRequestHandler, UriUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
@@ -30,16 +30,14 @@ export class PathRouter extends BaseApplication {
     // Iterate from most- to least-specific mounted path.
     for (const pathMatch of this.#routeTree.findWithFallback(dispatch.extra)) {
       const application = pathMatch.value;
-      const subDispatch = new DispatchInfo(
+      const subDispatch = dispatch.withPaths(
         dispatch.base.concat(pathMatch.key),
         pathMatch.keyRemainder);
 
-      if (this._prot_dispatchLogging) {
-        request.logger?.dispatchingPath({
-          application: application.name,
-          ...(subDispatch.infoForLog)
-        });
-      }
+      subDispatch.logger?.dispatchingPath({
+        application: application.name,
+        ...(subDispatch.infoForLog)
+      });
 
       const result = await application.handleRequest(request, subDispatch);
       if (result !== null) {

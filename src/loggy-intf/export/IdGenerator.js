@@ -9,15 +9,16 @@ import { MustBe } from '@this/typey';
  * Generator of unique-enough IDs to track connections, requests, etc., in the
  * logs.
  *
- * The format of the IDs is `XX_MMMMM_NNNN`:
+ * The format of the IDs is `XX_MMMMM_NN`:
  *
  * * `XX` is an arbitrary (though not truly random) two-character string of
  *   lowercase letters, to make IDs easier for a human to visually distinguish.
  * * `MMMMM` is a lowecase hexadecimal representation of the "current minute,"
  *   which rolls over every couple years or so.
- * * `NNNN` is a lowercase hexadecimal sequence number within the current
- *   minute. It is four digits, unless by some miracle there are more logged
- *   items in a minute than will fit in that, in which case it expands.
+ * * `NN` is a lowercase hexadecimal sequence number within the current
+ *   minute. It is two digits, unless by some miracle there are more logged
+ *   items in a minute than will fit in that, in which case it expands in
+ *   two-digit increments.
  */
 export class IdGenerator {
   /**
@@ -58,11 +59,18 @@ export class IdGenerator {
 
     const preStr = IdGenerator.#makePrefix(nowSec, sequenceNumber);
     const minStr = minuteNumber.toString(16).padStart(5, '0');
-    const seqStr = (sequenceNumber < 0x10000)
-      ? sequenceNumber.toString(16).padStart(4, '0')
-      : sequenceNumber.toString(16).padStart(8, '0');
+    const seqStr = IdGenerator.#stringFromSequenceNumber(sequenceNumber);
 
     return `${preStr}_${minStr}_${seqStr}`;
+  }
+
+  /**
+   * Sets the sequence number. This is mainly intended for unit testing.
+   *
+   * @param {number} n The new sequence number.
+   */
+  setSequenceNumber(n) {
+    this.#sequenceNumber = MustBe.number(n, { safeInteger: true, minInclusive: 0 });
   }
 
 
@@ -85,6 +93,18 @@ export class IdGenerator {
     const char2  = String.fromCharCode(digit2 + this.#LOWERCASE_A);
 
     return `${char1}${char2}`;
+  }
+
+  /**
+   * Converts a sequence number to a string, as appropriate.
+   *
+   * @param {number} n The sequence number.
+   * @returns {string} The converted number.
+   */
+  static #stringFromSequenceNumber(n) {
+    const str = n.toString(16);
+
+    return ((str.length & 1) === 0) ? str : `0${str}`;
   }
 
   /**
