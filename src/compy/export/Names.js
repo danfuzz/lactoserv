@@ -117,7 +117,7 @@ export class Names {
       }
     }
 
-    return (allowWildcard) ? path : path.withWildcard(false);
+    return path;
   }
 
   /**
