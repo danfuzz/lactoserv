@@ -58,9 +58,7 @@ export class IdGenerator {
 
     const preStr = IdGenerator.#makePrefix(nowSec, sequenceNumber);
     const minStr = minuteNumber.toString(16).padStart(5, '0');
-    const seqStr = (sequenceNumber < 0x10000)
-      ? sequenceNumber.toString(16).padStart(4, '0')
-      : sequenceNumber.toString(16).padStart(8, '0');
+    const seqStr = IdGenerator.#stringFromSequenceNumber(sequenceNumber);
 
     return `${preStr}_${minStr}_${seqStr}`;
   }
@@ -85,6 +83,18 @@ export class IdGenerator {
     const char2  = String.fromCharCode(digit2 + this.#LOWERCASE_A);
 
     return `${char1}${char2}`;
+  }
+
+  /**
+   * Converts a sequence number to a string, as appropriate.
+   *
+   * @param {number} n The sequence number.
+   * @returns {string} The converted number.
+   */
+  static #stringFromSequenceNumber(n) {
+    return (n < 0x10000)
+      ? n.toString(16).padStart(4, '0')
+      : n.toString(16).padStart(8, '0');
   }
 
   /**
