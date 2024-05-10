@@ -26,7 +26,7 @@ export class SerialRouter extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request, dispatch) {
     for (const app of this.#routeList) {
-      dispatch.logger?.dispatching(request.id, { application: app.name });
+      dispatch.logger?.dispatching({ application: app.name });
 
       const result = await app.handleRequest(request, dispatch);
       if (result !== null) {

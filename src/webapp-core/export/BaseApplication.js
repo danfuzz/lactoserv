@@ -19,8 +19,7 @@ export class BaseApplication extends BaseDispatched {
 
   /** @override */
   async handleRequest(request, dispatch) {
-    const logger    = this._prot_newDispatchLogger(dispatch.logger);
-    const requestId = logger ? request.id : null;
+    const logger    = this._prot_newDispatchLogger(dispatch.logger ?? request.id);
     const startTime = logger?.$env.now();
 
     if (logger) {
@@ -31,11 +30,11 @@ export class BaseApplication extends BaseDispatched {
       if (logger) {
         const endTime  = logger.$env.now();
         const duration = endTime.subtract(startTime);
-        logger[fate](requestId, duration, ...error);
+        logger[fate](duration, ...error);
       }
     };
 
-    logger?.handling(requestId, dispatch.infoForLog);
+    logger?.handling(dispatch.infoForLog);
 
     try {
       const result = await this.#callHandler(request, dispatch);
