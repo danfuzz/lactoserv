@@ -71,9 +71,20 @@ ${'isName'}     | ${false}
   });
 });
 
-describe('parsePath()', () => {
+describe.each`
+methodName           | acceptsNull
+${'parsePath'}       | ${false}
+${'parsePathOrNull'} | ${true}
+`('$methodName()', ({ methodName, acceptsNull }) => {
   const wildKey    = new PathKey(['a', 'b', 'c'], true);
   const nonWildKey = new PathKey(['cd', 'ef'], false);
+
+  const doCall = (arg, allowWildcard) => {
+    const args = (allowWildcard === null)
+      ? [arg]
+      : [arg, allowWildcard];
+    return Names[methodName](...args);
+  };
 
   function nonWildcardCases(allowWildcard) {
     test.each`
@@ -88,10 +99,7 @@ describe('parsePath()', () => {
     ${['zz', 'yy']} | ${['zz', 'yy']}
     ${nonWildKey}   | ${['cd', 'ef']}
     `('works given $arg', ({ arg, expected }) => {
-      const args = (allowWildcard === null)
-        ? [arg]
-        : [arg, allowWildcard];
-      const got = Names.parsePath(...args);
+      const got = doCall(arg, allowWildcard);
       expect(got.wildcard).toBeFalse();
       expect(got.path).toEqual(expected);
     });
@@ -114,22 +122,19 @@ describe('parsePath()', () => {
     ${wildKey}           | ${['a', 'b', 'c']}
     `(msg, ({ arg, expected }) => {
       if (allowWildcard) {
-        const got = Names.parsePath(arg, true);
+        const got = doCall(arg, true);
         expect(got.wildcard).toBeTrue();
         expect(got.path).toEqual(expected);
-      } else if (allowWildcard === null) {
-        expect(() => Names.parsePath(arg)).toThrow();
       } else {
-        expect(() => Names.parsePath(arg, false)).toThrow();
+        expect(() => doCall(arg, allowWildcard)).toThrow();
       }
     });
   }
 
   function errorCases(allowWildcard) {
+    // Bad arguments which always throw.
     test.each`
     arg
-    ${undefined}
-    ${null}
     ${false}
     ${true}
     ${123}
@@ -142,9 +147,27 @@ describe('parsePath()', () => {
     ${'/x/*/foo'}   // No star in the middle.
     ${'/&/boop'}    // No invalid component characters.
     `('throws given $arg', ({ arg }) => {
-      const wild = (allowWildcard === null) ? [] : [allowWildcard];
-      expect(() => Names.parsePath(arg, ...wild)).toThrow();
+      expect(() => doCall(arg, allowWildcard)).toThrow();
     });
+
+    // Allowed or not depending on the method.
+    if (acceptsNull) {
+      test.each`
+      arg
+      ${undefined}
+      ${null}
+      `('returns `null` given $arg', ({ arg }) => {
+        expect(doCall(arg, allowWildcard)).toBeNull();
+      });
+    } else {
+      test.each`
+      arg
+      ${undefined}
+      ${null}
+      `('throws given $arg', ({ arg }) => {
+        expect(() => doCall(arg, allowWildcard)).toThrow();
+      });
+    }
   }
 
   describe('with default `allowWildcard` (of `false`)', () => {

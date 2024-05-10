@@ -126,13 +126,14 @@ export class Names {
    * be thrown.
    *
    * @param {?string|Array<string>|PathKey} path The absolute path to parse.
+   * @param {boolean} [allowWildcard] Allow wildcard paths?
    * @returns {?PathKey} The parsed path, or `null`.
    */
-  static parsePathOrNull(path) {
+  static parsePathOrNull(path, allowWildcard = false) {
     if ((path === null) || (path === undefined)) {
       return null;
     } else {
-      return this.parsePath(path);
+      return this.parsePath(path, allowWildcard);
     }
   }
 
