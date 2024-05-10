@@ -9,15 +9,16 @@ import { MustBe } from '@this/typey';
  * Generator of unique-enough IDs to track connections, requests, etc., in the
  * logs.
  *
- * The format of the IDs is `XX_MMMMM_NNNN`:
+ * The format of the IDs is `XX_MMMMM_NN`:
  *
  * * `XX` is an arbitrary (though not truly random) two-character string of
  *   lowercase letters, to make IDs easier for a human to visually distinguish.
  * * `MMMMM` is a lowecase hexadecimal representation of the "current minute,"
  *   which rolls over every couple years or so.
- * * `NNNN` is a lowercase hexadecimal sequence number within the current
- *   minute. It is four digits, unless by some miracle there are more logged
- *   items in a minute than will fit in that, in which case it expands.
+ * * `NN` is a lowercase hexadecimal sequence number within the current
+ *   minute. It is two digits, unless by some miracle there are more logged
+ *   items in a minute than will fit in that, in which case it expands in
+ *   two-digit increments.
  */
 export class IdGenerator {
   /**
@@ -63,6 +64,15 @@ export class IdGenerator {
     return `${preStr}_${minStr}_${seqStr}`;
   }
 
+  /**
+   * Sets the sequence number. This is mainly intended for unit testing.
+   *
+   * @param {number} n The new sequence number.
+   */
+  setSequenceNumber(n) {
+    this.#sequenceNumber = MustBe.number(n, { safeInteger: true, minInclusive: 0 });
+  }
+
 
   //
   // Static members
@@ -92,9 +102,9 @@ export class IdGenerator {
    * @returns {string} The converted number.
    */
   static #stringFromSequenceNumber(n) {
-    return (n < 0x10000)
-      ? n.toString(16).padStart(4, '0')
-      : n.toString(16).padStart(8, '0');
+    const str = n.toString(16);
+
+    return ((str.length & 1) === 0) ? str : `0${str}`;
   }
 
   /**

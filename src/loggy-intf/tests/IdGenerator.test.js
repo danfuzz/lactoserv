@@ -31,7 +31,7 @@ describe('makeId()', () => {
     const moment = new Moment(1715189931);
     const got    = gen.makeId(moment);
 
-    expect(got).toBeString(/^[a-z]{2}_[0-9a-f]{5}_0000$/);
+    expect(got).toBeString(/^[a-z]{2}_[0-9a-f]{5}_00$/);
   });
 
   test('produces sequential values when called multiple times with the same argument', () => {
@@ -40,10 +40,29 @@ describe('makeId()', () => {
 
     for (let i = 0; i < 100; i++) {
       const got    = gen.makeId(moment);
-      const suffix = `000${i.toString(16)}`.slice(-4);
-      expect(got).toBeString(/^[a-z]{2}_[0-9a-f]{5}_[0-9a-f]{4}$/);
-      expect(got.slice(-4)).toBe(suffix);
+      const suffix = `0${i.toString(16)}`.slice(-2);
+      expect(got).toBeString(/^[a-z]{2}_[0-9a-f]{5}_[0-9a-f]{2}$/);
+      expect(got.slice(-2)).toBe(suffix);
     }
+  });
+
+  test('produces a four-, six-, and eight-digit sequence numbers when necessary', () => {
+    const gen    = new IdGenerator();
+    const moment = new Moment(1999101234);
+
+    gen.makeId(moment);
+
+    gen.setSequenceNumber(0xff);
+    expect(gen.makeId(moment)).toBeString(/_ff$/);
+    expect(gen.makeId(moment)).toBeString(/_0100$/);
+
+    gen.setSequenceNumber(0xffff);
+    expect(gen.makeId(moment)).toBeString(/_ffff$/);
+    expect(gen.makeId(moment)).toBeString(/_010000$/);
+
+    gen.setSequenceNumber(0xffffff);
+    expect(gen.makeId(moment)).toBeString(/_ffffff$/);
+    expect(gen.makeId(moment)).toBeString(/_01000000$/);
   });
 
   test('resets the sequence number when called with a different minute', () => {
@@ -52,11 +71,11 @@ describe('makeId()', () => {
     const moment2 = moment1.add(Duration.parse('1 min'));
 
     const got1 = gen.makeId(moment1);
-    expect(got1).toBeString(/_0000$/);
-    expect(gen.makeId(moment1)).toBeString(/_0001$/);
+    expect(got1).toBeString(/_00$/);
+    expect(gen.makeId(moment1)).toBeString(/_01$/);
 
     const got2 = gen.makeId(moment2);
-    expect(got2).toBeString(/_0000$/);
+    expect(got2).toBeString(/_00$/);
     expect(got2).not.toBe(got1);
   });
 });
