@@ -111,6 +111,30 @@ describe('.context', () => {
   });
 });
 
+describe('.lastContext', () => {
+  test('is `null` if there is no context', () => {
+    const tag = new LogTag('mainTag');
+    expect(tag.lastContext).toBeNull();
+  });
+
+  test('is the only context string if there is only one', () => {
+    const expected = 'thisIsTheEnd';
+    const tag      = new LogTag('main', expected);
+    expect(tag.lastContext).toBe(expected);
+  });
+
+  test('is the last context string if there are two or more', () => {
+    const expected = 'floop';
+    const tag1     = new LogTag('main', 'one', expected);
+    const tag2     = new LogTag('main', 'one', 'two', expected);
+    const tag3     = new LogTag('main', 'one', 'two', 'three', expected);
+
+    expect(tag1.lastContext).toBe(expected);
+    expect(tag2.lastContext).toBe(expected);
+    expect(tag3.lastContext).toBe(expected);
+  });
+});
+
 describe('.main', () => {
   test('is the value passed in the constructor', () => {
     const value = 'yep';
@@ -149,6 +173,13 @@ describe('equals()', () => {
     const tag2 = new LogTag('yeah', 'yup', 'yeppers');
     expect(tag1.equals(tag2)).toBeFalse();
     expect(tag2.equals(tag1)).toBeFalse();
+  });
+
+  test('does not equal a non-`LogTag`', () => {
+    const tag = new LogTag('yeppers');
+    expect(tag.equals(undefined)).toBeFalse();
+    expect(tag.equals('yeppers')).toBeFalse();
+    expect(tag.equals(new Map())).toBeFalse();
   });
 });
 
