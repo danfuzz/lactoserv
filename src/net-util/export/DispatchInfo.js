@@ -55,7 +55,7 @@ export class DispatchInfo {
   constructor(base, extra, logger = null) {
     this.#base   = MustBe.instanceOf(base, PathKey);
     this.#extra  = MustBe.instanceOf(extra, PathKey);
-    this.#logger = (logger === null) ? null : MustBe.object(logger);
+    this.#logger = (logger === null) ? null : MustBe.callableFunction(logger);
   }
 
   /**
@@ -219,6 +219,17 @@ export class DispatchInfo {
   isDirectory() {
     const lastComponent = this.lastComponent;
     return (lastComponent === null) || (lastComponent === '');
+  }
+
+  /**
+   * Gets a new instance which is just like this one, except with a replacement
+   * for `logger`.
+   *
+   * @param {?IntfLogger} [logger] Logger to use, if any.
+   * @returns {DispatchInfo} An appropriately-constructed instance.
+   */
+  withLogger(logger) {
+    return new DispatchInfo(this.#base, this.#extra, logger);
   }
 
   /**
