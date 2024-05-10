@@ -77,7 +77,7 @@ export class IdGenerator {
   //
   // Static members
   //
-  
+
   /**
    * The Unicode codepoint for lowercase `a`.
    *
