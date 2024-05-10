@@ -47,7 +47,7 @@ export class ProcessInfo {
    * object.
    */
   static get ephemeralInfo() {
-    const memoryInfo = memoryUsage();
+    const memoryInfo = this.#memoryUsage();
     for (const [key, value] of Object.entries(memoryInfo)) {
       memoryInfo[key] = ByteCount.stringFromByteCount(value);
     }
@@ -89,5 +89,20 @@ export class ProcessInfo {
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
+  }
+
+  /**
+   * Gets memory usage info.
+   *
+   * @returns {object} The info.
+   */
+  static #memoryUsage() {
+    const result = memoryUsage();
+
+    // Node has been observed sometimes returning an empty object for
+    // `memoryUsage()`. If this happens, we at least try to get the RSS.
+    return result.rss
+      ? result
+      : { rss: memoryUsage.rss() };
   }
 }
