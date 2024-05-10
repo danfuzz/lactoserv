@@ -215,7 +215,7 @@ export class BaseComponent {
       throw new Error('`super._impl_init()` never called on base class.');
     }
 
-    if (nascentChildren) {
+    if (nascentChildren && (nascentChildren.length !== 0)) {
       this.logger?.addingChildren();
       await this._prot_addAll(nascentChildren);
     }
