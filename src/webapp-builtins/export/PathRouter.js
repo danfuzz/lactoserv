@@ -30,7 +30,7 @@ export class PathRouter extends BaseApplication {
     // Iterate from most- to least-specific mounted path.
     for (const pathMatch of this.#routeTree.findWithFallback(dispatch.extra)) {
       const application = pathMatch.value;
-      const subDispatch = new DispatchInfo(
+      const subDispatch = dispatch.withPaths(
         dispatch.base.concat(pathMatch.key),
         pathMatch.keyRemainder);
 
