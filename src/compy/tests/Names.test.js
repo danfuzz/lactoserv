@@ -72,9 +72,9 @@ ${'isName'}     | ${false}
 });
 
 describe.each`
-methodName           | acceptsNull
-${'parsePath'}       | ${false}
-${'parsePathOrNull'} | ${true}
+methodName                 | acceptsNull
+${'parsePath'}             | ${false}
+${'parsePossiblyNullPath'} | ${true}
 `('$methodName()', ({ methodName, acceptsNull }) => {
   const wildKey    = new PathKey(['a', 'b', 'c'], true);
   const nonWildKey = new PathKey(['cd', 'ef'], false);

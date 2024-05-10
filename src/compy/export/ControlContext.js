@@ -206,7 +206,7 @@ export class ControlContext {
     const result = this.#root.getComponentOrNull(path, ...classes);
 
     if (result === null) {
-      path = Names.parsePathOrNull(path);
+      path = Names.parsePossiblyNullPath(path);
       if (path === null) {
         throw new Error('Non-`null` component path is required.');
       } else {

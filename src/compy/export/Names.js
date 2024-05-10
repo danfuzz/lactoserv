@@ -129,7 +129,7 @@ export class Names {
    * @param {boolean} [allowWildcard] Allow wildcard paths?
    * @returns {?PathKey} The parsed path, or `null`.
    */
-  static parsePathOrNull(path, allowWildcard = false) {
+  static parsePossiblyNullPath(path, allowWildcard = false) {
     if ((path === null) || (path === undefined)) {
       return null;
     } else {

@@ -59,7 +59,7 @@ export class RootControlContext extends ControlContext {
 
   /** @override */
   getComponentOrNull(path, ...classes) {
-    path = Names.parsePathOrNull(path);
+    path = Names.parsePossiblyNullPath(path);
 
     if (!path) {
       return null;
