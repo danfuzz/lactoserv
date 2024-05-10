@@ -77,6 +77,20 @@ export class IdGenerator {
   //
   // Static members
   //
+  
+  /**
+   * The Unicode codepoint for lowercase `a`.
+   *
+   * @type {number}
+   */
+  static #LOWERCASE_A = 'a'.charCodeAt(0);
+
+  /**
+   * The number of minutes in a second.
+   *
+   * @type {number}
+   */
+  static #MINS_PER_SEC = 1 / 60;
 
   /**
    * Makes a prefix string based on a time value and sequence number.
@@ -106,18 +120,4 @@ export class IdGenerator {
 
     return ((str.length & 1) === 0) ? str : `0${str}`;
   }
-
-  /**
-   * The Unicode codepoint for lowercase `a`.
-   *
-   * @type {number}
-   */
-  static #LOWERCASE_A = 'a'.charCodeAt(0);
-
-  /**
-   * The number of minutes in a second.
-   *
-   * @type {number}
-   */
-  static #MINS_PER_SEC = 1 / 60;
 }
