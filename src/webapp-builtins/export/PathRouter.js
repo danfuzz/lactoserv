@@ -3,7 +3,7 @@
 
 import { PathKey, TreeMap } from '@this/collections';
 import { Names } from '@this/compy';
-import { DispatchInfo, IntfRequestHandler, UriUtil } from '@this/net-util';
+import { IntfRequestHandler, UriUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
