@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TemplateUtil } from '@this/metacomp';
 import { Methods, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -17,9 +18,8 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export const TemplWrappedHierarchy = (className, superclass) => {
   MustBe.constructorFunction(superclass);
-  MustBe.string(className);
 
-  return class WrappedHierarchy extends superclass {
+  return TemplateUtil.make(className, class WrappedHierarchy extends superclass {
     /**
      * Current root component being managed. This is a value which used to be in
      * {@link #nextRootComponent}.
@@ -162,5 +162,5 @@ export const TemplWrappedHierarchy = (className, superclass) => {
         this.logger?.started();
       }
     }
-  };
+  });
 };

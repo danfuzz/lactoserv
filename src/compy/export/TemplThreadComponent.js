@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Threadlet } from '@this/async';
+import { TemplateUtil } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
 
@@ -16,9 +17,8 @@ import { MustBe } from '@this/typey';
  */
 export const TemplThreadComponent = (className, superclass) => {
   MustBe.constructorFunction(superclass);
-  MustBe.string(className);
 
-  return class ThreadComponent extends superclass {
+  return TemplateUtil.make(className, class ThreadComponent extends superclass {
     /**
      * The threadlet which runs this instance.
      *
@@ -73,5 +73,5 @@ export const TemplThreadComponent = (className, superclass) => {
     async #main(runnerAccess) {
       return this._impl_threadRun(runnerAccess);
     }
-  };
+  });
 };

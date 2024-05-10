@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Frequency, UnitQuantity } from '@this/data-values';
+import { TemplateUtil } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
 
@@ -22,12 +23,11 @@ import { MustBe } from '@this/typey';
  */
 export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant = false, countType, rateType }) => {
   MustBe.constructorFunction(superclass);
-  MustBe.string(className);
   MustBe.boolean(allowMaxQueueGrant);
   MustBe.constructorFunction(countType);
   MustBe.constructorFunction(rateType);
 
-  return class RateLimitConfig extends superclass {
+  return TemplateUtil.make(className, class RateLimitConfig extends superclass {
     // @defaultConstructor
 
     /**
@@ -117,15 +117,6 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
     //
 
     /**
-     * @returns {string} The class name. This is arguably the best way for a
-     * class to end up with a dynamically-generated name. (E.g., `class [name]
-     * {...}`) is not valid syntax.)
-     */
-    static get name() {
-      return className;
-    }
-
-    /**
      * Parses a token count of some sort.
      *
      * @param {?string|UnitQuantity} value Proposed configuration value.
@@ -151,5 +142,5 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
       // `TokenBucket` always wants a plain `number` for its token counts.
       return result.value;
     }
-  };
+  });
 };
