@@ -72,17 +72,6 @@ export class MemoryMonitor extends TemplThreadComponent('MemoryThread', BaseServ
     const rawUsage = memoryUsage();
     const now      = WallClock.now();
 
-    if (!rawUsage.rss) {
-      // It looks like there is a Node bug (present in v20, at least), where
-      // sometimes `memoryUsage()` returns an empty object. If that happens, we
-      // log that fact and do our best to kinda-recover.
-      this.logger?.missingMemoryUsage();
-      const last = this.#lastSnapshot ?? { rss: 0, heap: 0 };
-      rawUsage.rss      = memoryUsage.rss() ?? last.rss;
-      rawUsage.heapUsed = last.heap;
-      rawUsage.external = 0;
-    }
-
     // Note: Per Node docs, `external` includes the `arrayBuffers` value in it.
     const usage = {
       heap: rawUsage.heapUsed + rawUsage.external,
