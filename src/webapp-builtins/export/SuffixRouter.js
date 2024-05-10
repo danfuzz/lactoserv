@@ -44,12 +44,10 @@ export class SuffixRouter extends BaseApplication {
 
     const application = this.#routeMap.get(suffix);
 
-    if (this._prot_dispatchLogging) {
-      request.logger?.dispatchingSuffix({
-        application: application.name,
-        suffix
-      });
-    }
+    dispatch.logger?.dispatchingSuffix({
+      application: application.name,
+      suffix
+    });
 
     return application.handleRequest(request, dispatch);
   }
