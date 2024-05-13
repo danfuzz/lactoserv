@@ -38,7 +38,7 @@ describe('[BaseConverter.ENCODE]()', () => {
       type:  'whee',
       args:  [10, 20, 'thirty']
     });
-    expect(got.args).toEqual([])
+    expect(got.args).toEqual([]);
   });
 });
 
