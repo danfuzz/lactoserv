@@ -20,8 +20,12 @@ export class ProcessUtil {
       return true;
     } catch (e) {
       if (e.code === 'ESRCH') {
-        // This is the expected "no such process ID" error.
+        // This is the expected error for "no such process ID."
         return false;
+      } else if (e.code === 'EPERM') {
+        // This is the expected error for "process ID exists but is not owned
+        // by the current user."
+        return true;
       } else {
         throw e;
       }
