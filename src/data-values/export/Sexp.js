@@ -30,7 +30,7 @@ export class Sexp extends BaseDataClass {
   /**
    * Named "options" of the structure.
    *
-   * @type {?object}
+   * @type {object}
    */
   #options;
 
