@@ -17,9 +17,11 @@ Breaking changes:
 
 Other notable changes:
 * Stopped complaining if run with Node v22.
-* configuration:
+* configuration / `webapp-builtins`:
   * Added `dispatchLogging` configuration to `endpoint` entries (class
     `NetworkEndpoint`).
+  * `PathRouter`: Made it possible to cut off fallback search by explicitly
+     binding a path to `null`.
 * `compy`:
   * New method `BaseComponent._prot_addAll()`, for multiple children.
   * Made it possible for a component to add children before it is initialized.
