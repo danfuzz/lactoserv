@@ -75,8 +75,20 @@ export class FullResponse {
       MustBe.instanceOf(orig, FullResponse);
       this.#status       = orig.#status;
       this.#headers      = orig.#headers ? new HttpHeaders(orig.headers) : null;
-      this.#body         = orig.#body;
       this.#cacheControl = orig.#cacheControl;
+
+      const body = orig.#body;
+      if (body === null) {
+        this.#body = null;
+      } else {
+        const { type, buffer } = body;
+
+        // For type `buffer`, copy the buffer because we don't know if it got
+        // exposed via `.bodyBuffer`.
+        this.#body = (type === 'buffer')
+          ? Object.freeze({ ...body, buffer: Buffer.from(buffer) })
+          : body;
+      }
     }
   }
 

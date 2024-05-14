@@ -36,6 +36,7 @@ describe('constructor()', () => {
     expect(got.cacheControl).toBe(orig.cacheControl);
     expect(got.headers).not.toBe(orig.headers); // It should be a copy.
     expect([...got.headers.entries()]).toEqual([...orig.headers.entries()]);
+    expect(got.bodyBuffer).not.toBe(orig.bodyBuffer); // It should be a copy.
     expect(got.bodyBuffer).toEqual(orig.bodyBuffer);
   });
 });
