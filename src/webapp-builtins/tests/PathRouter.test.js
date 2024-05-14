@@ -24,6 +24,35 @@ describe('constructor', () => {
     expect(() => new PathRouter({ name: 'x', paths })).not.toThrow();
   });
 
+  test('accepts `null` as bindings', () => {
+    const paths = {
+      '/':        null,
+      '/*':       'yes',
+      '/foo/*':   null,
+      '/foo/bar': 'superYes'
+    };
+    expect(() => new PathRouter({ paths })).not.toThrow();
+  });
+
+  test.each`
+  name
+  ${undefined}
+  ${false}
+  ${true}
+  ${123}
+  ${123n}
+  ${['x']}
+  ${{ a: 'x' }}
+  ${''}         // This and the rest are syntactically incorrect names.
+  ${'-zonk'}
+  ${'zonk-'}
+  ${'ab$cd'}
+  ${' this '}
+  `('does not allow binding to `$name`', ({ name }) => {
+    const paths = { '/': name };
+    expect(() => new PathRouter({ paths })).toThrow();
+  });
+
   test.each`
   path
   ${'//'}             // No empty components.
@@ -249,6 +278,27 @@ describe('_impl_handleRequest()', () => {
 
     const callNames = MockApp.mockCalls.map(({ application }) => application.name);
     expect(callNames).toEqual(['mockApp4', 'mockApp3', 'mockApp2']);
+  });
+
+  test('stops trying fallbacks after it finds a `null` binding', async () => {
+    const pr = await makeInstance(
+      {
+        '/*':     'mockApp1',
+        '/x/*':   null,
+        '/x/y/*': 'mockApp2'
+      },
+      { appCount: 2, handlerFunc: ({ application }) => application.name === 'mockApp1' }
+    );
+
+    MockApp.mockCalls = [];
+
+    const request = RequestUtil.makeGet('/x/y/z');
+    const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeNull();
+
+    const callNames = MockApp.mockCalls.map(({ application }) => application.name);
+    expect(callNames).toEqual(['mockApp2']);
   });
 
   test('matches on `dispatch.extra` (not `request.pathname`)', async () => {
