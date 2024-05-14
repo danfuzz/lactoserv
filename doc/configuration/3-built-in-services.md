@@ -140,22 +140,28 @@ const services = [
 ## `DataRateLimiter`
 
 A service which provides data rate limiting of network traffic (specifically
-on the write side). Configuration is exactly as described by
+on the write side). Configuration is as described by
 [Rate Limiting](./2-common-configuration.md#rate-limiting), with the token unit
 being a byte (class `ByteCount`) and the flow rate unit being bytes-per-second
-(class `ByteRate`). The `maxQueueGrant` option _is_ allowed.
+(class `ByteRate`). The `maxQueueGrant` option _is_ allowed. In addition, this
+accepts the following configuration bindings:
+
+* `verboseLogging` &mdash; A boolean indicating whether the minutiae of the
+  limiter's operations should be logged. If `false`, only major actions
+  (including errors) get logged. Default `false`.
 
 ```js
 import { DataRateLimiter } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
-    name:          'dataRateLimiter',
-    class:         DataRateLimiter,
-    maxBurst:      '5 MiB',
-    flowRate:      '32 KiB/sec',
-    maxQueue:      '32 MiB',
-    maxQueueGrant: '100 KiB'
+    name:           'dataRateLimiter',
+    class:          DataRateLimiter,
+    maxBurst:       '5 MiB',
+    flowRate:       '32 KiB/sec',
+    maxQueue:       '32 MiB',
+    maxQueueGrant:  '100 KiB',
+    verboseLogging: true
   }
 ];
 ```
