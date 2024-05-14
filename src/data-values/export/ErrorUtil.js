@@ -42,15 +42,15 @@ export class ErrorUtil {
 
     if (errorCodes.size === 0) {
       return {
+        ok:         true,
         errorCodes: [],
-        errors:     {},
-        ok:         true
+        errors:     {}
       };
     } else {
       return {
+        ok:         false,
         errorCodes: [...errorCodes].sort(),
-        errors:     resultErrors,
-        ok:         false
+        errors:     resultErrors
       };
     }
   }
