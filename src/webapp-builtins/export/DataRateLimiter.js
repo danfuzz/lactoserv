@@ -59,13 +59,17 @@ export class DataRateLimiter extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return TemplRateLimitConfig(
-      'DataRateLimiterConfig',
+    const baseClass = TemplRateLimitConfig(
+      'DataRateJustLimiterConfig',
       BaseService.CONFIG_CLASS,
       {
         allowMaxQueueGrant: true,
         countType:          ByteCount,
         rateType:           ByteRate
       });
+
+    return class DataRateLimiterConfig extends baseClass {
+      // @defaultConstructor
+    };
   }
 }
