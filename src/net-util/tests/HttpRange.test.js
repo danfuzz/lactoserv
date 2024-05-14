@@ -88,7 +88,6 @@ describe('rangeInfo()', () => {
     });
   });
 
-
   test('throws if given an invalid `statsOrLength`', () => {
     const requestMethod   = 'get';
     const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
