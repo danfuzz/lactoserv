@@ -17,7 +17,7 @@ describe('rangeInfo()', () => {
 
   test('returns `null` given a range request but with an invalid method', () => {
     const requestMethod   = 'post';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=10-500' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=10-500' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 1000;
     const got =
@@ -28,7 +28,7 @@ describe('rangeInfo()', () => {
 
   test('works for a valid non-conditional case, explicit length', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=10-500' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=10-500' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 1000;
     const got =
@@ -49,7 +49,7 @@ describe('rangeInfo()', () => {
 
   test('works for a valid non-conditional case, explicit length (bigint)', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=1-4' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=1-4' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 10n;
     const got =
@@ -70,8 +70,8 @@ describe('rangeInfo()', () => {
 
   test('works for a valid non-conditional case, length via response header', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=90-109' });
-    const responseHeaders = new HttpHeaders({ 'content-length': '200'});
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=90-109' });
+    const responseHeaders = new HttpHeaders({ 'content-length': '200' });
     const got =
       HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null);
 
@@ -91,7 +91,7 @@ describe('rangeInfo()', () => {
 
   test('throws if given an invalid `statsOrLength`', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = ['not', 'valid'];
 
@@ -101,7 +101,7 @@ describe('rangeInfo()', () => {
 
   test('throws if given `statsOrLength === null` and there is no `content-length` header', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
     const responseHeaders = new HttpHeaders();
     expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
       .toThrow();
@@ -109,7 +109,7 @@ describe('rangeInfo()', () => {
 
   test('throws if given `statsOrLength === null` and there is an unparsable `content-length` header', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
     const responseHeaders = new HttpHeaders({ 'content-length': 'flibbity-jibbit' });
     expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
       .toThrow();
@@ -117,7 +117,7 @@ describe('rangeInfo()', () => {
 
   test('returns `null` given a valid case that is requesting disjoint ranges', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=1-5, 100-110' });
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=1-5, 100-110' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 1000;
     const got =
@@ -128,7 +128,7 @@ describe('rangeInfo()', () => {
 
   test('correctly rejects an invalid range (bad unit)', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'florps=10-500' });
+    const requestHeaders  = new HttpHeaders({ range: 'florps=10-500' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 1000;
     const got =
