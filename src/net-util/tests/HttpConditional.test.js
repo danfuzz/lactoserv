@@ -27,7 +27,10 @@ ${'isRangeApplicable'}
     expect(() => doCall(123, new HttpHeaders(), new HttpHeaders(), statsNum)).toThrow();
   });
 
-  // TODO: Check `requestHeaders` once its type has been tightened.
+  test('rejects incorrect `requestHeaders`', () => {
+    expect(() => doCall('x', null, new HttpHeaders(), statsNum)).toThrow();
+    expect(() => doCall('x', new Headers(), new HttpHeaders(), statsNum)).toThrow();
+  });
 
   test('accepts `responseHeaders === null`', () => {
     expect(() => doCall('x', new HttpHeaders(), null, statsNum)).not.toThrow();
