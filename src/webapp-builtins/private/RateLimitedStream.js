@@ -40,6 +40,13 @@ export class RateLimitedStream {
   #logger;
 
   /**
+   * Logger to use for verbose logging, or `null` not to do verbose logging.
+   *
+   * @type {?IntfLogger}
+   */
+  #verboseLogger;
+
+  /**
    * The outer (exposed wrapper) stream.
    *
    * @type {Duplex|Writable}
@@ -68,11 +75,14 @@ export class RateLimitedStream {
    *   service.
    * @param {Duplex|Writable} stream The stream to wrap.
    * @param {?IntfLogger} logger Logger to use.
+   * @param {boolean} verboseLogging Log the minutiae of writing? If `false`,
+   *   only major events (including errors) get logged.
    */
-  constructor(bucket, stream, logger) {
-    this.#bucket      = MustBe.instanceOf(bucket, TokenBucket);
-    this.#innerStream = MustBe.instanceOf(stream, Writable);
-    this.#logger      = logger?.dataRateLimiter;
+  constructor(bucket, stream, logger, verboseLogging) {
+    this.#bucket        = MustBe.instanceOf(bucket, TokenBucket);
+    this.#innerStream   = MustBe.instanceOf(stream, Writable);
+    this.#logger        = logger?.dataRateLimiter;
+    this.#verboseLogger = MustBe.boolean(verboseLogging) ? this.#logger : null;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {
       throw new Error('Object mode not supported.');
@@ -288,7 +298,7 @@ export class RateLimitedStream {
    */
   async #write(chunk, encoding, callback) {
     if (chunk instanceof Buffer) {
-      this.#logger?.writing(chunk.length);
+      this.#verboseLogger?.writing(chunk.length);
     } else {
       this.#becomeBroken(Error(`Unexpected non-buffer chunk with encoding ${encoding}.`));
       chunk = ''; // Ensure we'll fall through to the error case at the bottom.
@@ -301,7 +311,7 @@ export class RateLimitedStream {
         { minInclusive: 1, maxInclusive: remaining });
 
       if (grantResult.waitTime.sec !== 0) {
-        this.#logger?.waited(grantResult.waitTime);
+        this.#verboseLogger?.waited(grantResult.waitTime);
       }
 
       if (!grantResult.done) {
@@ -331,11 +341,11 @@ export class RateLimitedStream {
 
       if (!keepGoing) {
         // The inner stream wants us to wait for a `drain` event. Oblige!
-        this.#logger?.waitingForDrain();
+        this.#verboseLogger?.waitingForDrain();
         const mp = new ManualPromise();
         this.#innerStream.once('drain', () => { mp.resolve(); });
         await mp.promise;
-        this.#logger?.drained();
+        this.#verboseLogger?.drained();
       }
     }
 
@@ -552,8 +562,10 @@ export class RateLimitedStream {
    * @param {Duplex|Writable} stream The stream to wrap.
    * @param {?IntfLogger} logger Logger to use.
    * @returns {Duplex|Writable} A rate-limited wrapper stream.
+   * @param {boolean} verboseLogging Log the minutiae of writing? If `false`,
+   *   only major events (including errors) get logged.
    */
-  static wrapWriter(bucket, stream, logger) {
-    return new this(bucket, stream, logger).stream;
+  static wrapWriter(bucket, stream, logger, verboseLogging) {
+    return new this(bucket, stream, logger, verboseLogging).stream;
   }
 }

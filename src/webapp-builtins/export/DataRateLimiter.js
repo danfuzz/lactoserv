@@ -38,7 +38,7 @@ export class DataRateLimiter extends BaseService {
 
   /** @override */
   async _impl_handleCall_wrapWriter(stream, logger) {
-    return RateLimitedStream.wrapWriter(this.#bucket, stream, logger);
+    return RateLimitedStream.wrapWriter(this.#bucket, stream, logger, true);
   }
 
   /** @override */
