@@ -142,7 +142,8 @@ export class FullResponse {
   }
 
   /**
-   * @returns {number} The HTTP-ish response status code.
+   * @returns {?number} The HTTP-ish response status code, or `null` if not yet
+   * set.
    */
   get status() {
     return this.#status;
@@ -284,6 +285,16 @@ export class FullResponse {
       contentLength,
       headers: FullResponse.#sanitizeResponseHeaders(headers)
     };
+  }
+
+  /**
+   * Indicates whether the response body has been set (including as "no body").
+   *
+   * @returns {boolean} `true` if this instance has had its body set, or `false`
+   *   if not.
+   */
+  hasBody() {
+    return this.#body !== null;
   }
 
   /**
