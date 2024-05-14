@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as fs from 'node:fs/promises';
+
 import { HttpRange, HttpHeaders } from '@this/net-util';
 
 describe('rangeInfo()', () => {
@@ -65,6 +67,31 @@ describe('rangeInfo()', () => {
       end:          5,
       endInclusive: 4,
       length:       4
+    });
+  });
+
+  test('works for a valid non-conditional case, explicit length (stats object)', async () => {
+    // A convenient known-to-exist path.
+    const path  = (new URL(import.meta.url)).pathname;
+    const stats = await fs.stat(path);
+    const len   = stats.size;
+
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=15-39' });
+    const responseHeaders = new HttpHeaders();
+    const got =
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, stats);
+
+    expect(got).toEqual({
+      headers: {
+        'accept-ranges': 'bytes',
+        'content-range': `bytes 15-39/${len}`
+      },
+      status:       206,
+      start:        15,
+      end:          40,
+      endInclusive: 39,
+      length:       25
     });
   });
 
