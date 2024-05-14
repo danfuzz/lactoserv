@@ -272,31 +272,18 @@ export class FullResponse {
       ? (headers['content-length'] ?? null)
       : null;
 
-    const result = {
-      ok:         true,
+    return {
+      ...ErrorUtil.collateErrors({
+        connection:     connectionSocket?.errored,
+        request:        res.req?.errored,
+        requestSocket:  res.req?.socket?.errored,
+        response:       res.errored,
+        responseSocket: res[FullResponse.#RESPONSE_SOCKET_SYMBOL]?.errored
+      }),
       statusCode,
       contentLength,
-      headers:    FullResponse.#sanitizeResponseHeaders(headers),
-      errorCodes: [],
-      errors:     {}
+      headers: FullResponse.#sanitizeResponseHeaders(headers)
     };
-
-    const addErrorIfAny = (label, stream) => {
-      const error = stream?.errored;
-      if (error) {
-        result.ok = false;
-        result.errorCodes.push(ErrorUtil.extractErrorCode(error));
-        result.errors[label] = error;
-      }
-    };
-
-    addErrorIfAny('connection',     connectionSocket);
-    addErrorIfAny('request',        res.req);
-    addErrorIfAny('requestSocket',  res.req?.socket);
-    addErrorIfAny('response',       res);
-    addErrorIfAny('responseSocket', res[FullResponse.#RESPONSE_SOCKET_SYMBOL]);
-
-    return result;
   }
 
   /**
