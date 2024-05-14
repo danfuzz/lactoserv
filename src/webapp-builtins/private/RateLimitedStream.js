@@ -75,8 +75,8 @@ export class RateLimitedStream {
    *   service.
    * @param {Duplex|Writable} stream The stream to wrap.
    * @param {?IntfLogger} logger Logger to use.
-   * @param {boolean} verboseLogging Log the minutiae of writing? If `false`,
-   *   only major events (including errors) get logged.
+   * @param {boolean} verboseLogging Log the minutiae of the instance's
+   *   operation? If `false`, only major events (including errors) get logged.
    */
   constructor(bucket, stream, logger, verboseLogging) {
     this.#bucket        = MustBe.instanceOf(bucket, TokenBucket);
@@ -562,8 +562,8 @@ export class RateLimitedStream {
    * @param {Duplex|Writable} stream The stream to wrap.
    * @param {?IntfLogger} logger Logger to use.
    * @returns {Duplex|Writable} A rate-limited wrapper stream.
-   * @param {boolean} verboseLogging Log the minutiae of writing? If `false`,
-   *   only major events (including errors) get logged.
+   * @param {boolean} verboseLogging Log the minutiae of the instance's
+   *   operation? If `false`, only major events (including errors) get logged.
    */
   static wrapWriter(bucket, stream, logger, verboseLogging) {
     return new this(bucket, stream, logger, verboseLogging).stream;
