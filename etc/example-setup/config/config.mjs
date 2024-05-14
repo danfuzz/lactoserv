@@ -177,7 +177,8 @@ const applications = [
       '/resp/no-body/*':    'responseNoBody',
       '/resp/dir-only/':    'responseDirOnly',
       '/resp/one':          'responseOne',
-      '/resp/two':          'responseTwo'
+      '/resp/two':          'responseTwo',
+      '/resp/*':            null
     }
   },
   {
@@ -297,11 +298,12 @@ const endpoints = [
     }
   },
   {
-    name:        'secure',
-    protocol:    'http2',
-    hostnames:   ['*'],
-    interface:   '*:8443',
-    application: 'mySite',
+    name:            'secure',
+    protocol:        'http2',
+    hostnames:       ['*'],
+    interface:       '*:8443',
+    application:     'mySite',
+    dispatchLogging: true,
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',

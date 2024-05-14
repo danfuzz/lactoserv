@@ -34,6 +34,11 @@ export class PathRouter extends BaseApplication {
         dispatch.base.concat(pathMatch.key),
         pathMatch.keyRemainder);
 
+      if (application === null) {
+        subDispatch.logger?.explicitNull(subDispatch.infoForLog);
+        break;
+      }
+
       subDispatch.logger?.dispatchingPath({
         application: application.name,
         ...(subDispatch.infoForLog)
@@ -71,7 +76,7 @@ export class PathRouter extends BaseApplication {
     const routeTree  = new TreeMap();
 
     for (const [path, name] of this.config.paths) {
-      const app = appManager.get(name);
+      const app = (name === null) ? null : appManager.get(name);
       routeTree.add(path, app);
     }
 
@@ -106,7 +111,9 @@ export class PathRouter extends BaseApplication {
         const result = new TreeMap();
 
         for (const [path, name] of Object.entries(value)) {
-          Names.checkName(name);
+          if (name !== null) {
+            Names.checkName(name);
+          }
           const key = Config.#parsePath(path);
           result.add(key, name);
         }
