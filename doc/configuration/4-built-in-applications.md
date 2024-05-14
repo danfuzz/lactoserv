@@ -217,8 +217,8 @@ const applications = [
 
 ## `RequestFilter`
 
-An application which filters requests that match particular criteria, either by
-responding with a particular "not-found-ish" status, or by redirecting to a
+An application which filters out requests that match particular criteria, either
+by responding with a particular "not-found-ish" status, or by redirecting to a
 modified path.
 
 When a request matches one or more filter criteria, this application responds

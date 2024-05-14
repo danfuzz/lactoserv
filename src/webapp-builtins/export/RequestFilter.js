@@ -8,9 +8,9 @@ import { BaseApplication } from '@this/webapp-core';
 
 
 /**
- * Application that filters requests that match certain commonly-used criteria,
- * resulting in either redirection or some sort of not-found-like response. See
- * docs for configuration object details.
+ * Application that filters out requests that match certain commonly-used
+ * criteria, resulting in either redirection or some sort of not-found-like
+ * response. See docs for configuration object details.
  *
  * **Note:** This class is meant to handle a decent handful of commonly-used
  * cases, but it is _not_ intended to be a "kitchen sink" of filtering. It is
