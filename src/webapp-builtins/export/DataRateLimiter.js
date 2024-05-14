@@ -3,6 +3,7 @@
 
 import { ByteCount, ByteRate } from '@this/data-values';
 import { IntfDataRateLimiter } from '@this/net-protocol';
+import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';
 import { TokenBucket } from '@this/webapp-util';
 
@@ -38,7 +39,8 @@ export class DataRateLimiter extends BaseService {
 
   /** @override */
   async _impl_handleCall_wrapWriter(stream, logger) {
-    return RateLimitedStream.wrapWriter(this.#bucket, stream, logger);
+    return RateLimitedStream.wrapWriter(
+      this.#bucket, stream, logger, this.config.verboseLogging);
   }
 
   /** @override */
@@ -59,13 +61,28 @@ export class DataRateLimiter extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return TemplRateLimitConfig(
-      'DataRateLimiterConfig',
+    const baseClass = TemplRateLimitConfig(
+      'DataRateJustLimiterConfig',
       BaseService.CONFIG_CLASS,
       {
         allowMaxQueueGrant: true,
         countType:          ByteCount,
         rateType:           ByteRate
       });
+
+    return class DataRateLimiterConfig extends baseClass {
+      // @defaultConstructor
+
+      /**
+       * Log the minutiae of this instance's operation? If `false` only main
+       * actions and errors will get logged.
+       *
+       * @param {boolean} [value] Proposed configuration value. Default `false`.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_verboseLogging(value = false) {
+        return MustBe.boolean(value);
+      }
+    };
   }
 }

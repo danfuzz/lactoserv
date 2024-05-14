@@ -20,6 +20,9 @@ Other notable changes:
 * configuration / `webapp-builtins`:
   * Added `dispatchLogging` configuration to `endpoint` entries (class
     `NetworkEndpoint`).
+  * `DataRateLimiter`: Added `verboseLogging` option, off by default, to make it
+    possible to log the major stuff without getting a lot of `writing(1234)`
+    type messages.
   * `PathRouter`: Made it possible to cut off fallback search by explicitly
      binding a path to `null`.
 * `compy`:

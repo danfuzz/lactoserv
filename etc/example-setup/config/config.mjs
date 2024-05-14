@@ -118,7 +118,8 @@ const services = [
     maxBurst:        '1 MiB',
     flowRate:        '100 KiB / sec',
     maxQueueGrant:   '50 KiB',
-    maxQueue:        '2 MiB'
+    maxQueue:        '2 MiB',
+    verboseLogging:  true
   },
   {
     name:     'connectionRateLimiter',
