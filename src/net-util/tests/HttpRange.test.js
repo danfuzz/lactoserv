@@ -47,6 +47,53 @@ describe('rangeInfo()', () => {
     });
   });
 
+  test('works for a valid non-conditional case, explicit length (bigint)', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=1-4' });
+    const responseHeaders = new HttpHeaders();
+    const statsOrLength   = 10n;
+    const got =
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
+
+    expect(got).toEqual({
+      headers: {
+        'accept-ranges': 'bytes',
+        'content-range': 'bytes 1-4/10'
+      },
+      status:       206,
+      start:        1,
+      end:          5,
+      endInclusive: 4,
+      length:       4
+    });
+  });
+
+  test('throws if given an invalid `statsOrLength`', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const responseHeaders = new HttpHeaders();
+    const statsOrLength   = ['not', 'valid'];
+
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength))
+      .toThrow();
+  });
+
+  test('throws if given `statsOrLength === null` and there is no `content-length` header', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const responseHeaders = new HttpHeaders();
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
+      .toThrow();
+  });
+
+  test('throws if given `statsOrLength === null` and there is an unparsable `content-length` header', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
+    const responseHeaders = new HttpHeaders({ 'content-length': 'flibbity-jibbit' });
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
+      .toThrow();
+  });
+
   test('works for a valid non-conditional case, length via response header', () => {
     const requestMethod   = 'get';
     const requestHeaders  = new HttpHeaders({ 'range': 'bytes=90-109' });
