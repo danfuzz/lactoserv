@@ -68,6 +68,27 @@ describe('rangeInfo()', () => {
     });
   });
 
+  test('works for a valid non-conditional case, length via response header', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=90-109' });
+    const responseHeaders = new HttpHeaders({ 'content-length': '200'});
+    const got =
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null);
+
+    expect(got).toEqual({
+      headers: {
+        'accept-ranges': 'bytes',
+        'content-range': 'bytes 90-109/200'
+      },
+      status:       206,
+      start:        90,
+      end:          110,
+      endInclusive: 109,
+      length:       20
+    });
+  });
+
+
   test('throws if given an invalid `statsOrLength`', () => {
     const requestMethod   = 'get';
     const requestHeaders  = new HttpHeaders({ 'range': 'bytes=5-10' });
@@ -94,24 +115,15 @@ describe('rangeInfo()', () => {
       .toThrow();
   });
 
-  test('works for a valid non-conditional case, length via response header', () => {
+  test('returns `null` given a valid case that is requesting disjoint ranges', () => {
     const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=90-109' });
-    const responseHeaders = new HttpHeaders({ 'content-length': '200'});
+    const requestHeaders  = new HttpHeaders({ 'range': 'bytes=1-5, 100-110' });
+    const responseHeaders = new HttpHeaders();
+    const statsOrLength   = 1000;
     const got =
-      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null);
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
 
-    expect(got).toEqual({
-      headers: {
-        'accept-ranges': 'bytes',
-        'content-range': 'bytes 90-109/200'
-      },
-      status:       206,
-      start:        90,
-      end:          110,
-      endInclusive: 109,
-      length:       20
-    });
+    expect(got).toBeNull();
   });
 
   test('correctly rejects an invalid range (bad unit)', () => {
