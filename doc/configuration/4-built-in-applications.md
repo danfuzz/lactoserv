@@ -107,9 +107,10 @@ path of the requests. This application accepts the following configuration
 bindings:
 
 * `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
-  the _names_ of other applications as values. A wildcard only covers the suffix
-  of a path; it cannot be used for prefixes or infixes. Wildcards are indicated
-  with the path suffix `/*`.
+  the _names_ of other applications as values, or `null` to indicate a path to
+  explicitly not-respond to. A wildcard only covers the suffix of a path; it
+  cannot be used for prefixes or infixes. Wildcards are indicated with the path
+  suffix `/*`.
 
 The keys in `paths` must start with a slash (`/`). (The idea is that they are
 _absolute_ paths within the scope of the router, even though they are
@@ -141,27 +142,18 @@ const applications = [
     class: PathRouter,
     paths: {
       '/*':         'myCatchAllApp',
+      '/api/2024':  'myApi',
+      '/api/*':     null, // No other `/api` URLs are handled.
       '/file':      'myFileApp',
       '/dir/':      'myDirApp',
-      '/general/*': 'myGeneralApp',
+      '/general/*': 'myGeneralApp'
     }
   },
   {
     name: 'myCatchallApp',
     // ... more ...
   },
-  {
-    name: 'myFileApp',
-    // ... more ...
-  },
-  {
-    name: 'myDirApp',
-    // ... more ...
-  },
-  {
-    name: 'myGeneralApp',
-    // ... more ...
-  }
+  // ... more ...
 ];
 ```
 
