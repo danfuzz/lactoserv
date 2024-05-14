@@ -131,7 +131,8 @@ The routing works by starting with the most specific match to the path of an
 incoming request. If that app does not try to handle the request &mdash;
 note that it counts as a "try" to end up `throw`ing out of the handler &mdash;
 the next most specific match is asked, and so on, until there are no path
-matches left.
+matches left. If the router runs out of candidate bindings, or if a `null`
+app binding is encountered, then the router stops without handling the request.
 
 ```js
 import { PathRouter } from '@lactoserv/webapp-builtins';
