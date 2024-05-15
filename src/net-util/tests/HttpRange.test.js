@@ -180,6 +180,30 @@ describe('rangeInfo()', () => {
     expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
       .toThrow();
   });
+
+  test('throws if given a non-string `requestMethod`', () => {
+    const requestMethod   = 123;
+    const requestHeaders  = new HttpHeaders();
+    const responseHeaders = new HttpHeaders();
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
+      .toThrow();
+  });
+
+  test('throws if given a non-`HttpHeaders` `requestHeaders`', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new Headers();
+    const responseHeaders = new HttpHeaders();
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
+      .toThrow();
+  });
+
+  test('throws if given a non-`HttpHeaders` `responseHeaders`', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders();
+    const responseHeaders = new Headers();
+    expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
+      .toThrow();
+  });
 });
 
 describe('setBasicResponseHeaders()', () => {
