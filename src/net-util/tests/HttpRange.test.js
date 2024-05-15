@@ -129,6 +129,21 @@ describe('rangeInfo()', () => {
     });
   });
 
+  test('correctly rejects an invalid range (bad unit)', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ range: 'florps=10-500' });
+    const responseHeaders = new HttpHeaders();
+    const statsOrLength   = 1000;
+    const got =
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
+
+    expect(got).toEqual({
+      headers: { 'content-range': 'bytes */1000' },
+      error:  true,
+      status: 416
+    });
+  });
+
   test('throws if given an invalid `statsOrLength`', () => {
     const requestMethod   = 'get';
     const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
@@ -164,21 +179,6 @@ describe('rangeInfo()', () => {
       HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
 
     expect(got).toBeNull();
-  });
-
-  test('correctly rejects an invalid range (bad unit)', () => {
-    const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ range: 'florps=10-500' });
-    const responseHeaders = new HttpHeaders();
-    const statsOrLength   = 1000;
-    const got =
-      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
-
-    expect(got).toEqual({
-      headers: { 'content-range': 'bytes */1000' },
-      error:  true,
-      status: 416
-    });
   });
 });
 
