@@ -144,6 +144,17 @@ describe('rangeInfo()', () => {
     });
   });
 
+  test('returns `null` given a valid case that is requesting disjoint ranges', () => {
+    const requestMethod   = 'get';
+    const requestHeaders  = new HttpHeaders({ range: 'bytes=1-5, 100-110' });
+    const responseHeaders = new HttpHeaders();
+    const statsOrLength   = 1000;
+    const got =
+      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
+
+    expect(got).toBeNull();
+  });
+
   test('throws if given an invalid `statsOrLength`', () => {
     const requestMethod   = 'get';
     const requestHeaders  = new HttpHeaders({ range: 'bytes=5-10' });
@@ -168,17 +179,6 @@ describe('rangeInfo()', () => {
     const responseHeaders = new HttpHeaders({ 'content-length': 'flibbity-jibbit' });
     expect(() => HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null))
       .toThrow();
-  });
-
-  test('returns `null` given a valid case that is requesting disjoint ranges', () => {
-    const requestMethod   = 'get';
-    const requestHeaders  = new HttpHeaders({ range: 'bytes=1-5, 100-110' });
-    const responseHeaders = new HttpHeaders();
-    const statsOrLength   = 1000;
-    const got =
-      HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength);
-
-    expect(got).toBeNull();
   });
 });
 
