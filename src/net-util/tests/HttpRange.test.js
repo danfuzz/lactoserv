@@ -17,8 +17,18 @@ describe('rangeInfo()', () => {
     expect(got).toBeNull();
   });
 
-  test('returns `null` given a range request but with an invalid method', () => {
-    const requestMethod   = 'post';
+  test.each`
+  requestMethod
+  ${'post'}
+  ${'POST'}
+  ${'put'}
+  ${'PUT'}
+  ${'delete'}
+  ${'OPTIONS'}
+  ${'trace'}
+  ${'CONNECT'}
+  ${'patch'}
+  `('returns `null` given a request with `range` but method `$requestMethod` that doesn\'t do ranges', ({ requestMethod }) => {
     const requestHeaders  = new HttpHeaders({ range: 'bytes=10-500' });
     const responseHeaders = new HttpHeaders();
     const statsOrLength   = 1000;
