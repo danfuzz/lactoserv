@@ -60,6 +60,18 @@ export class HttpRange {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
 
+    switch (requestMethod) {
+      case 'get': case 'head':
+      case 'GET': case 'HEAD': {
+        // Possibly applicable.
+        break;
+      }
+      default: {
+        // Definitely not applicable.
+        return null;
+      }
+    }
+
     const range = requestHeaders.get('range');
 
     if (!range) {
@@ -85,7 +97,7 @@ export class HttpRange {
       throw new Error('`statsOrLength` must be `null`, a `StatsBase`, or a number.');
     }
 
-    if (!HttpConditional.isRangeApplicable(requestMethod, requestHeaders, responseHeaders, stats)) {
+    if (!HttpConditional.isRangeApplicable(requestHeaders, responseHeaders, stats)) {
       // There was a range condition which didn't match.
       return null;
     }

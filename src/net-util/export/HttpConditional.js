@@ -125,22 +125,18 @@ export class HttpConditional {
   /**
    * Checks to see if a range request would be applicable in light of any
    * conditional range request headers. This returns `true` if it is valid to
-   * send a `206` ("Partial Content") response.
+   * send a `206` ("Partial Content") response. This method's response assumes
+   * that the request method has been (or will be) deemed appropriate.
    *
-   * A range request is considered to be applicable if:
-   * * The request method is `HEAD` or `GET`.
-   * * One of:
-   *   * The request does not have a range condition at all.
-   *   * The request has an `if-range` header with a matching etag.
-   *   * The request has an `if-range` header with a sufficiently-late date.
-   *     This form is akin to the `if-unmodified-since` header for non-range
-   *     requests.
+   * A range request is considered to be applicable if one of:
+   * * The request does not have a range condition at all.
+   * * The request has an `if-range` header with a matching etag.
+   * * The request has an `if-range` header with a sufficiently-late date. This
+   *   form is akin to the `if-unmodified-since` header for non-range requests.
    *
    * This assumes that the response would have a sans-check status code that is
    * acceptable for conversion to status `206` ("Partial Content").
    *
-   * @param {string} requestMethod The request method (e.g., `get`), in either
-   *   lowercase or all-caps.
    * @param {HttpHeaders} requestHeaders Request headers which possibly contain
    *   range conditionals. The header that matters in this regard is `if-range`.
    * @param {?HttpHeaders} responseHeaders Would-be response headers for a
@@ -151,25 +147,13 @@ export class HttpConditional {
    *   precedence over a header value.
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
-  static isRangeApplicable(requestMethod, requestHeaders, responseHeaders, stats = null) {
-    MustBe.string(requestMethod);
+  static isRangeApplicable(requestHeaders, responseHeaders, stats = null) {
     MustBe.instanceOf(requestHeaders, HttpHeaders);
     if (responseHeaders !== null) {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
     if (stats !== null) {
       MustBe.instanceOf(stats, StatsBase);
-    }
-
-    switch (requestMethod) {
-      case 'get': case 'head':
-      case 'GET': case 'HEAD': {
-        // Possibly applicable.
-        break;
-      }
-      default: {
-        return false;
-      }
     }
 
     const ifRange = requestHeaders.get('if-range');
