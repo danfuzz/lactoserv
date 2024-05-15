@@ -26,7 +26,7 @@ ${'isRangeApplicable'}
       args.unshift('get'); // A valid `requestMethod`.
     }
     return HttpConditional[methodName](...args);
-  }
+  };
 
   test('rejects incorrect `requestHeaders`', () => {
     expect(() => doCall(null, new HttpHeaders(), statsNum)).toThrow();
@@ -71,7 +71,7 @@ describe('isContentFresh()', () => {
 
   test('rejects non-string `requestMethod`', () => {
     expect(() => {
-      HttpConditional.isContentFresh(123, new HttpHeaders(), new HttpHeaders(), statsNum)
+      HttpConditional.isContentFresh(123, new HttpHeaders(), new HttpHeaders(), statsNum);
     }).toThrow();
   });
 
