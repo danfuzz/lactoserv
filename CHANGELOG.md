@@ -11,6 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `data-values`:
+  * Made it so that all instances of `BaseStruct` are frozen. This had been
+    intended all along, but was overlooked in the implementation until now.
 * `metacomp`:
   * Distilled all the static `make*Proxy()` methods on `BaseProxyHandler` down
     to just a single options-taking `makeProxy()`.

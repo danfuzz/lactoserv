@@ -11,6 +11,8 @@ import { AskIf, MustBe } from '@this/typey';
  * (base) class. This class defines the mechanism by which a plain object gets
  * mapped into properties on the constructed instance, including running
  * validation on each property and a final overall validation.
+ *
+ * Instances of this class are always frozen.
  */
 export class BaseStruct {
   /**
@@ -24,6 +26,7 @@ export class BaseStruct {
     rawObject = (rawObject === null) ? {} : MustBe.plainObject(rawObject);
 
     this.#fillInObject(rawObject);
+    Object.freeze(this);
   }
 
   /**

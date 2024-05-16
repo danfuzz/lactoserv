@@ -13,6 +13,7 @@ import { BaseStruct } from '@this/data-values';
 function expectResult(instance, cls, expected) {
   expect(instance).toBeInstanceOf(BaseStruct);
   expect(instance.constructor).toBe(cls);
+  expect(instance).toBeFrozen();
 
   expect({ ...instance }).toEqual(expected);
 
@@ -42,7 +43,12 @@ describe('using the (base) class directly', () => {
         expect(() => new BaseStruct(...args)).not.toThrow();
       });
 
-      test('produces an instance with no extra properties', () => {
+      test('produces a frozen instance', () => {
+        const instance = new BaseStruct(...args);
+        expect(instance).toBeFrozen();
+      });
+
+      test('produces an empty instance', () => {
         const instance = new BaseStruct(...args);
         expectResult(instance, BaseStruct, {});
       });
