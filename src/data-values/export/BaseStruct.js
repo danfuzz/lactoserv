@@ -75,17 +75,17 @@ export class BaseStruct {
    * @param {object} rawObject Raw object.
    */
   #fillInObject(rawObject) {
-    const checkers    = this.#findConfigCheckers();
+    const checkers    = this.#findPropertyCheckers();
     const sortedNames = [...checkers.keys()].sort();
     const props       = {};
     const leftovers   = new Set(Object.keys(rawObject));
 
     for (const name of sortedNames) {
-      const checker   = checkers.get(name);
-      const hasConfig = name in rawObject;
+      const checker = checkers.get(name);
+      const hasName = name in rawObject;
 
       try {
-        const value = hasConfig
+        const value = hasName
           ? this[checker](rawObject[name])
           : this[checker]();
 
@@ -95,11 +95,11 @@ export class BaseStruct {
 
         props[name] = value;
 
-        if (hasConfig) {
+        if (hasName) {
           leftovers.delete(name);
         }
       } catch (e) {
-        if (!hasConfig) {
+        if (!hasName) {
           // This could also be due to a bug in the concrete struct class.
           throw new Error(`Missing required property: \`${name}\``);
         }
@@ -136,7 +136,7 @@ export class BaseStruct {
    * @returns {Map<string, string>} The map from property names to corresponding
    *   checker method names.
    */
-  #findConfigCheckers() {
+  #findPropertyCheckers() {
     const result = new Map();
     const prefix = `_${this._impl_propertyPrefix()}_`;
     let   target = this;
