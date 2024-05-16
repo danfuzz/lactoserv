@@ -11,6 +11,8 @@ import { AskIf, MustBe } from '@this/typey';
  * (base) class. This class defines the mechanism by which a plain object gets
  * mapped into properties on the constructed instance, including running
  * validation on each property and a final overall validation.
+ *
+ * Instances of this class are always frozen.
  */
 export class BaseStruct {
   /**
@@ -24,6 +26,7 @@ export class BaseStruct {
     rawObject = (rawObject === null) ? {} : MustBe.plainObject(rawObject);
 
     this.#fillInObject(rawObject);
+    Object.freeze(this);
   }
 
   /**
@@ -75,17 +78,17 @@ export class BaseStruct {
    * @param {object} rawObject Raw object.
    */
   #fillInObject(rawObject) {
-    const checkers    = this.#findConfigCheckers();
+    const checkers    = this.#findPropertyCheckers();
     const sortedNames = [...checkers.keys()].sort();
     const props       = {};
     const leftovers   = new Set(Object.keys(rawObject));
 
     for (const name of sortedNames) {
-      const checker   = checkers.get(name);
-      const hasConfig = name in rawObject;
+      const checker = checkers.get(name);
+      const hasName = name in rawObject;
 
       try {
-        const value = hasConfig
+        const value = hasName
           ? this[checker](rawObject[name])
           : this[checker]();
 
@@ -95,11 +98,11 @@ export class BaseStruct {
 
         props[name] = value;
 
-        if (hasConfig) {
+        if (hasName) {
           leftovers.delete(name);
         }
       } catch (e) {
-        if (!hasConfig) {
+        if (!hasName) {
           // This could also be due to a bug in the concrete struct class.
           throw new Error(`Missing required property: \`${name}\``);
         }
@@ -110,7 +113,7 @@ export class BaseStruct {
     if (leftovers.size !== 0) {
       const names = [...leftovers].join(', ');
       const word  = (leftovers.size === 1) ? 'property' : 'properties';
-      throw new Error(`Extra property ${word}: \`${names}\``);
+      throw new Error(`Extra ${word}: \`${names}\``);
     }
 
     const finalProps = this._impl_validate(props);
@@ -136,7 +139,7 @@ export class BaseStruct {
    * @returns {Map<string, string>} The map from property names to corresponding
    *   checker method names.
    */
-  #findConfigCheckers() {
+  #findPropertyCheckers() {
     const result = new Map();
     const prefix = `_${this._impl_propertyPrefix()}_`;
     let   target = this;
@@ -191,7 +194,7 @@ export class BaseStruct {
    * @returns {BaseStruct} Instance of the concrete class that this method was
    *   called on.
    */
-  static eval(rawObject, { defaults = {} }) {
+  static eval(rawObject, { defaults = {} } = {}) {
     rawObject ??= {};
 
     if (rawObject instanceof this) {

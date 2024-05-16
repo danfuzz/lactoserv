@@ -11,6 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `data-values`:
+  * Made it so that all instances of `BaseStruct` are frozen. This had been
+    intended all along, but was overlooked in the implementation until now.
 * `metacomp`:
   * Distilled all the static `make*Proxy()` methods on `BaseProxyHandler` down
     to just a single options-taking `makeProxy()`.
@@ -30,6 +33,9 @@ Other notable changes:
   * Made it possible for a component to add children before it is initialized.
 * `data-values`:
   * Add to `Converter` the ability to configure how to encode proxies.
+* testing:
+  * With apologies to Goodhart's Law... Wrote a bunch of unit tests to cover
+    notable gaps, based on the coverage report.
 
 ### v0.7.2 -- 2024-05-08
 
