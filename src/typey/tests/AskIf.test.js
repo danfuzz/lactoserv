@@ -3,8 +3,45 @@
 
 import { AskIf } from '@this/typey';
 
+describe('arrayOf()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${'abc1231'}
+  ${1234}
+  ${{ a: [1, 2, 3] }}
+  `('returns `false` for non-array: $arg', ({ arg }) => {
+    expect(AskIf.arrayOf(arg, () => true)).toBeFalse();
+  });
 
-// TODO: Almost everything.
+  test('returns `true` no matter what the predicate, given an empty array', () => {
+    expect(AskIf.arrayOf([], () => false)).toBeTrue();
+  });
+
+  test('returns `false` if the predicate ever returns `false`', () => {
+    const predicate = (elem) => (elem === 'boop');
+    expect(AskIf.arrayOf([1, 2, 3, 'boop', 4, 5], predicate)).toBeFalse();
+  });
+
+  test('returns `true` if the predicate always returns `true`', () => {
+    expect(AskIf.arrayOf([[], new Map(), 'boop', 4, 5], () => true)).toBeTrue();
+  });
+
+  test('actually calls the predicate for each element if they all pass', () => {
+    const args = ['a', 'b', 'c', 12345, [1, 2, 3]];
+    const callArgs = [];
+    const predicate = (elem) => {
+      callArgs.push(elem);
+      return true;
+    };
+
+    expect(AskIf.arrayOf(args, predicate)).toBeTrue();
+    expect(callArgs).toEqual(args);
+    expect(callArgs[4]).toBe(args[4]);
+  });
+});
 
 describe('arrayOfString()', () => {
   test.each`
