@@ -28,11 +28,9 @@ export class BaseConfig extends BaseStruct {
    * @returns {?function(new:object)} Accepted configuration value.
    */
   _config_class(value = null) {
-    if (value === null) {
-      return null;
-    }
-
-    return MustBe.constructorFunction(value);
+    return (value === null)
+      ? null
+      : MustBe.constructorFunction(value);
   }
 
   /** @override */
