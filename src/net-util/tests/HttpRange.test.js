@@ -127,6 +127,71 @@ describe('rangeInfo()', () => {
         length:       20
       });
     });
+
+    test('works for a valid etag-conditional case (condition is satisfied)', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': '"FLORP"',
+        'range':    'bytes=10-11'
+      });
+      const responseHeaders = new HttpHeaders({
+        'content-length': '20',
+        'etag':           '"FLORP"'
+      });
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, null);
+
+      expect(got).toEqual({
+        headers: {
+          'accept-ranges': 'bytes',
+          'content-range': 'bytes 10-11/20'
+        },
+        status:       206,
+        start:        10,
+        end:          12,
+        endInclusive: 11,
+        length:       2
+      });
+    });
+
+    test('does not match an etag-conditional that uses a _weak_ etag', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': 'W/"FLORP"',
+        'range':    'bytes=10-11'
+      });
+      const responseHeaders = new HttpHeaders({
+        'etag': 'W/"FLORP"'
+      });
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 123);
+
+      expect(got).toBeNull();
+    });
+
+    test('does not match an etag-conditional when the response does not have an etag', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': '"FLORP"',
+        'range':    'bytes=10-11'
+      });
+      const responseHeaders = new HttpHeaders({});
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 123);
+
+      expect(got).toBeNull();
+    });
+
+    test('does not match an etag-conditional when the response has a different etag', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': '"FLORP"',
+        'range':    'bytes=10-11'
+      });
+      const responseHeaders = new HttpHeaders({
+        'etag': '"ZOINKS"'
+      });
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 123);
+
+      expect(got).toBeNull();
+    });
   });
 
   test('correctly rejects an invalid range (bad unit)', () => {
