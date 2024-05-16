@@ -44,8 +44,7 @@ describe('using the (base) class directly', () => {
 
       test('produces an instance with no extra properties', () => {
         const instance = new BaseStruct(...args);
-        const props    = Object.getOwnPropertyNames(instance);
-        expect(props).toEqual([]);
+        expectResult(instance, BaseStruct, {});
       });
     });
 
@@ -112,8 +111,7 @@ describe('using the (base) class directly', () => {
       ${{}}
       `('given empty-ish argument $arg, returns an empty instance', ({ arg }) => {
         const instance = BaseStruct.eval(arg);
-        const props    = Object.getOwnPropertyNames(instance);
-        expect(props).toEqual([]);
+        expectResult(instance, BaseStruct, {});
       });
 
       test('throws given an instance of a non-struct class (which isn\'t a plain object)', () => {
@@ -143,8 +141,7 @@ describe('using the (base) class directly', () => {
   describe('given `defaults`', () => {
     test('works given an empty argument and empty `defaults`', () => {
       const instance = BaseStruct.eval({}, { defaults: {} });
-      const props    = Object.getOwnPropertyNames(instance);
-      expect(props).toEqual([]);
+      expectResult(instance, BaseStruct, {});
     });
 
     test('throws given `defaults` with any properties', () => {
@@ -168,6 +165,15 @@ describe('using a subclass', () => {
         return value;
       }
     }
+
+    /** @override */
+    _impl_validate(lessRawObject) {
+      switch (lessRawObject.florp) {
+        case 100: return { flip: 'flop' };
+        case 200: return undefined;
+        default:  return lessRawObject;
+      }
+    }
   }
 
   describe('with no `defaults`', () => {
@@ -181,12 +187,21 @@ describe('using a subclass', () => {
       expectResult(instance, SomeStruct, props);
     });
 
+    test('produces the expected result if `_impl_validate()` returns a replacement', () => {
+      const instance = SomeStruct.eval({ florp: 100 });
+      expectResult(instance, SomeStruct, { flip: 'flop' });
+    });
+
     test('throws if a property does not pass the property-specific validation', () => {
       expect(() => SomeStruct.eval({ florp: 'non-number' })).toThrow();
     });
 
     test('throws if a property-specific validation returns `undefined`', () => {
       expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow();
+    });
+
+    test('throws if `_impl_validate()` returns `undefined`', () => {
+      expect(() => SomeStruct.eval({ florp: 200 })).toThrow();
     });
   });
 
