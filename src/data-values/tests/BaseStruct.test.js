@@ -3,6 +3,32 @@
 
 import { BaseStruct } from '@this/data-values';
 
+/**
+ * Checks an instance to see if it has the expected properties.
+ *
+ * @param {*} instance The instance.
+ * @param {function(new:BaseStruct)} cls Its expected class.
+ * @param {object} expected The expected properties.
+ */
+function expectResult(instance, cls, expected) {
+  expect(instance).toBeInstanceOf(BaseStruct);
+  expect(instance.constructor).toBe(cls);
+
+  expect({ ...instance }).toEqual(expected);
+
+  const props = Object.getOwnPropertyDescriptors(instance);
+  for (const [name, desc] of Object.entries(props)) {
+    expect(name in instance).toBeTrue();
+    expect(desc).toEqual({
+      value:        instance[name],
+      writable:     false,
+      configurable: false,
+      enumerable:   true
+    });
+  }
+}
+
+
 describe('using the (base) class directly', () => {
   describe('constructor()', () => {
     describe.each`
@@ -113,8 +139,69 @@ describe('using the (base) class directly', () => {
       });
     });
   });
+
+  describe('given `defaults`', () => {
+    test('works given an empty argument and empty `defaults`', () => {
+      const instance = BaseStruct.eval({}, { defaults: {} });
+      const props    = Object.getOwnPropertyNames(instance);
+      expect(props).toEqual([]);
+    });
+
+    test('throws given `defaults` with any properties', () => {
+      // ...because the base class doesn't define any properties.
+      expect(() => BaseStruct.eval({}, { defaults: { beep: 'boop' } })).toThrow();
+    });
+  });
 });
 
 describe('using a subclass', () => {
-  // TODO
+  class SomeStruct extends BaseStruct {
+    // @defaultConstructor
+
+    // xeslint-disable-next-line
+    _struct_florp(value) {
+      if (value === 'return-undefined') {
+        return undefined;
+      } else if (typeof value !== 'number') {
+        throw new Error('Not a number!');
+      } else {
+        return value;
+      }
+    }
+  }
+
+  describe('with no `defaults`', () => {
+    test('throws if a required property is missing', () => {
+      expect(() => SomeStruct.eval({})).toThrow();
+    });
+
+    test('produces the expected result if all required properties are present and valid', () => {
+      const props    = { florp: 123 };
+      const instance = SomeStruct.eval(props);
+      expectResult(instance, SomeStruct, props);
+    });
+
+    test('throws if a property does not pass the property-specific validation', () => {
+      expect(() => SomeStruct.eval({ florp: 'non-number' })).toThrow();
+    });
+
+    test('throws if a property-specific validation returns `undefined`', () => {
+      expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow();
+    });
+  });
+
+  describe('with non-empty `defaults`', () => {
+    test('fills in a missing argument property', () => {
+      const defaults = { florp: 543 };
+      const instance = SomeStruct.eval({}, { defaults });
+      expectResult(instance, SomeStruct, defaults);
+    });
+
+    test('does not override an existing argument property', () => {
+      const props    = { florp: 6789 };
+      const defaults = { florp: 4321 };
+      const instance = SomeStruct.eval(props, { defaults });
+      expectResult(instance, SomeStruct, props);
+    });
+  });
 });
