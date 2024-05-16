@@ -182,6 +182,25 @@ describe('using a subclass', () => {
 
   describe('eval()', () => {
     describe('with no `defaults`', () => {
+      test('given a direct instance of the class, returns it', () => {
+        const instance = new SomeStruct({ florp: 432 });
+        expect(SomeStruct.eval(instance)).toBe(instance);
+      });
+
+      test('given an instance of a subclass, returns it', () => {
+        class SomeSubStruct extends SomeStruct {
+          // @emptyBlock
+        }
+
+        const instance = new SomeSubStruct({ florp: 987 });
+        expect(SomeStruct.eval(instance)).toBe(instance);
+      });
+
+      test('throws if given an instance of superclass', () => {
+        const instance = new BaseStruct();
+        expect(() => SomeStruct.eval(instance)).toThrow();
+      });
+
       test('throws if a required property is missing', () => {
         expect(() => SomeStruct.eval({})).toThrow();
       });
