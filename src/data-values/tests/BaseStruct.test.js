@@ -156,6 +156,10 @@ describe('using a subclass', () => {
     // @defaultConstructor
 
     // xeslint-disable-next-line
+    _struct_abc(value = 'xyz') {
+      return value;
+    }
+
     _struct_florp(value) {
       if (value === 'return-undefined') {
         return undefined;
@@ -185,6 +189,12 @@ describe('using a subclass', () => {
       test('produces the expected result if all required properties are present and valid', () => {
         const props    = { florp: 123 };
         const instance = SomeStruct.eval(props);
+        expectResult(instance, SomeStruct, { ...props, abc: 'xyz' });
+      });
+
+      test('allows a property with a property-specific default to be overridden', () => {
+        const props    = { florp: 12, abc: 'pdq' };
+        const instance = SomeStruct.eval(props);
         expectResult(instance, SomeStruct, props);
       });
 
@@ -210,14 +220,14 @@ describe('using a subclass', () => {
       test('fills in a missing argument property', () => {
         const defaults = { florp: 543 };
         const instance = SomeStruct.eval({}, { defaults });
-        expectResult(instance, SomeStruct, defaults);
+        expectResult(instance, SomeStruct, { ...defaults, abc: 'xyz' });
       });
 
       test('does not override an existing argument property', () => {
         const props    = { florp: 6789 };
         const defaults = { florp: 4321 };
         const instance = SomeStruct.eval(props, { defaults });
-        expectResult(instance, SomeStruct, props);
+        expectResult(instance, SomeStruct, { ...props, abc: 'xyz' });
       });
 
       test('throws if `default` has a property not defined by the class', () => {
