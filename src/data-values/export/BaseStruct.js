@@ -110,7 +110,7 @@ export class BaseStruct {
     if (leftovers.size !== 0) {
       const names = [...leftovers].join(', ');
       const word  = (leftovers.size === 1) ? 'property' : 'properties';
-      throw new Error(`Extra property ${word}: \`${names}\``);
+      throw new Error(`Extra ${word}: \`${names}\``);
     }
 
     const finalProps = this._impl_validate(props);
