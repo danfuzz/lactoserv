@@ -387,9 +387,7 @@ describe('encode()', () => {
       // TODO: More!
     });
   });
-});
 
-describe('encode()', () => {
   describe('with default config, except `freeze === false`', () => {
     const config = new ConverterConfig({ freeze: false });
 
