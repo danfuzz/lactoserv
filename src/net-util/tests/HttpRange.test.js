@@ -159,7 +159,7 @@ describe('rangeInfo()', () => {
         'range':    'bytes=10-11'
       });
       const responseHeaders = new HttpHeaders({
-        'etag': 'W/"FLORP"'
+        etag: 'W/"FLORP"'
       });
       const got =
         HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 123);
@@ -185,7 +185,7 @@ describe('rangeInfo()', () => {
         'range':    'bytes=10-11'
       });
       const responseHeaders = new HttpHeaders({
-        'etag': '"ZOINKS"'
+        etag: '"ZOINKS"'
       });
       const got =
         HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 123);
