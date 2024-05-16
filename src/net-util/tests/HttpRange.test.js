@@ -192,6 +192,84 @@ describe('rangeInfo()', () => {
 
       expect(got).toBeNull();
     });
+
+    test('works for a valid date-conditional case (condition is satisfied), where the response has a `last-modified` header', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': 'Thu, 16 May 2024 00:04:21 GMT',
+        'range':    'bytes=51-60'
+      });
+      const responseHeaders = new HttpHeaders({
+        'last-modified': 'Sun, 21 Jan 2024 06:18:17 GMT'
+      });
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 2345);
+
+      expect(got).toEqual({
+        headers: {
+          'accept-ranges': 'bytes',
+          'content-range': 'bytes 51-60/2345'
+        },
+        status:       206,
+        start:        51,
+        end:          61,
+        endInclusive: 60,
+        length:       10
+      });
+    });
+
+    test('works for a valid date-conditional case (condition is satisfied), where a stats object is available', async () => {
+      // A convenient known-to-exist path.
+      const path  = (new URL(import.meta.url)).pathname;
+      const stats = await fs.stat(path);
+      const len   = stats.size;
+
+      const requestHeaders  = new HttpHeaders({
+        'if-range': new Date(stats.mtimeMs + 1000).toUTCString(),
+        'range':    'bytes=0-10'
+      });
+      const responseHeaders = new HttpHeaders({});
+
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, stats);
+
+      expect(got).toEqual({
+        headers: {
+          'accept-ranges': 'bytes',
+          'content-range': `bytes 0-10/${len}`
+        },
+        status:       206,
+        start:        0,
+        end:          11,
+        endInclusive: 10,
+        length:       11
+      });
+    });
+
+    test('does not match a date-conditional when the response has a later `last-modified`', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': 'Wed, 15 May 2024 21:20:53 GMT',
+        'range':    'bytes=51-60'
+      });
+      const responseHeaders = new HttpHeaders({
+        'last-modified': 'Wed, 15 May 2024 21:20:54 GMT'
+      });
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 2345);
+
+      expect(got).toBeNull();
+    });
+
+    test('does not match a date-conditional when the response has no `last-modified` and no stats', () => {
+      const requestHeaders  = new HttpHeaders({
+        'if-range': 'Wed, 15 May 2024 21:20:53 GMT',
+        'range':    'bytes=51-60'
+      });
+      const responseHeaders = new HttpHeaders({});
+      const got =
+        HttpRange.rangeInfo(requestMethod, requestHeaders, responseHeaders, 2345);
+
+      expect(got).toBeNull();
+    });
   });
 
   test('correctly rejects an invalid range (bad unit)', () => {
