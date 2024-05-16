@@ -176,47 +176,55 @@ describe('using a subclass', () => {
     }
   }
 
-  describe('with no `defaults`', () => {
-    test('throws if a required property is missing', () => {
-      expect(() => SomeStruct.eval({})).toThrow();
+  describe('eval()', () => {
+    describe('with no `defaults`', () => {
+      test('throws if a required property is missing', () => {
+        expect(() => SomeStruct.eval({})).toThrow();
+      });
+
+      test('produces the expected result if all required properties are present and valid', () => {
+        const props    = { florp: 123 };
+        const instance = SomeStruct.eval(props);
+        expectResult(instance, SomeStruct, props);
+      });
+
+      test('produces the expected result if `_impl_validate()` returns a replacement', () => {
+        const instance = SomeStruct.eval({ florp: 100 });
+        expectResult(instance, SomeStruct, { flip: 'flop' });
+      });
+
+      test('throws if a property does not pass the property-specific validation', () => {
+        expect(() => SomeStruct.eval({ florp: 'non-number' })).toThrow();
+      });
+
+      test('throws if a property-specific validation returns `undefined`', () => {
+        expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow();
+      });
+
+      test('throws if `_impl_validate()` returns `undefined`', () => {
+        expect(() => SomeStruct.eval({ florp: 200 })).toThrow();
+      });
     });
 
-    test('produces the expected result if all required properties are present and valid', () => {
-      const props    = { florp: 123 };
-      const instance = SomeStruct.eval(props);
-      expectResult(instance, SomeStruct, props);
-    });
+    describe('with non-empty `defaults`', () => {
+      test('fills in a missing argument property', () => {
+        const defaults = { florp: 543 };
+        const instance = SomeStruct.eval({}, { defaults });
+        expectResult(instance, SomeStruct, defaults);
+      });
 
-    test('produces the expected result if `_impl_validate()` returns a replacement', () => {
-      const instance = SomeStruct.eval({ florp: 100 });
-      expectResult(instance, SomeStruct, { flip: 'flop' });
-    });
+      test('does not override an existing argument property', () => {
+        const props    = { florp: 6789 };
+        const defaults = { florp: 4321 };
+        const instance = SomeStruct.eval(props, { defaults });
+        expectResult(instance, SomeStruct, props);
+      });
 
-    test('throws if a property does not pass the property-specific validation', () => {
-      expect(() => SomeStruct.eval({ florp: 'non-number' })).toThrow();
-    });
-
-    test('throws if a property-specific validation returns `undefined`', () => {
-      expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow();
-    });
-
-    test('throws if `_impl_validate()` returns `undefined`', () => {
-      expect(() => SomeStruct.eval({ florp: 200 })).toThrow();
-    });
-  });
-
-  describe('with non-empty `defaults`', () => {
-    test('fills in a missing argument property', () => {
-      const defaults = { florp: 543 };
-      const instance = SomeStruct.eval({}, { defaults });
-      expectResult(instance, SomeStruct, defaults);
-    });
-
-    test('does not override an existing argument property', () => {
-      const props    = { florp: 6789 };
-      const defaults = { florp: 4321 };
-      const instance = SomeStruct.eval(props, { defaults });
-      expectResult(instance, SomeStruct, props);
+      test('throws if `default` has a property not defined by the class', () => {
+        const props    = { florp: 6789 };
+        const defaults = { zonk:  4321 };
+        expect(() => SomeStruct.eval(props, { defaults })).toThrow();
+      });
     });
   });
 });
