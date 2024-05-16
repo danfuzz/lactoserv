@@ -61,7 +61,7 @@ describe('using the (base) class directly', () => {
 
     test('throws given a non-empty plain object', () => {
       // ...because the base class doesn't define any properties.
-      expect(() => new BaseStruct({ what: 'nope' })).toThrow(/Extra property/);
+      expect(() => new BaseStruct({ what: 'nope' })).toThrow(/Extra property:/);
     });
   });
 
@@ -203,6 +203,14 @@ describe('using a subclass', () => {
 
       test('throws if a required property is missing', () => {
         expect(() => SomeStruct.eval({})).toThrow();
+      });
+
+      test('throws if there is one extra property', () => {
+        expect(() => SomeStruct.eval({ florp: 1, boop: 2 })).toThrow(/Extra property:/);
+      });
+
+      test('throws if there are two extra properties', () => {
+        expect(() => SomeStruct.eval({ florp: 1, boop: 2, beep: 3 })).toThrow(/Extra properties:/);
       });
 
       test('produces the expected result if all required properties are present and valid', () => {
