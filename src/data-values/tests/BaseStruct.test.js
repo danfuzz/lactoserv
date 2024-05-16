@@ -259,7 +259,7 @@ describe('using a subclass', () => {
 
       test('throws if `default` has a property not defined by the class', () => {
         const props    = { florp: 6789 };
-        const defaults = { zonk:  4321 };
+        const defaults = { zonk: 4321 };
         expect(() => SomeStruct.eval(props, { defaults })).toThrow();
       });
     });
