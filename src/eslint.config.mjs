@@ -239,6 +239,16 @@ const disallowedFunctionality = {
   ]
 };
 
+const disallowedFunctionalityNonTesting = {
+  'no-restricted-syntax': [
+    'error',
+    {
+      selector: 'MemberExpression[property.name=/^_testing_/]',
+      message:  'Only access `_testing_*` inside unit test files.'
+    }
+  ]
+};
+
 // Handy links:
 //
 // * JSDoc plugin for ESLint: <https://github.com/gajus/eslint-plugin-jsdoc>
@@ -314,7 +324,10 @@ export default [
     ignores: [
       '**/tests/**/*.test.{js,mjs,cjs}',
       '**/*.config.{js,mjs,cjs}'
-    ]
+    ],
+    rules: {
+      ...disallowedFunctionalityNonTesting
+    }
   },
 
   // Config files.
