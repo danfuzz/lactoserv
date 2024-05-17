@@ -300,16 +300,6 @@ export class FullResponse {
   }
 
   /**
-   * Indicates whether the response body has been set (including as "no body").
-   *
-   * @returns {boolean} `true` if this instance has had its body set, or `false`
-   *   if not.
-   */
-  hasBody() {
-    return this.#body !== null;
-  }
-
-  /**
    * Sets the response body to be based on a buffer.
    *
    * @param {Buffer} body The full body.

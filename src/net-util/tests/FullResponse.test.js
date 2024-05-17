@@ -8,7 +8,7 @@ describe('constructor()', () => {
   function expectEmpty(result) {
     expect(result.cacheControl).toBeNull();
     expect(result.status).toBeNull();
-    expect(result.hasBody()).toBeFalse();
+    expect(result._testing_getBody()).toBeNull();
     expect([...result.headers.keys()]).toEqual([]);
   }
 
