@@ -36,7 +36,7 @@ export class CertUtil {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkPrivateKey(value) {
-    const pattern = this.#makePemPattern('PRIVATE KEY');
+    const pattern = this.#makePemPattern('(RSA )?PRIVATE KEY');
     return MustBe.string(value, pattern);
   }
 
@@ -90,10 +90,17 @@ export class CertUtil {
       config:     certConfig
     });
 
-    return {
-      certificate: pemResult.certificate,
-      privateKey:  pemResult.clientKey
-    };
+    let { certificate, clientKey: privateKey } = pemResult;
+
+    if (!certificate.endsWith('\n')) {
+      certificate = `${certificate}\n`;
+    }
+
+    if (!privateKey.endsWith('\n')) {
+      privateKey = `${privateKey}\n`;
+    }
+
+    return { certificate, privateKey };
   }
 
   /**
