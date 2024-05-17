@@ -36,7 +36,21 @@ describe('constructor()', () => {
     expect(got.cacheControl).toBe(orig.cacheControl);
     expect(got.headers).not.toBe(orig.headers); // It should be a copy.
     expect([...got.headers.entries()]).toEqual([...orig.headers.entries()]);
-    expect(got.bodyBuffer).not.toBe(orig.bodyBuffer); // It should be a copy.
     expect(got.bodyBuffer).toEqual(orig.bodyBuffer);
+    expect(got._testing_getBody().buffer).toBe(orig._testing_getBody().buffer);
+  });
+});
+
+describe('.bodyBuffer', () => {
+  test('returns a copy of the buffer', () => {
+    const resp = new FullResponse();
+    const buf  = Buffer.alloc(123, 32);
+    resp.setBodyBuffer(buf);
+
+    const got = resp.bodyBuffer;
+    expect(got).toBeInstanceOf(Buffer);
+    expect(got).not.toBe(buf);
+    expect(got).not.toBe(resp._testing_getBody().buffer);
+    expect(got).toEqual(buf);
   });
 });
