@@ -1,8 +1,34 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { StatusResponse } from '@this/net-util';
+import { IncomingRequest, FullResponse, HttpHeaders, RequestContext,
+  StatusResponse }
+  from '@this/net-util';
 
+/**
+ * Constructs a request object.
+ *
+ * @param {string} authority The authority.
+ * @param {string} path The path.
+ * @returns {IncomingRequest} The request object.
+ */
+function makeRequest(authority, path) {
+  const context = new RequestContext(
+    Object.freeze({}),
+    Object.freeze({ address: '10.0.0.1', port: 65432 }));
+
+  return new IncomingRequest({
+    context,
+    headers:       new HttpHeaders(),
+    protocolName:  'http-2',
+    pseudoHeaders: new HttpHeaders({
+      scheme: 'https',
+      method: 'GET',
+      authority,
+      path
+    })
+  });
+}
 
 describe('constructor()', () => {
   test.each`
@@ -45,6 +71,68 @@ describe('.status', () => {
   test('is the argument from the constructor', () => {
     const status = 123;
     expect(new StatusResponse(status).status).toBe(status);
+  });
+});
+
+describe('responseFor()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${true}
+  ${'blort'}
+  ${12345}
+  ${{ urlForLog: 'https://foo.bar/' }}
+  `('throws given invalid argument: $arg', ({ arg }) => {
+    const sr = new StatusResponse(404);
+    expect(() => sr.responseFor(arg)).toThrow();
+  });
+
+  test.each`
+  status   | expectBody
+  ${100}   | ${false}
+  ${204}   | ${false}
+  ${205}   | ${false}
+  ${304}   | ${false}
+  ${400}   | ${true}
+  ${420}   | ${true}
+  ${500}   | ${true}
+  ${599}   | ${true}
+  `('produces the expected simple "meta" full response for status $status', ({ status, expectBody }) => {
+    const sr  = new StatusResponse(status);
+    const req = makeRequest('foo.bar', '/florp/like');
+    const got = sr.responseFor(req);
+
+    expect(got).toBeInstanceOf(FullResponse);
+
+    const body = got._testing_getBody();
+    if (expectBody) {
+      expect(body).toEqual({ type: 'message' });
+    } else {
+      expect(body).toEqual({ type: 'none' });
+    }
+  });
+
+  test('produces the expected URL-bearing message for status 404', () => {
+    const sr   = new StatusResponse(404);
+
+    const req1  = makeRequest('foo.bar', '/florp/like');
+    const got1  = sr.responseFor(req1);
+    const body1 = got1._testing_getBody();
+
+    expect(body1).toEqual({
+      type:         'message',
+      messageExtra: req1.urlForLog
+    });
+
+    const req2  = makeRequest('baz.blort', '/a/b/c/d/e.html');
+    const got2  = sr.responseFor(req2);
+    const body2 = got2._testing_getBody();
+
+    expect(body2).toEqual({
+      type:         'message',
+      messageExtra: req2.urlForLog
+    })
   });
 });
 
