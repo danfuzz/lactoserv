@@ -683,6 +683,19 @@ export class FullResponse {
   }
 
   /**
+   * Gets details about the body. **Note:** This method is meant for testing,
+   * and the details about what it returns are not considered subject to the API
+   * stability rules of this project.
+   *
+   * @returns {?object} Details about the body that was set, or `null` if no
+   *   `setBody*()` method was ever called on this instance. If non-`null` it is
+   *   always a frozen plain object.
+   */
+  _testing_getBody() {
+    return this.#body;
+  }
+
+  /**
    * Should we send a body in response to the given request? This takes into
    * account the request method and whether the status code allows bodies.
    *
