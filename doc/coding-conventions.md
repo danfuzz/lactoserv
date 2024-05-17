@@ -106,6 +106,15 @@ use the following comment in place of an intentionally omitted constructor:
   be called by subclasses; _not_ supposed to be used outside of the class. These
   are more or less `protected final` methods defined by a base class.
 
+* `_struct_<name>` &mdash; Method defined by struct classes which are (direct or
+  indirect) subclasses of `data-values.BaseStruct`. Each such method is
+  responsible for validating and parsing/converting the correspondingly named
+  property of a plain-object configuration.
+
+* `_testing_<name>` &mdash; Methods whose sole purpose is to do instance
+  introspection (and generally, break encapsulation) in order to make unit
+  testing a little less painful.
+
 With very few exceptions, members _not_ marked with `_impl_` should be treated
 as effectively `final`, that is, not to be overridden.
 
