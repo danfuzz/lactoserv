@@ -21,7 +21,6 @@
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/typey": "*",
-    "pem": "^1.14.8"
+    "@this/typey": "*"
   }
 }

@@ -1,10 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as net from 'node:net';
 import * as tls from 'node:tls';
-
-import pem from 'pem';
 
 import { BaseComponent } from '@this/compy';
 import { CertUtil, HostUtil } from '@this/net-util';
@@ -218,44 +215,6 @@ export class NetworkHost extends BaseComponent {
    * @returns {{certificate: string, privateKey: string}} The parameters.
    */
   static async #makeSelfSignedParameters(config) {
-    const altNames = [];
-    for (let i = 0; i < config.hostnames.length; i++) {
-      const name = config.hostnames[i];
-      if (net.isIP(name) === 0) {
-        altNames.push(`DNS.${i} = ${name}`);
-      } else {
-        altNames.push(`IP.${i} = ${name}`);
-      }
-    }
-
-    const certConfig = `
-    [req]
-    req_extensions = v3_req
-    distinguished_name = req_distinguished_name
-
-    [req_distinguished_name]
-    commonName = ${config.hostnames[0]}
-
-    [v3_req]
-    keyUsage = digitalSignature
-    extendedKeyUsage = serverAuth
-    subjectAltName = @alt_names
-
-    [alt_names]
-    ${altNames.join('\n')}
-    `;
-
-    const pemResult = await pem.promisified.createCertificate({
-      selfSigned: true,
-      days:       100,
-      keyBitsize: 4096,
-      commonName: config.hostnames[0],
-      config:     certConfig
-    });
-
-    return {
-      certificate: pemResult.certificate,
-      privateKey:  pemResult.clientKey
-    };
+    return CertUtil.makeSelfSignedPair(config.hostnames);
   }
 }
