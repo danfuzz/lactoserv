@@ -50,6 +50,8 @@ export class StatusResponse {
    * @returns {FullResponse} The full response to send.
    */
   responseFor(request) {
+    MustBe.instanceOf(request, IncomingRequest);
+
     const status = this.#status;
 
     if (status === 404) {

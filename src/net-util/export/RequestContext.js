@@ -45,7 +45,9 @@ export class RequestContext {
       }
 
       if (fd !== null) {
-        MustBe.number(fd);
+        // The maximum we use here is pretty much way beyond anything sane, that
+        // is, it's a very conservative maximum.
+        MustBe.number(fd, { safeInteger: true, minInclusive: 0, maxInclusive: 10000 });
       }
 
       if (port !== null) {
@@ -60,7 +62,7 @@ export class RequestContext {
       const { address, port } = origin;
 
       MustBe.string(address);
-      MustBe.number(port);
+      MustBe.number(port, { safeInteger: true, minInclusive: 0, maxInclusive: 65535 });
     }
 
     this.#interface = iface;

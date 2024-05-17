@@ -76,19 +76,7 @@ export class FullResponse {
       this.#status       = orig.#status;
       this.#headers      = orig.#headers ? new HttpHeaders(orig.headers) : null;
       this.#cacheControl = orig.#cacheControl;
-
-      const body = orig.#body;
-      if (body === null) {
-        this.#body = null;
-      } else {
-        const { type, buffer } = body;
-
-        // For type `buffer`, copy the buffer because we don't know if it got
-        // exposed via `.bodyBuffer`.
-        this.#body = (type === 'buffer')
-          ? Object.freeze({ ...body, buffer: Buffer.from(buffer) })
-          : body;
-      }
+      this.#body         = orig.#body;
     }
   }
 
@@ -98,13 +86,15 @@ export class FullResponse {
    * non-`null` after either {@link #setBodyBuffer} or {@link #setBodyString}
    * has been called (and not overwritten by another body-setting call).
    *
-   * **Note:** The returned buffer is shared with this instance. As such, it's
-   * generally ill-advised to modify its contents.
+   * **Note:** The returned buffer is a fresh copy, so that the innards of this
+   * instance don't get exposed. As such, it shouldn't be used in
+   * performance-sensitive code, nor should its result be kept gc-alive for very
+   * long.
    */
   get bodyBuffer() {
     const { type, buffer } = this.#body;
 
-    return (type === 'buffer') ? buffer : null;
+    return (type === 'buffer') ? new Buffer(buffer) : null;
   }
 
   /**
@@ -297,16 +287,6 @@ export class FullResponse {
       contentLength,
       headers: FullResponse.#sanitizeResponseHeaders(headers)
     };
-  }
-
-  /**
-   * Indicates whether the response body has been set (including as "no body").
-   *
-   * @returns {boolean} `true` if this instance has had its body set, or `false`
-   *   if not.
-   */
-  hasBody() {
-    return this.#body !== null;
   }
 
   /**
@@ -680,6 +660,19 @@ export class FullResponse {
         throw new Error(`Shouldn't happen: Weird body type: ${bodyType}.`);
       }
     }
+  }
+
+  /**
+   * Gets details about the body. **Note:** This method is meant for testing,
+   * and the details about what it returns are not considered subject to the API
+   * stability rules of this project.
+   *
+   * @returns {?object} Details about the body that was set, or `null` if no
+   *   `setBody*()` method was ever called on this instance. If non-`null` it is
+   *   always a frozen plain object.
+   */
+  _testing_getBody() {
+    return this.#body;
   }
 
   /**
