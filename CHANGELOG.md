@@ -14,7 +14,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* testing: Added more unit tests.
 
 ### v0.7.3 -- 2024-05-16
 
