@@ -245,6 +245,14 @@ const disallowedFunctionalityNonTesting = {
     {
       selector: 'MemberExpression[property.name=/^_testing_/]',
       message:  'Only access `_testing_*` inside unit test files.'
+    },
+    {
+      selector: 'ClassDeclaration[id.name!=/^Mock[A-Z]/] NewExpression[callee.name=/^Mock[A-Z]/]',
+      message:  'Only access `Mock*` classes inside unit test files.'
+    },
+    {
+      selector: 'ClassDeclaration[id.name!=/^Mock[A-Z]/] MemberExpression[object.name=/^Mock[A-Z]/]',
+      message:  'Only access `Mock*` classes inside unit test files.'
     }
   ]
 };
