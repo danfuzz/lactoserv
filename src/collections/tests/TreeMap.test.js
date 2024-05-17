@@ -650,6 +650,19 @@ describe('findSubtree()', () => {
     expect(result.get(key)).toBe(value);
   });
 
+  test('finds an exact non-wildcard match, given a non-wildcard key-like object', () => {
+    const path     = ['1', '2'];
+    const wildcard = false;
+    const key      = new PathKey(path, wildcard);
+    const value    = 'value';
+    const map      = new TreeMap();
+
+    map.add(key, value);
+    const result = map.findSubtree({ path, wildcard });
+    expect(result.size).toBe(1);
+    expect(result.get(key)).toBe(value);
+  });
+
   test('finds an exact wildcard match, given a non-wildcard key', () => {
     const key1  = new PathKey(['1', '2'], true);
     const key2  = new PathKey(['1', '2'], false);
