@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
+import { BaseConverter, Sexp } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -176,6 +177,19 @@ describe('.EMPTY', () => {
   });
 });
 
+describe('[BaseConverter.ENCODE]()', () => {
+  test('produces a `Sexp` with the constructor arguments the arguments', () => {
+    const args = [['beep', 'boop'], true];
+    const key = new PathKey(...args);
+    const got = key[BaseConverter.ENCODE]();
+
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.functor).toBe(PathKey);
+    expect(got.options).toEqual({});
+    expect(got.args).toEqual(args);
+  });
+});
+
 describe('concat()', () => {
   test('returns `this` given no arguments', () => {
     const key = new PathKey(['x'], false);
@@ -222,6 +236,14 @@ describe('concat()', () => {
 
     expect(result.wildcard).toBe(key.wildcard);
     expect(result.path).toStrictEqual(['x', 'y', 'z', 'a', 'b']);
+  });
+
+  test('throws given something that cannot be concatted', () => {
+    const key = new PathKey(['x'], true);
+
+    expect(() => key.concat(123)).toThrow();
+    expect(() => key.concat(key, true)).toThrow();
+    expect(() => key.concat(['a', 'b', { x: 'floop' }, 'c'])).toThrow();
   });
 });
 
