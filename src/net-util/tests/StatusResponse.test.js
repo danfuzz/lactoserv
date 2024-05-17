@@ -132,7 +132,7 @@ describe('responseFor()', () => {
     expect(body2).toEqual({
       type:         'message',
       messageExtra: req2.urlForLog
-    })
+    });
   });
 });
 
