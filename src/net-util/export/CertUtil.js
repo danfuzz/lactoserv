@@ -1,11 +1,15 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as net from 'node:net';
+
+import pem from 'pem';
+
 import { MustBe } from '@this/typey';
 
 
 /**
- * Utilities for parsing various sorts of certificatey stuff.
+ * Utilities for handling various sorts of certificatey stuff.
  */
 export class CertUtil {
   /**
@@ -34,6 +38,62 @@ export class CertUtil {
   static checkPrivateKey(value) {
     const pattern = this.#makePemPattern('PRIVATE KEY');
     return MustBe.string(value, pattern);
+  }
+
+  /**
+   * Generates a self-signed (certificate, private key) pair. **Note:** This
+   * takes user-visible time (around a second or so typically).
+   *
+   * @param {Array<string>} hostnames Array of hostnames, the first of which is
+   *   the primary hostname. Must have at least one element in it.
+   * @returns {{certificate: string, privateKey: string}} The parameters.
+   */
+  static async makeSelfSignedPair(hostnames) {
+    MustBe.arrayOfString(hostnames);
+
+    if (hostnames.length < 1) {
+      throw new Error('Must have at least a primary hostname.');
+    }
+
+    const altNames = [];
+    for (let i = 0; i < hostnames.length; i++) {
+      const name = hostnames[i];
+      if (net.isIP(name) === 0) {
+        altNames.push(`DNS.${i} = ${name}`);
+      } else {
+        altNames.push(`IP.${i} = ${name}`);
+      }
+    }
+
+    const certConfig = `
+    [req]
+    req_extensions = v3_req
+    distinguished_name = req_distinguished_name
+
+    [req_distinguished_name]
+    commonName = ${hostnames[0]}
+
+    [v3_req]
+    keyUsage = digitalSignature
+    extendedKeyUsage = serverAuth
+    subjectAltName = @alt_names
+
+    [alt_names]
+    ${altNames.join('\n')}
+    `;
+
+    const pemResult = await pem.promisified.createCertificate({
+      selfSigned: true,
+      days:       100,
+      keyBitsize: 4096,
+      commonName: hostnames[0],
+      config:     certConfig
+    });
+
+    return {
+      certificate: pemResult.certificate,
+      privateKey:  pemResult.clientKey
+    };
   }
 
   /**
