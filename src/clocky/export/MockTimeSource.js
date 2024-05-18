@@ -103,7 +103,7 @@ export class MockTimeSource extends IntfTimeSource {
       t.resolve();
     }
 
-    await Promise.all(this.#timeouts.map((t => t.promise)));
+    await Promise.all(this.#timeouts.map((t) => t.promise));
 
     this.#ended = true;
   }
