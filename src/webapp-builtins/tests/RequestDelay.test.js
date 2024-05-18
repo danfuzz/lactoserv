@@ -37,7 +37,7 @@ function toThousandths(n) {
   return rawResult;
 }
 
-describe.only('constructor', () => {
+describe('constructor', () => {
   test('accepts valid `delay`', () => {
     expect(() => new RequestDelay({ name: 'x', delay: '5_sec' })).not.toThrow();
     expect(() => new RequestDelay({ name: 'x', delay: new Duration(12.34) })).not.toThrow();
@@ -74,7 +74,7 @@ describe.only('constructor', () => {
   });
 });
 
-describe('_impl_handleRequest()', () => {
+describe.only('_impl_handleRequest()', () => {
   let timeSource;
 
   async function makeInstance(opts) {
