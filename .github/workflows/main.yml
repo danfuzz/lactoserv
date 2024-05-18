@@ -56,10 +56,11 @@ jobs:
       # above.
       - name: Upload artifacts.
         uses: actions/upload-artifact@v4
-        name: tester-artifacts
-        path: out/tester
-        overwrite: true
-        retention-days: 30
+        with:
+          name: tester-artifacts
+          path: out/tester
+          overwrite: true
+          retention-days: 30
 
       #- name: Run a multi-line script.
       #  run: |
