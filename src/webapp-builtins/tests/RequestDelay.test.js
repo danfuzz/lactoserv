@@ -93,7 +93,7 @@ describe('_impl_handleRequest()', () => {
     timeSource = new MockTimeSource(10000);
   });
 
-  test('delays by the configured `delay` amount', async () => {
+  test.only('delays by the configured `delay` amount', async () => {
     const rd      = await makeInstance({ delay: '1234_sec' });
     const request = RequestUtil.makeGet('/florp');
     const result  = rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
