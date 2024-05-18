@@ -74,7 +74,7 @@ describe('constructor', () => {
   });
 });
 
-describe.only('_impl_handleRequest()', () => {
+describe('_impl_handleRequest()', () => {
   let timeSource;
 
   async function makeInstance(opts) {
