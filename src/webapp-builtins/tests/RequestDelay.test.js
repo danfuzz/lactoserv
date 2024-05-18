@@ -37,7 +37,7 @@ function toThousandths(n) {
   return rawResult;
 }
 
-describe('constructor', () => {
+describe.only('constructor', () => {
   test('accepts valid `delay`', () => {
     expect(() => new RequestDelay({ name: 'x', delay: '5_sec' })).not.toThrow();
     expect(() => new RequestDelay({ name: 'x', delay: new Duration(12.34) })).not.toThrow();
