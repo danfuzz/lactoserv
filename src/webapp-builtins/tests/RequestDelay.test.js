@@ -147,7 +147,9 @@ describe('_impl_handleRequest()', () => {
     }
 
     await timeSource._end();
+    console.log('####### WAITING FOR ALL RESULTS');
     await Promise.all(results);
+    console.log('####### WAITED FOR ALL RESULTS');
     await rd.root.stop();
 
     // Make sure we got all possible values in the range. We can do this
