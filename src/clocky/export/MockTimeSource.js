@@ -23,7 +23,7 @@ export class MockTimeSource extends IntfTimeSource {
   /**
    * Array of pending timeouts.
    *
-   * @type {Array<{ atSec: number, resolve: function() }>}
+   * @type {Array<{ atSec: number, promise: Promise, resolve: function() }>}
    */
   #timeouts = [];
 
@@ -87,6 +87,7 @@ export class MockTimeSource extends IntfTimeSource {
     const mp = new ManualPromise();
     this.#timeouts.push({
       atSec:   time.atSec,
+      promise: mp.promise,
       resolve: () => mp.resolve()
     });
 
@@ -102,7 +103,7 @@ export class MockTimeSource extends IntfTimeSource {
       t.resolve();
     }
 
-    await Promise.all[this.#timeouts];
+    await Promise.all(this.#timeouts.map((t => t.promise)));
 
     this.#ended = true;
   }
