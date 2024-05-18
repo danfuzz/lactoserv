@@ -97,10 +97,12 @@ export class MockTimeSource extends IntfTimeSource {
    * Mock control: "Ends" the instance. This resolves any pending `wait()`s and
    * prevents new ones from being added.
    */
-  _end() {
+  async _end() {
     for (const t of this.#timeouts) {
       t.resolve();
     }
+
+    await Promise.all[this.#timeouts];
 
     this.#ended = true;
   }

@@ -109,7 +109,7 @@ describe('_impl_handleRequest()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
-    timeSource._end();
+    await timeSource._end();
   });
 
   test('quantizes random delays to milliseconds', async () => {
@@ -125,7 +125,7 @@ describe('_impl_handleRequest()', () => {
       expect(durMsec).toBeInteger();
     }
 
-    timeSource._end();
+    await timeSource._end();
     await Promise.all(results);
   });
 
@@ -144,7 +144,7 @@ describe('_impl_handleRequest()', () => {
       waits[durMsec] = true;
     }
 
-    timeSource._end();
+    await timeSource._end();
     await Promise.all(results);
 
     // Make sure we got all possible values in the range. We can do this
