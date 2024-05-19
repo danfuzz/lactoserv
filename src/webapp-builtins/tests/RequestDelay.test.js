@@ -150,9 +150,11 @@ describe('_impl_handleRequest()', () => {
       waits[durMsec] = true;
     }
 
+    timeSource._advanceTime(Duration.parse('100_msec'));
+    await Promise.all(results);
+
     await rd.root.stop();
     await timeSource._end();
-    await Promise.all(results);
 
     // Make sure we got all possible values in the range. We can do this
     // reasonably because we know values are msec-quantized.
