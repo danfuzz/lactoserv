@@ -109,6 +109,7 @@ describe('_impl_handleRequest()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
+    await result;
     await timeSource._end();
   });
 
@@ -126,7 +127,6 @@ describe('_impl_handleRequest()', () => {
     }
 
     await timeSource._end();
-    await Promise.all(results);
   });
 
   test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
@@ -145,8 +145,6 @@ describe('_impl_handleRequest()', () => {
     }
 
     await timeSource._end();
-    await Promise.all(results);
-    await setImmediate();
 
     // Make sure we got all possible values in the range. We can do this
     // reasonably because we know values are msec-quantized.
