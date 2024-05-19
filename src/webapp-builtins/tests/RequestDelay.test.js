@@ -110,7 +110,6 @@ describe('_impl_handleRequest()', () => {
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     await timeSource._end();
-    await setImmediate();
   });
 
   test('quantizes random delays to milliseconds', async () => {
@@ -128,7 +127,6 @@ describe('_impl_handleRequest()', () => {
 
     await timeSource._end();
     await Promise.all(results);
-    await setImmediate();
   });
 
   test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
