@@ -110,7 +110,6 @@ describe('_impl_handleRequest()', () => {
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     await timeSource._end();
-    //await rd.root.stop();
     await setImmediate();
   });
 
@@ -129,7 +128,6 @@ describe('_impl_handleRequest()', () => {
 
     await timeSource._end();
     await Promise.all(results);
-    //await rd.root.stop();
     await setImmediate();
   });
 
@@ -150,7 +148,6 @@ describe('_impl_handleRequest()', () => {
 
     await timeSource._end();
     await Promise.all(results);
-    //await rd.root.stop();
     await setImmediate();
 
     // Make sure we got all possible values in the range. We can do this
