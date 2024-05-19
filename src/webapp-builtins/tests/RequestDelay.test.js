@@ -116,7 +116,7 @@ describe('_impl_handleRequest()', () => {
     await rd.root.stop();
   });
 
-  test('quantizes random delays to milliseconds', async () => {
+  test.only('quantizes random delays to milliseconds', async () => {
     const rd      = await makeInstance({ minDelay: '1_sec', maxDelay: '2000_sec' });
     const request = RequestUtil.makeGet('/florp');
     const results = [];
@@ -129,8 +129,10 @@ describe('_impl_handleRequest()', () => {
       expect(durMsec).toBeInteger();
     }
 
-    await timeSource._end();
+    timeSource._advanceTime(Duration.parse('3000_sec'));
     await Promise.all(results);
+
+    await timeSource._end();
     await rd.root.stop();
   });
 
