@@ -109,10 +109,12 @@ describe('_impl_handleRequest()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
-    timeSource._end();
+    await result;
+    await timeSource._end();
+    await rd.root.stop();
   });
 
-  test('quantizes random delays to milliseconds', async () => {
+  test.only('quantizes random delays to milliseconds', async () => {
     const rd      = await makeInstance({ minDelay: '1_sec', maxDelay: '2000_sec' });
     const request = RequestUtil.makeGet('/florp');
     const results = [];
@@ -125,18 +127,22 @@ describe('_impl_handleRequest()', () => {
       expect(durMsec).toBeInteger();
     }
 
-    timeSource._end();
+    timeSource._advanceTime(Duration.parse('3000_sec'));
     await Promise.all(results);
+
+    await timeSource._end();
+    await rd.root.stop();
   });
 
-  test('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
+  test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
     const rd      = await makeInstance({ minDelay: '20_msec', maxDelay: '50_msec' });
     const request = RequestUtil.makeGet('/florp');
     const results = [];
     const waits   = [];
 
     for (let i = 0; i < 400; i++) {
-      results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
+      const result = rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+      results.push(result);
       const dur     = timeSource._lastWaitFor().sec;
       const durMsec = toThousandths(dur);
       expect(durMsec >= 20).toBeTrue();
@@ -144,8 +150,11 @@ describe('_impl_handleRequest()', () => {
       waits[durMsec] = true;
     }
 
-    timeSource._end();
+    timeSource._advanceTime(Duration.parse('100_msec'));
     await Promise.all(results);
+
+    await rd.root.stop();
+    await timeSource._end();
 
     // Make sure we got all possible values in the range. We can do this
     // reasonably because we know values are msec-quantized.

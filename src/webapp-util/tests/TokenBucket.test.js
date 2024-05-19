@@ -399,7 +399,7 @@ describe('denyAllRequests()', () => {
     await checkGrant(result2, { done: false, grant: 0, reason: 'stopping', waitTime: 987 });
     await checkGrant(result3, { done: false, grant: 0, reason: 'stopping', waitTime: 987 });
 
-    time._end();
+    await time._end();
   });
 });
 
@@ -415,7 +415,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(0);
       await checkGrant(result, { done: true, grant: 123, reason: 'grant', waitTime: 0 });
 
-      time._end();
+      await time._end();
     });
 
     test('synchronously grants a request that can be satisfied, with `grant > maxQueueGrantSize`', async () => {
@@ -429,7 +429,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(0);
       await checkGrant(result, { done: true, grant: 300, reason: 'grant', waitTime: 0 });
 
-      time._end();
+      await time._end();
     });
 
     test('synchronously grants `0` tokens with `minInclusive === 0` and no available burst', async () => {
@@ -442,7 +442,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(0);
       await checkGrant(result, { done: true, grant: 0, reason: 'grant', waitTime: 0 });
 
-      time._end();
+      await time._end();
     });
 
     test('synchronously grants non-zero tokens with `minInclusive === 0` and non-zero `maxInclusive`', async () => {
@@ -455,7 +455,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(0);
       await checkGrant(result, { done: true, grant: 96, reason: 'grant', waitTime: 0 });
 
-      time._end();
+      await time._end();
     });
   });
 
@@ -483,7 +483,7 @@ describe('requestGrant()', () => {
       time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
-      time._end();
+      await time._end();
     });
 
     test('synchronously fails when `availableQueueSize === 0`', async () => {
@@ -508,7 +508,7 @@ describe('requestGrant()', () => {
       time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
-      time._end();
+      await time._end();
     });
 
     test('synchronously fails if `availableQueueSize` would drop below `0`', async () => {
@@ -533,7 +533,7 @@ describe('requestGrant()', () => {
       time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
-      time._end();
+      await time._end();
     });
 
     test('queues up a request with `0 < maxInclusive < maxQueueGrantSize`, and ultimately grants `maxInclusive`', async () => {
@@ -550,7 +550,7 @@ describe('requestGrant()', () => {
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       await checkGrant(request, { done: true, grant: 50, reason: 'grant', waitTime: 321 });
 
-      time._end();
+      await time._end();
     });
 
     test('queues up a request with `maxInclusive > maxQueueGrantSize`, and ultimately grants `maxQueueGrantSize`', async () => {
@@ -567,7 +567,7 @@ describe('requestGrant()', () => {
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       await checkGrant(request, { done: true, grant: 100, reason: 'grant', waitTime: 90909 });
 
-      time._end();
+      await time._end();
     });
 
     test('grants requests in the order they were received', async () => {
@@ -607,7 +607,7 @@ describe('requestGrant()', () => {
       await checkGrant(request2, { done: true, grant: 20, reason: 'grant', waitTime: 10 + 20 });
       await checkGrant(request3, { done: true, grant: 30, reason: 'grant', waitTime: 10 + 20 + 30 });
 
-      time._end();
+      await time._end();
     });
   });
 
@@ -641,7 +641,7 @@ describe('requestGrant()', () => {
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
 
-      time._end();
+      await time._end();
     });
   });
 
@@ -676,7 +676,7 @@ describe('requestGrant()', () => {
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(grant);
 
-      time._end();
+      await time._end();
     });
   });
 });
@@ -689,7 +689,7 @@ describe('latestState()', () => {
     ]);
   });
 
-  test('does not use the time source', () => {
+  test('does not use the time source', async () => {
     const time   = new MockTimeSource(900);
     const bucket = new TokenBucket({
       flowRate: FLOW_1, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
@@ -704,7 +704,7 @@ describe('latestState()', () => {
     time.now = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
 
-    time._end();
+    await time._end();
   });
 
   test('indicates a lack of waiters, before any waiting has ever happened', () => {
@@ -747,13 +747,13 @@ describe('latestState()', () => {
     expect(bucket.latestState().waiterCount).toBe(0);
     expect(bucket.latestState().availableQueueSize).toBe(1000);
 
-    time._end();
+    await time._end();
   });
 });
 
 describe('takeNow()', () => {
   describe('when there are no waiters', () => {
-    test('succeeds given an exact token quantity and sufficient available burst', () => {
+    test('succeeds given an exact token quantity and sufficient available burst', async () => {
       const nowSec = 98000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -764,10 +764,10 @@ describe('takeNow()', () => {
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
-      time._end();
+      await time._end();
     });
 
-    test('succeeds with as much as is available', () => {
+    test('succeeds with as much as is available', async () => {
       const nowSec = 43210;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -778,10 +778,10 @@ describe('takeNow()', () => {
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
-      time._end();
+      await time._end();
     });
 
-    test('succeeds with as much burst capacity as is available', () => {
+    test('succeeds with as much burst capacity as is available', async () => {
       const nowSec = 91400;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -797,10 +797,10 @@ describe('takeNow()', () => {
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
-      time._end();
+      await time._end();
     });
 
-    test('uses the time source', () => {
+    test('uses the time source', async () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -815,10 +815,10 @@ describe('takeNow()', () => {
       expect(latest.availableBurstSize).toBe(0);
       expect(latest.now.atSec).toBe(1001);
 
-      time._end();
+      await time._end();
     });
 
-    test('fails and reports an as-if-queued `waitUntil` when there is insufficient burst capacity', () => {
+    test('fails and reports an as-if-queued `waitUntil` when there is insufficient burst capacity', async () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -832,10 +832,10 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.waitUntil.atSec).toBe(nowSec + (10 / 5));
 
-      time._end();
+      await time._end();
     });
 
-    test('takes `availableBurstSize` into account in failures', () => {
+    test('takes `availableBurstSize` into account in failures', async () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
@@ -846,7 +846,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 12, maxInclusive: 31 });
       checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + (20 - 5) / 10 });
 
-      time._end();
+      await time._end();
     });
 
     describe('when `partialTokens === false`', () => {
@@ -913,7 +913,7 @@ describe('takeNow()', () => {
       time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
-      time._end();
+      await time._end();
     });
 
     test('fails on a nonzero-minimum request', async () => {
@@ -937,7 +937,7 @@ describe('takeNow()', () => {
       time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
-      time._end();
+      await time._end();
     });
 
     test('fails on a nonzero-minimum request, taking `availableBurstSize` into account', async () => {
@@ -961,7 +961,7 @@ describe('takeNow()', () => {
       time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
-      time._end();
+      await time._end();
     });
   });
 
@@ -990,7 +990,7 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(2);
       expect(result.waitUntil.atSec).toBe(now1 + 0);
 
-      time._end();
+      await time._end();
     });
   });
 });

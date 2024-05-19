@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { setImmediate } from 'node:timers/promises';
+
 import { ManualPromise } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
 
@@ -23,7 +25,7 @@ export class MockTimeSource extends IntfTimeSource {
   /**
    * Array of pending timeouts.
    *
-   * @type {Array<{ atSec: number, resolve: function() }>}
+   * @type {Array<{ atSec: number, promise: Promise, resolve: function() }>}
    */
   #timeouts = [];
 
@@ -87,6 +89,7 @@ export class MockTimeSource extends IntfTimeSource {
     const mp = new ManualPromise();
     this.#timeouts.push({
       atSec:   time.atSec,
+      promise: mp.promise,
       resolve: () => mp.resolve()
     });
 
@@ -94,15 +97,47 @@ export class MockTimeSource extends IntfTimeSource {
   }
 
   /**
-   * Mock control: "Ends" the instance. This resolves any pending `wait()`s and
-   * prevents new ones from being added.
+   * Mock control: Sets the time by advancing it by the given amount. This can
+   * cause pending `wait()`s to resolve.
+   *
+   * @param {number|Duration} amount Amount of time to add to {@link #now} (in
+   *   seconds if given a plain number).
    */
-  _end() {
+  _advanceTime(amount) {
+    const newNow = (amount instanceof Duration)
+      ? this.#now.add(amount)
+      : this.#now.addSec(amount);
+
+    this._setTime(newNow);
+  }
+
+  /**
+   * Mock control: "Ends" the instance. This resolves any pending `wait()`s and
+   * prevents new ones from being added. This also `await`s all the `wait()`s
+   * that had been pending, and then waits for a couple extra top-level event
+   * loop turns so that `await` reactions have a chance to do whatever they need
+   * to do. The idea of all this is to make it so that this method can be more
+   * or less the last thing done in a unit test body, with the test able to
+   * know that doing so will make it safe to return without risking complaints
+   * from the test harness around "stuff done after test returned."
+   */
+  async _end() {
+    // Make sure all the `resolve()`s happen in a different turn than the main
+    // unit test body.
+    await setImmediate();
+
     for (const t of this.#timeouts) {
       t.resolve();
     }
 
     this.#ended = true;
+
+    await Promise.all(this.#timeouts.map((t) => t.promise));
+
+    // Give the stuff waiting for the timeouts a couple moments to react before
+    // we return. (See above.)
+    await setImmediate();
+    await setImmediate();
   }
 
   /**
