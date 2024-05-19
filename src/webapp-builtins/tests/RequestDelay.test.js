@@ -141,7 +141,8 @@ describe('_impl_handleRequest()', () => {
 
     for (let i = 0; i < 400; i++) {
       await rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
-      //results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
+      //results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY,
+      // request.pathname)));
       const dur     = timeSource._lastWaitFor().sec;
       const durMsec = toThousandths(dur);
       expect(durMsec >= 20).toBeTrue();
