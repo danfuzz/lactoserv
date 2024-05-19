@@ -136,11 +136,12 @@ describe('_impl_handleRequest()', () => {
   test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
     const rd      = await makeInstance({ minDelay: '20_msec', maxDelay: '50_msec' });
     const request = RequestUtil.makeGet('/florp');
-    const results = [];
+    //const results = [];
     const waits   = [];
 
     for (let i = 0; i < 400; i++) {
-      results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
+      await rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+      //results.push(rd.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname)));
       const dur     = timeSource._lastWaitFor().sec;
       const durMsec = toThousandths(dur);
       expect(durMsec >= 20).toBeTrue();
