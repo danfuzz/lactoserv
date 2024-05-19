@@ -114,7 +114,7 @@ describe('_impl_handleRequest()', () => {
     await rd.root.stop();
   });
 
-  test.only('quantizes random delays to milliseconds', async () => {
+  test('quantizes random delays to milliseconds', async () => {
     const rd      = await makeInstance({ minDelay: '1_sec', maxDelay: '2000_sec' });
     const request = RequestUtil.makeGet('/florp');
     const results = [];
@@ -134,7 +134,7 @@ describe('_impl_handleRequest()', () => {
     await rd.root.stop();
   });
 
-  test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
+  test('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
     const rd      = await makeInstance({ minDelay: '20_msec', maxDelay: '50_msec' });
     const request = RequestUtil.makeGet('/florp');
     const results = [];
