@@ -14,6 +14,7 @@ import { RequestDelay } from '@this/webapp-builtins';
 import { RequestUtil } from '#test/RequestUtil';
 
 
+console.log('############################## START REQUEST DELAY TEST');
 /**
  * Convert the given number to thousandths, dealing with floating point error.
  *
@@ -169,3 +170,4 @@ describe('_impl_handleRequest()', () => {
     expect(missing).toEqual([]);
   });
 });
+console.log('############################## END REQUEST DELAY TEST DEFS');
