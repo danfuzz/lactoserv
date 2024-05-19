@@ -153,6 +153,8 @@ describe('_impl_handleRequest()', () => {
     await timeSource._end();
     await Promise.all(results);
     await rd.root.stop();
+    await setImmediate();
+    await setImmediate();
 
     // Make sure we got all possible values in the range. We can do this
     // reasonably because we know values are msec-quantized.
