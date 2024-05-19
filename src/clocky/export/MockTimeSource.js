@@ -97,6 +97,21 @@ export class MockTimeSource extends IntfTimeSource {
   }
 
   /**
+   * Mock control: Sets the time by advancing it by the given amount. This can
+   * cause pending `wait()`s to resolve.
+   *
+   * @param {number|Duration} amount Amount of time to add to {@link #now} (in
+   *   seconds if given a plain number).
+   */
+  _advanceTime(amount) {
+    const newNow = (amount instanceof Duration)
+      ? this.#now.add(amount)
+      : this.#now.addSec(amount);
+
+    this._setTime(newNow);
+  }
+
+  /**
    * Mock control: "Ends" the instance. This resolves any pending `wait()`s and
    * prevents new ones from being added. This also `await`s all the `wait()`s
    * that had been pending, and then waits for a couple extra top-level event
