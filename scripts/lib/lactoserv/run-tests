@@ -122,8 +122,11 @@ function run-unit-tests {
     progress-msg '#### TEMP!!! TWEAKING!!!!'
     local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
-    NR == 1554 {
-      print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) { throw new Error(`OY! ${key}, ${value}, ${moduleName}`); }"
+    NR == 1554 && !/TWEAK/ {
+      print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
+      print "  console.log(\"###############\", process.versions)";
+      print "  throw new Error(`OY! ${key}, ${value}, ${moduleName}`);";
+      print "}";
       next;
     }
     { print; }
