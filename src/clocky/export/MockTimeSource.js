@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { setImmediate } from 'node:timers/promises';
+
 import { ManualPromise } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
 
@@ -103,9 +105,12 @@ export class MockTimeSource extends IntfTimeSource {
       t.resolve();
     }
 
+    this.#ended = true;
+
     await Promise.all(this.#timeouts.map((t) => t.promise));
 
-    this.#ended = true;
+    // Give reactions time to react before we return.
+    await setImmediate();
   }
 
   /**
