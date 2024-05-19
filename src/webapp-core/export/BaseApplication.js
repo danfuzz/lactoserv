@@ -85,9 +85,7 @@ export class BaseApplication extends BaseDispatched {
       }
     }
 
-    console.log('###### WAITING FOR RESULT.');
     const finalResult = await result;
-    console.log('###### DONE WAITING FOR RESULT.');
 
     if ((finalResult === null)
         || (finalResult instanceof FullResponse)

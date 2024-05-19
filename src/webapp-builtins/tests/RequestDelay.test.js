@@ -14,6 +14,8 @@ import { RequestDelay } from '@this/webapp-builtins';
 import { RequestUtil } from '#test/RequestUtil';
 
 
+console.log('######################################## WHAT?!');
+
 /**
  * Convert the given number to thousandths, dealing with floating point error.
  *
@@ -162,3 +164,5 @@ describe('_impl_handleRequest()', () => {
     expect(missing).toEqual([]);
   });
 });
+
+console.log('######################################## MORE WHAT?!');
