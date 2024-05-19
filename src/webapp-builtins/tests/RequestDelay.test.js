@@ -110,7 +110,7 @@ describe('_impl_handleRequest()', () => {
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     await timeSource._end();
-    await rd.root.stop();
+    //await rd.root.stop();
   });
 
   test('quantizes random delays to milliseconds', async () => {
@@ -128,7 +128,7 @@ describe('_impl_handleRequest()', () => {
 
     await timeSource._end();
     await Promise.all(results);
-    await rd.root.stop();
+    //await rd.root.stop();
   });
 
   test.only('delays by a value in the range of the configured `minDelay..maxDelay` amounts', async () => {
@@ -148,7 +148,7 @@ describe('_impl_handleRequest()', () => {
 
     await timeSource._end();
     await Promise.all(results);
-    await rd.root.stop();
+    //await rd.root.stop();
 
     // Make sure we got all possible values in the range. We can do this
     // reasonably because we know values are msec-quantized.
