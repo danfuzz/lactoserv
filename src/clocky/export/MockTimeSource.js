@@ -107,6 +107,10 @@ export class MockTimeSource extends IntfTimeSource {
    * from the test harness around "stuff done after test returned."
    */
   async _end() {
+    // Make sure all the `resolve()`s happen in a different turn than the main
+    // unit test body.
+    await setImmediate();
+
     for (const t of this.#timeouts) {
       t.resolve();
     }
