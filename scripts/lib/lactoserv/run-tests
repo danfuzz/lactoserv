@@ -117,6 +117,19 @@ function run-unit-tests {
     toolPath="$(tester-path)" \
     || exit "$?"
 
+    # TEMP! REMOVE ME! This tweaks the line in the Jest runtime from which the
+    # error in question gets thrown, to try to get more info.
+    progress-msg '#### TEMP!!! TWEAKING!!!!'
+    local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
+    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
+    NR == 1554 {
+      print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) { throw new Error(`OY! ${key}, ${value}, ${moduleName}`); }"
+      next;
+    }
+    { print; }
+    '
+    progress-msg '#### TEMP!!! TWEAKED!!!!'
+
     "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
     || return "$?"
 }
