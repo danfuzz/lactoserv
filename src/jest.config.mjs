@@ -80,7 +80,7 @@ export default {
 
   // Test harness options.
   ...{
-    maxConcurrency: 1, // TEMP!!!
-    maxWorkers: 1      // TEMP!!!
+    // maxConcurrency: 1,
+    // maxWorkers: 1
   }
 };
