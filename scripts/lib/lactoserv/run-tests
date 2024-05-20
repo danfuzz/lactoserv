@@ -124,7 +124,7 @@ function run-unit-tests {
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
     NR == 1552 && !suppress {
-      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\");"
+      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\", this._testPath);"
     }
     NR == 1554 && !suppress {
       print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
@@ -135,7 +135,7 @@ function run-unit-tests {
       next;
     }
     NR == 1563 && !suppress {
-      print "/*TWEAK*/ try { return evaluateSyntheticModule(module); } finally { (moduleName === \"node:process\") && console.log(\"####### LINK DONE\"); }"
+      print "/*TWEAK*/ try { return evaluateSyntheticModule(module); } finally { (moduleName === \"node:process\") && console.log(\"####### LINK DONE\", this._testPath); }"
     }
     { print; }
     '
@@ -153,10 +153,10 @@ function run-unit-tests {
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
     NR == 320 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 1\");";
+      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 1\", path);";
     }
     NR == 325 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 2\");";
+      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 2\", path);";
     }
     { print; }
     '
