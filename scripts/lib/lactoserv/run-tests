@@ -134,6 +134,9 @@ function run-unit-tests {
       print "}";
       next;
     }
+    NR == 1563 && !suppress {
+      print "/*TWEAK*/ try { return evaluateSyntheticModule(module); } finally { console.log(\"####### LINK DONE\"); }"
+    }
     { print; }
     '
 
