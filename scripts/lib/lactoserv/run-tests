@@ -131,8 +131,9 @@ function run-unit-tests {
     }
     NR == 1554 && !suppress {
       print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
-      print "  console.log(\"###############\", process.versions)";
-      print "  throw new Error(`OY! ${key}, ${value}, ${moduleName}`);";
+      print "  console.log(\"###############\", process.versions);";
+      print "  console.log(\"###############\", moduleName, key, value);";
+      print "  throw e;"
       print "}";
       next;
     }
