@@ -148,6 +148,16 @@ function run-unit-tests {
     }
     { print; }
     '
+
+    local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runner/build/runTest.js"
+    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
+    /\/\*TWEAK\*\// { suppress = 1; }
+    NR == 320 && !suppress {
+      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP NOW\", new Error(\"HERE\"));";
+    }
+    { print; }
+    '
+
     progress-msg '#### TEMP!!! TWEAKED!!!!'
 
     "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
