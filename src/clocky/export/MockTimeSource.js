@@ -114,12 +114,12 @@ export class MockTimeSource extends IntfTimeSource {
   /**
    * Mock control: "Ends" the instance. This resolves any pending `wait()`s and
    * prevents new ones from being added. This also `await`s all the `wait()`s
-   * that had been pending, and then waits for a couple extra top-level event
-   * loop turns so that `await` reactions have a chance to do whatever they need
-   * to do. The idea of all this is to make it so that this method can be more
-   * or less the last thing done in a unit test body, with the test able to
-   * know that doing so will make it safe to return without risking complaints
-   * from the test harness around "stuff done after test returned."
+   * that had been pending, and then waits for another top-level event loop turn
+   * so that `await` reactions have a chance to do whatever they need to do. The
+   * idea of all this is to make it so that this method can be more or less the
+   * last thing done in a unit test body, with the test able to know that doing
+   * so will make it safe to return without risking complaints from the test
+   * harness around "stuff done after test returned."
    */
   async _end() {
     // Make sure all the `resolve()`s happen in a different turn than the main
@@ -134,9 +134,8 @@ export class MockTimeSource extends IntfTimeSource {
 
     await Promise.all(this.#timeouts.map((t) => t.promise));
 
-    // Give the stuff waiting for the timeouts a couple moments to react before
-    // we return. (See above.)
-    await setImmediate();
+    // Give the stuff waiting for the timeouts a moment to react before we
+    // return. (See above.)
     await setImmediate();
   }
 
