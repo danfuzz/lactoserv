@@ -123,13 +123,15 @@ function run-unit-tests {
     local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
+    NR == 1547 && !suppress {
+      print "/*TWEAK*/ const zzz_testPath = this._testPath;";
+    }
     NR == 1552 && !suppress {
-      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\", this._testPath);"
+      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\", zzz_testPath);"
     }
     NR == 1554 && !suppress {
       print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
-      print "  console.log(\"###############\", process.versions);";
-      print "  console.log(\"###############\", moduleName, key, value);";
+      print "  console.log(\"############### BAD EXPORT\", zzz_testPath, moduleName, key, value);";
       print "  throw e;"
       print "}";
       next;
