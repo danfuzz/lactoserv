@@ -76,5 +76,11 @@ export default {
       `${TESTER_DIR}/lib/node_modules/jest-extended/all`,
       `${TESTER_DIR}/lib/code/node_modules/@this/main-tester`
     ]
+  },
+
+  // Test harness options.
+  ...{
+    // maxConcurrency: 1,
+    // maxWorkers: 1
   }
 };
