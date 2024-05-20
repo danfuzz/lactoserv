@@ -150,7 +150,6 @@ function run-unit-tests {
     progress-msg '#### TEMP!!! TWEAKED!!!!'
 
     "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
-        RequestDelay \
     || return "$?"
 }
 
