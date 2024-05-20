@@ -22,4 +22,4 @@ process.on('warning', (warning) => {
 // `process.emit` here, we avoid the race (though there is still arguably an
 // underlying problem). See this issue in Jest:
 // <https://github.com/jestjs/jest/issues/15077>
-process.emit = process.emit;
+process.emit = process.emit; // eslint-disable-line no-self-assign
