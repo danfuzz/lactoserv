@@ -132,7 +132,7 @@ export class MockTimeSource extends IntfTimeSource {
 
     this.#ended = true;
 
-    await Promise.all(this.#timeouts.map((t) => t.promise));
+    //await Promise.all(this.#timeouts.map((t) => t.promise));
 
     // Give the stuff waiting for the timeouts a moment to react before we
     // return. (See above.)
