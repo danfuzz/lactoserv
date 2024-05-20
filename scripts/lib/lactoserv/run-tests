@@ -122,7 +122,7 @@ function run-unit-tests {
     progress-msg '#### TEMP!!! TWEAKING!!!!'
     local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
-    /\/\*TWEAK\*\// { suppress = 1 }
+    /\/\*TWEAK\*\// { suppress = 1; }
     NR == 1551 && !suppress {
       print "/*TWEAK*/ console.log(\"##############\", moduleName, new Error(\"HERE\"));";
     }
@@ -135,6 +135,15 @@ function run-unit-tests {
       print "  throw new Error(`OY! ${key}, ${value}, ${moduleName}`);";
       print "}";
       next;
+    }
+    { print; }
+    '
+
+    local tweakPath="$(base-dir)/out/tester/lib/node_modules/source-map-support/source-map-support.js"
+    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
+    /\/\*TWEAK\*\// { suppress = 1; }
+    NR == 455 && !suppress {
+      print "/*TWEAK*/ console.log(\"############## SHIMMING NOW\", new Error(\"HERE\"));";
     }
     { print; }
     '
