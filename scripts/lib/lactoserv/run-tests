@@ -124,10 +124,10 @@ function run-unit-tests {
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
     NR == 1551 && !suppress {
-      print "/*TWEAK*/ console.log(\"##############\", moduleName, new Error(\"HERE\"));";
+      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"##############\", new Error(\"HERE\"));";
     }
     NR == 1552 && !suppress {
-      print "/*TWEAK*/ console.log(\"############# LINKING \", moduleName);"
+      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\");"
     }
     NR == 1554 && !suppress {
       print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
