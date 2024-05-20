@@ -117,54 +117,6 @@ function run-unit-tests {
     toolPath="$(tester-path)" \
     || exit "$?"
 
-    # TEMP! REMOVE ME! This tweaks the line in the Jest runtime from which the
-    # error in question gets thrown, to try to get more info.
-    progress-msg '#### TEMP!!! TWEAKING!!!!'
-    local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
-    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
-    /\/\*TWEAK\*\// { suppress = 1; }
-    NR == 1547 && !suppress {
-      print "/*TWEAK*/ const zzz_testPath = this._testPath;";
-    }
-    NR == 1552 && !suppress {
-      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\", zzz_testPath);"
-    }
-    NR == 1554 && !suppress {
-      print "/*TWEAK*/ try { this.setExport(key, value); } catch (e) {";
-      print "  console.log(\"############### BAD EXPORT\", zzz_testPath, moduleName, key, value);";
-      print "  throw e;"
-      print "}";
-      next;
-    }
-    NR == 1563 && !suppress {
-      print "/*TWEAK*/ try { return evaluateSyntheticModule(module); } finally { (moduleName === \"node:process\") && console.log(\"####### LINK DONE\", this._testPath); }"
-    }
-    { print; }
-    '
-
-    local tweakPath="$(base-dir)/out/tester/lib/node_modules/source-map-support/source-map-support.js"
-    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
-    /\/\*TWEAK\*\// { suppress = 1; }
-    NR == 455 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## SHIMMING NOW\");";
-    }
-    { print; }
-    '
-
-    local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runner/build/runTest.js"
-    awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
-    /\/\*TWEAK\*\// { suppress = 1; }
-    NR == 320 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 1\", path);";
-    }
-    NR == 325 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 2\", path);";
-    }
-    { print; }
-    '
-
-    progress-msg '#### TEMP!!! TWEAKED!!!!'
-
     "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
     || return "$?"
 }
