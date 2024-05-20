@@ -123,9 +123,6 @@ function run-unit-tests {
     local tweakPath="$(base-dir)/out/tester/lib/node_modules/jest-runtime/build/index.js"
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
-    NR == 1551 && !suppress {
-      print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"##############\", new Error(\"HERE\"));";
-    }
     NR == 1552 && !suppress {
       print "/*TWEAK*/ if (moduleName === \"node:process\") console.log(\"############# LINKING\");"
     }
@@ -144,7 +141,7 @@ function run-unit-tests {
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
     NR == 455 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## SHIMMING NOW\", new Error(\"HERE\"));";
+      print "/*TWEAK*/ console.log(\"############## SHIMMING NOW\");";
     }
     { print; }
     '
@@ -153,7 +150,10 @@ function run-unit-tests {
     awk <<<"$(cat "${tweakPath}")" >"${tweakPath}" '
     /\/\*TWEAK\*\// { suppress = 1; }
     NR == 320 && !suppress {
-      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP NOW\", new Error(\"HERE\"));";
+      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 1\");";
+    }
+    NR == 325 && !suppress {
+      print "/*TWEAK*/ console.log(\"############## INSTALLING SOURCE MAP 2\");";
     }
     { print; }
     '
