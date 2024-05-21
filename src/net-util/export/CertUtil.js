@@ -79,15 +79,7 @@ export class CertUtil {
 
     const pemResult = selfsigned.generate(attributes, options);
 
-    let { cert: certificate, private: privateKey } = pemResult;
-
-    if (!certificate.endsWith('\n')) {
-      certificate = `${certificate}\n`;
-    }
-
-    if (!privateKey.endsWith('\n')) {
-      privateKey = `${privateKey}\n`;
-    }
+    const { cert: certificate, private: privateKey } = pemResult;
 
     return { certificate, privateKey };
   }
@@ -106,7 +98,7 @@ export class CertUtil {
         '[\r\n]*'
       + `-----BEGIN ${label}-----[\r\n]+`
       + body
-      + `-----END ${label}-----[\r\n]+`;
+      + `-----END ${label}-----[\r\n]*`;
 
     return multiple
       ? `^(${oneBlock})+$`
