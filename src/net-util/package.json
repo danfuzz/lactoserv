@@ -26,6 +26,6 @@
   },
 
   "scripts": {
-    "postinstall": "pwd; ls ../../../../../../../; rm -rf ../../../../node_modules/node-forge/flash"
+    "postinstall": "rm -rf ../../../../node_modules/node-forge/flash"
   }
 }
