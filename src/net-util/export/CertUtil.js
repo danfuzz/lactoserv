@@ -3,7 +3,7 @@
 
 import * as net from 'node:net';
 
-import pem from 'pem/lib/pem';
+import pem from 'pem/lib/pem.js';
 
 import { MustBe } from '@this/typey';
 
