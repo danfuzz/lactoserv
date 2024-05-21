@@ -153,7 +153,6 @@ function build-project {
     && copy-scripts "${srcMainModule}" "${destDir}" \
     && copy-local-modules "${destLocalModules}" "${deps}" \
     && remove-dead-local-modules "${destLocalModules}" "${deps}" \
-    && run-postinstall-scripts "${destLocalModules}" "$(jget "${deps}" '.postinstallScripts')" \
     || return "$?"
 
     # Do `npm install`, but only if it hasn't yet been done _or_ the top-level
@@ -169,6 +168,9 @@ function build-project {
     fi
 
     cp "${destLibDir}/package-lock.json" "${srcPackageLockJson}"
+
+    run-postinstall-scripts "${destLocalModules}" "$(jget "${deps}" '.postinstallScripts')" \
+    || return "$?"
 }
 
 # Figures out the pithy commit info to associate with the build.
