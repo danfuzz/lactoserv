@@ -69,15 +69,21 @@ describe('makeSelfSignedPair()', () => {
   test('produces a valid-looking result, given valid arguments', async () => {
     const got = await CertUtil.makeSelfSignedPair(['localhost', '127.0.0.1', '::1', '*.foo.bar']);
 
+    // ...and also, doesn't try to override `process.emit` as inherited in
+    // `process` from `EventEmitter`. See
+    // <https://github.com/Dexus/pem/issues/389> and
+    // <https://github.com/jestjs/jest/issues/15077>.
+    const processEmit = process.emit;
+    const hasOwnEmit  = Object.hasOwn(process, 'emit');
+
     expect(got).toContainAllKeys(['certificate', 'privateKey']);
 
     expect(() => CertUtil.checkCertificateChain(got.certificate)).not.toThrow();
     expect(() => CertUtil.checkPrivateKey(got.privateKey)).not.toThrow();
 
-    // ...and also, doesn't try to override `process.emit` as inherited in
-    // `process` from `EventEmitter`. See
-    // <https://github.com/Dexus/pem/issues/389> and
-    // <https://github.com/jestjs/jest/issues/15077>.
-    expect(Object.hasOwn(process, 'emit')).toBeFalse();
+    expect(process.emit).toBe(processEmit);
+    if (!hasOwnEmit) {
+      expect(Object.hasOwn(process, 'emit')).toBeFalse();
+    }
   });
 });
