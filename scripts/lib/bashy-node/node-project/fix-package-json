@@ -112,6 +112,8 @@ function do-fix {
     local pkg
     pkg="$(jval <"${filePath}" --input=read \
         deps:json="${finalDeps}" '
+    (.scripts // {}) as $scripts
+    |
     {
         name:    .name,
         version: .version,
@@ -132,6 +134,14 @@ function do-fix {
     else . + {
         BLANK_LINE_2: "",
         dependencies: $deps
+    }
+    end
+    |
+    if $scripts == {}
+    then .
+    else . + {
+      BLANK_LINE_3: "",
+      scripts: $scripts
     }
     end
     ')" \
