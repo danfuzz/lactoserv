@@ -22,6 +22,7 @@
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
+    "@this/metacomp": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
     "@this/typey": "*",
