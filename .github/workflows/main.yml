@@ -52,15 +52,15 @@ jobs:
       - name: Ensure the cert creator still works.
         run: ./scripts/ubik make-localhost-cert
 
-      # This step is meant to help diagnose the coverage report problem noted
-      # above.
-      - name: Upload artifacts.
-        uses: actions/upload-artifact@v4
-        with:
-          name: tester-artifacts
-          path: out/tester
-          overwrite: true
-          retention-days: 30
+      # Uncomment this step if you want to upload the build as an artifact (with
+      # tweakage to select just the right part).
+      #- name: Upload artifacts.
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: built-artifacts
+      #    path: out
+      #    overwrite: true
+      #    retention-days: 30
 
       #- name: Run a multi-line script.
       #  run: |
