@@ -83,10 +83,6 @@ To build:
 
 To run (versions as above):
 * Standard-ish POSIX operating environment.
-  * Notably, it assumes `openssl` (or similar) is available in the runtime
-    environment. (This is only used when the system is asked to generate
-    self-signed certificates. If you don't need to do that, then Node's
-    built-in SSL implementation suffices.)
 * Recent-ish version of Bash.
 * Node v20 or later. This is required because the project uses:
   * The relatively new `/v` flag on regular expressions, which became available
