@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `net-util`: Found and worked around a mis-feature in the `pem` module (one of
+  our few direct dependencies).
 * testing: Added more unit tests.
 
 ### v0.7.3 -- 2024-05-16
