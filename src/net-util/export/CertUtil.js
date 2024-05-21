@@ -3,7 +3,7 @@
 
 import * as net from 'node:net';
 
-import pem from 'pem/lib/pem.js';
+import selfsigned from 'selfsigned';
 
 import { MustBe } from '@this/typey';
 
@@ -67,32 +67,19 @@ export class CertUtil {
       }
     }
 
-    const certConfig = `
-    [req]
-    req_extensions = v3_req
-    distinguished_name = req_distinguished_name
+    const attributes = [
+      { name: 'commonName', value: hostnames[0] }
+    ];
 
-    [req_distinguished_name]
-    commonName = ${hostnames[0]}
+    const options = {
+      keySize:   2048,
+      days:      100,
+      algorithm: 'sha256'
+    };
 
-    [v3_req]
-    keyUsage = digitalSignature
-    extendedKeyUsage = serverAuth
-    subjectAltName = @alt_names
+    const pemResult = selfsigned.generate(attributes, options);
 
-    [alt_names]
-    ${altNames.join('\n')}
-    `;
-
-    const pemResult = await pem.promisified.createCertificate({
-      selfSigned: true,
-      days:       100,
-      keyBitsize: 4096,
-      commonName: hostnames[0],
-      config:     certConfig
-    });
-
-    let { certificate, clientKey: privateKey } = pemResult;
+    let { cert: certificate, private: privateKey } = pemResult;
 
     if (!certificate.endsWith('\n')) {
       certificate = `${certificate}\n`;

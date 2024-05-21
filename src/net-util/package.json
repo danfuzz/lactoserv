@@ -20,8 +20,12 @@
     "@this/loggy-intf": "*",
     "@this/typey": "*",
     "mime": "^4.0.1",
-    "pem": "^1.14.8",
     "range-parser": "^1.2.1",
+    "selfsigned": "^2.4.1",
     "statuses": "^2.0.1"
+  },
+
+  "scripts": {
+    "postinstall": "rm -rf ../../../../node_modules/node-forge/flash"
   }
 }
