@@ -74,18 +74,15 @@ describe('makeSelfSignedPair()', () => {
     // <https://github.com/Dexus/pem/issues/389> and
     // <https://github.com/jestjs/jest/issues/15077>.
     const processEmit = process.emit;
-    const hasOwnEmit  = Object.hasOwn(process, 'emit');
+    expect(Object.hasOwn(process, 'emit')).toBeFalse();
 
     expect(got).toContainAllKeys(['certificate', 'privateKey']);
 
     expect(() => CertUtil.checkCertificateChain(got.certificate)).not.toThrow();
     expect(() => CertUtil.checkPrivateKey(got.privateKey)).not.toThrow();
 
+    // See above.
     expect(process.emit).toBe(processEmit);
-    if (!hasOwnEmit) {
-      expect(Object.hasOwn(process, 'emit')).toBeFalse();
-    } else {
-      expect(hasOwnEmit).toBeFalse(); // TEMP
-    }
+    expect(Object.hasOwn(process, 'emit')).toBeFalse();
   });
 });
