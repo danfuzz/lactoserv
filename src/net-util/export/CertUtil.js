@@ -114,12 +114,12 @@ export class CertUtil {
    */
   static #makePemPattern(label, multiple = false) {
     const base64Line = '[/+a-zA-Z0-9]{1,80}';
-    const body       = `(${base64Line}\n+){0,500}${base64Line}={0,2}\n+`;
+    const body       = `(${base64Line}[\r\n]+){0,500}${base64Line}={0,2}[\r\n]+`;
     const oneBlock   =
-        '\n*'
-      + `-----BEGIN ${label}-----\n+`
+        '[\r\n]*'
+      + `-----BEGIN ${label}-----[\r\n]+`
       + body
-      + `-----END ${label}-----\n+`;
+      + `-----END ${label}-----[\r\n]+`;
 
     return multiple
       ? `^(${oneBlock})+$`
