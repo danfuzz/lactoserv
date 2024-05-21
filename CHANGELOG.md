@@ -14,6 +14,10 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `net-util`:
+  * Found a major problem with the `pem` module (one of our few direct
+    dependencies). Replaced it with `selfsigned`, which also means we no longer
+    rely on an OS-installed OpenSSL.
 * testing: Added more unit tests.
 
 ### v0.7.3 -- 2024-05-16

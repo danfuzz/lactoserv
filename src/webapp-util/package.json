@@ -15,7 +15,6 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
-    "@this/compy": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",

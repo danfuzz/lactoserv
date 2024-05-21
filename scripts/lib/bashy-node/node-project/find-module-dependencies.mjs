@@ -84,6 +84,9 @@ const processed = new Set();
 /** The graph of local module dependencies, as a list of edges. */
 let graph = [];
 
+/** Map from module names to corresponding parsed package files. */
+const packageFiles = new Map();
+
 /** Map from external dependency names to sets of all encountered versions. */
 const extDeps = new Map();
 
@@ -126,6 +129,7 @@ while (unprocessed.size > 0) {
   }
 
   localDirs.set(oneDep, moduleDir);
+  packageFiles.set(oneDep, packageObj);
 
   for (const [key, value] of Object.entries(packageObj.dependencies ?? {})) {
     if (key.startsWith('@this/')) {
@@ -146,11 +150,19 @@ while (unprocessed.size > 0) {
 
 // Build up the final result.
 
+const postinstallScripts = [];
+for (const [name, obj] of packageFiles) {
+  if (obj.scripts?.postinstall) {
+    postinstallScripts.push(name);
+  }
+}
+
 const result = {
-  main:      `@this/${mainModule}`,
-  localDeps: [...localDeps].sort(),
-  localDirs: sortObject(Object.fromEntries(localDirs.entries())),
-  extDeps:   sortObject(Object.fromEntries(extDeps.entries()))
+  main:               `@this/${mainModule}`,
+  localDeps:          [...localDeps].sort(),
+  localDirs:          sortObject(Object.fromEntries(localDirs.entries())),
+  extDeps:            sortObject(Object.fromEntries(extDeps.entries())),
+  postinstallScripts
 };
 
 // `extDeps` has sets for values. Reduce them to single elements, and report an
