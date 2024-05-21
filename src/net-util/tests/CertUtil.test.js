@@ -84,6 +84,8 @@ describe('makeSelfSignedPair()', () => {
     expect(process.emit).toBe(processEmit);
     if (!hasOwnEmit) {
       expect(Object.hasOwn(process, 'emit')).toBeFalse();
+    } else {
+      expect(hasOwnEmit).toBeFalse(); // TEMP
     }
   });
 });
