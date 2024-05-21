@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import process from 'node:process';
+
 import { CertUtil } from '@this/net-util';
 
 
@@ -71,5 +73,11 @@ describe('makeSelfSignedPair()', () => {
 
     expect(() => CertUtil.checkCertificateChain(got.certificate)).not.toThrow();
     expect(() => CertUtil.checkPrivateKey(got.privateKey)).not.toThrow();
+
+    // ...and also, doesn't try to override `process.emit` as inherited in
+    // `process` from `EventEmitter`. See
+    // <https://github.com/Dexus/pem/issues/389> and
+    // <https://github.com/jestjs/jest/issues/15077>.
+    expect(Object.hasOwn(process, 'emit')).toBeFalse();
   });
 });
