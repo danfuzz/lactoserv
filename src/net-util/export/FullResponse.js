@@ -94,7 +94,7 @@ export class FullResponse {
   get bodyBuffer() {
     const { type, buffer } = this.#body;
 
-    return (type === 'buffer') ? new Buffer(buffer) : null;
+    return (type === 'buffer') ? Buffer.from(buffer) : null;
   }
 
   /**
