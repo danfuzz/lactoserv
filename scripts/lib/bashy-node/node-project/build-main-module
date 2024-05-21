@@ -153,6 +153,7 @@ function build-project {
     && copy-scripts "${srcMainModule}" "${destDir}" \
     && copy-local-modules "${destLocalModules}" "${deps}" \
     && remove-dead-local-modules "${destLocalModules}" "${deps}" \
+    && run-postinstall-scripts "${destLocalModules}" "$(jget "${deps}" '.postinstallScripts')" \
     || return "$?"
 
     # Do `npm install`, but only if it hasn't yet been done _or_ the top-level
@@ -401,6 +402,34 @@ function remove-dead-local-modules {
     if (( !first )); then
         progress-msg
     fi
+}
+
+# Runs any `postinstall` scripts defined by local modules.
+function run-postinstall-scripts {
+    local destLocalModules="$1"
+    local scriptModules="$2"
+
+    if [[ ${scriptModules} == '[]' ]]; then
+        return
+    fi
+
+    progress-msg 'Running local-module postinstall scripts...'
+
+    local modArray=()
+    jset-array --raw modArray "${scriptModules}"
+
+    # `(...)` to preserve the `cwd` in this process.
+    (
+        cd "${destLocalModules}"
+        local m
+        for m in "${modArray[@]}"; do
+            progress-msg "Postinstall ${m}..."
+            npm explore "${m}" -- npm run postinstall \
+            || return "$?"
+        done
+    )
+
+    progress-msg 'Done running local-module postinstall scripts.'
 }
 
 # Checks a `node_modules` directory (or similar) for "suspect" files, given a
