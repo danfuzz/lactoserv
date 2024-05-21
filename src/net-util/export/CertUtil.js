@@ -3,10 +3,12 @@
 
 import * as net from 'node:net';
 
-import pem from 'pem';
+import pem from 'pem/lib/pem.js';
 
 import { MustBe } from '@this/typey';
 
+// Note: See <https://github.com/Dexus/pem/issues/389> about the import of
+// `pem/lib/pem`.
 
 /**
  * Utilities for handling various sorts of certificatey stuff.
