@@ -43,11 +43,11 @@ beforeAll(async () => {
 
   proc.stderr.on('data', (data) => {
     console.log('(netcat-stderr) %s', data.toString());
-  })
+  });
 
   proc.stdout.on('data', (data) => {
     console.log('(netcat-stdout) %s', data.toString());
-  })
+  });
 
   for (;;) {
     try {
