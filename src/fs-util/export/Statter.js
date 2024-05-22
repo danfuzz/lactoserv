@@ -20,7 +20,7 @@ export class Statter {
   static async directoryExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isDirectory();
+    return stats ? stats.isDirectory() : false;
   }
 
   /**
@@ -33,7 +33,7 @@ export class Statter {
   static async fileExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isFile();
+    return stats ? stats.isFile() : false;
   }
 
   /**
@@ -58,14 +58,14 @@ export class Statter {
   static async socketExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isSocket();
+    return stats ? stats.isSocket() : false;
   }
 
   /**
-   * Gets the `fs.BigIntStats` of the path if it exists, or returns `null` if
-   * the path does not exist in the filesystem. "Not existing" includes,
-   * notably, the case where a non-final path component (that is, something
-   * which ought to be a directory) exists but is _not_ a directory.
+   * Gets the `fs.Stats` of the path if it exists, or returns `null` if the path
+   * does not exist in the filesystem. "Not existing" includes, notably, the
+   * case where a non-final path component (that is, something which ought to be
+   * a directory) exists but is _not_ a directory.
    *
    * @param {string} path Path to check.
    * @returns {?fs.Stats} The stats, if the path exists, or `null` if not.
