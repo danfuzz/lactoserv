@@ -105,3 +105,22 @@ ${'socketExists'}    | ${false}     | ${false}      | ${true}
     await expect(Statter[methodName](123)).toReject();
   });
 });
+
+describe('statOrNull()', () => {
+  test('returns `null` for a non-existent path', async () => {
+    const got = await Statter.statOrNull('/boop/beep/blorp');
+    expect(got).toBeNull();
+  });
+
+  test('returns a file-result `Stats` for an existing file', async () => {
+    const got = await Statter.statOrNull(knownFile);
+    expect(got).not.toBeNull();
+    expect(got.isFile()).toBeTrue();
+  });
+
+  test('returns a directory-result `Stats` for an existing directory', async () => {
+    const got = await Statter.statOrNull(knownDir);
+    expect(got).not.toBeNull();
+    expect(got.isDirectory()).toBeTrue();
+  });
+});
