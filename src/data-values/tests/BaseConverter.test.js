@@ -4,6 +4,31 @@
 import { BaseConverter } from '@this/data-values';
 
 
+describe('constructor()', () => {
+  test('does not throw', () => {
+    expect(() => new BaseConverter()).not.toThrow();
+  });
+});
+
+describe('decode()', () => {
+  test('throws', () => {
+    const conv = new BaseConverter();
+    expect(() => conv.decode(null)).toThrow(/Abstract/);
+  });
+});
+
+describe('encode()', () => {
+  test('throws', () => {
+    const conv = new BaseConverter();
+    expect(() => conv.encode(null)).toThrow(/Abstract/);
+  });
+});
+
+
+//
+// Static members
+//
+
 describe('.ENCODE', () => {
   test('is a symbol', () => {
     expect(BaseConverter.ENCODE).toBeSymbol();
@@ -37,8 +62,8 @@ describe('.UNHANDLED', () => {
   });
 });
 
-describe('constructor()', () => {
-  test('does not throw', () => {
-    expect(() => new BaseConverter()).not.toThrow();
+describe('decodingUnimplemented()', () => {
+  test('throws', () => {
+    expect(() => BaseConverter.decodingUnimplemented(null)).toThrow();
   });
 });
