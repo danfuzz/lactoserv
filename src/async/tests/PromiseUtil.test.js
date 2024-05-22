@@ -32,7 +32,7 @@ const wasHandled = async (promise) => {
 };
 
 describe('handleRejection()', () => {
-  test('does indeed handle the rejection', async () => {
+  test('handles the rejection of a pre-rejected promise', async () => {
     const error = new Error('erroneous-monk');
     const prom  = Promise.reject(error);
 
@@ -40,7 +40,18 @@ describe('handleRejection()', () => {
     expect(await wasHandled(prom)).toBeTrue();
   });
 
-  test('succeeds trivially (e.g. doesn\'t throw) when given a resolved promise', async () => {
+  test('handles the rejection of an unresolved promise which becomes rejected', async () => {
+    const error = new Error('erroneous-monk');
+    const mp    = new ManualPromise();
+
+    PromiseUtil.handleRejection(mp.promise);
+    await setImmediate();
+    mp.resolve(error);
+
+    expect(await wasHandled(mp.promise)).toBeTrue();
+  });
+
+  test('succeeds trivially (e.g. doesn\'t throw) when given a pre-resolved promise', async () => {
     const prom = Promise.resolve('florp');
     PromiseUtil.handleRejection(prom);
     await setImmediate();
