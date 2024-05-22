@@ -1,10 +1,28 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConverterConfig } from '@this/data-values';
+import { BaseConverter, ConverterConfig } from '@this/data-values';
 
 
 describe('constructor()', () => {
+  describe('for config `dataClasses`', () => {
+    test('accepts a valid frozen array as-is', () => {
+      const classes = Object.freeze([Map]);
+      const got     = new ConverterConfig({ dataClasses: classes });
+
+      expect(got.dataClasses).toBe(classes);
+    });
+
+    test('makes a frozen copy of a valid non-frozen array', () => {
+      const classes = [Map];
+      const got     = new ConverterConfig({ dataClasses: classes });
+
+      expect(got.dataClasses).not.toBe(classes);
+      expect(got.dataClasses).toBeFrozen();
+      expect(got.dataClasses).toEqual(classes);
+    });
+  });
+
   describe.each`
   name
   ${'functionAction'}
@@ -42,10 +60,25 @@ describe('constructor()', () => {
     ${true}
     ${123}
     ${{ a: 'florp' }}
-    ${[ 'wrap' ]}
+    ${['wrap']}
     ${'blorp'} // Not one of the allowed string values.
     `('throws given invalid value `$arg`', ({ arg }) => {
       expect(() => new ConverterConfig({ [name]: arg })).toThrow();
+    });
+  });
+
+  describe('for config `specialCases`', () => {
+    test('accepts `null` (which is _not_ the same as the default)', () => {
+      const got = new ConverterConfig({ specialCases: null });
+
+      expect(got.specialCases).toBeNull();
+    });
+
+    test('accepts a `BaseConverter` instance', () => {
+      const conv = new BaseConverter();
+      const got  = new ConverterConfig({ specialCases: conv });
+
+      expect(got.specialCases).toBe(conv);
     });
   });
 
@@ -64,7 +97,7 @@ describe('constructor()', () => {
     ${true}
     ${123}
     ${{ a: 'omit' }}
-    ${[ 'error' ]}
+    ${['error']}
     ${'wrap'} // Not one of the allowed string values.
     `('throws given invalid value `$arg`', ({ arg }) => {
       expect(() => new ConverterConfig({ symbolKeyAction: arg })).toThrow();
