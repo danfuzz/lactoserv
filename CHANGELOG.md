@@ -14,6 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.7.4 -- 2024-05-22
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * `net-util`:
   * Found a major problem with the `pem` module (one of our few direct
     dependencies). Replaced it with `selfsigned`, which -- bonus! -- unlike
