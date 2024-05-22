@@ -62,10 +62,10 @@ export class Statter {
   }
 
   /**
-   * Gets the `fs.BigIntStats` of the path if it exists, or returns `null` if
-   * the path does not exist in the filesystem. "Not existing" includes,
-   * notably, the case where a non-final path component (that is, something
-   * which ought to be a directory) exists but is _not_ a directory.
+   * Gets the `fs.Stats` of the path if it exists, or returns `null` if the path
+   * does not exist in the filesystem. "Not existing" includes, notably, the
+   * case where a non-final path component (that is, something which ought to be
+   * a directory) exists but is _not_ a directory.
    *
    * @param {string} path Path to check.
    * @returns {?fs.Stats} The stats, if the path exists, or `null` if not.
