@@ -20,7 +20,7 @@ export class Statter {
   static async directoryExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isDirectory();
+    return stats ? stats.isDirectory() : false;
   }
 
   /**
@@ -33,7 +33,7 @@ export class Statter {
   static async fileExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isFile();
+    return stats ? stats.isFile() : false;
   }
 
   /**
@@ -58,7 +58,7 @@ export class Statter {
   static async socketExists(path) {
     const stats = await this.statOrNull(path);
 
-    return stats && stats.isSocket();
+    return stats ? stats.isSocket() : false;
   }
 
   /**
