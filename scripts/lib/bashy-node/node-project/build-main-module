@@ -194,7 +194,7 @@ function commit-info {
     local headRef
     headRef="$(git rev-parse --abbrev-ref HEAD)" \
     || return "$?"
-    if [[ ${headRef} != 'main' ]]; then
+    if [[ !(${headRef} =~ ^(main|HEAD)$) ]]; then
         infoWords+=("${headRef}")
     fi
 
