@@ -234,6 +234,7 @@ describe('race()', () => {
 
   test('recognizes the state of an unsettled promise that was encountered in a previous call to `race()`', async () => {
     // Note: This test was motivated by a notable gap in the unit test coverage.
+
     const mp = new ManualPromise();
 
     // We pass two contenders to `race()` here so as to avoid any
@@ -251,6 +252,7 @@ describe('race()', () => {
 
   test('recognizes the state of an already-settled promise that was encountered in a previous call to `race()`', async () => {
     // Note: This test was motivated by a notable gap in the unit test coverage.
+
     const mp1 = new ManualPromise();
     const mp2 = new ManualPromise();
 
@@ -266,5 +268,32 @@ describe('race()', () => {
 
     mp2.resolve(654);
     expect(await result).toBe(987);
+  });
+
+  test('calls `reject` on all pending races when a previously-unsettled promise becomes rejected', async () => {
+    // Note: This test was motivated by a notable gap in the unit test coverage.
+
+    const mp1 = new ManualPromise();
+    const mp2 = new ManualPromise();
+
+    // We pass two contenders to `race()` here so as to avoid any
+    // short-circuiting that's done when there's only one contender.
+    const race1 = PromiseUtil.race([mp1.promise, mp2.promise]);
+    const race2 = PromiseUtil.race([mp1.promise, mp2.promise]);
+    PromiseUtil.handleRejection(race1);
+    PromiseUtil.handleRejection(race2);
+
+    await setImmediate();
+
+    const error = new Error('Oy!');
+    mp1.rejectAndHandle(error);
+
+    await setImmediate();
+
+    expect(PromiseState.isSettled(race1)).toBeTrue();
+    expect(PromiseState.isSettled(race2)).toBeTrue();
+
+    await expect(race1).toReject(error);
+    await expect(race2).toReject(error);
   });
 });
