@@ -39,6 +39,17 @@ describe('handleRejection()', () => {
     PromiseUtil.handleRejection(prom);
     expect(await wasHandled(prom)).toBeTrue();
   });
+
+  test('succeeds trivially (e.g. doesn\'t throw) when given a resolved promise', async () => {
+    const prom = Promise.resolve('florp');
+    PromiseUtil.handleRejection(prom);
+    await setImmediate();
+  });
+
+  test('succeeds trivially (e.g. doesn\'t throw) when given a non-promise', async () => {
+    PromiseUtil.handleRejection('bonk');
+    await setImmediate();
+  });
 });
 
 describe('rejectAndHandle()', () => {
