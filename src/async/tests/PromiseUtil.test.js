@@ -231,4 +231,40 @@ describe('race()', () => {
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
+
+  test('recognizes the state of an unsettled promise that was encountered in a previous call to `race()`', async () => {
+    // Note: This test was motivated by a notable gap in the unit test coverage.
+    const mp = new ManualPromise();
+
+    // We pass two contenders to `race()` here so as to avoid any
+    // short-circuiting that's done when there's only one contender.
+    const prerace = PromiseUtil.race([mp.promise, 123]);
+    expect(await prerace).toBe(123);
+
+    const result = PromiseUtil.race([mp.promise, mp.promise]);
+    await setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
+
+    mp.resolve(456);
+    expect(await result).toBe(456);
+  });
+
+  test('recognizes the state of an already-settled promise that was encountered in a previous call to `race()`', async () => {
+    // Note: This test was motivated by a notable gap in the unit test coverage.
+    const mp1 = new ManualPromise();
+    const mp2 = new ManualPromise();
+
+    // We pass two contenders to `race()` here so as to avoid any
+    // short-circuiting that's done when there's only one contender.
+    const prerace = PromiseUtil.race([mp1.promise, mp2.promise]);
+    mp1.resolve(987);
+    expect(await prerace).toBe(987);
+
+    const result = PromiseUtil.race([mp2.promise, mp1.promise]);
+    await setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+
+    mp2.resolve(654);
+    expect(await result).toBe(987);
+  });
 });
