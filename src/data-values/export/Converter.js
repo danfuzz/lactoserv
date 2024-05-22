@@ -232,8 +232,8 @@ export class Converter extends BaseConverter {
         }
       }
       default: {
-        // `|| null` to make the call be a function (not method) call.
-        const replacement = (action || null)(orig);
+        // `?? null` to make the call be a function (not method) call.
+        const replacement = (action ?? null)(orig);
         return this.#encode0(replacement);
       }
     }
