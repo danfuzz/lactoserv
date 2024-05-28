@@ -199,8 +199,8 @@ export class ManualPromise {
   #handleRejection() {
     /* c8 ignore start */
     if (!this.isRejected()) {
-      // Ignored for coverage exactly because it shouldn't be possible to trigger
-      // this condition.
+      // Ignored for coverage exactly because it shouldn't be possible to
+      // trigger this condition.
       throw new Error('Shouldn\'t happen: Promise is not rejected.');
     }
     /* c8 ignore stop */
