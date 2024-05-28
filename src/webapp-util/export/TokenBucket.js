@@ -4,7 +4,7 @@
 import { ManualPromise, Threadlet } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
 import { Duration, Frequency, Moment } from '@this/data-values';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -508,8 +508,10 @@ export class TokenBucket {
     if (typeof quantity === 'number') {
       minInclusive = quantity;
       maxInclusive = quantity;
-    } else {
+    } else if (AskIf.plainObject(quantity)) {
       ({ maxInclusive = 0, minInclusive = 0 } = quantity);
+    } else {
+      throw new Error('Invalid `quantity` specification.');
     }
 
     if (!this.#partialTokens) {
