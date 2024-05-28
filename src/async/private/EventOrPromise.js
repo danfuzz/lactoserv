@@ -103,7 +103,6 @@ export class EventOrPromise {
   get next() {
     const eventNow = this.#eventNow;
 
-    console.log('###################### CALLED', eventNow);
     if (eventNow) {
       return new EventOrPromise(eventNow.nextNow ?? eventNow.nextPromise);
     } else {
