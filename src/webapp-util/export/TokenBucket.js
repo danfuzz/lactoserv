@@ -498,7 +498,8 @@ export class TokenBucket {
    *
    * @param {object|number} quantity The requested quantity, as described by
    *   `take*()`.
-   * @returns {function(number): number} Replacement arguments.
+   * @returns {{ maxInclusive: number, minInclusive: number }} Replacement
+   *   arguments.
    * @throws {Error} Thrown if there is trouble with the arguments.
    */
   #parseQuantity(quantity) {
