@@ -452,7 +452,63 @@ describe('advance(count)', () => {
         expect(tracker.headNow).toBe(events[advanceCount]);
         expect(await result).toBe(events[advanceCount]);
       });
+
+      test('asynchronous resolve-the-rest-at-once case', async () => {
+        const events = [];
+        for (let i = startCount - 1; i >= 0; i--) {
+          const next = events[0] ? Promise.resolve(events[0]) : null;
+          events.unshift(new LinkedEvent(new EventPayload('at', i), next));
+        }
+
+        const tracker = new EventTracker(Promise.resolve(events[0]));
+        const result  = tracker.advance(advanceCount);
+
+        await setImmediate();
+        expect(tracker.headNow).toBeNull();
+        expect(PromiseState.isSettled(result)).toBeFalse();
+
+        let emitter = events[startCount - 1].emitter;
+        for (let i = startCount; i <= advanceCount; i++) {
+          emitter = emitter(new EventPayload('at', i));
+          events.push(events[i - 1].nextNow);
+        }
+
+        await setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(tracker.headNow).toBe(events[advanceCount]);
+        expect(await result).toBe(events[advanceCount]);
+      });
     }
+  });
+
+  test('can be "stacked" in advance of events being emitted', async () => {
+    const events  = [new LinkedEvent(new EventPayload('at', 0))];
+    let   emitter = events[0].emitter;
+
+    const tracker = new EventTracker(events[0]);
+    const result1 = tracker.advance(1);
+    const result2 = tracker.advance(1);
+    const result3 = tracker.advance(1);
+
+    await setImmediate();
+    expect(PromiseState.isSettled(result1)).toBeFalse();
+    expect(PromiseState.isSettled(result2)).toBeFalse();
+    expect(PromiseState.isSettled(result3)).toBeFalse();
+
+    for (let i = 1; i <= 3; i++) {
+      emitter = emitter(new EventPayload('at', i));
+      events.push(events[i - 1].nextNow);
+    }
+
+    await setImmediate();
+    expect(tracker.headNow).toBe(events[3]);
+    expect(PromiseState.isSettled(result1)).toBeTrue();
+    expect(PromiseState.isSettled(result2)).toBeTrue();
+    expect(PromiseState.isSettled(result3)).toBeTrue();
+
+    expect(await result1).toBe(events[1]);
+    expect(await result2).toBe(events[2]);
+    expect(await result3).toBe(events[3]);
   });
 });
 
