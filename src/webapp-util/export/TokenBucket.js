@@ -511,6 +511,9 @@ export class TokenBucket {
       maxInclusive = quantity;
     } else if (AskIf.plainObject(quantity)) {
       ({ maxInclusive = 0, minInclusive = 0 } = quantity);
+      if ((typeof maxInclusive !== 'number') || (typeof minInclusive !== 'number')) {
+        throw new Error('Invalid `quantity` specification.');
+      }
     } else {
       throw new Error('Invalid `quantity` specification.');
     }
@@ -523,8 +526,8 @@ export class TokenBucket {
     const maxQueueGrantSize = this.#maxQueueGrantSize;
 
     try {
-      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: maxQueueGrantSize });
-      MustBe.number(maxInclusive, { minInclusive: 0 });
+      MustBe.number(minInclusive, { finite: true, minInclusive: 0, maxInclusive: maxQueueGrantSize });
+      MustBe.number(maxInclusive, { finite: true, minInclusive: 0 });
     } catch (e) {
       throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxQueueGrantSize}`);
     }
