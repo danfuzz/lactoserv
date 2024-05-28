@@ -7,7 +7,8 @@ import { ProcessInfoFile } from '@this/webapp-builtins';
 describe('constructor', () => {
   test('accepts a valid configuration', () => {
     expect(() => new ProcessInfoFile({
-      path: '/florp'
+      path:         '/florp',
+      updatePeriod: '100 sec'
     })).not.toThrow();
   });
 
