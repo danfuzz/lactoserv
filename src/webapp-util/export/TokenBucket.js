@@ -136,7 +136,7 @@ export class TokenBucket {
    * @param {?number} [options.maxQueueSize] The maximum allowed waiter queue
    *   size, in tokens. Must be a finite non-negative number or `null`. If
    *   `null`, then there is no limit on the queue size. If `0`, then this
-   *   instance will only ever synchronously grant tokens.
+   *   instance will only ever synchronously grant tokens. Defaults to `null`.
    * @param {boolean} [options.partialTokens] If `true`, allows the instance to
    *   provide partial tokens (e.g. give a client `1.25` tokens). If `false`,
    *   all token handoffs from the instance are quantized to integer values.
@@ -529,6 +529,8 @@ export class TokenBucket {
       throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxQueueGrantSize}`);
     }
 
+    // Per public API, we clamp `maxInclusive` at `minInclusive` instead of
+    // throwing if it is smaller.
     maxInclusive = Math.max(maxInclusive, minInclusive);
 
     return { minInclusive, maxInclusive };
