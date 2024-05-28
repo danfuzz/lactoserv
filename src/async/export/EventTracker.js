@@ -386,11 +386,14 @@ class AdvanceAction {
    */
   async handleAsync() {
     while (!this.handleSync()) {
+      /* c8 ignore start */
       if (this.#head.eventNow) {
         // `handleSync()` should either consume the synchronous portion of the
-        // event chain or throw an error.
+        // event chain or throw an error. Ignored for coverage exactly because
+        // it shouldn't be possible to trigger this condition.
         throw new Error('Shouldn\'t happen.');
       }
+      /* c8 ignore stop */
 
       try {
         await this.#head.eventPromise;
@@ -441,10 +444,14 @@ class AdvanceAction {
    * @param {?Error} error The problem, if any.
    */
   #becomeDone(error = null) {
+    /* c8 ignore start */
     if (this.#result) {
       // This method is only ever supposed to be called once per instance.
+      // Ignored for coverage exactly because it shouldn't be possible to
+      // trigger this condition.
       throw new Error('Shouldn\'t happen.');
     }
+    /* c8 ignore stop */
 
     this.#result = error
       ? EventOrPromise.reject(error)
