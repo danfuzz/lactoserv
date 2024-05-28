@@ -84,7 +84,7 @@ export class EventOrPromise {
    * promise has yet to settle. This class guarantees that, if this promise is
    * fulfilled (not rejected), then it will indeed be an instance of
    * {@link LinkedEvent}. This class also guarantees that, if this promise is
-   * rejected, then {@link #rejectedReason} is non-`null`.
+   * rejected, then {@link #isRejected} is `true`.
    */
   get eventPromise() {
     if (this.#eventPromise === null) {
@@ -108,15 +108,6 @@ export class EventOrPromise {
     } else {
       return new EventOrPromise(this.#nextFromPromise());
     }
-  }
-
-  /**
-   * @returns {?Error} The synchronously-known reason why {@link #eventPromise}
-   * was rejected, if it was indeed rejected and observed by this instance as
-   * such.
-   */
-  get rejectedReason() {
-    return this.#rejectedReason;
   }
 
   /**

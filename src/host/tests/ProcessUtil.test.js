@@ -43,4 +43,8 @@ describe('processExists()', () => {
     expect(missedTrues).toBeWithin(0, maxAllowedMisses + 1);
     expect(missedFalses).toBeWithin(0, maxAllowedMisses + 1);
   });
+
+  test('throws given an invalid argument', () => {
+    expect(() => ProcessUtil.processExists('florp')).toThrow();
+  });
 });

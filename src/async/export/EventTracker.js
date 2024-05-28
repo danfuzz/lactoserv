@@ -31,7 +31,8 @@ import { TypeEventPredicate } from '#x/TypeEventPredicate';
  *   it will return this first event and then advance past it. This is the
  *   default predicate for predicate-taking methods.
  * * `count: number` -- Matches the event `count` items past the head of the
- *   event chain. Allowed to be `0`.
+ *   event chain. Allowed to be `0`, which means to request the first available
+ *   event (the "0th" past the head, that is to say, the one at the head).
  * * `type: string` -- Matches an event for which `event.type === type`.
  *   **Note:** Events do not necessarily have a meaningful `type`, so this form
  *   is only useful when one knows that the events in question _do_ use `type`.
@@ -96,7 +97,7 @@ export class EventTracker {
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
-   * promise (as it must be given this method is declared `async`), but
+   * promise (as it must be given that this method is declared `async`), but
    * {@link #headNow} will synchronously reflect the updated state of affairs.
    *
    * **Note:** If the predicate throws an error -- even synchronously -- the
@@ -310,7 +311,7 @@ export class EventTracker {
         let count = predicate;
         if (count === 0) {
           return (() => true);
-        } else if ((count > 0) && (count === Math.trunc(count))) {
+        } else if ((count > 0) && Number.isSafeInteger(count)) {
           return (() => (count-- === 0));
         }
         break;
@@ -385,19 +386,22 @@ class AdvanceAction {
    */
   async handleAsync() {
     while (!this.handleSync()) {
+      /* c8 ignore start */
       if (this.#head.eventNow) {
         // `handleSync()` should either consume the synchronous portion of the
-        // event chain or throw an error.
+        // event chain or throw an error. Ignored for coverage exactly because
+        // it shouldn't be possible to trigger this condition.
         throw new Error('Shouldn\'t happen.');
       }
+      /* c8 ignore stop */
 
       try {
         await this.#head.eventPromise;
       } catch {
         // There is no need -- and it's counterproductive -- to pass an error to
-        // `becomeDone()` here: `#head.rejectedReason` already has the reason,
-        // and it just gets implicitly incorporated into the result, so there's
-        // no need to whip up a new rejected promise.
+        // `becomeDone()` here: `#head` is already in a rejected state with the
+        // appropriate reason, and that gets implicitly incorporated into the
+        // result, so there's no need to whip up a new rejected promise.
         this.#becomeDone();
       }
     }
@@ -440,10 +444,14 @@ class AdvanceAction {
    * @param {?Error} error The problem, if any.
    */
   #becomeDone(error = null) {
+    /* c8 ignore start */
     if (this.#result) {
       // This method is only ever supposed to be called once per instance.
+      // Ignored for coverage exactly because it shouldn't be possible to
+      // trigger this condition.
       throw new Error('Shouldn\'t happen.');
     }
+    /* c8 ignore stop */
 
     this.#result = error
       ? EventOrPromise.reject(error)

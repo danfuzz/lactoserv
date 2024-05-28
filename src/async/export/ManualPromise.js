@@ -197,11 +197,13 @@ export class ManualPromise {
    * Node is concerned. See {@link #rejectAndHandle} for a little more context.
    */
   #handleRejection() {
-    // Ignored because it shouldn't be possible to trigger this condition.
-    /* c8 ignore next 3 */
+    /* c8 ignore start */
     if (!this.isRejected()) {
+      // Ignored for coverage exactly because it shouldn't be possible to
+      // trigger this condition.
       throw new Error('Shouldn\'t happen: Promise is not rejected.');
     }
+    /* c8 ignore stop */
 
     if (!this.#rejectionHandled) {
       PromiseUtil.handleRejection(this.#promise);
