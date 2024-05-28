@@ -96,7 +96,7 @@ export class EventTracker {
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
-   * promise (as it must be given this method is declared `async`), but
+   * promise (as it must be given that this method is declared `async`), but
    * {@link #headNow} will synchronously reflect the updated state of affairs.
    *
    * **Note:** If the predicate throws an error -- even synchronously -- the
