@@ -311,7 +311,7 @@ export class EventTracker {
         let count = predicate;
         if (count === 0) {
           return (() => true);
-        } else if ((count > 0) && (count === Math.trunc(count))) {
+        } else if ((count > 0) && Number.isSafeInteger(count)) {
           return (() => (count-- === 0));
         }
         break;

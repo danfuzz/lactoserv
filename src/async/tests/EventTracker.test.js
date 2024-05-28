@@ -650,6 +650,8 @@ describe('advance(function)', () => {
 describe('advance(<invalid>)', () => {
   test.each([
     [false],
+    [123.4],    // Numbers have to be safe integers.
+    [Infinity], // Ditto.
     [[]],
     [['a']],
     [{}],
