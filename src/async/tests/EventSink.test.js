@@ -323,7 +323,7 @@ describe('run()', () => {
     expect(await runResult).toBeUndefined();
   });
 
-  test('processes 10 asynchronously-known events', async () => {
+  test('processes 10 asynchronously-known events that are emitted just-in-time', async () => {
     let callCount = 0;
     const processor = (event) => {
       if (event.payload.args[0] !== callCount) {
@@ -342,6 +342,37 @@ describe('run()', () => {
       expect(callCount).toBe(i - 1);
       await setImmediate();
       expect(callCount).toBe(i);
+      emitter = emitter(new EventPayload('num', i));
+    }
+
+    await setImmediate();
+    expect(callCount).toBe(10);
+
+    sink.stop();
+    expect(await runResult).toBeUndefined();
+  });
+
+  test('processes 10 asynchronously-known events that get emitted in one fell swoop', async () => {
+    let callCount = 0;
+    const processor = (event) => {
+      if (event.payload.args[0] !== callCount) {
+        throw new Error(`Wrong event #${callCount}`);
+      }
+      callCount++;
+    };
+
+    const event0 = new LinkedEvent(new EventPayload('num', 0));
+    let emitter  = event0.emitter;
+    const sink   = new EventSink(processor, Promise.resolve(event0));
+
+    const runResult = sink.run();
+
+    // Try to make sure that the `sink` has run into the end of the chain and so
+    // is necessarily waiting on a promise for an event.
+    await setImmediate();
+    expect(callCount).toBe(1);
+
+    for (let i = 1; i < 10; i++) {
       emitter = emitter(new EventPayload('num', i));
     }
 
