@@ -434,6 +434,17 @@ ${'takeNow'}      | ${false}
   ${'florp'}
   ${[123, 345]}
   ${new Map()}
+  // These are plain objects with the right properties, but bad values in them.
+  ${{ minInclusive: null }}
+  ${{ maxInclusive: null }}
+  ${{ minInclusive: 'florp' }}
+  ${{ maxInclusive: 'florp' }}
+  ${{ minInclusive: [] }}
+  ${{ maxInclusive: [] }}
+  ${{ minInclusive: Infinity }}
+  ${{ maxInclusive: Infinity }}
+  ${{ minInclusive: 1, maxInclusive: new Map() }}
+  ${{ minInclusive: new Map(), maxInclusive: 1 }}
   `('throws given invalid argument: $arg', async ({ arg }) => {
     await checkCall(arg);
   });
