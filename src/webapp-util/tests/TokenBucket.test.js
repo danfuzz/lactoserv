@@ -412,7 +412,9 @@ ${'takeNow'}      | ${false}
   async function checkCall(arg) {
     const time = new MockTimeSource(123);
     const bucket = new TokenBucket({
-      flowRate: FLOW_1, maxBurstSize: 10, initialBurstSize: 10, timeSource: time });
+      flowRate: FLOW_1, maxBurstSize: 10, maxQueueGrantSize: 5,
+      initialBurstSize: 10, timeSource: time
+    });
 
     if (isAsync) {
       const result = bucket[methodName](arg);
@@ -434,6 +436,19 @@ ${'takeNow'}      | ${false}
   ${new Map()}
   `('throws given invalid argument: $arg', async ({ arg }) => {
     await checkCall(arg);
+  });
+
+  test('throws given `maxInclusive < 0`', async () => {
+    await checkCall({ maxInclusive: -1 });
+    await checkCall({ maxInclusive: -1, minInclusive: -2 });
+  });
+
+  test('throws given `minInclusive < 0`', async () => {
+    await checkCall({ minInclusive: -1 });
+  });
+
+  test('throws given `minInclusive > maxQueueGrantSize`', async () => {
+    await checkCall({ minInclusive: 6 });
   });
 });
 
