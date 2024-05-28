@@ -403,6 +403,66 @@ describe('denyAllRequests()', () => {
   });
 });
 
+// Error cases.
+describe.each`
+methodName        | isAsync
+${'requestGrant'} | ${true}
+${'takeNow'}      | ${false}
+`('$methodName()', ({ methodName, isAsync }) => {
+  async function checkCall(arg) {
+    const time = new MockTimeSource(123);
+    const bucket = new TokenBucket({
+      flowRate: FLOW_1, maxBurstSize: 10, maxQueueGrantSize: 5,
+      initialBurstSize: 10, timeSource: time
+    });
+
+    if (isAsync) {
+      const result = bucket[methodName](arg);
+      expect(result).toBeInstanceOf(Promise);
+      await expect(result).toReject();
+    } else {
+      expect(() => bucket[methodName](arg)).toThrow();
+    }
+  }
+
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${true}
+  ${'florp'}
+  ${[123, 345]}
+  ${new Map()}
+  // These are plain objects with the right properties, but bad values in them.
+  ${{ minInclusive: null }}
+  ${{ maxInclusive: null }}
+  ${{ minInclusive: 'florp' }}
+  ${{ maxInclusive: 'florp' }}
+  ${{ minInclusive: [] }}
+  ${{ maxInclusive: [] }}
+  ${{ minInclusive: Infinity }}
+  ${{ maxInclusive: Infinity }}
+  ${{ minInclusive: 1, maxInclusive: new Map() }}
+  ${{ minInclusive: new Map(), maxInclusive: 1 }}
+  `('throws given invalid argument: $arg', async ({ arg }) => {
+    await checkCall(arg);
+  });
+
+  test('throws given `maxInclusive < 0`', async () => {
+    await checkCall({ maxInclusive: -1 });
+    await checkCall({ maxInclusive: -1, minInclusive: -2 });
+  });
+
+  test('throws given `minInclusive < 0`', async () => {
+    await checkCall({ minInclusive: -1 });
+  });
+
+  test('throws given `minInclusive > maxQueueGrantSize`', async () => {
+    await checkCall({ minInclusive: 6 });
+  });
+});
+
 describe('requestGrant()', () => {
   describe('when there are no waiters', () => {
     test('synchronously grants a request that can be satisfied', async () => {

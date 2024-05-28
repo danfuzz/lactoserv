@@ -4,7 +4,7 @@
 import { ManualPromise, Threadlet } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
 import { Duration, Frequency, Moment } from '@this/data-values';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -136,7 +136,7 @@ export class TokenBucket {
    * @param {?number} [options.maxQueueSize] The maximum allowed waiter queue
    *   size, in tokens. Must be a finite non-negative number or `null`. If
    *   `null`, then there is no limit on the queue size. If `0`, then this
-   *   instance will only ever synchronously grant tokens.
+   *   instance will only ever synchronously grant tokens. Defaults to `null`.
    * @param {boolean} [options.partialTokens] If `true`, allows the instance to
    *   provide partial tokens (e.g. give a client `1.25` tokens). If `false`,
    *   all token handoffs from the instance are quantized to integer values.
@@ -498,7 +498,8 @@ export class TokenBucket {
    *
    * @param {object|number} quantity The requested quantity, as described by
    *   `take*()`.
-   * @returns {function(number): number} Replacement arguments.
+   * @returns {{ maxInclusive: number, minInclusive: number }} Replacement
+   *   arguments.
    * @throws {Error} Thrown if there is trouble with the arguments.
    */
   #parseQuantity(quantity) {
@@ -508,8 +509,13 @@ export class TokenBucket {
     if (typeof quantity === 'number') {
       minInclusive = quantity;
       maxInclusive = quantity;
-    } else {
+    } else if (AskIf.plainObject(quantity)) {
       ({ maxInclusive = 0, minInclusive = 0 } = quantity);
+      if ((typeof maxInclusive !== 'number') || (typeof minInclusive !== 'number')) {
+        throw new Error('Invalid `quantity` specification.');
+      }
+    } else {
+      throw new Error('Invalid `quantity` specification.');
     }
 
     if (!this.#partialTokens) {
@@ -520,12 +526,14 @@ export class TokenBucket {
     const maxQueueGrantSize = this.#maxQueueGrantSize;
 
     try {
-      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: maxQueueGrantSize });
-      MustBe.number(maxInclusive, { minInclusive: 0 });
+      MustBe.number(minInclusive, { finite: true, minInclusive: 0, maxInclusive: maxQueueGrantSize });
+      MustBe.number(maxInclusive, { finite: true, minInclusive: 0 });
     } catch (e) {
       throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxQueueGrantSize}`);
     }
 
+    // Per public API, we clamp `maxInclusive` at `minInclusive` instead of
+    // throwing if it is smaller.
     maxInclusive = Math.max(maxInclusive, minInclusive);
 
     return { minInclusive, maxInclusive };
