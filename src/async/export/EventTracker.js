@@ -31,7 +31,8 @@ import { TypeEventPredicate } from '#x/TypeEventPredicate';
  *   it will return this first event and then advance past it. This is the
  *   default predicate for predicate-taking methods.
  * * `count: number` -- Matches the event `count` items past the head of the
- *   event chain. Allowed to be `0`.
+ *   event chain. Allowed to be `0`, which means to request the first available
+ *   event (the "0th" past the head, that is to say, the one at the head).
  * * `type: string` -- Matches an event for which `event.type === type`.
  *   **Note:** Events do not necessarily have a meaningful `type`, so this form
  *   is only useful when one knows that the events in question _do_ use `type`.
