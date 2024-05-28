@@ -403,6 +403,40 @@ describe('denyAllRequests()', () => {
   });
 });
 
+// Error cases.
+describe.each`
+methodName        | isAsync
+${'requestGrant'} | ${true}
+${'takeNow'}      | ${false}
+`('$methodName()', ({ methodName, isAsync }) => {
+  async function checkCall(arg) {
+    const time = new MockTimeSource(123);
+    const bucket = new TokenBucket({
+      flowRate: FLOW_1, maxBurstSize: 10, initialBurstSize: 10, timeSource: time });
+
+    if (isAsync) {
+      const result = bucket[methodName](arg);
+      expect(result).toBeInstanceOf(Promise);
+      await expect(result).toReject();
+    } else {
+      expect(() => bucket[methodName](arg)).toThrow();
+    }
+  }
+
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${true}
+  ${'florp'}
+  ${[123, 345]}
+  ${new Map()}
+  `('throws given invalid argument: $arg', async ({ arg }) => {
+    await checkCall(arg);
+  });
+});
+
 describe('requestGrant()', () => {
   describe('when there are no waiters', () => {
     test('synchronously grants a request that can be satisfied', async () => {
