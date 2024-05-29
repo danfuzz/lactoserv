@@ -166,6 +166,161 @@ describe('arrayOfString()', () => {
   });
 });
 
+describe('bigint()', () => {
+  function checkNonBigints(...opts) {
+    test.each`
+    arg
+    ${undefined}
+    ${null}
+    ${true}
+    ${1234}
+    ${{ a: [1, 2, 3] }}
+    ${['123']}
+    ${new Map()}
+    `('returns `false` for non-bigint: $arg', ({ arg }) => {
+      expect(AskIf.bigint(arg, ...opts)).toBeFalse();
+    });
+  }
+
+  function checkBigints(...opts) {
+    test.each`
+    arg
+    ${-10n}
+    ${-9n}
+    ${-8n}
+    ${-7n}
+    ${-6n}
+    ${-5n}
+    ${-4n}
+    ${-3n}
+    ${-2n}
+    ${-1n}
+    ${0n}
+    ${1n}
+    ${2n}
+    ${3n}
+    ${4n}
+    ${5n}
+    ${6n}
+    ${7n}
+    ${8n}
+    ${9n}
+    ${10n}
+    ${20n}
+    ${100n}
+    ${200n}
+    ${400n}
+    ${123456789n}
+    ${123456789012345678901234567890n}
+    ${-123456789012345678901234567890n}
+    `('returns `true` for bigint: $arg', ({ arg }) => {
+      expect(AskIf.bigint(arg, ...opts)).toBeTrue();
+    });
+  }
+
+  describe('with no options', () => {
+    checkNonBigints();
+    checkBigints();
+  });
+
+  describe('with options `{}`', () => {
+    checkNonBigints({});
+    checkBigints({});
+  });
+
+  describe('with options `{ maxExclusive: 100n }`', () => {
+    const opts = { maxExclusive: 100n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(-100n, opts)).toBeTrue();
+      expect(AskIf.bigint(0n, opts)).toBeTrue();
+      expect(AskIf.bigint(98n, opts)).toBeTrue();
+      expect(AskIf.bigint(99n, opts)).toBeTrue();
+      expect(AskIf.bigint(100n, opts)).toBeFalse();
+      expect(AskIf.bigint(101n, opts)).toBeFalse();
+      expect(AskIf.bigint(5000n, opts)).toBeFalse();
+    });
+  });
+
+  describe('with options `{ maxInclusive: 100n }`', () => {
+    const opts = { maxInclusive: 100n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(-100n, opts)).toBeTrue();
+      expect(AskIf.bigint(0n, opts)).toBeTrue();
+      expect(AskIf.bigint(98n, opts)).toBeTrue();
+      expect(AskIf.bigint(99n, opts)).toBeTrue();
+      expect(AskIf.bigint(100n, opts)).toBeTrue();
+      expect(AskIf.bigint(101n, opts)).toBeFalse();
+      expect(AskIf.bigint(5000n, opts)).toBeFalse();
+    });
+  });
+
+  describe('with options `{ minExclusive: 5n }`', () => {
+    const opts = { minExclusive: 5n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(0n, opts)).toBeFalse();
+      expect(AskIf.bigint(4n, opts)).toBeFalse();
+      expect(AskIf.bigint(5n, opts)).toBeFalse();
+      expect(AskIf.bigint(6n, opts)).toBeTrue();
+      expect(AskIf.bigint(5000n, opts)).toBeTrue();
+    });
+  });
+
+  describe('with options `{ minInclusive: 5n }`', () => {
+    const opts = { minInclusive: 5n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(0n, opts)).toBeFalse();
+      expect(AskIf.bigint(4n, opts)).toBeFalse();
+      expect(AskIf.bigint(5n, opts)).toBeTrue();
+      expect(AskIf.bigint(6n, opts)).toBeTrue();
+      expect(AskIf.bigint(5000n, opts)).toBeTrue();
+    });
+  });
+
+  describe('with options `{ minInclusive: 10n, maxInclusive: 20n }`', () => {
+    const opts = { minInclusive: 10n, maxInclusive: 20n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(0n, opts)).toBeFalse();
+      expect(AskIf.bigint(9n, opts)).toBeFalse();
+      expect(AskIf.bigint(10n, opts)).toBeTrue();
+      expect(AskIf.bigint(15n, opts)).toBeTrue();
+      expect(AskIf.bigint(20n, opts)).toBeTrue();
+      expect(AskIf.bigint(21n, opts)).toBeFalse();
+    });
+  });
+
+  describe('with options `{ minExclusive: 10n, maxExclusive: 20n }`', () => {
+    const opts = { minExclusive: 10n, maxExclusive: 20n };
+
+    checkNonBigints(opts);
+
+    test('reports values in/out of range as appropriate', () => {
+      expect(AskIf.bigint(0n, opts)).toBeFalse();
+      expect(AskIf.bigint(9n, opts)).toBeFalse();
+      expect(AskIf.bigint(10n, opts)).toBeFalse();
+      expect(AskIf.bigint(11n, opts)).toBeTrue();
+      expect(AskIf.bigint(15n, opts)).toBeTrue();
+      expect(AskIf.bigint(19n, opts)).toBeTrue();
+      expect(AskIf.bigint(20n, opts)).toBeFalse();
+      expect(AskIf.bigint(21n, opts)).toBeFalse();
+    });
+  });
+});
+
 describe('callableFunction()', () => {
   describe('non-functions', () => {
     test.each`
