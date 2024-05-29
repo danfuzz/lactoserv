@@ -3,6 +3,66 @@
 
 import { AskIf } from '@this/typey';
 
+describe('arrayIndexString()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${true}
+  ${123n}
+  ${1234}
+  ${{ a: [1, 2, 3] }}
+  ${['123']}
+  ${new Map()}
+  `('returns `false` for non-string: $arg', ({ arg }) => {
+    expect(AskIf.arrayIndexString(arg)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${''}
+  ${'a'}
+  ${'florp'}
+  ${'-'}
+  ${'--1'}
+  ${'01'}
+  ${'1.2'}
+  ${'1e2'}
+  ${'-5'}
+  ${'0x123'}
+  ${'  1'}
+  ${'2  '}
+  ${' 3 '}
+  ${'4x'}
+  ${' 4x'}
+  ${'4 x'}
+  ${'4294967296'} // 2**32. Max is actually 2**32 - 2.
+  ${'4294967295'} // 2**32 - 1.
+  `('returns `false` for string in incorrect form: `$arg`', ({ arg }) => {
+    expect(AskIf.arrayIndexString(arg)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${'0'}
+  ${'1'}
+  ${'2'}
+  ${'3'}
+  ${'4'}
+  ${'5'}
+  ${'6'}
+  ${'7'}
+  ${'8'}
+  ${'9'}
+  ${'10'}
+  ${'999999999'}
+  ${'1234567890'}
+  ${'4294967294'} // 2**32 - 2, which is the largest allowed index.
+  `('returns `true` for string: $arg', ({ arg }) => {
+    expect(AskIf.arrayIndexString(arg)).toBeTrue();
+  });
+});
+
 describe('arrayOf()', () => {
   test.each`
   arg

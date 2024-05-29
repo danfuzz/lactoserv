@@ -32,7 +32,7 @@ export class AskIf {
 
     return (intValue.toString() === value)
       && (intValue >= 0)
-      && (intValue < (2 ** 32));
+      && (intValue <= ((2 ** 32) - 2));
   }
 
   /**
