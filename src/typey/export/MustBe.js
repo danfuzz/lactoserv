@@ -59,7 +59,7 @@ export class MustBe {
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfString(value, match = null) {
-    if (AskIf.arrayOfString(value, null)) {
+    if (AskIf.arrayOfString(value, match)) {
       return value;
     }
 
