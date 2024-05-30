@@ -10,6 +10,14 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.7.5 -- 2024-05-30
+
 Is it stable? Assuming no major problems in the next week or so, the next
 release will be a nearly-no-changes one and will be declared the first stable
 release of the v0.7.* series.

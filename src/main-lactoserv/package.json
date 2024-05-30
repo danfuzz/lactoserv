@@ -1,6 +1,6 @@
 {
   "name": "@this/main-lactoserv",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "type": "module",
   "private": true,
   "license": "Apache-2.0",
@@ -10,8 +10,7 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js",
-    "#tests/*": "./tests/*.js"
+    "#p/*": "./private/*.js"
   },
 
   "dependencies": {
