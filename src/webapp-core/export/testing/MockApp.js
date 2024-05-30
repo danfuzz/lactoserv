@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FullResponse, IntfRequestHandler } from '@this/net-util';
-import { BaseApplication } from '@this/webapp-core';
+
+import { BaseApplication } from '#x/BaseApplication';
 
 
 /**

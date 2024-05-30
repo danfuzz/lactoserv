@@ -5,8 +5,8 @@ import { PathKey } from '@this/collections';
 import { MockComponent, MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo, FullResponse } from '@this/net-util';
 import { SuffixRouter } from '@this/webapp-builtins';
+import { MockApp } from '@this/webapp-core/testing';
 
-import { MockApp } from '#test/MockApp';
 import { RequestUtil } from '#test/RequestUtil';
 
 
