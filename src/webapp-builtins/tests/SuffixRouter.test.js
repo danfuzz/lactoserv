@@ -5,7 +5,7 @@ import { PathKey } from '@this/collections';
 import { MockComponent, MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo, FullResponse } from '@this/net-util';
 import { SuffixRouter } from '@this/webapp-builtins';
-import { MockApp } from '@this/webapp-core/testing';
+import { MockApplication } from '@this/webapp-core/testing';
 
 import { RequestUtil } from '#test/RequestUtil';
 
@@ -86,7 +86,7 @@ describe('_impl_handleRequest()', () => {
     await root.addAll(apps);
 
     for (let i = 1; i <= appCount; i++) {
-      const app = new MockApp({ name: `mockApp${i}` });
+      const app = new MockApplication({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
@@ -101,7 +101,7 @@ describe('_impl_handleRequest()', () => {
   }
 
   async function expectApp(sr, path, appName, expectResponse = true) {
-    MockApp.mockCalls = [];
+    MockApplication.mockCalls = [];
 
     const request = RequestUtil.makeGet(path);
     const result  = await sr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
@@ -111,24 +111,24 @@ describe('_impl_handleRequest()', () => {
       expect(result).toBeNull();
     }
 
-    const calls = MockApp.mockCalls;
+    const calls = MockApplication.mockCalls;
     expect(calls.length).toBe(1);
     expect(calls[0].application.name).toBe(appName);
   }
 
   async function expectNull(sr, path) {
-    MockApp.mockCalls = [];
+    MockApplication.mockCalls = [];
 
     const request = RequestUtil.makeGet(path);
     const result  = await sr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
     expect(result).toBeNull();
 
-    const calls = MockApp.mockCalls;
+    const calls = MockApplication.mockCalls;
     expect(calls).toEqual([]);
   }
 
   beforeEach(() => {
-    MockApp.mockCalls = [];
+    MockApplication.mockCalls = [];
   });
 
   test('handles regular file (non-directory) paths by default', async () => {
