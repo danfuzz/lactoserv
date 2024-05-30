@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MockComponent, TemplAggregateComponent } from '@this/compy';
+import { TemplAggregateComponent } from '@this/compy';
+import { MockComponent } from '@this/compy/testing';
 
 
 test('produces a class with the given name and superclass', () => {

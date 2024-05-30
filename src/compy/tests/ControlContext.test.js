@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MockComponent, MockRootComponent } from '@this/compy';
+import { MockComponent, MockRootComponent } from '@this/compy/testing';
 
 
 describe('constructor', () => {

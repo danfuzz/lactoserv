@@ -16,6 +16,7 @@ export default {
     collectCoverage: false,
     collectCoverageFrom: [
       '**/code/node_modules/**',
+      '!**/code/node_modules/**/export/testing/**',
       '!**/*.test.*',
       '!**/Intf[A-Z]*.{js,cjs,mjs}',
       '!**/Type[A-Z]*.{js,cjs,mjs}'

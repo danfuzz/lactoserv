@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { MockComponent, MockRootComponent } from '@this/compy';
+import { MockComponent, MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo } from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
+import { MockApplication } from '@this/webapp-core/testing';
 
-import { MockApp } from '#test/MockApp';
-import { RequestUtil } from '#test/RequestUtil';
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 describe('constructor', () => {
@@ -99,7 +99,7 @@ describe('_impl_handleRequest()', () => {
     await root.addAll(apps);
 
     for (let i = 1; i <= appCount; i++) {
-      const app = new MockApp({ name: `mockApp${i}` });
+      const app = new MockApplication({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
@@ -117,7 +117,7 @@ describe('_impl_handleRequest()', () => {
     let pr = null;
 
     function extractCallInfo() {
-      return MockApp.mockCalls.map(({ application, request, dispatch }) => {
+      return MockApplication.mockCalls.map(({ application, request, dispatch }) => {
         return {
           appName:    application.name,
           reqPathStr: request.pathnameString,
@@ -144,7 +144,7 @@ describe('_impl_handleRequest()', () => {
           { appCount: 9, handlerFunc: () => false }
         );
 
-        MockApp.mockCalls = [];
+        MockApplication.mockCalls = [];
       });
 
       test.each`
@@ -210,7 +210,7 @@ describe('_impl_handleRequest()', () => {
           { appCount: 8, handlerFunc: () => false }
         );
 
-        MockApp.mockCalls = [];
+        MockApplication.mockCalls = [];
       });
 
       test.each`
@@ -268,7 +268,7 @@ describe('_impl_handleRequest()', () => {
       { appCount: 4, handlerFunc: ({ application }) => application.name === 'mockApp2' }
     );
 
-    MockApp.mockCalls = [];
+    MockApplication.mockCalls = [];
 
     const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
@@ -276,7 +276,7 @@ describe('_impl_handleRequest()', () => {
     expect(result).not.toBeNull();
     expect(result.mockInfo.application.name).toBe('mockApp2');
 
-    const callNames = MockApp.mockCalls.map(({ application }) => application.name);
+    const callNames = MockApplication.mockCalls.map(({ application }) => application.name);
     expect(callNames).toEqual(['mockApp4', 'mockApp3', 'mockApp2']);
   });
 
@@ -290,14 +290,14 @@ describe('_impl_handleRequest()', () => {
       { appCount: 2, handlerFunc: ({ application }) => application.name === 'mockApp1' }
     );
 
-    MockApp.mockCalls = [];
+    MockApplication.mockCalls = [];
 
     const request = RequestUtil.makeGet('/x/y/z');
     const result  = await pr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
     expect(result).toBeNull();
 
-    const callNames = MockApp.mockCalls.map(({ application }) => application.name);
+    const callNames = MockApplication.mockCalls.map(({ application }) => application.name);
     expect(callNames).toEqual(['mockApp2']);
   });
 

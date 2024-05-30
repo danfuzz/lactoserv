@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* framework development:
+  * Moved testing-related module exports into submodules named `<name>/testing`.
 
 Other notable changes:
 * testing:

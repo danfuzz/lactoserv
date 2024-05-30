@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FullResponse, IntfRequestHandler } from '@this/net-util';
-import { BaseApplication } from '@this/webapp-core';
+
+import { BaseApplication } from '#x/BaseApplication';
 
 
 /**
  * @implements {IntfRequestHandler}
  */
-export class MockApp extends BaseApplication {
+export class MockApplication extends BaseApplication {
   static mockCalls = [];
 
   // @defaultConstructor
@@ -18,7 +19,7 @@ export class MockApp extends BaseApplication {
     let succeed = true;
 
     const callInfo = { application: this, request, dispatch };
-    MockApp.mockCalls.push(callInfo);
+    MockApplication.mockCalls.push(callInfo);
 
     if (this.mockHandler) {
       const handlerResult = this.mockHandler(callInfo);

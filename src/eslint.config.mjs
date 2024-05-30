@@ -247,12 +247,12 @@ const disallowedFunctionalityNonTesting = {
       message:  'Only access `_testing_*` inside unit test files.'
     },
     {
-      selector: 'ClassDeclaration[id.name!=/^Mock[A-Z]/] NewExpression[callee.name=/^Mock[A-Z]/]',
-      message:  'Only access `Mock*` classes inside unit test files.'
+      selector: 'ImportDeclaration[source.value=/\\u002ftesting$/]',
+      message:  'Only import `/testing` classes inside other test-related files.'
     },
     {
-      selector: 'ClassDeclaration[id.name!=/^Mock[A-Z]/] MemberExpression[object.name=/^Mock[A-Z]/]',
-      message:  'Only access `Mock*` classes inside unit test files.'
+      selector: 'ImportDeclaration[source.value=/^#tests\\u002f/]',
+      message:  'Only import `#tests` classes inside other test-related files.'
     }
   ]
 };
@@ -330,6 +330,7 @@ export default [
   {
     files:   ['**/*.{js,mjs,cjs}'],
     ignores: [
+      '**/export/testing/**/*.{js,mjs,cjs}',
       '**/tests/**/*.test.{js,mjs,cjs}',
       '**/*.config.{js,mjs,cjs}'
     ],
@@ -354,7 +355,10 @@ export default [
 
   // Testing files.
   {
-    files: ['**/tests/**/*.test.{js,mjs,cjs}'],
+    files: [
+      '**/export/testing/**/*.{js,mjs,cjs}',
+      '**/tests/**/*.test.{js,mjs,cjs}'
+    ],
     ...jestPlugin.configs['flat/recommended'],
     plugins: {
       jest: jestPlugin
