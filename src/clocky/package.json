@@ -7,7 +7,7 @@
 
   "exports": {
     ".": "./index.js",
-    "./testing": "./testing.js"
+    "./testing": "./export/testing/index.js"
   },
   "imports": {
     "#x/*": "./export/*.js",
