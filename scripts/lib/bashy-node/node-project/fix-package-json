@@ -88,6 +88,7 @@ function get-deps {
 # Runs the fixer on the given file.
 function do-fix {
     local filePath="$1"
+    local fileDir="${filePath%/*}"
 
     local oldDeps
     oldDeps="$(jval <"${filePath}" --input=read '.dependencies // {}')" \
@@ -109,8 +110,20 @@ function do-fix {
     ')" \
     || return "$?"
 
+    local hasExportTesting=false
+    [[ -r "${fileDir}/export/testing/index.js" ]] && hasExportTesting=true
+
+    local hasPrivateDir=false
+    [[ -d "${fileDir}/private" ]] && hasPrivateDir=true
+
+    local hasTestsDir=false
+    [[ -d "${fileDir}/tests" ]] && hasTestsDir=true
+
     local pkg
     pkg="$(jval <"${filePath}" --input=read \
+        hasExportTesting:json="${hasExportTesting}" \
+        hasPrivateDir:json="${hasPrivateDir}" \
+        hasTestsDir:json="${hasTestsDir}" \
         deps:json="${finalDeps}" '
     (.scripts // {}) as $scripts
     |
@@ -121,7 +134,10 @@ function do-fix {
         private: true,
         license: (.license // "UNLICENSED"),
         BLANK_LINE_1: "",
-        exports: "./index.js",
+        exports: {
+          ".": "./index.js",
+          "./testing": "./export/testing/index.js"
+        },
         imports: {
           "#x/*":    "./export/*.js",
           "#p/*":    "./private/*.js",
@@ -143,6 +159,21 @@ function do-fix {
       BLANK_LINE_3: "",
       scripts: $scripts
     }
+    end
+    |
+    if $hasExportTesting
+    then .
+    else del(.exports["./testing"])
+    end
+    |
+    if $hasPrivateDir
+    then .
+    else del(.imports["#p/*"])
+    end
+    |
+    if $hasTestsDir
+    then .
+    else del(.imports["#test/*"])
     end
     ')" \
     || return "$?"
