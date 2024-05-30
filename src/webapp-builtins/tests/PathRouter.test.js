@@ -7,7 +7,7 @@ import { DispatchInfo } from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
 import { MockApplication } from '@this/webapp-core/testing';
 
-import { RequestUtil } from '#test/RequestUtil';
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 describe('constructor', () => {

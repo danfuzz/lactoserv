@@ -6,7 +6,7 @@ import { MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo, StatusResponse } from '@this/net-util';
 import { RequestFilter } from '@this/webapp-builtins';
 
-import { RequestUtil } from '#test/RequestUtil';
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 describe('constructor', () => {

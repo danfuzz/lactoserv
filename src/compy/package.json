@@ -12,7 +12,7 @@
   "imports": {
     "#x/*": "./export/*.js",
     "#p/*": "./private/*.js",
-    "#test/*": "./tests/*.js"
+    "#tests/*": "./tests/*.js"
   },
 
   "dependencies": {

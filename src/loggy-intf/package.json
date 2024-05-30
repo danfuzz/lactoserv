@@ -10,7 +10,7 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#test/*": "./tests/*.js"
+    "#tests/*": "./tests/*.js"
   },
 
   "dependencies": {

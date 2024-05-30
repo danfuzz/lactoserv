@@ -11,7 +11,7 @@ import { Duration } from '@this/data-values';
 import { DispatchInfo } from '@this/net-util';
 import { RequestDelay } from '@this/webapp-builtins';
 
-import { RequestUtil } from '#test/RequestUtil';
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 /**

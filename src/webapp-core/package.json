@@ -11,7 +11,8 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js"
+    "#p/*": "./private/*.js",
+    "#tests/*": "./tests/*.js"
   },
 
   "dependencies": {

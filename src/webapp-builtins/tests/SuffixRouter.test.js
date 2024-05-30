@@ -7,7 +7,7 @@ import { DispatchInfo, FullResponse } from '@this/net-util';
 import { SuffixRouter } from '@this/webapp-builtins';
 import { MockApplication } from '@this/webapp-core/testing';
 
-import { RequestUtil } from '#test/RequestUtil';
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 describe('constructor', () => {
