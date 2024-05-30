@@ -181,6 +181,16 @@ describe('localhostInstance()', () => {
       expect(hi.portString).toBe(port.toString());
     });
   });
+
+  test.each`
+  label                   | args
+  ${'`port === null`'}    | ${[null]}
+  ${'no `port` argument'} | ${[]}
+  `('given $label, constructs an instance with port `0`', ({ args }) => {
+    const hi = HostInfo.localhostInstance(...args);
+    expect(hi.portNumber).toBe(0);
+    expect(hi.portString).toBe('0');
+  });
 });
 
 describe.each`
@@ -222,6 +232,7 @@ ${'safeParseHostHeader'}   | ${'localhost'}
   ${'a:b'}
   ${'foo.boop:-1'}
   ${'foo:123x'}
+  ${'a.b.c:65536'}
   `('fails in the expected manner for host $host', ({ host }) => {
     const doParse = () => HostInfo[methodName](host, 443);
 
@@ -257,9 +268,11 @@ ${'safeParseHostHeader'}   | ${'localhost'}
   ${11}     | ${'zoop.boop.floop:9999'} | ${'zoop.boop.floop'} | ${9999}
   ${12}     | ${'192.168.55.66'}        | ${'192.168.55.66'}   | ${12}
   ${13}     | ${'192.168.55.66:60001'}  | ${'192.168.55.66'}   | ${60001}
+  ${13}     | ${'192.168.55.66:65535'}  | ${'192.168.55.66'}   | ${65535}
   ${14}     | ${'[a:b::c:d]'}           | ${'a:b::c:d'}        | ${14}
   ${15}     | ${'[a:b::c:d]:0'}         | ${'a:b::c:d'}        | ${0}
   ${16}     | ${'[1:2::0:0:345]'}       | ${'1:2::345'}        | ${16}
+  ${null}   | ${'a.b.c'}                | ${'a.b.c'}           | ${0}
   `('works for $host (local port $localPort)', ({ localPort, host, name, port }) => {
     const hi = HostInfo[methodName](host, localPort);
     expect(hi.nameString).toBe(name);
