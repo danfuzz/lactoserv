@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { MockComponent, MockRootComponent } from '@this/compy';
+import { MockComponent, MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo, FullResponse } from '@this/net-util';
 import { SuffixRouter } from '@this/webapp-builtins';
 
