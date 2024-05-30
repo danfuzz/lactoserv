@@ -135,13 +135,13 @@ function do-fix {
         license: (.license // "UNLICENSED"),
         BLANK_LINE_1: "",
         exports: {
-          ".": "./index.js",
+          ".":         "./index.js",
           "./testing": "./export/testing/index.js"
         },
         imports: {
-          "#x/*":    "./export/*.js",
-          "#p/*":    "./private/*.js",
-          "#test/*": "./tests/*.js"
+          "#x/*":     "./export/*.js",
+          "#p/*":     "./private/*.js",
+          "#tests/*": "./tests/*.js"
         }
     }
     |
@@ -173,7 +173,7 @@ function do-fix {
     |
     if $hasTestsDir
     then .
-    else del(.imports["#test/*"])
+    else del(.imports["#tests/*"])
     end
     ')" \
     || return "$?"
