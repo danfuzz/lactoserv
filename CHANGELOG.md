@@ -17,7 +17,7 @@ Breaking changes:
 Other notable changes:
 * testing:
   * Added more unit tests.
-  * Fixed a handful of bugs that cropped up from the effort.
+  * Fixed a handful of bugs that cropped up from the effort (all minor).
 
 ### v0.7.4 -- 2024-05-22
 
