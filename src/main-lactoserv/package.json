@@ -5,11 +5,12 @@
   "private": true,
   "license": "Apache-2.0",
 
-  "exports": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js",
-    "#test/*": "./tests/*.js"
+    "#p/*": "./private/*.js"
   },
 
   "dependencies": {
