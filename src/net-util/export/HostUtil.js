@@ -36,13 +36,13 @@ export class HostUtil {
   })();
 
   /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
-   * anchored so that it matches a complete string.
+   * @returns {RegExp} Regex which matches an IP address (v4 or v6), anchored so
+   * that it matches a complete string.
    *
    * This pattern allows but does not requires IPv6 addresses to be enclosed in
    * square brackets.
    */
-  static #IP_ADDRESS_PATTERN = (() => {
+  static #IP_ADDRESS_REGEX = (() => {
     // IPv4 address.
     const ipv4Address =
       '(?!.*[^.]{4})' +         // No more than three digits in a row.
@@ -65,7 +65,7 @@ export class HostUtil {
 
     const body = `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
 
-    return `^${body}$`;
+    return new RegExp(`^${body}$`);
   })();
 
   /**
@@ -170,13 +170,13 @@ export class HostUtil {
   }
 
   /**
-   * Checks that a given value is a valid IP address, either v4 or v6. See
-   * {@link #IP_ADDRESS_PATTERN}. This returns the canonicalized form of the
-   * address. Canonicalization includes:
+   * Checks that a given value is a valid IP address, either v4 or v6. This
+   * returns the canonicalized form of the address. Canonicalization includes:
    *
    * * dropping irrelevant zero digits (IPv4 and IPv6).
    * * for IPv6:
-   *   * removing square brackets, if present.
+   *   * removing square brackets, if present. (These are allowed but not
+   *     required.)
    *   * downcasing hex digits.
    *   * including `0` values and `::` in the proper positions.
    *
@@ -210,7 +210,7 @@ export class HostUtil {
   static checkIpAddressOrNull(value, allowAny = false) {
     MustBe.string(value);
 
-    if (!AskIf.string(value, this.#IP_ADDRESS_PATTERN)) {
+    if (!AskIf.string(value, this.#IP_ADDRESS_REGEX)) {
       return null;
     }
 
