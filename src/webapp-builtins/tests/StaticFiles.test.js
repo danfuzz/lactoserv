@@ -1,7 +1,23 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MockRootComponent } from '@this/compy/testing';
 import { StaticFiles } from '@this/webapp-builtins';
+
+
+/**
+ * Path to the `static-site` directory fixture.
+ *
+ * @type {string}
+ */
+const STATIC_SITE_DIR = new URL('fixtures/static-site', import.meta.url).pathname;
+
+/**
+ * Path to an existing text file within the `static-site` directory fixture.
+ *
+ * @type {string}
+ */
+const TEXT_FILE_PATH = new URL('fixtures/static-site/some-file.txt', import.meta.url).pathname;
 
 
 describe('constructor', () => {
@@ -86,5 +102,76 @@ describe('constructor', () => {
       notFoundPath:  '/zonk/zip/',
       siteDirectory: '/florp/a/b/c'
     })).toThrow();
+  });
+});
+
+describe('start()', () => {
+  test('accepts a `siteDirectory` that refers to an existing directory', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      siteDirectory: STATIC_SITE_DIR
+    });
+
+    await expect(root.addAll(sf)).toResolve();
+  });
+
+  test('throws given a non-existent `siteDirectory`', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      siteDirectory: '/florp/zonk'
+    });
+
+    await expect(root.addAll(sf)).toReject();
+  });
+
+  test('throws given a `siteDirectory` that is a file, not a directory', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      siteDirectory: TEXT_FILE_PATH
+    });
+
+    await expect(root.addAll(sf)).toReject();
+  });
+
+  test('accepts a `notFoundPath` that refers to an existing file', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      notFoundPath:  TEXT_FILE_PATH,
+      siteDirectory: STATIC_SITE_DIR
+    });
+
+    await expect(root.addAll(sf)).toResolve();
+  });
+
+  test('throws given a non-existent `notFoundPath`', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      notFoundPath:  '/florp/zonk',
+      siteDirectory: STATIC_SITE_DIR
+    });
+
+    await expect(root.addAll(sf)).toReject();
+  });
+
+  test('throws given a `notFoundPath` that is a directory, not a file', async () => {
+    const root = new MockRootComponent();
+    await root.start();
+
+    const sf = new StaticFiles({
+      notFoundPath:  STATIC_SITE_DIR,
+      siteDirectory: STATIC_SITE_DIR
+    });
+
+    await expect(root.addAll(sf)).toReject();
   });
 });
