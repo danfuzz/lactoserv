@@ -11,23 +11,25 @@ import { HttpHeaders, IncomingRequest, RequestContext }
  */
 export class RequestUtil {
   /**
-   * Makes a `GET` request with the given path.
+   * Makes a `GET` request with the given path and optional host.
    *
    * @param {string} path The path.
+   * @param {?string} [host] The host.
    * @returns {IncomingRequest} Corresponding request instance.
    */
-  static makeGet(path) {
-    return this.makeRequest('get', path);
+  static makeGet(path, host = undefined) {
+    return this.makeRequest('get', path, host);
   }
 
   /**
-   * Makes a request with the given request method and path.
+   * Makes a request with the given request method and path, and optional host.
    *
    * @param {string} method The request method.
    * @param {string} path The path.
+   * @param {string} [host] The host.
    * @returns {IncomingRequest} Corresponding request instance.
    */
-  static makeRequest(method, path) {
+  static makeRequest(method, path, host = 'your.host') {
     return new IncomingRequest({
       context: new RequestContext(
         Object.freeze({ address: 'localhost', port: 12345 }),
@@ -37,7 +39,7 @@ export class RequestUtil {
       }),
       protocolName: 'http-2',
       pseudoHeaders: new HttpHeaders({
-        authority: 'your.host',
+        authority: host,
         method,
         path,
         scheme:    'https'
