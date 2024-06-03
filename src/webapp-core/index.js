@@ -7,4 +7,5 @@ export * from '#x/BaseService';
 export * from '#x/ComponentManager';
 export * from '#x/HostManager';
 export * from '#x/NetworkEndpoint';
+export * from '#x/NetworkHost';
 export * from '#x/WebappRoot';

@@ -16,6 +16,9 @@ Breaking changes:
 Other notable changes:
 * `net-util`:
   * Minor fixes to hostname / IP address parsing.
+* `webapp-core`:
+  * Exported `NetworkHost`, which was supposed to have been public since day
+    one.
 
 ### v0.7.5 -- 2024-05-30
 
