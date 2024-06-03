@@ -127,7 +127,10 @@ ${'checkIpAddressOrNull'} | ${false}
   label                                    | addr
   ${'empty string'}                        | ${''}
   ${'complete wildcard'}                   | ${'*'}
+  ${'wildcard IPv4-ish address'}           | ${'*.23'}
+  ${'wildcard IPv4-ish address'}           | ${'*.23.45'}
   ${'wildcard IPv4-ish address'}           | ${'*.2.3.4'}
+  ${'wildcard IPv4-ish address'}           | ${'*.2.3.4.56'}
   ${'wildcard IPv6-ish address'}           | ${'*:10::5'}
   ${'DNS name (1 component)'}              | ${'foo'}
   ${'DNS name (2 components)'}             | ${'foo.bar'}
