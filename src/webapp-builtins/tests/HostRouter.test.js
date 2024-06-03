@@ -1,7 +1,13 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { PathKey } from '@this/collections';
+import { MockComponent, MockRootComponent } from '@this/compy/testing';
+import { DispatchInfo, FullResponse } from '@this/net-util';
 import { HostRouter } from '@this/webapp-builtins';
+import { MockApplication } from '@this/webapp-core/testing';
+
+import { RequestUtil } from '#tests/RequestUtil';
 
 
 describe('constructor', () => {
@@ -101,5 +107,191 @@ describe('constructor', () => {
       z:      'z'
     };
     expect(() => new HostRouter({ hosts })).toThrow();
+  });
+});
+
+describe('_impl_handleRequest()', () => {
+  async function makeInstance(opts, { appCount = 1, handlerFunc = null } = {}) {
+    const root = new MockRootComponent();
+    await root.start();
+
+    root.applicationManager = {
+      get(name) {
+        return root.context.getComponent(['application', name]);
+      }
+    };
+
+    const apps = new MockComponent({ name: 'application' });
+    await root.addAll(apps);
+
+    for (let i = 1; i <= appCount; i++) {
+      const app = new MockApplication({ name: `mockApp${i}` });
+      if (handlerFunc) {
+        app.mockHandler = handlerFunc;
+      }
+      await apps.addAll(app);
+    }
+
+    const hr = new HostRouter({ name: 'myRouter', ...opts });
+
+    await apps.addAll(hr);
+
+    return hr;
+  }
+
+  async function expectApp(hr, host, appName, expectResponse = true) {
+    MockApplication.mockCalls = [];
+
+    const request = RequestUtil.makeGet('/x/y', host);
+    const result  = await hr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+    if (expectResponse) {
+      expect(result).toBeInstanceOf(FullResponse);
+    } else {
+      expect(result).toBeNull();
+    }
+
+    const calls = MockApplication.mockCalls;
+    expect(calls.length).toBe(1);
+    expect(calls[0].application.name).toBe(appName);
+  }
+
+  async function expectNull(hr, host) {
+    MockApplication.mockCalls = [];
+
+    const request = RequestUtil.makeGet('/x/y', host);
+    const result  = await hr.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+    expect(result).toBeNull();
+
+    const calls = MockApplication.mockCalls;
+    expect(calls).toEqual([]);
+  }
+
+  beforeEach(() => {
+    MockApplication.mockCalls = [];
+  });
+
+  test('routes to an exact-match IPv4 address', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '127.0.0.1': 'mockApp1',
+          '127.0.0.2': 'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, '127.0.0.1', 'mockApp1');
+  });
+
+  test('routes to an exact-match IPv6 address', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '1234::5678:abc': 'mockApp1',
+          '::abc':          'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, '1234::5678:abc', 'mockApp1');
+  });
+
+  test('canonicalizes the IPv6 address in the route table', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '0034::0:0:00ab:cd': 'mockApp1'
+        }
+      }
+    );
+
+    await expectApp(hr, '34::ab:cd', 'mockApp1');
+  });
+
+  test('routes to an exact-match DNS name', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          'splat':             'mockApp2',
+          'zorch.splat':       'mockApp1',
+          'blurp.zorch.splat': 'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, 'zorch.splat', 'mockApp1');
+  });
+
+  test('does not route to an exact-match DNS name as if it were a wildcard', async () => {
+    const hr = await makeInstance({
+      hosts: {
+        'zorch.splat': 'mockApp1'
+      }
+    });
+
+    await expectNull(hr, 'foo.zorch.splat');
+  });
+
+  test('routes to a just-wildcard name from anything not listed', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '*':     'mockApp1',
+          'zorch': 'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, 'florp',    'mockApp1');
+    await expectApp(hr, '10.0.0.2', 'mockApp1');
+    await expectApp(hr, '123::abc', 'mockApp1');
+    await expectApp(hr, 'zorch',    'mockApp2');
+  });
+
+  test('routes to a wildcard DNS name from the base name and anything under it not covered by another entry', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '*.zonk':       'mockApp1',
+          'beep.zonk':    'mockApp2',
+          '*.x.y.z.zonk': 'mockApp3',
+          'zorch':        'mockApp4'
+        }
+      },
+      { appCount: 4 }
+    );
+
+    await expectApp(hr, 'zonk',            'mockApp1');
+    await expectApp(hr, 'bonk.zonk',       'mockApp1');
+    await expectApp(hr, 'a.b.c.zonk',      'mockApp1');
+    await expectApp(hr, 'beep.zonk',       'mockApp2');
+    await expectApp(hr, 'blorp.beep.zonk', 'mockApp1');
+    await expectApp(hr, 'x.y.z.zonk',      'mockApp3');
+    await expectApp(hr, 'abc.x.y.z.zonk',  'mockApp3');
+  });
+
+  test('does not do fallback', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '*':         'mockApp1',
+          '*.zonk':    'mockApp2',
+          'beep.zonk': 'mockApp3',
+          '12.3.4.5':  'mockApp4'
+        }
+      },
+      {
+        appCount: 4,
+        handlerFunc: () => false
+      }
+    );
+
+    await expectApp(hr, 'beep.zonk', 'mockApp3', false);
+    await expectApp(hr, 'flump.zonk', 'mockApp2', false);
+    await expectApp(hr, '12.3.4.5', 'mockApp4', false);
   });
 });

@@ -11,9 +11,8 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class HostUtil {
   /**
-   * @returns {string} Regex pattern which matches a possibly-wildcarded
-   * hostname (name per se, not a numeric address), anchored to only match a
-   * full string.
+   * @returns {RegExp} Regex which matches a possibly-wildcarded hostname (name
+   * per se, not a numeric address), anchored to only match a full string.
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
    * prefixed with a wildcard (`*.example.com`) to represent subdomain
@@ -25,7 +24,7 @@ export class HostUtil {
    * somewhere within it (because otherwise it could wouldn't be a name; it'd be
    * a numeric address).
    */
-  static #HOSTNAME_PATTERN = (() => {
+  static #HOSTNAME_REGEX = (() => {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
 
@@ -33,14 +32,17 @@ export class HostUtil {
       '(?=[*]$|.*[a-zA-Z])' +                 // Just `*`, or alpha _somewhere_.
       `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
 
-    return `^${body}$`;
+    return new RegExp(`^${body}$`);
   })();
 
   /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
-   * _not_ anchored so that it matches a complete string.
+   * @returns {RegExp} Regex which matches an IP address (v4 or v6), anchored so
+   * that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets.
    */
-  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
+  static #IP_ADDRESS_REGEX = (() => {
     // IPv4 address.
     const ipv4Address =
       '(?!.*[^.]{4})' +         // No more than three digits in a row.
@@ -61,17 +63,10 @@ export class HostUtil {
       '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
-    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
-  })();
+    const body = `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
 
-  /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
-   * anchored so that it matches a complete string.
-   *
-   * This pattern allows but does not requires IPv6 addresses to be enclosed in
-   * square brackets.
-   */
-  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
+    return new RegExp(`^${body}$`);
+  })();
 
   /**
    * Checks that a given string can be used as a hostname, including non-"any"
@@ -90,7 +85,7 @@ export class HostUtil {
       return canonicalIp;
     }
 
-    MustBe.string(name, this.#HOSTNAME_PATTERN);
+    MustBe.string(name, this.#HOSTNAME_REGEX);
 
     if ((!allowWildcard) && /[*]/.test(name)) {
       throw new Error(`Must not have a wildcard: ${name}`);
@@ -116,7 +111,7 @@ export class HostUtil {
       return canonicalIp;
     }
 
-    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
+    if (!AskIf.string(name, this.#HOSTNAME_REGEX)) {
       return null;
     }
 
@@ -175,13 +170,13 @@ export class HostUtil {
   }
 
   /**
-   * Checks that a given value is a valid IP address, either v4 or v6. See
-   * {@link #IP_ADDRESS_PATTERN}. This returns the canonicalized form of the
-   * address. Canonicalization includes:
+   * Checks that a given value is a valid IP address, either v4 or v6. This
+   * returns the canonicalized form of the address. Canonicalization includes:
    *
    * * dropping irrelevant zero digits (IPv4 and IPv6).
    * * for IPv6:
-   *   * removing square brackets, if present.
+   *   * removing square brackets, if present. (These are allowed but not
+   *     required.)
    *   * downcasing hex digits.
    *   * including `0` values and `::` in the proper positions.
    *
@@ -215,7 +210,7 @@ export class HostUtil {
   static checkIpAddressOrNull(value, allowAny = false) {
     MustBe.string(value);
 
-    if (!AskIf.string(value, this.#IP_ADDRESS_PATTERN)) {
+    if (!AskIf.string(value, this.#IP_ADDRESS_REGEX)) {
       return null;
     }
 
@@ -224,7 +219,7 @@ export class HostUtil {
     }
 
     function dropLeadingZeros(v) {
-      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
+      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9a-f])/g, '');
     }
 
     if (/[.]/.test(value)) {
@@ -385,7 +380,7 @@ export class HostUtil {
       return new PathKey([canonicalIp], false);
     }
 
-    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
+    if (!AskIf.string(name, this.#HOSTNAME_REGEX)) {
       return null;
     }
 
