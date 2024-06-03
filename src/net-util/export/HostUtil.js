@@ -219,7 +219,7 @@ export class HostUtil {
     }
 
     function dropLeadingZeros(v) {
-      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
+      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9a-f])/g, '');
     }
 
     if (/[.]/.test(value)) {
