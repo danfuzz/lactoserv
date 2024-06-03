@@ -74,11 +74,11 @@ describe('constructor', () => {
   ${'/foo/d%x5/bar'}
   ${'/foo/e%ab/bar'}  // (Must be uppercase hex.)
   ${'/\u{1234}'}      // Non-ASCII should be %-encoded.
-  `('throws given path `$path`', ({ path }) => {
+  `('throws given invalid path `$path`', ({ path }) => {
     const paths = {
-      '/a': 'a',
-      ...{ path },
-      '/z': 'z'
+      '/a':   'a',
+      [path]: 'pathApp',
+      '/z':   'z'
     };
     expect(() => new PathRouter({ name: 'x', paths })).toThrow();
   });
