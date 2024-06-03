@@ -368,7 +368,8 @@ export default [
     },
     rules: {
       'jsdoc/require-jsdoc':    'off',
-      'jest/no-disabled-tests': 'error'
+      'jest/no-disabled-tests': 'error',
+      'jest/no-focused-tests':  'error' // That is, no `.only...`.
     }
   }
 ];
