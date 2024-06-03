@@ -11,9 +11,8 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class HostUtil {
   /**
-   * @returns {string} Regex pattern which matches a possibly-wildcarded
-   * hostname (name per se, not a numeric address), anchored to only match a
-   * full string.
+   * @returns {RegExp} Regex which matches a possibly-wildcarded hostname (name
+   * per se, not a numeric address), anchored to only match a full string.
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
    * prefixed with a wildcard (`*.example.com`) to represent subdomain
@@ -25,7 +24,7 @@ export class HostUtil {
    * somewhere within it (because otherwise it could wouldn't be a name; it'd be
    * a numeric address).
    */
-  static #HOSTNAME_PATTERN = (() => {
+  static #HOSTNAME_REGEX = (() => {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
 
@@ -33,7 +32,7 @@ export class HostUtil {
       '(?=[*]$|.*[a-zA-Z])' +                 // Just `*`, or alpha _somewhere_.
       `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
 
-    return `^${body}$`;
+    return new RegExp(`^${body}$`);
   })();
 
   /**
@@ -90,7 +89,7 @@ export class HostUtil {
       return canonicalIp;
     }
 
-    MustBe.string(name, this.#HOSTNAME_PATTERN);
+    MustBe.string(name, this.#HOSTNAME_REGEX);
 
     if ((!allowWildcard) && /[*]/.test(name)) {
       throw new Error(`Must not have a wildcard: ${name}`);
@@ -116,7 +115,7 @@ export class HostUtil {
       return canonicalIp;
     }
 
-    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
+    if (!AskIf.string(name, this.#HOSTNAME_REGEX)) {
       return null;
     }
 
@@ -385,7 +384,7 @@ export class HostUtil {
       return new PathKey([canonicalIp], false);
     }
 
-    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
+    if (!AskIf.string(name, this.#HOSTNAME_REGEX)) {
       return null;
     }
 
