@@ -16,4 +16,23 @@ describe('constructor', () => {
       applications: ['foo', 'bar', 'baz']
     })).not.toThrow();
   });
+
+  test.each`
+  name
+  ${undefined}
+  ${false}
+  ${true}
+  ${123}
+  ${123n}
+  ${['x']}
+  ${{ a: 'x' }}
+  ${''}         // This and the rest are syntactically incorrect names.
+  ${'-zonk'}
+  ${'zonk-'}
+  ${'ab$cd'}
+  ${' this '}
+  `('does not allow binding to `$name`', ({ name }) => {
+    const applications = [name];
+    expect(() => new SerialRouter({ applications })).toThrow();
+  });
 });
