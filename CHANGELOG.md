@@ -15,7 +15,7 @@ Breaking changes:
 
 Other notable changes:
 * `net-util`:
-  * Minor fix to address parsing.
+  * Minor fixes to hostname / IP address parsing.
 
 ### v0.7.5 -- 2024-05-30
 
