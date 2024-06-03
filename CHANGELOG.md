@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `net-util`:
+  * Minor fix to address parsing.
 
 ### v0.7.5 -- 2024-05-30
 

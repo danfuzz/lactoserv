@@ -255,6 +255,12 @@ export class HostUtil {
     if (needsExpansion) {
       const expandAt = parts.indexOf('x');
       const zeros    = new Array(8 - parts.length + 1).fill('0');
+
+      if (zeros.length === 0) {
+        // It is a `::`-bearing address except it already has eight components.
+        return null;
+      }
+
       parts.splice(expandAt, 1, ...zeros);
     }
 
