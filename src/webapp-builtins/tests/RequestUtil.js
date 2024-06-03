@@ -30,6 +30,12 @@ export class RequestUtil {
    * @returns {IncomingRequest} Corresponding request instance.
    */
   static makeRequest(method, path, host = 'your.host') {
+    if (/^(?!\[).*:/.test(host)) {
+      // Per the HTTP spec, an IPv6 host needs to end up being
+      // bracket-surrounded in the `:authority` header.
+      host = `[${host}]`;
+    }
+
     return new IncomingRequest({
       context: new RequestContext(
         Object.freeze({ address: 'localhost', port: 12345 }),
