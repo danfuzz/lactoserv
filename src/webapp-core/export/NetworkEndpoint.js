@@ -7,7 +7,7 @@ import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
+import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
 
@@ -202,11 +202,11 @@ export class NetworkEndpoint extends BaseDispatched {
 
       /**
        * Interface to listen on. When passed in, this is expected to be a string
-       * which can be parsed by {@link UriUtil#parseInterface}.
+       * which can be parsed by {@link HostUtil#parseInterface}.
        *
        * @param {string} value Proposed configuration value.
        * @returns {object} Accepted configuration value, as parsed by
-       *   {@link UriUtil#parseInterface}.
+       *   {@link HostUtil#parseInterface}.
        */
       _config_interface(value) {
         return Object.freeze(HostUtil.parseInterface(value));
