@@ -12,29 +12,29 @@ import { AskIf, MustBe } from '@this/typey';
 export class HostUtil {
   /**
    * @returns {string} Regex pattern which matches a possibly-wildcarded
-   * hostname, but _not_ anchored to only match a full string.
-   */
-  static #HOSTNAME_PATTERN_FRAGMENT = (() => {
-    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const nameOrWild = `(?:[*]|${simpleName})`;
-
-    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
-      '(?=.*[*a-zA-Z])' +                        // At least one letter or star.
-      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
-  })();
-
-  /**
-   * @returns {string} Regex pattern which matches a hostname, anchored so that
-   * it matches a complete string.
+   * hostname (name per se, not a numeric address), anchored to only match a
+   * full string.
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
    * prefixed with a wildcard (`*.example.com`) to represent subdomain
    * wildcards, and complete wildcards (`*`). Name components must be non-empty
    * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
    * which furthermore must neither start nor end with a dash. The entire
-   * hostname must be no more than 255 characters.
+   * hostname must be no more than 255 characters, and the name must either be
+   * a full wildcard (that is, just `*`) _or_ contain an alphabetic character
+   * somewhere within it (because otherwise it could wouldn't be a name; it'd be
+   * a numeric address).
    */
-  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
+  static #HOSTNAME_PATTERN = (() => {
+    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const nameOrWild = `(?:[*]|${simpleName})`;
+
+    const body = '(?![-.a-zA-Z0-9]{256})' +   // No more than 255 characters.
+      '(?=[*]$|.*[a-zA-Z])' +                 // Just `*`, or alpha _somewhere_.
+      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
+
+    return `^${body}$`;
+  })();
 
   /**
    * @returns {string} Regex pattern which matches an IP address (v4 or v6), but

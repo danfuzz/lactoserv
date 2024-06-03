@@ -344,6 +344,13 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'wildcard at end'}                 | ${'foo.*'}
   ${'wildcard without dot'}            | ${'*foo'}
   ${'wildcard without dot'}            | ${'*foo.bar'}
+  ${'wildcard in IPv4 address'}        | ${'*.123.4.5.6'}
+  ${'wildcard in IPv4 address'}        | ${'*.1.234.5'}
+  ${'wildcard in IPv4 address'}        | ${'*.12.34'}
+  ${'wildcard in IPv4 address'}        | ${'*.100'}
+  ${'wildcard in IPv6 address'}        | ${'*::'}
+  ${'wildcard in IPv6 address'}        | ${'*::1234'}
+  ${'wildcard in IPv6 address'}        | ${'*:a:b::c:d'}
   ${'invalid character `$`'}           | ${'foo.b$r'}
   ${'invalid character `_`'}           | ${'foo.b_r'}
   ${'double dot'}                      | ${'foo..bar'}
