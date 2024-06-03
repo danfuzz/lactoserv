@@ -140,6 +140,7 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'invalid IPv6 digit'}                  | ${'123::g:456'}
   ${'too-long IPv6 component'}             | ${'123::45678:9'}
   ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
+  ${'too many IPv6 components, with `::`'} | ${'1:2::3:4:5:6:7:8'}
   ${'too many IPv6 components, with `::`'} | ${'1:2::3:4:5:6:7:8:9'}
   ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
   ${'too-large IPv4 component'}            | ${'10.256.0.1'}
@@ -335,22 +336,37 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
 
   // Failure cases.
   test.each`
-  label                       | hostname
-  ${'empty string'}           | ${''}
-  ${'`-` at component start'} | ${'foo.-foo'}
-  ${'`-` at component end'}   | ${'foo-.foo'}
-  ${'wildcard in middle'}     | ${'foo.*.bar'}
-  ${'wildcard at end'}        | ${'foo.*'}
-  ${'wildcard without dot'}   | ${'*foo'}
-  ${'invalid character `$`'}  | ${'foo.b$r'}
-  ${'invalid character `_`'}  | ${'foo.b_r'}
-  ${'double dot'}             | ${'foo..bar'}
-  ${'dot at start'}           | ${'.foo.bar'}
-  ${'dot at end'}             | ${'foo.bar.'}
-  ${'component too long'}     | ${`m${LONGEST_COMPONENT}`}
-  ${'name too long'}          | ${`m${LONGEST_NAME}`}
-  ${'IPv4 "any" address'}     | ${'0.0.0.0'}
-  ${'IPv6 "any" address'}     | ${'::'}
+  label                                | hostname
+  ${'empty string'}                    | ${''}
+  ${'`-` at component start'}          | ${'foo.-foo'}
+  ${'`-` at component end'}            | ${'foo-.foo'}
+  ${'wildcard in middle'}              | ${'foo.*.bar'}
+  ${'wildcard at end'}                 | ${'foo.*'}
+  ${'wildcard without dot'}            | ${'*foo'}
+  ${'wildcard without dot'}            | ${'*foo.bar'}
+  ${'invalid character `$`'}           | ${'foo.b$r'}
+  ${'invalid character `_`'}           | ${'foo.b_r'}
+  ${'double dot'}                      | ${'foo..bar'}
+  ${'dot at start'}                    | ${'.foo.bar'}
+  ${'dot at end'}                      | ${'foo.bar.'}
+  ${'component too long'}              | ${`m${LONGEST_COMPONENT}`}
+  ${'name too long'}                   | ${`m${LONGEST_NAME}`}
+  ${'DNS name with a port'}            | ${'foo.bar:123'}
+  ${'IPv4 address with a port'}        | ${'127.0.0.1:8443'}
+  ${'IPv6 address with a port'}        | ${'[12::34]:80'}
+  ${'IPv4 "any" address'}              | ${'0.0.0.0'}
+  ${'IPv6 "any" address'}              | ${'::'}
+  ${'Too-short IPv4 address'}          | ${'123'}
+  ${'Too-short IPv4 address'}          | ${'1.234'}
+  ${'Too-short IPv4 address'}          | ${'1.23.45'}
+  ${'Too-short IPv6 address'}          | ${'1:2'}
+  ${'Too-short IPv6 address'}          | ${'1:2:3'}
+  ${'Too-short IPv6 address'}          | ${'1:2:3:4'}
+  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5'}
+  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6'}
+  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6:7'}
+  ${'Too-long IPv6 address'}           | ${'1:2:3:4:5:6:7:8:9'}
+  ${'Too-long IPv6 address with `::`'} | ${'1:2:3:4:5::6:7:8'}
   `('fails for $label', ({ hostname }) => {
     if (throws) {
       expect(() => HostUtil[method](hostname, false)).toThrow();
