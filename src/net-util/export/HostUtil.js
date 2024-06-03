@@ -36,10 +36,13 @@ export class HostUtil {
   })();
 
   /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
-   * _not_ anchored so that it matches a complete string.
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
+   * anchored so that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets.
    */
-  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
+  static #IP_ADDRESS_PATTERN = (() => {
     // IPv4 address.
     const ipv4Address =
       '(?!.*[^.]{4})' +         // No more than three digits in a row.
@@ -60,17 +63,10 @@ export class HostUtil {
       '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
-    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
-  })();
+    const body = `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
 
-  /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
-   * anchored so that it matches a complete string.
-   *
-   * This pattern allows but does not requires IPv6 addresses to be enclosed in
-   * square brackets.
-   */
-  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
+    return `^${body}$`;
+  })();
 
   /**
    * Checks that a given string can be used as a hostname, including non-"any"
