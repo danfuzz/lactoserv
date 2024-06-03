@@ -96,9 +96,9 @@ describe('constructor', () => {
   ${'ab#cd.e.f'}         // Invalid character for DNS name.
   `('throws given invalid host `$host`', ({ host }) => {
     const hosts = {
-      'a':    'a',
+      a:      'a',
       [host]: 'hostApp',
-      'z':    'z'
+      z:      'z'
     };
     expect(() => new HostRouter({ hosts })).toThrow();
   });
