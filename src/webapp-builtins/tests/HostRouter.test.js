@@ -198,6 +198,18 @@ describe('_impl_handleRequest()', () => {
     await expectApp(hr, '1234::5678:abc', 'mockApp1');
   });
 
+  test('canonicalizes the IPv6 address in the route table', async () => {
+    const hr = await makeInstance(
+      {
+        hosts: {
+          '0034::0:0:00ab:cd': 'mockApp1'
+        }
+      }
+    );
+
+    await expectApp(hr, '34::ab:cd', 'mockApp1');
+  });
+
   test('routes to an exact-match DNS name', async () => {
     const hr = await makeInstance(
       {
