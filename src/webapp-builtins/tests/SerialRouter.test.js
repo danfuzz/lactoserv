@@ -148,4 +148,18 @@ describe('_impl_handleRequest()', () => {
     appToHandle = 'mockApp3';
     await expectApp(sr, ['mockApp1', 'mockApp2', 'mockApp3']);
   });
+
+  test('returns `null` if no application handles a request', async () => {
+    const sr = await makeInstance(
+      {
+        applications: ['mockApp1', 'mockApp2', 'mockApp3', 'mockApp4']
+      },
+      {
+        appCount:    4,
+        handlerFunc: () => false
+      }
+    );
+
+    await expectApp(sr, ['mockApp1', 'mockApp2', 'mockApp3', 'mockApp4'], false);
+  });
 });
