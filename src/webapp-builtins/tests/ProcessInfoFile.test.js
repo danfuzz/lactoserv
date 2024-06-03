@@ -50,4 +50,11 @@ describe('constructor', () => {
       }
     })).toThrow();
   });
+
+  test('rejects an invalid `updatePeriod`', () => {
+    expect(() => new ProcessInfoFile({
+      path:         '/florp',
+      updatePeriod: 'zoinks!'
+    })).toThrow();
+  });
 });
