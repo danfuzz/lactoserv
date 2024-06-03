@@ -5,9 +5,16 @@ import { ProcessIdFile } from '@this/webapp-builtins';
 
 
 describe('constructor', () => {
-  test('accepts a valid configuration', () => {
+  test('accepts a valid minimal configuration', () => {
     expect(() => new ProcessIdFile({
       path: '/florp'
+    })).not.toThrow();
+  });
+
+  test('accepts a valid configuration with `updatePeriod`', () => {
+    expect(() => new ProcessIdFile({
+      path:         '/florp',
+      updatePeriod: '100_sec'
     })).not.toThrow();
   });
 
