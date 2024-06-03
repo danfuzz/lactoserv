@@ -47,3 +47,9 @@ describe('.uptime', () => {
     expect(got).toBeInstanceOf(Duration);
   });
 });
+
+describe('init()', () => {
+  test('does not throw', () => {
+    expect(() => ProcessInfo.init()).not.toThrow();
+  });
+});
