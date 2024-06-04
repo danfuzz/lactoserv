@@ -56,7 +56,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
      * @returns {UnitQuantity} Accepted configuration value.
      */
     _config_maxBurst(value) {
-      return RateLimitConfig.#parseTokenCount(value, countType, false);
+      return RateLimitConfig.#parseTokenCount(value, false);
     }
 
     /**
@@ -68,7 +68,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
      * @returns {?UnitQuantity} Accepted configuration value.
      */
     _config_maxQueue(value = null) {
-      return RateLimitConfig.#parseTokenCount(value, countType, true);
+      return RateLimitConfig.#parseTokenCount(value, true);
     }
 
     /**
@@ -88,7 +88,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
         throw new Error('`maxQueueGrant` does not make sense for this kind of rate limiter.');
       }
 
-      return RateLimitConfig.#parseTokenCount(value, countType, true);
+      return RateLimitConfig.#parseTokenCount(value, true);
     }
 
     /** @override */
