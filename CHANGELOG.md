@@ -19,6 +19,9 @@ Other notable changes:
 * `webapp-core`:
   * Exported `NetworkHost`, which was supposed to have been public since day
     one.
+* testing:
+  * Added more unit tests.
+  * Fixed a handful of bugs that cropped up from the effort (all minor).
 
 ### v0.7.5 -- 2024-05-30
 
