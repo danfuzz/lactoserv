@@ -16,7 +16,7 @@ Breaking changes:
 Other notable changes:
 * None.
 
-### v0.7.6 -- 2024-06-04
+### v0.7.6 -- 2024-06-04 -- stable release
 
 Summer stability! This is the first stable release of the v0.7.* series. The
 current plan is to let v0.7.* be the main release series for the next several
