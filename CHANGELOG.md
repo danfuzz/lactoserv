@@ -14,6 +14,20 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.7.6 -- 2024-06-04
+
+Summer stability! This is the first stable release of the v0.7.* series. The
+current plan is to let v0.7.* be the main release series for the next several
+months, letting downstream projects use it more or less as-is for a while... and
+offer feedback, if they are so inspired, to help drive the next major round of
+development.
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * `net-util`:
   * Minor fixes to hostname / IP address parsing.
 * `webapp-core`:
