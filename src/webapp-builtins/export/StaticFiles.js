@@ -114,9 +114,11 @@ export class StaticFiles extends BaseApplication {
 
       return response;
     } else {
+      /* c8 ignore start */
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');
     }
+    /* c8 ignore stop */
   }
 
   /** @override */
@@ -174,11 +176,13 @@ export class StaticFiles extends BaseApplication {
       switch (p) {
         case '.':
         case '..': {
+          /* c8 ignore start */
           // These should have already been resolved away. This is a thrown
           // error (and not `return null`) because it is indicative of a bug in
           // this project.
           throw new Error('Shouldn\'t happen.');
         }
+        /* c8 ignore stop */
         case '': {
           endSlash = true;
           break;
