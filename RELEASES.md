@@ -1,8 +1,8 @@
 Stable Releases
 ===============
 
-This is a list of all stable releases of Lactoserv, divided into "current" and
-"superseded" lists. A stable release is considered current for approximately a
+This is a list of stable releases of Lactoserv, divided into "current" and
+"retired" lists. A stable release is considered current for approximately a
 year after it is created, or until an API-compatible release is created that
 supersedes it, whichever comes first.
 
