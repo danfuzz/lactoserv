@@ -110,11 +110,11 @@ describe('constructor', () => {
 });
 
 describe('_impl_handleRequest()', () => {
-  async function makeInstance(passNfp = false) {
+  async function makeInstance(config = {}) {
     const root = new MockRootComponent();
     const sf   = new StaticFiles({
       siteDirectory: STATIC_SITE_DIR,
-      notFoundPath:  passNfp ? `${STATIC_SITE_DIR}/not-found.html` : null
+      ...config
     });
 
     await root.start();
@@ -167,7 +167,10 @@ describe('_impl_handleRequest()', () => {
     ${'/subdir2%2Fmore-text.txt'} // Encoded slash is not allowed.
     ${'/%xy'}
     `('given missing path `$uriPath`, returns the expected value', async ({ uriPath }) => {
-      const sf      = await makeInstance(passNfp);
+      const sf = await makeInstance({
+        notFoundPath: passNfp ? `${STATIC_SITE_DIR}/not-found.html` : null
+      });
+
       const request = RequestUtil.makeGet(uriPath);
       const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
@@ -201,6 +204,26 @@ describe('_impl_handleRequest()', () => {
 
     const expectedLoc = `${uriPath.match(/[^/]+$/)[0]}/`;
     expect(result.headers.get('location')).toBe(expectedLoc);
+  });
+
+  test('includes a `cache-control` header in responses if so configured', async () => {
+    const sf      = await makeInstance({ cacheControl: 'florp=123' });
+    const request = RequestUtil.makeGet('/some-file.txt');
+    const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(result.status).toBe(200);
+    expect(result.cacheControl).toBe('florp=123');
+  });
+
+  test('includes an `etag` header in responses if so configured', async () => {
+    const sf      = await makeInstance({ etag: true });
+    const request = RequestUtil.makeGet('/some-file.txt');
+    const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(result.status).toBe(200);
+    expect(result.headers.get('etag')).toMatch(/^W[/]".*"$/);
   });
 });
 
