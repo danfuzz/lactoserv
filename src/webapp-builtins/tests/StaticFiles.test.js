@@ -155,6 +155,17 @@ describe('_impl_handleRequest()', () => {
     ${'/boop/florp.html'}
     ${'/subdir1/zonk.txt'}
     ${'/subdir1/zip/zonk.txt'}
+    ${'/subdir1/some-subdir-file.txt/'} // No slash allowed at end of file path.
+    ${'/subdir2/'} // There's no index.html in this directory.
+    // Empty components should cause it to not-find.
+    ${'//some-file.txt'}
+    ${'//subdir1/'}
+    ${'//subdir1/index.html'}
+    ${'/subdir1//'}
+    ${'/subdir1//some-subdir-file.txt'}
+    // Invalid URI-encodings.
+    ${'/subdir2%2Fmore-text.txt'} // Encoded slash is not allowed.
+    ${'/%xy'}
     `('given missing path `$uriPath`, returns the expected value', async ({ uriPath }) => {
       const sf      = await makeInstance(passNfp);
       const request = RequestUtil.makeGet(uriPath);
