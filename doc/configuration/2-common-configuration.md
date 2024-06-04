@@ -134,15 +134,16 @@ These units are always each a real-world unit of some sort (as described above).
   exhausted. The rate must be positive.
 * `maxBurst` &mdash; The maximum allowed "burst" of tokens before rate limiting
   takes effect. Minimum value `1`.
+* `maxQueue` &mdash; Optional maximum possible size of the wait queue, in
+  tokens, or `null` for no limit. Minimum value `1`. This is the number of
+  tokens that are allowed to be queued up for a grant, when there is
+  insufficient burst capacity to satisfy all active clients. Attempts to queue
+  up more result in token denials (e.g., network connections closed instead of
+  sending bytes). Defaults to `null`.
 * `maxQueueGrant` &mdash; Optional maximum possible size of a grant given to
   a requester in the wait queue, in tokens. Minimum value `1`. If not
   specified, it is the same as the `maxBurst`. **Note:** This configuration is
   only used by _some_ rate limiters.
-* `maxQueue` &mdash; Optional maximum possible size of the wait queue, in
-  tokens. Minimum value `1`. This is the number of tokens that are allowed to be
-  queued up for a grant, when there is insufficient burst capacity to satisfy
-  all active clients. Attempts to queue up more result in token denials (e.g.,
-  network connections closed instead of sending bytes).
 
 ```js
 import { SomeSortOfRateLimiter } from '@lactoserv/webapp-builtins';
