@@ -3,7 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { MockRootComponent } from '@this/compy/testing';
-import { DispatchInfo, FullResponse, StatusResponse } from '@this/net-util';
+import { DispatchInfo, FullResponse } from '@this/net-util';
 import { StaticFiles } from '@this/webapp-builtins';
 
 import { RequestUtil } from '#tests/RequestUtil';
@@ -110,11 +110,11 @@ describe('constructor', () => {
 });
 
 describe('_impl_handleRequest()', () => {
-  async function makeInstance() {
+  async function makeInstance(passNfp = false) {
     const root = new MockRootComponent();
     const sf   = new StaticFiles({
       siteDirectory: STATIC_SITE_DIR,
-      notFoundPath:  `${STATIC_SITE_DIR}/not-found.html`
+      notFoundPath:  passNfp ? `${STATIC_SITE_DIR}/not-found.html` : null
     });
 
     await root.start();
@@ -131,7 +131,7 @@ describe('_impl_handleRequest()', () => {
   ${'/subdir1/index.html'}           | ${'subdir1/index.html'}
   ${'/subdir1/some-subdir-file.txt'} | ${'subdir1/some-subdir-file.txt'}
   ${'/subdir2/more-text.txt'}        | ${'subdir2/more-text.txt'}
-  `('given URI path `$uriPath`, retrieves file path `$filePath`', async ({ uriPath, filePath }) => {
+  `('given URI path `$uriPath`, returns file path `$filePath`', async ({ uriPath, filePath }) => {
     const sf      = await makeInstance();
     const request = RequestUtil.makeGet(uriPath);
     const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
@@ -142,6 +142,54 @@ describe('_impl_handleRequest()', () => {
     const body = result._testing_getBody();
     expect(body.type).toBe('file');
     expect(body.path).toBe(`${STATIC_SITE_DIR}/${filePath}`);
+  });
+
+  describe.each`
+  label        | passNfp
+  ${'with'}    | ${true}
+  ${'without'} | ${false}
+  `('$label `notFoundPath`', ({ passNfp }) => {
+    test.each`
+    uriPath
+    ${'/boop'}
+    ${'/boop/florp.html'}
+    ${'/subdir1/zonk.txt'}
+    ${'/subdir1/zip/zonk.txt'}
+    `('given missing path `$uriPath`, returns the expected value', async ({ uriPath }) => {
+      const sf      = await makeInstance(passNfp);
+      const request = RequestUtil.makeGet(uriPath);
+      const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+      if (passNfp) {
+        expect(result).toBeInstanceOf(FullResponse);
+        expect(result.status).toBe(404);
+
+        const body = result._testing_getBody();
+        expect(body.type).toBe('buffer');
+        expect(body.buffer.toString()).toMatch(/Not found/);
+      } else {
+        expect(result).toBeNull();
+      }
+    });
+  });
+
+  test.each`
+  uriPath
+  ${'/subdir2'}
+  ${'/subdir2/sub-subdir'}
+  `('redirects from `$uriPath` to the slash-suffixed version of same', async ({ uriPath }) => {
+    const sf      = await makeInstance();
+    const request = RequestUtil.makeGet(uriPath);
+    const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(result.status).toBe(308);
+
+    const body = result._testing_getBody();
+    expect(body.type).toBe('message');
+
+    const expectedLoc = `${uriPath.match(/[^/]+$/)[0]}/`;
+    expect(result.headers.get('location')).toBe(expectedLoc);
   });
 });
 
