@@ -131,7 +131,8 @@ options. In each specific case, there is a "token unit" and a "flow rate unit."
 These units are always each a real-world unit of some sort (as described above).
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
-  exhausted. The rate must be positive.
+  exhausted, _and_ the rate at which burst capacity is built up. The rate must
+  be positive.
 * `initialBurst` &mdash; Optional starting amount of available token "burst"
   before rate limiting takes effect. Minimum value `0`, and must be no larger
   than `maxBurst`. Defaults to `maxBurst`.
