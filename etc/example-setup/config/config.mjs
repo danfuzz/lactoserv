@@ -115,6 +115,7 @@ const services = [
     name:            'dataRateLimiter',
     class:           DataRateLimiter,
     dispatchLogging: true,
+    initialBurst:    '100 KiB',
     maxBurst:        '1 MiB',
     flowRate:        '100 KiB / sec',
     maxQueueGrant:   '50 KiB',
