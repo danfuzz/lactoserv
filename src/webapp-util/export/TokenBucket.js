@@ -26,6 +26,13 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class TokenBucket {
   /**
+   * Initially-allowed instantaneous burst, in tokens.
+   *
+   * @type {number}
+   */
+  #initialBurstSize;
+
+  /**
    * Maximum allowed instantaneous burst, in tokens. This is the "bucket
    * capacity" in the "leaky bucket as meter" metaphor.
    *
@@ -117,8 +124,9 @@ export class TokenBucket {
    *   defines the steady state "flow rate" allowed by the instance. Must be a
    *   positive (non-zero and non-negative) value. This is a required "option."
    * @param {number} [options.initialBurstSize] The instantaneously available
-   *   burst size, in tokens, at the moment of construction. Defaults to
-   *   `maxBurstSize` (that is, able to be maximally "bursted" from the get-go).
+   *   burst size, in tokens, at the moment of construction, or `null` for the
+   *   default. Defaults to `maxBurstSize` (that is, able to be maximally
+   *   "bursted" from the get-go), and must be no larger than `maxBurstSize`.
    * @param {number} options.maxBurstSize Maximum possible instantaneous burst
    *   size (that is, the total bucket capacity in the "leaky bucket as meter"
    *   metaphor), in tokens (arbitrary volume units). This defines the
@@ -149,7 +157,7 @@ export class TokenBucket {
   constructor(options) {
     const {
       flowRate,
-      initialBurstSize  = options.maxBurstSize,
+      initialBurstSize  = null,
       maxBurstSize,
       maxQueueGrantSize = null,
       maxQueueSize      = null,
@@ -163,6 +171,10 @@ export class TokenBucket {
     this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
+
+    this.#initialBurstSize = (initialBurstSize === null)
+      ? this.#maxBurstSize
+      : MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: this.#maxBurstSize });
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
@@ -180,7 +192,7 @@ export class TokenBucket {
       this.#maxQueueGrantSize = Math.floor(this.#maxQueueGrantSize);
     }
 
-    this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
+    this.#lastBurstSize = this.#initialBurstSize;
     this.#lastNow       = this.#timeSource.now();
   }
 
@@ -203,6 +215,7 @@ export class TokenBucket {
 
     return {
       flowRate:          this.#flowRate,
+      initialBurstSize:  this.#initialBurstSize,
       maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxQueueSize,

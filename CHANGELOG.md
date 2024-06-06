@@ -14,7 +14,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* configuration:
+  * For all rate-limiter components, exposed the pre-existing underlying token
+    bucket option `initialBurst`.
 
 ### v0.7.6 -- 2024-06-04 -- stable release
 

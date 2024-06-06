@@ -12,6 +12,22 @@ describe('constructor', () => {
     })).not.toThrow();
   });
 
+  test('accepts a valid configuration with non-null `initialBurst`', () => {
+    expect(() => new RequestRateLimiter({
+      flowRate:     '1000 request/min',
+      maxBurst:     '5 request',
+      initialBurst: '2 request'
+    })).not.toThrow();
+  });
+
+  test('accepts a valid configuration with `initialBurst === null`', () => {
+    expect(() => new RequestRateLimiter({
+      flowRate:     '1000 request/min',
+      maxBurst:     '5 request',
+      initialBurst: null
+    })).not.toThrow();
+  });
+
   test('accepts a valid configuration with `maxQueue`', () => {
     expect(() => new RequestRateLimiter({
       flowRate: '1000 request/min',
@@ -32,6 +48,14 @@ describe('constructor', () => {
     expect(() => new RequestRateLimiter({
       flowRate: '100_florp/splat',
       maxBurst: '10 req'
+    })).toThrow();
+  });
+
+  test('throws if given an unparseable `initialBurst`', () => {
+    expect(() => new RequestRateLimiter({
+      flowRate:     '1 req/sec',
+      maxBurst:     '10 req',
+      initialBurst: 'blorp!'
     })).toThrow();
   });
 

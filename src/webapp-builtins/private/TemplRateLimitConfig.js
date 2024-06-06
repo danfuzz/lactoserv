@@ -49,8 +49,21 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
     }
 
     /**
-     * Maximum count of items in a burst. If passed as a `string` it is parsed
-     * into an instance of the appropriate unit-count class.
+     * Burst capacity available immediately after the instance is started. If
+     * passed as a `string` it is parsed into an instance of the appropriate
+     * unit-count class.
+     *
+     * @param {?string|UnitQuantity} [value] Proposed configuration value.
+     * @returns {UnitQuantity} Accepted configuration value.
+     */
+    _config_initialBurst(value = null) {
+      return RateLimitConfig.#parseTokenCount(value, true);
+    }
+
+    /**
+     * Maximum number of tokens that can be built up for a burst. If passed as a
+     * `string` it is parsed into an instance of the appropriate unit-count
+     * class.
      *
      * @param {string|UnitQuantity} value Proposed configuration value.
      * @returns {UnitQuantity} Accepted configuration value.
@@ -97,6 +110,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
         ...config,
         bucket: Object.freeze({
           flowRate:          config.flowRate,
+          initialBurstSize:  config.initialBurst,
           maxBurstSize:      config.maxBurst,
           maxQueueGrantSize: config.maxQueueGrant,
           maxQueueSize:      config.maxQueue
@@ -104,6 +118,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
       };
 
       delete result.flowRate;
+      delete result.initialBurst;
       delete result.maxBurst;
       delete result.maxQueueGrant;
       delete result.maxQueue;
