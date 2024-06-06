@@ -118,7 +118,8 @@ export class TokenBucket {
    *   positive (non-zero and non-negative) value. This is a required "option."
    * @param {number} [options.initialBurstSize] The instantaneously available
    *   burst size, in tokens, at the moment of construction. Defaults to
-   *   `maxBurstSize` (that is, able to be maximally "bursted" from the get-go).
+   *   `maxBurstSize` (that is, able to be maximally "bursted" from the get-go),
+   *   and must be no larger than `maxBurstSize`.
    * @param {number} options.maxBurstSize Maximum possible instantaneous burst
    *   size (that is, the total bucket capacity in the "leaky bucket as meter"
    *   metaphor), in tokens (arbitrary volume units). This defines the
