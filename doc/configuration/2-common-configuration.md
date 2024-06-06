@@ -164,6 +164,10 @@ const services = [
 ];
 ```
 
+This diagram might help understand the various configuration options:
+
+![Rate Limiting Diagram](./rate-limiting.png?raw=true "Rate Limiting Diagram")
+
 ## Logging
 
 Endpoints, applications, and services all offer the option to log their dispatch
