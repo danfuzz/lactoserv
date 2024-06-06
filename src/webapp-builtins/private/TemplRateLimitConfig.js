@@ -110,6 +110,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
         ...config,
         bucket: Object.freeze({
           flowRate:          config.flowRate,
+          initialBurstSize:  config.initialBurst,
           maxBurstSize:      config.maxBurst,
           maxQueueGrantSize: config.maxQueueGrant,
           maxQueueSize:      config.maxQueue
@@ -117,6 +118,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
       };
 
       delete result.flowRate;
+      delete result.initialBurst;
       delete result.maxBurst;
       delete result.maxQueueGrant;
       delete result.maxQueue;
