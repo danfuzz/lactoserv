@@ -49,8 +49,9 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
     }
 
     /**
-     * Maximum count of items in a burst. If passed as a `string` it is parsed
-     * into an instance of the appropriate unit-count class.
+     * Maximum number of tokens that can be built up for a burst. If passed as a
+     * `string` it is parsed into an instance of the appropriate unit-count
+     * class.
      *
      * @param {string|UnitQuantity} value Proposed configuration value.
      * @returns {UnitQuantity} Accepted configuration value.
