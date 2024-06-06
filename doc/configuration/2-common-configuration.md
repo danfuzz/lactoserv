@@ -134,14 +134,14 @@ These units are always each a real-world unit of some sort (as described above).
   exhausted. The rate must be positive.
 * `initialBurst` &mdash; Optional starting amount of available token "burst"
   before rate limiting takes effect. Minimum value `0`. Defaults to `maxBurst`.
-* `maxBurst` &mdash; The maximum allowed "burst" of tokens before rate limiting
-  takes effect. Minimum value `1`.
+* `maxBurst` &mdash; The maximum number of tokens that can be built up for a
+  "burst" before rate limiting takes effect. Minimum value `1`.
 * `maxQueue` &mdash; Optional maximum possible size of the wait queue, in
   tokens, or `null` for no limit. Minimum value `1`. This is the number of
   tokens that are allowed to be queued up for a grant, when there is
   insufficient burst capacity to satisfy all active clients. Attempts to queue
-  up more result in token denials (e.g., network connections closed instead of
-  sending bytes). Defaults to `null`.
+  up more requests will result in token denials (e.g., network connections
+  closed instead of sending bytes). Defaults to `null`.
 * `maxQueueGrant` &mdash; Optional maximum possible size of a grant given to
   a requester in the wait queue, in tokens. Minimum value `1`. If not
   specified, it is the same as the `maxBurst`. **Note:** This configuration is
