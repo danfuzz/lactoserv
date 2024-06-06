@@ -56,7 +56,7 @@ export const TemplRateLimitConfig = (className, superclass, { allowMaxQueueGrant
      * @param {?string|UnitQuantity} [value] Proposed configuration value.
      * @returns {UnitQuantity} Accepted configuration value.
      */
-    _config_maxBurst(value = null) {
+    _config_initialBurst(value = null) {
       return RateLimitConfig.#parseTokenCount(value, true);
     }
 
