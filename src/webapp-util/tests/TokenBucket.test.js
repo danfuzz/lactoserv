@@ -129,6 +129,21 @@ describe('constructor()', () => {
     expect(() => new TokenBucket(opts)).not.toThrow();
   });
 
+  test('produces an instance with the `initialBurstSize` that was passed', () => {
+    const bucket = new TokenBucket({ flowRate: FLOW_1, maxBurstSize: 123, initialBurstSize: 32 });
+    expect(bucket.config.initialBurstSize).toBe(32);
+  });
+
+  test('produces an instance with the default `initialBurstSize` if not passed', () => {
+    const bucket = new TokenBucket({ flowRate: FLOW_1, maxBurstSize: 123 });
+    expect(bucket.config.initialBurstSize).toBe(123);
+  });
+
+  test('produces an instance with the default `initialBurstSize` if passed as `null`', () => {
+    const bucket = new TokenBucket({ flowRate: FLOW_1, maxBurstSize: 321, initialBurstSize: null });
+    expect(bucket.config.initialBurstSize).toBe(321);
+  });
+
   test('produces an instance with the `maxBurstSize` that was passed', () => {
     const bucket = new TokenBucket({ flowRate: FLOW_1, maxBurstSize: 123 });
     expect(bucket.config.maxBurstSize).toBe(123);
@@ -288,7 +303,6 @@ describe('constructor(<invalid>)', () => {
 
   test.each`
     initialBurstSize
-    ${null}
     ${true}
     ${'123'}
     ${[123]}
@@ -362,8 +376,8 @@ describe('.config', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRate: FLOW_TINY, maxBurstSize: 100000 });
     expect(bucket.config).toContainAllKeys([
-      'flowRate', 'maxBurstSize', 'maxQueueGrantSize', 'maxQueueSize',
-      'partialTokens', 'timeSource'
+      'flowRate', 'initialBurstSize', 'maxBurstSize', 'maxQueueGrantSize',
+      'maxQueueSize', 'partialTokens', 'timeSource'
     ]);
   });
 });
