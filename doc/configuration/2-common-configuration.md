@@ -132,6 +132,8 @@ These units are always each a real-world unit of some sort (as described above).
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
   exhausted. The rate must be positive.
+* `initialBurst` &mdash; Optional starting amount of available token "burst"
+  before rate limiting takes effect. Minimum value `0`. Defaults to `maxBurst`.
 * `maxBurst` &mdash; The maximum allowed "burst" of tokens before rate limiting
   takes effect. Minimum value `1`.
 * `maxQueue` &mdash; Optional maximum possible size of the wait queue, in
@@ -152,6 +154,7 @@ const services = [
   {
     name:          'limiter',
     class:         SomeSortOfRateLimiter,
+    initialBurst:  '1 MiB',
     maxBurst:      '5 MiB',
     flowRate:      '32 KiB/sec',
     maxQueue:      '32 MiB',
