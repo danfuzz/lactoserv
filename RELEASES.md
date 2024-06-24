@@ -16,9 +16,9 @@ principles. Unstable releases do not.
 
 ## List of current stable releases
 
-* v0.7.6
-  * Released 2024-06-04
-  * https://github.com/danfuzz/lactoserv/releases/tag/v0.7.6
+* v0.7.7
+  * Released 2024-06-24
+  * https://github.com/danfuzz/lactoserv/releases/tag/v0.7.7
 
 * v0.6.16
   * Released 2024-04-22
