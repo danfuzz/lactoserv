@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Updated npm-origined dependencies for the unit test framework, based on a
+  vulnerability report.
 
 ### v0.7.7 -- 2024-06-24 -- stable release
 
