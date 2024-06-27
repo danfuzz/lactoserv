@@ -93,10 +93,12 @@ export class IncomingRequest {
   #hostInfo = null;
 
   /**
-   * pathnameString: ?string, searchString: ?string }} The target string of the
-   * request (the thing that Node calls a `url` despite it not really being one,
-   * bless their innocent hearts), along with a type indicator and parsed
-   * components depending on the type.
+   * The target string of the request (the thing that Node calls a `url` despite
+   * it not really being one, bless their innocent hearts), along with a type
+   * indicator and parsed components depending on the type.
+   *
+   * @type {{ targetString: string, type: ?string, pathname: ?PathKey,
+   *   pathnameString: ?string, searchString: ?string }}
    */
   #parsedTargetObject = null;
 
@@ -145,7 +147,7 @@ export class IncomingRequest {
     this.#requestMethod  = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
 
     const targetString = MustBe.string(pseudoHeaders.get('path'));
-    this.#parsedTargetObject = { targetString, type: null };
+    this.#parsedTargetObject = Object.freeze({ targetString, type: null });
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -409,73 +411,13 @@ export class IncomingRequest {
    * class's API.
    */
   get #parsedTarget() {
-    const target = this.#parsedTargetObject;
-
-    if (target.type !== null) {
-      return target;
+    if (this.#parsedTargetObject.type === null) {
+      const { targetString } = this.#parsedTargetObject;
+      this.#parsedTargetObject = Object.freeze(
+        IncomingRequest.#calcParsedTargetObject(targetString));
     }
 
-    const { targetString } = target;
-
-    if (targetString.startsWith('/')) {
-      // It's the usual (most common) form for a target, namely an absolute
-      // path. Use `new URL(...)` to parse and canonicalize it. This is the
-      // `origin-form` as defined by
-      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.1>.
-
-      // Note: An earlier version of this code said `new URL(this.targetString,
-      // 'x://x')`, so as to make the constructor work given that `targetString`
-      // should omit the scheme and host. However, that was totally incorrect,
-      // because the _real_ requirement is for `targetString` to _always_ be
-      // _just_ the path. The most notable case where the old code failed was in
-      // parsing a path that began with two slashes, which would get incorrectly
-      // parsed as having a host.
-      const urlObj  = new URL(`x://x${targetString}`);
-
-      // Shouldn't normally happen, but tolerate an empty pathname, converting
-      // it to `/`. (`new URL()` will return an instance like this if there's
-      // no slash after the hostname, but by the time we're here,
-      // `targetString` is supposed to start with a slash).
-      const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
-
-      // `slice(1)` to avoid having an empty component as the first element. And
-      // freezing `parts` lets `new PathKey()` avoid making a copy.
-      const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
-
-      target.type           = 'origin';
-      target.pathname       = new PathKey(pathParts, false);
-      target.pathnameString = pathnameString;
-      target.searchString   = urlObj.search;
-    } else if (targetString === '*') {
-      // This is the `asterisk-form` as defined by
-      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
-      target.type = 'asterisk';
-    } else if (/^[a-zA-Z][-+.0-9a-zA-Z]+:[/][/]/.test(targetString)) {
-      // This is the `absolute-form`, as defined by
-      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2>. The regex we
-      // use is actually somewhat more restrictive than the spec seems to allow
-      // (specifically, we require `://`), but in practice it's almost certainly
-      // pointless (and arguably a bad idea) to accept anything looser. Note
-      // that without our restriction (or similar), there is ambiguity between
-      // this form and the `authority-form`.
-      target.type = 'absolute';
-    } else if (/^[-~_.%:@!$&'()*+,;=0-9a-zA-Z]+$/.test(targetString)) {
-      // This is the `authority-form`, as defined by
-      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. We are somewhat
-      // _looser_ here than the spec requires, but because (as of this writing)
-      // we aren't trying to do anything serious with this form, we aren't going
-      // to spend a lot of (brain or CPU) cycles worrying about it. Also, as of
-      // this writing, it seems that Node rejects this form entirely, so maybe
-      // this is all moot.
-      target.type = 'authority';
-    } else {
-      // Node is supposed to reject anything invalid before we get here, but
-      // just in case, it's arguably better to just tag it here rather than
-      // report an error. (Famous last words?)
-      target.type = 'other';
-    }
-
-    return Object.freeze(target);
+    return this.#parsedTargetObject;
   }
 
   /**
@@ -572,6 +514,88 @@ export class IncomingRequest {
       protocolName: `http-${request.httpVersion}`,
       pseudoHeaders
     });
+  }
+
+  /**
+   * Calculates the value for {@link #parsedTargetObject}, given an original
+   * target string. The return value is _not_ frozen.
+   *
+   * @param {string} targetString The original target string.
+   * @returns {object} Value to store into {@link #parsedTargetObject}.
+   */
+  static #calcParsedTargetObject(targetString) {
+    if (targetString.startsWith('/')) {
+      // It's the usual (most common) form for a target, namely an absolute
+      // path. Use `new URL(...)` to parse and canonicalize it. This is the
+      // `origin-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.1>.
+
+      // Note: An earlier version of this code said `new URL(this.targetString,
+      // 'x://x')`, so as to make the constructor work given that `targetString`
+      // should omit the scheme and host. However, that was totally incorrect,
+      // because the _real_ requirement is for `targetString` to _always_ be
+      // _just_ the path. The most notable case where the old code failed was in
+      // parsing a path that began with two slashes, which would get incorrectly
+      // parsed as having a host.
+      const urlObj  = new URL(`x://x${targetString}`);
+
+      // Shouldn't normally happen, but tolerate an empty pathname, converting
+      // it to `/`. (`new URL()` will return an instance like this if there's
+      // no slash after the hostname, but by the time we're here,
+      // `targetString` is supposed to start with a slash).
+      const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
+
+      // `slice(1)` to avoid having an empty component as the first element. And
+      // freezing `parts` lets `new PathKey()` avoid making a copy.
+      const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
+
+      return {
+        targetString,
+        type:           'origin',
+        pathname:       new PathKey(pathParts, false),
+        pathnameString,
+        searchString:   urlObj.search
+      };
+    } else if (targetString === '*') {
+      // This is the `asterisk-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
+      return {
+        targetString,
+        type: 'asterisk'
+      };
+    } else if (/^[a-zA-Z][-+.0-9a-zA-Z]+:[/][/]/.test(targetString)) {
+      // This is the `absolute-form`, as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2>. The regex we
+      // use is actually somewhat more restrictive than the spec seems to allow
+      // (specifically, we require `://`), but in practice it's almost certainly
+      // pointless (and arguably a bad idea) to accept anything looser. Note
+      // that without our restriction (or similar), there is ambiguity between
+      // this form and the `authority-form`.
+      return {
+        targetString,
+        type: 'absolute'
+      };
+    } else if (/^[-~_.%:@!$&'()*+,;=0-9a-zA-Z]+$/.test(targetString)) {
+      // This is the `authority-form`, as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. We are somewhat
+      // _looser_ here than the spec requires, but because (as of this writing)
+      // we aren't trying to do anything serious with this form, we aren't going
+      // to spend a lot of (brain or CPU) cycles worrying about it. Also, as of
+      // this writing, it seems that Node rejects this form entirely, so maybe
+      // this is all moot.
+      return {
+        targetString,
+        type: 'authority'
+      };
+    } else {
+      // Node is supposed to reject anything invalid before we get here, but
+      // just in case, it's arguably better to just tag it here rather than
+      // report an error. (Famous last words?)
+      return {
+        targetString,
+        type: 'other'
+      };
+    }
   }
 
   /**
