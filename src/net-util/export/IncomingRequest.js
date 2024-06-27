@@ -93,7 +93,7 @@ export class IncomingRequest {
   #hostInfo = null;
 
   /**
-   * @type {{ targetString: string, type: ?string, pathname: ?TreePathKey,
+   * @type {{ targetString: string, type: ?string, pathname: ?PathKey,
    * pathnameString: ?string, searchString: ?string }} The target string of the
    * request (the thing that Node calls a `url` despite it not really being one,
    * bless their innocent hearts), along with a type indicator and parsed
