@@ -476,7 +476,9 @@ export class IncomingRequest {
       target.type = 'other';
     }
 
-    return Object.freeze(target);
+    Object.freeze(target);
+    this.#parsedTargetObject = target;
+    return target;
   }
 
   /**
