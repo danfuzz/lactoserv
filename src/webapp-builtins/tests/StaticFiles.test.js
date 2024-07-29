@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 
+import { WallClock } from '@this/clocky';
 import { PathKey } from '@this/collections';
 import { MockRootComponent } from '@this/compy/testing';
 import { DispatchInfo, FullResponse } from '@this/net-util';
@@ -207,6 +208,7 @@ describe('_impl_handleRequest()', () => {
         expect(body1.type).toBe('buffer');
         expect(body1.buffer.toString()).toMatch(/original/);
 
+        await WallClock.waitForMsec(100); // So that `mtime` will be different.
         await fs.writeFile(notFoundPath, 'replacement');
 
         const result2 = await sf.handleRequest(request, dispatch);
