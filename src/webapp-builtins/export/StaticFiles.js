@@ -126,22 +126,11 @@ export class StaticFiles extends BaseApplication {
     const notFoundPath = this.#notFoundPath;
 
     if (notFoundPath) {
-      if (!await Statter.fileExists(notFoundPath)) {
-        throw new Error(`Not found or not a file: ${notFoundPath}`);
-      }
-
-      const response = new FullResponse();
-
-      response.status       = 404;
-      response.cacheControl = this.#cacheControl;
-
-      const body        = await fs.readFile(notFoundPath);
-      const contentType = MimeTypes.typeFromPathExtension(notFoundPath);
-
-      response.setBodyBuffer(body);
-      response.headers.set('content-type', contentType);
-
-      this.#notFoundResponse = response;
+      // This does initial setup of `notFoundResponse`, and will throw if it
+      // can't be loaded. This is meant to help catch the salient config problem
+      // during startup instead of just as the first _actual_ not-found response
+      // is needed.
+      await this.#notFound();
     }
 
     await super._impl_start();
@@ -154,11 +143,46 @@ export class StaticFiles extends BaseApplication {
    * @returns {?FullResponse} The response for a not-found situation.
    */
   async #notFound() {
-    if (this.#notFoundResponse) {
-      return this.#notFoundResponse;
-    } else {
+    const existingResponse = this.#notFoundResponse;
+    const notFoundPath     = this.#notFoundPath;
+
+    if (existingResponse) {
+      return existingResponse;
+    } else if (!this.#notFoundPath) {
       return null;
     }
+
+    // Either `#notFoundResponse` has never been set up, or it's in need of an
+    // update.
+
+    if (!await Statter.fileExists(notFoundPath)) {
+      if (existingResponse) {
+        // This means that, when the system started, the `notFoundPath` was
+        // successfully loaded, but now it's having trouble getting refreshed.
+        // We log the problem and return the old value.
+        this.logger?.notFoundPathDisappeared(notFoundPath);
+        return existingResponse;
+      } else {
+        // We end up here during startup, if the `notFoundPath` couldn't get
+        // loaded.
+        throw new Error(`Not found or not a file: ${notFoundPath}`);
+      }
+    }
+
+    const response = new FullResponse();
+
+    response.status       = 404;
+    response.cacheControl = this.#cacheControl;
+
+    const body        = await fs.readFile(notFoundPath);
+    const contentType = MimeTypes.typeFromPathExtension(notFoundPath);
+
+    response.setBodyBuffer(body);
+    response.headers.set('content-type', contentType);
+
+    this.#notFoundResponse = response;
+
+    return response;
   }
 
   /**
