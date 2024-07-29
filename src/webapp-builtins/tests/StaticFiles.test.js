@@ -190,33 +190,33 @@ describe('_impl_handleRequest()', () => {
         expect(result).toBeNull();
       }
     });
+  });
 
-    // Extra tests when `notFoundPath` is used
-    describe('with `notFoundPath`', () => {
-      test('notices when the file at `notFoundPath` is updated', async () => {
-        const notFoundPath = `${tmpdir()}/not-found-${process.pid}.txt`;
-        await fs.writeFile(notFoundPath, 'original');
+  // Extra tests when `notFoundPath` is used
+  describe('with `notFoundPath`', () => {
+    test('notices when the file at `notFoundPath` is updated', async () => {
+      const notFoundPath = `${tmpdir()}/not-found-${process.pid}.txt`;
+      await fs.writeFile(notFoundPath, 'original');
 
-        const sf = await makeInstance({ notFoundPath });
+      const sf = await makeInstance({ notFoundPath });
 
-        const request  = RequestUtil.makeGet('/this/is/not/found');
-        const dispatch = new DispatchInfo(PathKey.EMPTY, request.pathname);
+      const request  = RequestUtil.makeGet('/this/is/not/found');
+      const dispatch = new DispatchInfo(PathKey.EMPTY, request.pathname);
 
-        const result1 = await sf.handleRequest(request, dispatch);
-        const body1   = result1._testing_getBody();
-        expect(result1.status).toBe(404);
-        expect(body1.type).toBe('buffer');
-        expect(body1.buffer.toString()).toMatch(/original/);
+      const result1 = await sf.handleRequest(request, dispatch);
+      const body1   = result1._testing_getBody();
+      expect(result1.status).toBe(404);
+      expect(body1.type).toBe('buffer');
+      expect(body1.buffer.toString()).toMatch(/original/);
 
-        await WallClock.waitForMsec(100); // So that `mtime` will be different.
-        await fs.writeFile(notFoundPath, 'replacement');
+      await WallClock.waitForMsec(100); // So that `mtime` will be different.
+      await fs.writeFile(notFoundPath, 'replacement');
 
-        const result2 = await sf.handleRequest(request, dispatch);
-        const body2   = result2._testing_getBody();
-        expect(result2.status).toBe(404);
-        expect(body2.type).toBe('buffer');
-        expect(body2.buffer.toString()).toMatch(/replacement/);
-      });
+      const result2 = await sf.handleRequest(request, dispatch);
+      const body2   = result2._testing_getBody();
+      expect(result2.status).toBe(404);
+      expect(body2.type).toBe('buffer');
+      expect(body2.buffer.toString()).toMatch(/replacement/);
     });
   });
 
