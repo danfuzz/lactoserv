@@ -73,14 +73,8 @@ export class StaticFiles extends BaseApplication {
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {
-      if (this.#notFoundResponse) {
-        return this.#notFoundResponse;
-      } else {
-        return null;
-      }
-    }
-
-    if (resolved.redirect) {
+      return this.#notFound();
+    } else if (resolved.redirect) {
       const redirectTo = resolved.redirect;
       const response   = FullResponse.makeRedirect(redirectTo, 308);
 
@@ -151,6 +145,20 @@ export class StaticFiles extends BaseApplication {
     }
 
     await super._impl_start();
+  }
+
+  /**
+   * Updates (if necessary) and returns {@link #notFoundResponse}. This returns
+   * `null` if this instance isn't set up to directly handle not-found cases.
+   *
+   * @returns {?FullResponse} The response for a not-found situation.
+   */
+  async #notFound() {
+    if (this.#notFoundResponse) {
+      return this.#notFoundResponse;
+    } else {
+      return null;
+    }
   }
 
   /**
