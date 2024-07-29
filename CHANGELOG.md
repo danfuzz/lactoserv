@@ -16,6 +16,8 @@ Breaking changes:
 Other notable changes:
 * Updated npm-origined dependencies for the unit test framework, based on a
   vulnerability report.
+* `StaticFiles`: Notice when the `notFoundPath` file gets changed, instead of
+  only ever setting up the not-found response during system startup.
 
 ### v0.7.7 -- 2024-06-24 -- stable release
 

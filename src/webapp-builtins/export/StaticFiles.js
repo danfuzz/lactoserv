@@ -53,6 +53,15 @@ export class StaticFiles extends BaseApplication {
   #notFoundResponse = null;
 
   /**
+   * Modification time of the file {@link #notFoundPath} at the time it was last
+   * read to create {@link #notFoundResponse} as a msec-since-Epoch time, or
+   * `null` if not yet read.
+   *
+   * @type {?number}
+   */
+  #notFoundModTime = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {object} rawConfig Raw configuration object.
@@ -73,14 +82,8 @@ export class StaticFiles extends BaseApplication {
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {
-      if (this.#notFoundResponse) {
-        return this.#notFoundResponse;
-      } else {
-        return null;
-      }
-    }
-
-    if (resolved.redirect) {
+      return this.#notFound();
+    } else if (resolved.redirect) {
       const redirectTo = resolved.redirect;
       const response   = FullResponse.makeRedirect(redirectTo, 308);
 
@@ -132,25 +135,68 @@ export class StaticFiles extends BaseApplication {
     const notFoundPath = this.#notFoundPath;
 
     if (notFoundPath) {
-      if (!await Statter.fileExists(notFoundPath)) {
-        throw new Error(`Not found or not a file: ${notFoundPath}`);
-      }
-
-      const response = new FullResponse();
-
-      response.status       = 404;
-      response.cacheControl = this.#cacheControl;
-
-      const body        = await fs.readFile(notFoundPath);
-      const contentType = MimeTypes.typeFromPathExtension(notFoundPath);
-
-      response.setBodyBuffer(body);
-      response.headers.set('content-type', contentType);
-
-      this.#notFoundResponse = response;
+      // This does initial setup of `notFoundResponse`, and will throw if it
+      // can't be loaded. This is meant to help catch the salient config problem
+      // during startup instead of just as the first _actual_ not-found response
+      // is needed.
+      await this.#notFound();
     }
 
     await super._impl_start();
+  }
+
+  /**
+   * Updates (if necessary) and returns {@link #notFoundResponse}. This returns
+   * `null` if this instance isn't set up to directly handle not-found cases.
+   *
+   * @returns {?FullResponse} The response for a not-found situation.
+   */
+  async #notFound() {
+    const notFoundPath = this.#notFoundPath;
+
+    if (!notFoundPath) {
+      return null;
+    }
+
+    const existingResponse = this.#notFoundResponse;
+    const stats            = await Statter.statOrNull(notFoundPath);
+    const isFile           = stats?.isFile();
+
+    if (existingResponse) {
+      if (!isFile) {
+        // This means that, when the system started, the `notFoundPath` was
+        // successfully loaded, but now it's having trouble getting refreshed.
+        // We log the problem and return the old value.
+        this.logger?.notFoundPathDisappeared(notFoundPath);
+        return existingResponse;
+      } else if (stats.mtimeMs === this.#notFoundModTime) {
+        // The pre-existing response is still fresh.
+        return existingResponse;
+      }
+    } else if (!isFile) {
+      // We end up here during startup, if the `notFoundPath` isn't possibly a
+      // readable file.
+      throw new Error(`Not found or not a file: ${notFoundPath}`);
+    }
+
+    // Either `#notFoundResponse` has never been set up, or it's in need of an
+    // update.
+
+    const response = new FullResponse();
+
+    response.status       = 404;
+    response.cacheControl = this.#cacheControl;
+
+    const body        = await fs.readFile(notFoundPath);
+    const contentType = MimeTypes.typeFromPathExtension(notFoundPath);
+
+    response.setBodyBuffer(body);
+    response.headers.set('content-type', contentType);
+
+    this.#notFoundResponse = response;
+    this.#notFoundModTime  = stats.mtimeMs;
+
+    return response;
   }
 
   /**
