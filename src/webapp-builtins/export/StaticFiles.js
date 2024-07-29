@@ -53,6 +53,15 @@ export class StaticFiles extends BaseApplication {
   #notFoundResponse = null;
 
   /**
+   * Modification time of the file {@link #notFoundPath} at the time it was last
+   * read to create {@link #notFoundResponse} as a msec-since-Epoch time, or
+   * `null` if not yet read.
+   *
+   * @type {?number}
+   */
+  #notFoundModTime = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {object} rawConfig Raw configuration object.
@@ -143,31 +152,35 @@ export class StaticFiles extends BaseApplication {
    * @returns {?FullResponse} The response for a not-found situation.
    */
   async #notFound() {
-    const existingResponse = this.#notFoundResponse;
-    const notFoundPath     = this.#notFoundPath;
+    const notFoundPath = this.#notFoundPath;
 
-    if (existingResponse) {
-      return existingResponse;
-    } else if (!this.#notFoundPath) {
+    if (!notFoundPath) {
       return null;
     }
 
-    // Either `#notFoundResponse` has never been set up, or it's in need of an
-    // update.
+    const existingResponse = this.#notFoundResponse;
+    const stats            = await Statter.statOrNull(notFoundPath);
+    const isFile           = stats?.isFile();
 
-    if (!await Statter.fileExists(notFoundPath)) {
-      if (existingResponse) {
+    if (existingResponse) {
+      if (!isFile) {
         // This means that, when the system started, the `notFoundPath` was
         // successfully loaded, but now it's having trouble getting refreshed.
         // We log the problem and return the old value.
         this.logger?.notFoundPathDisappeared(notFoundPath);
         return existingResponse;
-      } else {
-        // We end up here during startup, if the `notFoundPath` couldn't get
-        // loaded.
-        throw new Error(`Not found or not a file: ${notFoundPath}`);
+      } else if (stats.mtimeMs === this.#notFoundModTime) {
+        // The pre-existing response is still fresh.
+        return existingResponse;
       }
+    } else if (!isFile) {
+      // We end up here during startup, if the `notFoundPath` isn't possibly a
+      // readable file.
+      throw new Error(`Not found or not a file: ${notFoundPath}`);
     }
+
+    // Either `#notFoundResponse` has never been set up, or it's in need of an
+    // update.
 
     const response = new FullResponse();
 
@@ -181,6 +194,7 @@ export class StaticFiles extends BaseApplication {
     response.headers.set('content-type', contentType);
 
     this.#notFoundResponse = response;
+    this.#notFoundModTime  = stats.mtimeMs;
 
     return response;
   }
