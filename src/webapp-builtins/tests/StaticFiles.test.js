@@ -199,7 +199,7 @@ describe('_impl_handleRequest()', () => {
         const sf = await makeInstance({ notFoundPath });
 
         const request  = RequestUtil.makeGet('/this/is/not/found');
-        const dispatch = new DispatchInfo(PathKey.EMPTY, request.pathname)
+        const dispatch = new DispatchInfo(PathKey.EMPTY, request.pathname);
 
         const result1 = await sf.handleRequest(request, dispatch);
         const body1   = result1._testing_getBody();
