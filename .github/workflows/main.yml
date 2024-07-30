@@ -78,6 +78,9 @@ jobs:
           | while IFS='' read -r line; do
               echo "::notice title=product-info::${line}"
           done
+          info="$(jq . out/lactoserv/product-info.json)"
+          printf '::notice title=product-info::%s\n' \
+            "$(awk '{ printf("%s%%0A", $0); })"
 
       #- name: Run a multi-line script.
       #  run: |
