@@ -80,7 +80,7 @@ jobs:
           done
           info="$(jq . out/lactoserv/product-info.json)"
           printf '::notice title=product-info::%s\n' \
-            "$(awk '{ printf("%s%%0A", $0); }')"
+            "$(awk <<<"${info}" '{ printf("%s%%0A", $0); }')"
 
       #- name: Run a multi-line script.
       #  run: |
