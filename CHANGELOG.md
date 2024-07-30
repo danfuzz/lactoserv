@@ -14,6 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.7.8 -- 2024-07-30
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * Updated npm-origined dependencies for the unit test framework, based on a
   vulnerability report.
 * `StaticFiles`: Notice when the `notFoundPath` file gets changed, instead of
