@@ -72,6 +72,13 @@ jobs:
           overwrite: true
           retention-days: 90
 
+      - name: Announcement.
+        run: |
+          jq . out/lactoserv/product-info.json \
+          | while IFS='' read -r line; do
+              echo "::notice title=product-info::${line}"
+          done
+
       #- name: Run a multi-line script.
       #  run: |
       #    echo THIS IS
