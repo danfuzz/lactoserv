@@ -16,7 +16,7 @@ Breaking changes:
 Other notable changes:
 * None.
 
-### v0.7.8 -- 2024-07-30
+### v0.7.8 -- 2024-07-30 -- stable release
 
 Breaking changes:
 * None.
