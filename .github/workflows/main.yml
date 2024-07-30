@@ -52,15 +52,25 @@ jobs:
       - name: Ensure the cert creator still works.
         run: ./scripts/ubik make-localhost-cert
 
-      # Uncomment this step if you want to upload the build as an artifact (with
-      # tweakage to select just the right part).
-      #- name: Upload artifacts.
-      #  uses: actions/upload-artifact@v4
-      #  with:
-      #    name: built-artifacts
-      #    path: out
-      #    overwrite: true
-      #    retention-days: 30
+      - name: Tarball artifact.
+        uses: actions/upload-artifact@v4
+        with:
+          name: distro
+          path: out/lactoserv-*.tgz
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 90
+
+      - name: node_modules artifact.
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules
+          path: |
+            out/lactoserv/lib/node_modules
+            out/lactoserv/lib/package*.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 90
 
       #- name: Run a multi-line script.
       #  run: |
