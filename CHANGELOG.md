@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `net-util`:
+  * Fixed `IncomingRequest.getHeaderOrNull()`, which was very broken.
 
 ### v0.7.8 -- 2024-07-30 -- stable release
 

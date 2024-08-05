@@ -398,10 +398,13 @@ export class IncomingRequest {
    *
    * @param {string} name The header name.
    * @returns {?string|Array<string>} The corresponding value, or `null` if
-   *   there was no such header.
+   *   there was no such header. The only case where an array is returned is for
+   *   the very special name `set-coookie`.
    */
   getHeaderOrNull(name) {
-    return this.headers[name] ?? null;
+    return (name === 'set-cookie')
+      ? this.headers.getSetCookie()
+      : this.headers.get(name);
   }
 
   /**
