@@ -203,8 +203,8 @@ export class IncomingRequest {
    */
   get host() {
     if (!this.#hostInfo) {
-      // Note: We use `#pseudoHeaders` to hold the `Host` header of an
-      // HTTP1-ish request.
+      // Note: We use `#pseudoHeaders` to hold the `Host` header of an HTTP1-ish
+      // request.
 
       const authority = this.#pseudoHeaders.get('authority') ?? null;
       const scheme    = this.#pseudoHeaders.get('scheme')    ?? null;
