@@ -1,0 +1,11 @@
+// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
+
+// This file is just a minimal one, meant to make it possible for TS linting as
+// performed by Zed to accept this project's JS files.
+
+{
+  "compilerOptions": {
+    "allowJs": true
+  }
+}
