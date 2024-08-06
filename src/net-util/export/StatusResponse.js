@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { BaseResponse } from '#x/BaseResponse';
 import { FullResponse } from '#x/FullResponse';
 import { IncomingRequest } from '#x/IncomingRequest';
 
@@ -16,7 +17,7 @@ import { IncomingRequest } from '#x/IncomingRequest';
  *
  * Instances of this class are always frozen.
  */
-export class StatusResponse {
+export class StatusResponse extends BaseResponse {
   /**
    * The response status code, or `null` if not yet set.
    *
@@ -30,6 +31,8 @@ export class StatusResponse {
    * @param {number} status The status code of the response.
    */
   constructor(status) {
+    super();
+
     this.#status =
       MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
     Object.freeze(this);
