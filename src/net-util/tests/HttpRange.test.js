@@ -3,7 +3,8 @@
 
 import * as fs from 'node:fs/promises';
 
-import { HttpRange, HttpHeaders } from '@this/net-util';
+import { HttpHeaders, HttpRange } from '@this/net-util';
+
 
 describe('rangeInfo()', () => {
   test('returns `null` given a non-range request', () => {

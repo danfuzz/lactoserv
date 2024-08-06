@@ -3,6 +3,7 @@
 
 import { NetworkHost } from '@this/webapp-core';
 
+
 describe('constructor', () => {
   test('accepts a valid minimal self-signed configuration', () => {
     expect(() => new NetworkHost({

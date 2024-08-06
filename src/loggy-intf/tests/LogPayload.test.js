@@ -6,6 +6,7 @@ import stripAnsi from 'strip-ansi';
 import { BaseConverter, Moment, Sexp, StackTrace } from '@this/data-values';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 
+
 const someMoment = new Moment(123123123);
 const someStack  = new StackTrace();
 const someTag    = new LogTag('some', 'tag');

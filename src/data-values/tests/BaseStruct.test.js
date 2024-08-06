@@ -3,6 +3,7 @@
 
 import { BaseStruct } from '@this/data-values';
 
+
 /**
  * Checks an instance to see if it has the expected properties.
  *

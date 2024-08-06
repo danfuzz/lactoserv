@@ -3,6 +3,7 @@
 
 import { NetworkEndpoint } from '@this/webapp-core';
 
+
 describe('constructor', () => {
   test('accepts a valid configuration', () => {
     expect(() => new NetworkEndpoint({

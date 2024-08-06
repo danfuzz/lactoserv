@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+
 describe('object()', () => {
   test('accepts a plain object', () => {
     const value = { x: 12 };

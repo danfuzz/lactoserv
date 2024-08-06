@@ -3,6 +3,7 @@
 
 import { WebappRoot } from '@this/webapp-core';
 
+
 describe('constructor', () => {
   test('accepts a valid minimal configuration', () => {
     expect(() => new WebappRoot({})).not.toThrow();

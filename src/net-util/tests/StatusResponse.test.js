@@ -1,9 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingRequest, FullResponse, HttpHeaders, RequestContext,
+import { FullResponse, HttpHeaders, IncomingRequest, RequestContext,
   StatusResponse }
   from '@this/net-util';
+
 
 /**
  * Constructs a request object.
