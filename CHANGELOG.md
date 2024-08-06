@@ -16,6 +16,7 @@ Breaking changes:
 Other notable changes:
 * `net-util`:
   * Fixed `IncomingRequest.getHeaderOrNull()`, which was very broken.
+  * Added `DispatchInfo.isFile()`.
 
 ### v0.7.8 -- 2024-07-30 -- stable release
 

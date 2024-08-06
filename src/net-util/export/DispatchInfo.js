@@ -211,7 +211,7 @@ export class DispatchInfo {
 
   /**
    * Does this instance name a directory? That is, does `extra` end with an
-   * empty component?
+   * empty component? This is the opposite of {@link #isFile}.
    *
    * @returns {boolean} `true` if this instance is in directory form, or `false`
    *   if not.
@@ -219,6 +219,17 @@ export class DispatchInfo {
   isDirectory() {
     const lastComponent = this.lastComponent;
     return (lastComponent === null) || (lastComponent === '');
+  }
+
+  /**
+   * Does this instance name a file? That is, does `extra` end with a non-empty
+   * component? This is the opposite of {@link #isDirectory}.
+   *
+   * @returns {boolean} `true` if this instance is in file form, or `false` if
+   *   not.
+   */
+  isFile() {
+    return !this.isDirectory();
   }
 
   /**
