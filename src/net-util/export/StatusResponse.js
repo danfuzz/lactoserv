@@ -75,10 +75,31 @@ export class StatusResponse {
   static #INSTANCES = new Map();
 
   /**
+   * @returns {StatusResponse} The "bad request" (`400`) instance.
+   */
+  static get BAD_REQUEST() {
+    return this.fromStatus(400);
+  }
+
+  /**
+   * @returns {StatusResponse} The "forbidden" (`403`) instance.
+   */
+  static get FORBIDDEN() {
+    return this.fromStatus(403);
+  }
+
+  /**
    * @returns {StatusResponse} The "not found" (`404`) instance.
    */
   static get NOT_FOUND() {
     return this.fromStatus(404);
+  }
+
+  /**
+   * @returns {StatusResponse} The "unauthorized" (`401`) instance.
+   */
+  static get UNAUTHORIZED() {
+    return this.fromStatus(401);
   }
 
   /**

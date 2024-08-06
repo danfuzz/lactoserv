@@ -141,19 +141,25 @@ describe('responseFor()', () => {
 // Static members
 //
 
-describe('.NOT_FOUND', () => {
+describe.each`
+status | name
+${400} | ${'BAD_REQUEST'}
+${401} | ${'UNAUTHORIZED'}
+${403} | ${'FORBIDDEN'}
+${404} | ${'NOT_FOUND'}
+`('.$name', ({ name, status }) => {
   test('is an instance of this class', () => {
-    expect(StatusResponse.NOT_FOUND).toBeInstanceOf(StatusResponse);
+    expect(StatusResponse[name]).toBeInstanceOf(StatusResponse);
   });
 
   test('is always the same instance', () => {
-    const nf1 = StatusResponse.NOT_FOUND;
-    const nf2 = StatusResponse.NOT_FOUND;
+    const nf1 = StatusResponse[name];
+    const nf2 = StatusResponse[name];
     expect(nf1).toBe(nf2);
   });
 
-  test('has `status === 404`', () => {
-    expect(StatusResponse.NOT_FOUND.status).toBe(404);
+  test(`has \`status === ${status}\`'`, () => {
+    expect(StatusResponse[name].status).toBe(status);
   });
 });
 
