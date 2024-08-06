@@ -16,9 +16,9 @@ Breaking changes:
 Other notable changes:
 * `net-util`:
   * Fixed `IncomingRequest.getHeaderOrNull()`, which was very broken.
-  * Added `DispatchInfo.isFile()`.
+  * Defined a base class, `BaseResponse` for the two concrete response classes.
   * Added a handful of static getters to `StatusResponse`.
-  * Various other fixes, motivated by a downstream project.
+  * Various other tweaks and fixes, motivated by a downstream project.
 
 ### v0.7.8 -- 2024-07-30 -- stable release
 
