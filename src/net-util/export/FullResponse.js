@@ -11,6 +11,7 @@ import { ErrorUtil, Moment } from '@this/data-values';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
+import { BaseResponse } from '#x/BaseResponse';
 import { HttpConditional } from '#x/HttpConditional';
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpRange } from '#x/HttpRange';
@@ -34,7 +35,7 @@ import { TypeNodeResponse } from '#x/TypeNodeResponse';
  * up a response body that won't get sent, and (c) _not_ actually sending a
  * response body.
  */
-export class FullResponse {
+export class FullResponse extends BaseResponse {
   /**
    * The response status code, or `null` if not yet set.
    *
@@ -71,6 +72,8 @@ export class FullResponse {
    *   the instance out with nothing set.
    */
   constructor(orig = null) {
+    super();
+
     if (orig) {
       MustBe.instanceOf(orig, FullResponse);
       this.#status       = orig.#status;
