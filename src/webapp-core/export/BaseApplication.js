@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
-  StatusResponse, TypeOutgoingResponse }
+import { BaseResponse, DispatchInfo, IncomingRequest, IntfRequestHandler,
+  TypeOutgoingResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
 
@@ -73,9 +73,7 @@ export class BaseApplication extends BaseDispatched {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((result === null)
-        || (result instanceof FullResponse)
-        || (result instanceof StatusResponse)) {
+    if ((result === null) || (result instanceof BaseResponse)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
@@ -87,9 +85,7 @@ export class BaseApplication extends BaseDispatched {
 
     const finalResult = await result;
 
-    if ((finalResult === null)
-        || (finalResult instanceof FullResponse)
-        || (finalResult instanceof StatusResponse)) {
+    if ((finalResult === null) || (finalResult instanceof BaseResponse)) {
       return finalResult;
     } else if (finalResult === undefined) {
       throw error('async-returned `undefined`; probably needs an explicit `return`');
