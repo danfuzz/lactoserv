@@ -7,7 +7,8 @@ import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler }
+import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler,
+  StatusResponse }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
 
@@ -62,7 +63,7 @@ export class NetworkEndpoint extends BaseDispatched {
 
     try {
       const result = await application.handleRequest(request, dispatch);
-      if ((result === null) || (result instanceof FullResponse)) {
+      if ((result === null) || (result instanceof FullResponse) || (result instanceof StatusResponse)) {
         return result;
       } else {
         // Caught immediately below.
