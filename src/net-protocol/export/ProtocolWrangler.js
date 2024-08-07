@@ -329,7 +329,7 @@ export class ProtocolWrangler {
     // Responds to a problematic request with an error status of some sort,
     // closes the request, and logs a bit of info which might help elucidate the
     // situation.
-    const errorResponse = (e, status) => {
+    const errorResponse = (e, status, message = e.message) => {
       logger?.errorDuringIncomingRequest({
         ...context.ids,
         requestId: request?.id ?? '<unknown>',
@@ -345,6 +345,13 @@ export class ProtocolWrangler {
       });
 
       res.statusCode = status;
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.write(message);
+      if (!message.endsWith('\n')) {
+        res.write('\n');
+      }
+
       res.end();
     };
 
@@ -376,7 +383,7 @@ export class ProtocolWrangler {
       // theorized to occur in practice when the socket for a request gets
       // closed after the request was received but before it managed to get
       // dispatched.
-      errorResponse(e, 500); // "Internal Server Error."
+      errorResponse(e, 500, 'Internal Server Error');
     }
   }
 
