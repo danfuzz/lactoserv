@@ -144,7 +144,7 @@ export class IncomingRequest {
     this.#pseudoHeaders  = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext = MustBe.instanceOf(context, RequestContext);
     this.#requestHeaders = MustBe.instanceOf(headers, HttpHeaders);
-    this.#requestMethod  = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
+    this.#requestMethod  = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
     const targetString = MustBe.string(pseudoHeaders.get('path'));
     this.#parsedTargetObject = Object.freeze({ targetString, type: null });
@@ -703,5 +703,44 @@ export class IncomingRequest {
     Object.freeze(headers);
     Object.freeze(pseudoHeaders);
     return { headers, pseudoHeaders };
+  }
+
+  /**
+   * Gets the downcased request method from a set of HTTP2-ish pseudo-headers.
+   * This method accepts both all-uppercase and all-lowercase versions of the
+   * method names, but not mixed case.
+   *
+   * @param {HttpHeaders} pseudoHeaders The pseudo-headers.
+   * @returns {string} The request method from `pseudoHeaders`.
+   * @throws {Error} Thrown if there was no such header, or it was an
+   *   inappropriate value.
+   */
+  static #requestMethodFromPseudoHeaders(pseudoHeaders) {
+    const rawResult = pseudoHeaders.get('method');
+
+    if (!rawResult) {
+      throw new Error('No `method` pseudo-header found.');
+    }
+
+    // The following is expected to be faster than a call to `toLowerCase()` and
+    // a lookup in a `Set` of valid values.
+    switch (rawResult) {
+      case 'connect': case 'delete': case 'get':  case 'head':
+      case 'options': case 'patch':  case 'post': case 'put':
+      case 'trace': {
+        return rawResult;
+      }
+      case 'CONNECT': { return 'connect'; }
+      case 'DELETE':  { return 'delete';  }
+      case 'GET':     { return 'get';     }
+      case 'HEAD':    { return 'head';    }
+      case 'OPTIONS': { return 'options'; }
+      case 'PATCH':   { return 'patch';   }
+      case 'POST':    { return 'post';    }
+      case 'PUT':     { return 'put';     }
+      case 'TRACE':   { return 'trace';   }
+    }
+
+    throw new Error(`Invalid request method: ${rawResult}`);
   }
 }
