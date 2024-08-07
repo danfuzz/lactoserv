@@ -408,6 +408,18 @@ export class IncomingRequest {
   }
 
   /**
+   * Indicates whether the method of this request is either `get` or `head`.
+   * This is a common enough (dual) case that it's worth it to have this
+   * convenience method.
+   *
+   * @returns {boolean} `true` iff the request method is either `get` or `head`.
+   */
+  isGetOrHead() {
+    const method = this.#requestMethod;
+    return (method === 'get') || (method === 'head');
+  }
+
+  /**
    * @returns {object} {@link #parsedTargetObject}, filling it out first if it
    * had not already been set up. This is a private getter because the return
    * value is pretty ad-hoc, and we don't want to expose it as part of this
