@@ -288,11 +288,12 @@ const applications = [
 // Endpoint defintions, including mount points for applications.
 const endpoints = [
   {
-    name:            'insecure',
-    protocol:        'http',
-    interface:       '*:8080',
-    application:     'myRedirector',
-    dispatchLogging: true,
+    name:               'insecure',
+    protocol:           'http',
+    interface:          '*:8080',
+    application:        'myRedirector',
+    dispatchLogging:    true,
+    maxRequestBodySize: '0 byte',
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
@@ -300,12 +301,13 @@ const endpoints = [
     }
   },
   {
-    name:            'secure',
-    protocol:        'http2',
-    hostnames:       ['*'],
-    interface:       '*:8443',
-    application:     'mySite',
-    dispatchLogging: true,
+    name:               'secure',
+    protocol:           'http2',
+    hostnames:          ['*'],
+    interface:          '*:8443',
+    application:        'mySite',
+    dispatchLogging:    true,
+    maxRequestBodySize: '32 byte',
     services: {
       accessLog:             'accessLog',
       dataRateLimiter:       'dataRateLimiter',
@@ -313,11 +315,12 @@ const endpoints = [
     }
   },
   {
-    name:        'alsoSecure',
-    protocol:    'https',
-    hostnames:   ['*'],
-    interface:   '*:8444',
-    application: 'mySeries',
+    name:               'alsoSecure',
+    protocol:           'https',
+    hostnames:          ['*'],
+    interface:          '*:8444',
+    application:        'mySeries',
+    maxRequestBodySize: '32 byte',
     services: {
       accessLog: 'accessLog'
     }

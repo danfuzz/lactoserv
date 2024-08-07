@@ -3,6 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { Names } from '@this/compy';
+import { ByteCount } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
@@ -210,6 +211,29 @@ export class NetworkEndpoint extends BaseDispatched {
        */
       _config_interface(value) {
         return Object.freeze(HostUtil.parseInterface(value));
+      }
+
+      /**
+       * Maximum allowed size of a request body, or `null` to not have such a
+       * size limit. if so limited. If passed as a string, it is parsed by
+       * {@link ByteCount#parse}.
+       *
+       * @param {?string|ByteCount} [value] Proposed configuration value.
+       *   Default `null`.
+       * @returns {?ByteCount} Accepted configuration value.
+       */
+      _config_maxRequestBodySize(value = null) {
+        if (value === null) {
+          return null;
+        }
+
+        const result = ByteCount.parse(value, { range: { minInclusive: 0 } });
+
+        if (result === null) {
+          throw new Error(`Could not parse \`maxRequestBodySize\`: ${value}`);
+        }
+
+        return result;
       }
 
       /**
