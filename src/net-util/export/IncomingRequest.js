@@ -664,15 +664,22 @@ export class IncomingRequest {
     const resultMp = new ManualPromise();
 
     const onData = () => {
-      resultMp.reject(new Error('Expected empty request body, but there was data.'));
+      if (!resultMp.isSettled()) {
+        resultMp.reject(
+          new Error('Expected empty request body, but there was data.'));
+      }
     };
 
     const onEnd = () => {
-      resultMp.resolve(null);
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(null);
+      }
     };
 
     const onError = (e) => {
-      resultMp.reject(e);
+      if (!resultMp.isSettled()) {
+        resultMp.reject(e);
+      }
     };
 
     request.on('data',  onData);
