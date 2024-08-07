@@ -790,7 +790,7 @@ export class IncomingRequest {
   static async #readBody(request, maxRequestBodyBytes) {
     const max = (maxRequestBodyBytes === null)
       ? Number.POSITIVE_INFINITY
-      : max;
+      : maxRequestBodyBytes;
 
     const contentLength =
       HttpUtil.numberFromContentLengthString(request.headers['content-length']);
