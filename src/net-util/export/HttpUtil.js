@@ -272,6 +272,27 @@ export class HttpUtil {
   }
 
   /**
+   * Given an HTTP-ish request method, indicates if the request is expected to
+   * have a request body (that is, "content").
+   *
+   * @param {string} method Request method, either downcased or all-caps.
+   * @returns {boolean} `true` if a request body is expected, or `false` if it
+   *   is disallowed.
+   */
+  static requestBodyIsAllowedFor(method) {
+    switch (method) {
+      case 'patch': case 'PATCH':
+      case 'post':  case 'POST':
+      case 'put':   case 'PUT': {
+        return true;
+      }
+      default: {
+        return false;
+      }
+    }
+  }
+
+  /**
    * Given an HTTP-ish response request method and status code, indicates if the
    * corresponding response _is allowed to_ include a body.
    *

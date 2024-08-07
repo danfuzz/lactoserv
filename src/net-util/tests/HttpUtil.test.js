@@ -201,6 +201,25 @@ describe('msecFromDateString()', () => {
   });
 });
 
+describe('requestBodyIsAllowedFor()', () => {
+  test.each`
+  method       | expected
+  ${'connect'} | ${false}
+  ${'delete'}  | ${false}
+  ${'get'}     | ${false}
+  ${'head'}    | ${false}
+  ${'options'} | ${false}
+  ${'patch'}   | ${true}
+  ${'post'}    | ${true}
+  ${'put'}     | ${true}
+  ${'trace'}   | ${false}
+  `('returns `$expected` for method `$method`', ({ method, expected }) => {
+    const upcased = method.toUpperCase();
+    expect(HttpUtil.requestBodyIsAllowedFor(method)).toBe(expected);
+    expect(HttpUtil.requestBodyIsAllowedFor(upcased)).toBe(expected);
+  });
+});
+
 describe.each`
 methodName                     | expName
 ${'responseBodyIsAllowedFor'}  | ${'expAllowed'}
