@@ -80,6 +80,13 @@ export class IncomingRequest {
   #requestMethod;
 
   /**
+   * The request body, or `null` if the request did not come with a body.
+   *
+   * @type {?Buffer}
+   */
+  #body;
+
+  /**
    * The parsed cookies, or `null` if not yet figured out.
    *
    * @type {?Cookies}
@@ -122,6 +129,8 @@ export class IncomingRequest {
    *
    * @param {object} config Configuration of the instance. Most properties are
    *   required.
+   * @param {?Buffer} [config.body] The request body, or `null` if the request
+   *   did not come with a body.
    * @param {RequestContext} config.context Information about the incoming
    *   "context" of a request. (This information isn't provided by the standard
    *   Node HTTP-ish libraries.)
@@ -138,9 +147,10 @@ export class IncomingRequest {
    */
   constructor(config) {
     const {
-      context, headers, logger = null, protocolName, pseudoHeaders
+      body = null, context, headers, logger = null, protocolName, pseudoHeaders
     } = config;
 
+    this.#body           = (body === null) ? null : MustBe.instanceOf(body, Buffer);
     this.#protocolName   = MustBe.string(protocolName);
     this.#pseudoHeaders  = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext = MustBe.instanceOf(context, RequestContext);
@@ -154,6 +164,14 @@ export class IncomingRequest {
       this.#id     = logger.$meta.makeId();
       this.#logger = logger[this.#id];
     }
+  }
+
+  /**
+   * @returns {?Buffer} The request body, or `null` if this instance does not
+   * have an associated body.
+   */
+  get body() {
+    return this.#body;
   }
 
   /**
@@ -828,6 +846,7 @@ export class IncomingRequest {
    * read it. Throws an error if there was any data to be read.
    *
    * @param {TypeNodeRequest} request Request object.
+   * @returns {null} `null`, always (unless there is an error).
    */
   static async #readEmptyBody(request) {
     for await (const chunk of request) {
@@ -835,6 +854,8 @@ export class IncomingRequest {
         throw new Error('Expected empty request body, but there was data.');
       }
     }
+
+    return null;
   }
 
   /**

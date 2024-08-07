@@ -19,6 +19,7 @@ Breaking changes:
 Other notable changes:
 * `net-util`:
   * `IncomingRequest`:
+    * Added `body` constructor option.
     * Made it start rejecting requests whose request method (e.g. `GET`) isn't
       defined to take a request body but where the request actually does have a
       body.
