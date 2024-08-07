@@ -552,7 +552,7 @@ export class IncomingRequest {
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
     const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
-    const body = HttpUtil.requestBodyIsAllowedFor(requestMethod)
+    const body = HttpUtil.requestBodyIsExpectedFor(requestMethod)
       ? await IncomingRequest.#readBody(request, maxRequestBodyBytes)
       : await IncomingRequest.#readEmptyBody(request);
 

@@ -301,7 +301,7 @@ export class HttpUtil {
    * @returns {boolean} `true` if a request body is expected, or `false` if it
    *   is disallowed.
    */
-  static requestBodyIsAllowedFor(method) {
+  static requestBodyIsExpectedFor(method) {
     switch (method) {
       case 'patch': case 'PATCH':
       case 'post':  case 'POST':

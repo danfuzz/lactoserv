@@ -234,7 +234,7 @@ describe('numberFromContentLengthString()', () => {
   });
 });
 
-describe('requestBodyIsAllowedFor()', () => {
+describe('requestBodyIsExpectedFor()', () => {
   test.each`
   method       | expected
   ${'connect'} | ${false}
@@ -248,8 +248,8 @@ describe('requestBodyIsAllowedFor()', () => {
   ${'trace'}   | ${false}
   `('returns `$expected` for method `$method`', ({ method, expected }) => {
     const upcased = method.toUpperCase();
-    expect(HttpUtil.requestBodyIsAllowedFor(method)).toBe(expected);
-    expect(HttpUtil.requestBodyIsAllowedFor(upcased)).toBe(expected);
+    expect(HttpUtil.requestBodyIsExpectedFor(method)).toBe(expected);
+    expect(HttpUtil.requestBodyIsExpectedFor(upcased)).toBe(expected);
   });
 });
 
