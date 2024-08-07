@@ -138,8 +138,8 @@ export class ProtocolWrangler {
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
    * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
    *   request body, in bytes, or `null` not to have a limit. Note that not
-   *   having a limit is often ill-advised. If non-`null`, must be a positive
-   *   integer.
+   *   having a limit is often ill-advised. If non-`null`, must be a
+   *   non-negative integer.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
@@ -170,7 +170,7 @@ export class ProtocolWrangler {
 
     this.#maxRequestBodyBytes = (maxRequestBodyBytes === null)
       ? null
-      : MustBe.number(maxRequestBodyBytes, { safeInteger: true, minInclusive: 1 });
+      : MustBe.number(maxRequestBodyBytes, { safeInteger: true, minInclusive: 0 });
   }
 
   /**
