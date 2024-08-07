@@ -32,6 +32,8 @@ Other notable changes:
 * `webapp-builtins`:
   * Make `StaticFiles` and `SimpleResponse` only respond successfully to `GET`
     and `HEAD` requests.
+* `webapp-core` / config:
+  * Added `NetworkEndpoint` configuration `maxRequestBodySize`.
 
 ### v0.7.8 -- 2024-07-30 -- stable release
 
