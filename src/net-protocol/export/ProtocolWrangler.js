@@ -80,6 +80,13 @@ export class ProtocolWrangler {
   #interfaceObject;
 
   /**
+   * Maximum request body allowed, in bytes, or `null` if there is no limit.
+   *
+   * @type {?number}
+   */
+  #maxRequestBodyBytes;
+
+  /**
    * Value to use for the `Server` HTTP-ish response header.
    *
    * @type {string}
@@ -99,7 +106,6 @@ export class ProtocolWrangler {
    * @type {boolean}
    */
   #stopping = true;
-
 
   /**
    * Is the system about to reload (after stopping)?
@@ -130,6 +136,10 @@ export class ProtocolWrangler {
    *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
    *   * The default for `allowHalfOpen` is `true`, which is required in
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
+   * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
+   *   request body, in bytes, or `null` not to have a limit. Note that not
+   *   having a limit is often ill-advised. If non-`null`, must be a positive
+   *   integer.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
@@ -143,6 +153,7 @@ export class ProtocolWrangler {
       accessLog,
       hostManager,
       interface: interfaceConfig,
+      maxRequestBodyBytes = null,
       requestHandler
     } = options;
 
@@ -156,6 +167,10 @@ export class ProtocolWrangler {
       fd:      interfaceConfig.fd      ?? null,
       port:    interfaceConfig.port    ?? null
     });
+
+    this.#maxRequestBodyBytes = (maxRequestBodyBytes === null)
+      ? null
+      : MustBe.number(maxRequestBodyBytes, { safeInteger: true, minInclusive: 1 });
   }
 
   /**
