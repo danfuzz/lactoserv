@@ -1,8 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { ManualPromise } from '@this/async';
 import { PathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { HttpUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
@@ -521,6 +523,13 @@ export class IncomingRequest {
     MustBe.object(request);
 
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
+    const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
+
+    if (HttpUtil.requestBodyIsAllowedFor(requestMethod)) {
+      // TODO: Read the body.
+    } else {
+      await IncomingRequest.#readEmptyBody(request);
+    }
 
     return new IncomingRequest({
       context,
@@ -643,6 +652,40 @@ export class IncomingRequest {
     }
 
     throw new Error(`Invalid request method: ${method}`);
+  }
+
+  /**
+   * Checks that the given Node request has no body (content), by attempting to
+   * read it. Throws an error if there was any data to be read.
+   *
+   * @param {TypeNodeRequest} request Request object.
+   */
+  static async #readEmptyBody(request) {
+    const resultMp = new ManualPromise();
+
+    const onData = () => {
+      resultMp.reject(new Error('Expected empty request body, but there was data.'));
+    };
+
+    const onEnd = () => {
+      resultMp.resolve(null);
+    };
+
+    const onError = (e) => {
+      resultMp.reject(e);
+    };
+
+    request.on('data',  onData);
+    request.on('end',   onEnd);
+    request.on('error', onError);
+
+    try {
+      await resultMp.promise;
+    } finally {
+      request.removeListener('data', onData);
+      request.removeListener('end', onEnd);
+      request.removeListener('error', onError);
+    }
   }
 
   /**
