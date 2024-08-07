@@ -244,6 +244,10 @@ naming and configuring one of them. Each element has the following bindings:
     already correspond to an open server socket (e.g. set up by `systemd`).
     `<fd-num>` is an arbitrary (decimal) number in the range of valid file
     descriptors.
+* `maxRequestBodySize` &mdash; Optional limit on the size of a request body,
+    specified as a byte count as described in
+    [`ByteCount`](./2-common-configuration.md#bytecount), or `null` not to have
+    a limit. It is generally advisable to have a limit.
 * `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
   or `http2`. `http2` includes fallback to `https`.
 * `services` &mdash; An object which binds roles to system services by name.

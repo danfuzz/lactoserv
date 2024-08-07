@@ -80,6 +80,13 @@ export class ProtocolWrangler {
   #interfaceObject;
 
   /**
+   * Maximum request body allowed, in bytes, or `null` if there is no limit.
+   *
+   * @type {?number}
+   */
+  #maxRequestBodyBytes;
+
+  /**
    * Value to use for the `Server` HTTP-ish response header.
    *
    * @type {string}
@@ -99,7 +106,6 @@ export class ProtocolWrangler {
    * @type {boolean}
    */
   #stopping = true;
-
 
   /**
    * Is the system about to reload (after stopping)?
@@ -130,6 +136,10 @@ export class ProtocolWrangler {
    *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
    *   * The default for `allowHalfOpen` is `true`, which is required in
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
+   * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
+   *   request body, in bytes, or `null` not to have a limit. Note that not
+   *   having a limit is often ill-advised. If non-`null`, must be a
+   *   non-negative integer.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
@@ -143,6 +153,7 @@ export class ProtocolWrangler {
       accessLog,
       hostManager,
       interface: interfaceConfig,
+      maxRequestBodyBytes = null,
       requestHandler
     } = options;
 
@@ -156,6 +167,10 @@ export class ProtocolWrangler {
       fd:      interfaceConfig.fd      ?? null,
       port:    interfaceConfig.port    ?? null
     });
+
+    this.#maxRequestBodyBytes = (maxRequestBodyBytes === null)
+      ? null
+      : MustBe.number(maxRequestBodyBytes, { safeInteger: true, minInclusive: 0 });
   }
 
   /**
@@ -296,10 +311,14 @@ export class ProtocolWrangler {
    * protocol server object. This method should be called by the concrete
    * subclass in response to receiving a request.
    *
+   * **Note:** It is expected that this method is called in a context where any
+   * error becomes uncaught. As such, this method aims never to `throw`, instead
+   * logging errors and reporting error-ish statuses to the (remote) client.
+   *
    * @param {TypeNodeRequest} req Request object.
    * @param {TypeNodeResponse} res Response object.
    */
-  _prot_incomingRequest(req, res) {
+  async _prot_incomingRequest(req, res) {
     // This method performs everything that can be done synchronously as the
     // event callback that this is, and then (assuming all's well) hands things
     // off to our main `async` request handler.
@@ -319,10 +338,53 @@ export class ProtocolWrangler {
       return;
     }
 
-    try {
-      const requestContext = new RequestContext(this.interface, context.remoteInfo);
-      const request        = IncomingRequest.fromNodeRequest(req, requestContext, this.#requestLogger);
+    const requestContext = new RequestContext(this.interface, context.remoteInfo);
+    let   request        = null;
 
+    // Responds to a problematic request with an error status of some sort,
+    // closes the request, and logs a bit of info which might help elucidate the
+    // situation.
+    const errorResponse = (e, status, message = e.message) => {
+      logger?.errorDuringIncomingRequest({
+        ...context.ids,
+        requestId: request?.id ?? '<unknown>',
+        url:       request?.urlForLog ?? url,
+        socketState: {
+          closed:        socket.closed,
+          destroyed:     socket.destroyed,
+          readable:      socket.readable,
+          readableEnded: socket.readableEnded,
+          writableEnded: socket.writableEnded
+        },
+        error: e
+      });
+
+      res.statusCode = status;
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.write(message);
+      if (!message.endsWith('\n')) {
+        res.write('\n');
+      }
+
+      res.end();
+    };
+
+    try {
+      request = await IncomingRequest.fromNodeRequest(req, requestContext,
+        {
+          logger:              this.#requestLogger,
+          maxRequestBodyBytes: this.#maxRequestBodyBytes
+        });
+    } catch (e) {
+      // This generally means there was something malformed about the request,
+      // so we nip things in the bud here, responding with a 400 status ("Bad
+      // Request").
+      errorResponse(e, 400);
+      return;
+    }
+
+    try {
       logger?.incomingRequest({
         ...context.ids,
         requestId: request.id,
@@ -340,19 +402,7 @@ export class ProtocolWrangler {
       // theorized to occur in practice when the socket for a request gets
       // closed after the request was received but before it managed to get
       // dispatched.
-      logger?.errorDuringIncomingRequest(url, e);
-      const socketState = {
-        closed:        socket.closed,
-        destroyed:     socket.destroyed,
-        readable:      socket.readable,
-        readableEnded: socket.readableEnded,
-        writableEnded: socket.writableEnded
-      };
-      logger?.socketState(url, socketState);
-
-      // In case the response was never finished, this might unwedge things.
-      res.statusCode = 500; // "Internal Server Error."
-      res.end();
+      errorResponse(e, 500, 'Internal Server Error');
     }
   }
 

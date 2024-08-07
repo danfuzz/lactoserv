@@ -3,6 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { HttpUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
@@ -79,6 +80,13 @@ export class IncomingRequest {
   #requestMethod;
 
   /**
+   * The request body, or `null` if the request did not come with a body.
+   *
+   * @type {?Buffer}
+   */
+  #body;
+
+  /**
    * The parsed cookies, or `null` if not yet figured out.
    *
    * @type {?Cookies}
@@ -121,6 +129,8 @@ export class IncomingRequest {
    *
    * @param {object} config Configuration of the instance. Most properties are
    *   required.
+   * @param {?Buffer} [config.body] The request body, or `null` if the request
+   *   did not come with a body.
    * @param {RequestContext} config.context Information about the incoming
    *   "context" of a request. (This information isn't provided by the standard
    *   Node HTTP-ish libraries.)
@@ -137,14 +147,15 @@ export class IncomingRequest {
    */
   constructor(config) {
     const {
-      context, headers, logger = null, protocolName, pseudoHeaders
+      body = null, context, headers, logger = null, protocolName, pseudoHeaders
     } = config;
 
+    this.#body           = (body === null) ? null : MustBe.instanceOf(body, Buffer);
     this.#protocolName   = MustBe.string(protocolName);
     this.#pseudoHeaders  = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext = MustBe.instanceOf(context, RequestContext);
     this.#requestHeaders = MustBe.instanceOf(headers, HttpHeaders);
-    this.#requestMethod  = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
+    this.#requestMethod  = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
     const targetString = MustBe.string(pseudoHeaders.get('path'));
     this.#parsedTargetObject = Object.freeze({ targetString, type: null });
@@ -153,6 +164,14 @@ export class IncomingRequest {
       this.#id     = logger.$meta.makeId();
       this.#logger = logger[this.#id];
     }
+  }
+
+  /**
+   * @returns {?Buffer} The request body, or `null` if this instance does not
+   * have an associated body.
+   */
+  get body() {
+    return this.#body;
   }
 
   /**
@@ -508,21 +527,37 @@ export class IncomingRequest {
    * @param {TypeNodeRequest} request Request object.
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
-   * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
-   *   any logging. If passed as non-`null`, the actual logger instance will be
-   *   one that includes an additional subtag representing a new unique(ish) ID
-   *   for the request.
+   * @param {?object} [options] Miscellaneous options.
+   * @param {?IntfLogger} [options.logger] Logger to use as a base, or `null`
+   *   not to do any logging. If passed as non-`null`, the actual logger
+   *   instance will be one that includes an additional subtag representing a
+   *   new unique(ish) ID for the request.
+   * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
+   *   request body, in bytes, or `null` not to have a limit. Note that not
+   *   having a limit is often ill-advised. If non-`null`, must be a
+   *   non-negative integer.
    * @returns {IncomingRequest} Instance with data based on a low-level Node
    *   request (etc.).
    */
-  static fromNodeRequest(request, context, logger) {
+  static async fromNodeRequest(request, context, options = null) {
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     MustBe.object(request);
 
+    const {
+      logger              = null,
+      maxRequestBodyBytes = null
+    } = options ?? {};
+
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
+    const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
+
+    const body = HttpUtil.requestBodyIsExpectedFor(requestMethod)
+      ? await IncomingRequest.#readBody(request, maxRequestBodyBytes)
+      : await IncomingRequest.#readEmptyBody(request);
 
     return new IncomingRequest({
+      body,
       context,
       headers,
       logger,
@@ -614,6 +649,38 @@ export class IncomingRequest {
   }
 
   /**
+   * Gets the canonicalized (downcased, as this project prefers) version of the
+   * given request method. This method accepts both all-caps and lowercase
+   * versions of the method names, but not mixed case.
+   *
+   * @param {string} method The request method.
+   * @returns {string} The canonicalized version.
+   * @throws {Error} Thrown if `method` was an invalid value.
+   */
+  static #canonicalizeRequestMethod(method) {
+    // The following is expected to be faster than a call to `toLowerCase()` and
+    // a lookup in a `Set` of valid values.
+    switch (method) {
+      case 'connect': case 'delete': case 'get':  case 'head':
+      case 'options': case 'patch':  case 'post': case 'put':
+      case 'trace': {
+        return method;
+      }
+      case 'CONNECT': { return 'connect'; }
+      case 'DELETE':  { return 'delete';  }
+      case 'GET':     { return 'get';     }
+      case 'HEAD':    { return 'head';    }
+      case 'OPTIONS': { return 'options'; }
+      case 'PATCH':   { return 'patch';   }
+      case 'POST':    { return 'post';    }
+      case 'PUT':     { return 'put';     }
+      case 'TRACE':   { return 'trace';   }
+    }
+
+    throw new Error(`Invalid request method: ${method}`);
+  }
+
+  /**
    * Extracts the two sets of headers from a low-level request object.
    *
    * @param {TypeNodeRequest} request Request object.
@@ -657,7 +724,14 @@ export class IncomingRequest {
             break;
           }
         }
-        pseudoHeaders.set(key, s);
+
+        if (key === 'method') {
+          // Convert the method to our preferred lowercase form here. This will
+          // also reject invalid methods.
+          pseudoHeaders.set('method', IncomingRequest.#canonicalizeRequestMethod(s));
+        } else {
+          pseudoHeaders.set(key, s);
+        }
       } else {
         switch (key) {
           case 'age': case 'authorization': case 'content-length':
@@ -703,5 +777,101 @@ export class IncomingRequest {
     Object.freeze(headers);
     Object.freeze(pseudoHeaders);
     return { headers, pseudoHeaders };
+  }
+
+  /**
+   * Reads the request body of the given Node request.
+   *
+   * @param {TypeNodeRequest} request Request object.
+   * @param {?number} maxRequestBodyBytes Maxiumum allowed size of the body, in
+   *   bytes, or `null` for no limit.
+   * @returns {Buffer} The fully-read body.
+   */
+  static async #readBody(request, maxRequestBodyBytes) {
+    const max = (maxRequestBodyBytes === null)
+      ? Number.POSITIVE_INFINITY
+      : maxRequestBodyBytes;
+
+    const contentLength =
+      HttpUtil.numberFromContentLengthString(request.headers['content-length']);
+
+    const tooLarge = () => {
+      return new Error(
+        `Request body is larger than allowed maximum of ${maxRequestBodyBytes} bytes.`);
+    };
+
+    if ((contentLength !== null) && (contentLength > max)) {
+      // There is a valid `content-length` header, and it indicates a size over
+      // the limit. Reject the request now, before bothering to read it.
+      throw tooLarge();
+    }
+
+    if (contentLength === null) {
+      // No up-front `content-length`, so just gather buffers until we get
+      // everything or run into a size issue.
+      const chunks = [];
+      let   length = 0;
+
+      for await (const chunk of request) {
+        chunks.push(chunk);
+        length += chunk.length;
+        if (length > max) {
+          throw tooLarge();
+        }
+      }
+
+      return Buffer.concat(chunks, length);
+    } else {
+      const result = Buffer.alloc(contentLength);
+      let   at     = 0;
+
+      for await (const chunk of request) {
+        const length = chunk.length;
+        if ((at + length) > max) {
+          throw tooLarge();
+        }
+        result.set(chunk, at);
+        at += length;
+      }
+
+      return result;
+    }
+  }
+
+  /**
+   * Checks that the given Node request has no body (content), by attempting to
+   * read it. Throws an error if there was any data to be read.
+   *
+   * @param {TypeNodeRequest} request Request object.
+   * @returns {null} `null`, always (unless there is an error).
+   */
+  static async #readEmptyBody(request) {
+    for await (const chunk of request) {
+      if (chunk.length !== 0) {
+        throw new Error('Expected empty request body, but there was data.');
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the downcased request method from a set of HTTP2-ish pseudo-headers.
+   * This method accepts both all-uppercase and all-lowercase versions of the
+   * method names, but not mixed case.
+   *
+   * @param {HttpHeaders} pseudoHeaders The pseudo-headers.
+   * @returns {string} The request method from `pseudoHeaders`.
+   * @throws {Error} Thrown if there was no such header, or it was an
+   *   inappropriate value.
+   */
+  static #requestMethodFromPseudoHeaders(pseudoHeaders) {
+    const rawResult = pseudoHeaders.get('method');
+
+    if (!rawResult) {
+      throw new Error('No `method` pseudo-header found.');
+    }
+
+    return IncomingRequest.#canonicalizeRequestMethod(rawResult);
   }
 }
