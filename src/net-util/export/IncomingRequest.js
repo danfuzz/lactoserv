@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ManualPromise } from '@this/async';
 import { PathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { HttpUtil } from '@this/net-util';
@@ -831,37 +830,10 @@ export class IncomingRequest {
    * @param {TypeNodeRequest} request Request object.
    */
   static async #readEmptyBody(request) {
-    const resultMp = new ManualPromise();
-
-    const onData = () => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(
-          new Error('Expected empty request body, but there was data.'));
+    for await (const chunk of request) {
+      if (chunk.length !== 0) {
+        throw new Error('Expected empty request body, but there was data.');
       }
-    };
-
-    const onEnd = () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(null);
-      }
-    };
-
-    const onError = (e) => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(e);
-      }
-    };
-
-    request.on('data',  onData);
-    request.on('end',   onEnd);
-    request.on('error', onError);
-
-    try {
-      await resultMp.promise;
-    } finally {
-      request.removeListener('data', onData);
-      request.removeListener('end', onEnd);
-      request.removeListener('error', onError);
     }
   }
 
