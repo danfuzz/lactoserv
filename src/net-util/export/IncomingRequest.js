@@ -534,8 +534,8 @@ export class IncomingRequest {
    *   new unique(ish) ID for the request.
    * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
    *   request body, in bytes, or `null` not to have a limit. Note that not
-   *   having a limit is often ill-advised. If non-`null`, must be a positive
-   *   integer.
+   *   having a limit is often ill-advised. If non-`null`, must be a
+   *   non-negative integer.
    * @returns {IncomingRequest} Instance with data based on a low-level Node
    *   request (etc.).
    */
