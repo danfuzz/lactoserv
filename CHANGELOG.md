@@ -24,6 +24,8 @@ Other notable changes:
       defined to take a request body but where the request actually does have a
       body.
     * Fixed `getHeaderOrNull()`, which had been broken for a while.
+    * `fromNodeRequest()` now reads the request body when present, and returns
+      it in the constructed instance.
   * Defined a base class, `BaseResponse` for the two concrete response classes.
   * Added a handful of static getters to `StatusResponse`.
   * Various other tweaks and fixes, motivated by a downstream project.

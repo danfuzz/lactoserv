@@ -552,15 +552,12 @@ export class IncomingRequest {
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
     const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
-    if (HttpUtil.requestBodyIsAllowedFor(requestMethod)) {
-      const body = await IncomingRequest.#readBody(request, maxRequestBodyBytes);
-      // TODO: Do something with the body.
-      console.log('##################', body.toString());
-    } else {
-      await IncomingRequest.#readEmptyBody(request);
-    }
+    const body = HttpUtil.requestBodyIsAllowedFor(requestMethod)
+      ? await IncomingRequest.#readBody(request, maxRequestBodyBytes)
+      : await IncomingRequest.#readEmptyBody(request);
 
     return new IncomingRequest({
+      body,
       context,
       headers,
       logger,
