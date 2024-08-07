@@ -8,7 +8,7 @@ import process from 'node:process';
 import { WallClock } from '@this/clocky';
 import { PathKey } from '@this/collections';
 import { MockRootComponent } from '@this/compy/testing';
-import { DispatchInfo, FullResponse } from '@this/net-util';
+import { DispatchInfo, FullResponse, StatusResponse } from '@this/net-util';
 import { StaticFiles } from '@this/webapp-builtins';
 
 import { RequestUtil } from '#tests/RequestUtil';
@@ -257,6 +257,27 @@ describe('_impl_handleRequest()', () => {
     expect(result).toBeInstanceOf(FullResponse);
     expect(result.status).toBe(200);
     expect(result.headers.get('etag')).toMatch(/^W[/]".*"$/);
+  });
+
+  test.each`
+  method
+  ${'delete'}
+  ${'post'}
+  ${'put'}
+  `('responds with status `403` when request method is $method', async ({ method }) => {
+    const sf = await makeInstance();
+
+    // The file would be found if the method were `get`.
+    const request1 = RequestUtil.makeRequest(method, '/some-file.txt');
+    const result1  = await sf.handleRequest(request1, new DispatchInfo(PathKey.EMPTY, request1.pathname));
+    expect(result1).toBeInstanceOf(StatusResponse);
+    expect(result1.status).toBe(403);
+
+    // The file would not be found, even if the method were `get`.
+    const request2 = RequestUtil.makeRequest(method, '/zonk/splat/bonk.txt');
+    const result2  = await sf.handleRequest(request2, new DispatchInfo(PathKey.EMPTY, request2.pathname));
+    expect(result2).toBeInstanceOf(StatusResponse);
+    expect(result2.status).toBe(403);
   });
 });
 

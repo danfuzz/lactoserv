@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
 import { Paths, Statter } from '@this/fs-util';
-import { EtagGenerator, FullResponse, HttpUtil, MimeTypes }
+import { EtagGenerator, FullResponse, HttpUtil, MimeTypes, StatusResponse }
   from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
@@ -36,7 +36,9 @@ export class SimpleResponse extends BaseApplication {
     const { headers, method } = request;
     const response            = this.#response;
 
-    if (this.#allowAdjustment) {
+    if (!request.isGetOrHead()) {
+      return StatusResponse.FORBIDDEN;
+    } else if (this.#allowAdjustment) {
       return response.adjustFor(method, headers, { conditional: true, range: true });
     } else {
       return response;

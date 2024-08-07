@@ -4,7 +4,8 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes }
+import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes,
+  StatusResponse }
   from '@this/net-util';
 import { AskIf } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
@@ -79,6 +80,10 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
+    if (!request.isGetOrHead()) {
+      return StatusResponse.FORBIDDEN;
+    }
+
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {

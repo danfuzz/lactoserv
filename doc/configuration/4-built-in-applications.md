@@ -434,6 +434,9 @@ There are a few notable things which _aren't_ configurable for this application.
 These may be configurable in a future version, if there is sufficient and
 reasonable demand:
 
+* Methods:
+  * This app only responds successfully to the methods `GET` and `HEAD`. Other
+    methods will result in a 403 ("Forbidden") response.
 * Content types:
   * The mapping from extensions to MIME types is not configurable.
 * Caching:
@@ -480,6 +483,9 @@ There are a few notable things which _aren't_ configurable for this application.
 These may be configurable in a future version, if there is sufficient and
 reasonable demand:
 
+* Methods:
+  * This app only responds successfully to the methods `GET` and `HEAD`. Other
+    methods will result in a 403 ("Forbidden") response.
 * Content types:
   * The `Content-Type` headers are based on the file extensions of the files
     being served.
