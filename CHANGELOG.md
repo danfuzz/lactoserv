@@ -19,6 +19,9 @@ Other notable changes:
   * Defined a base class, `BaseResponse` for the two concrete response classes.
   * Added a handful of static getters to `StatusResponse`.
   * Various other tweaks and fixes, motivated by a downstream project.
+* `webapp-builtins`:
+  * Make `StaticFiles` and `SimpleResponse` only respond successfully to `GET`
+    and `HEAD` requests.
 
 ### v0.7.8 -- 2024-07-30 -- stable release
 
