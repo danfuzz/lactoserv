@@ -658,47 +658,6 @@ export class IncomingRequest {
   }
 
   /**
-   * Checks that the given Node request has no body (content), by attempting to
-   * read it. Throws an error if there was any data to be read.
-   *
-   * @param {TypeNodeRequest} request Request object.
-   */
-  static async #readEmptyBody(request) {
-    const resultMp = new ManualPromise();
-
-    const onData = () => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(
-          new Error('Expected empty request body, but there was data.'));
-      }
-    };
-
-    const onEnd = () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(null);
-      }
-    };
-
-    const onError = (e) => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(e);
-      }
-    };
-
-    request.on('data',  onData);
-    request.on('end',   onEnd);
-    request.on('error', onError);
-
-    try {
-      await resultMp.promise;
-    } finally {
-      request.removeListener('data', onData);
-      request.removeListener('end', onEnd);
-      request.removeListener('error', onError);
-    }
-  }
-
-  /**
    * Extracts the two sets of headers from a low-level request object.
    *
    * @param {TypeNodeRequest} request Request object.
@@ -795,6 +754,47 @@ export class IncomingRequest {
     Object.freeze(headers);
     Object.freeze(pseudoHeaders);
     return { headers, pseudoHeaders };
+  }
+
+  /**
+   * Checks that the given Node request has no body (content), by attempting to
+   * read it. Throws an error if there was any data to be read.
+   *
+   * @param {TypeNodeRequest} request Request object.
+   */
+  static async #readEmptyBody(request) {
+    const resultMp = new ManualPromise();
+
+    const onData = () => {
+      if (!resultMp.isSettled()) {
+        resultMp.reject(
+          new Error('Expected empty request body, but there was data.'));
+      }
+    };
+
+    const onEnd = () => {
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(null);
+      }
+    };
+
+    const onError = (e) => {
+      if (!resultMp.isSettled()) {
+        resultMp.reject(e);
+      }
+    };
+
+    request.on('data',  onData);
+    request.on('end',   onEnd);
+    request.on('error', onError);
+
+    try {
+      await resultMp.promise;
+    } finally {
+      request.removeListener('data', onData);
+      request.removeListener('end', onEnd);
+      request.removeListener('error', onError);
+    }
   }
 
   /**
