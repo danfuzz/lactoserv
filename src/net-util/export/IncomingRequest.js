@@ -515,6 +515,10 @@ export class IncomingRequest {
    *   not to do any logging. If passed as non-`null`, the actual logger
    *   instance will be one that includes an additional subtag representing a
    *   new unique(ish) ID for the request.
+   * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
+   *   request body, in bytes, or `null` not to have a limit. Note that not
+   *   having a limit is often ill-advised. If non-`null`, must be a positive
+   *   integer.
    * @returns {IncomingRequest} Instance with data based on a low-level Node
    *   request (etc.).
    */
@@ -523,13 +527,18 @@ export class IncomingRequest {
     // probably not worth it anyway).
     MustBe.object(request);
 
-    const { logger = null } = options ?? {};
+    const {
+      logger              = null,
+      maxRequestBodyBytes = null
+    } = options ?? {};
 
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
     const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
     if (HttpUtil.requestBodyIsAllowedFor(requestMethod)) {
-      // TODO: Read the body.
+      const body = await IncomingRequest.#readBody(request, maxRequestBodyBytes);
+      // TODO: Do something with the body.
+      console.log('##################', body.toString());
     } else {
       await IncomingRequest.#readEmptyBody(request);
     }
@@ -754,6 +763,65 @@ export class IncomingRequest {
     Object.freeze(headers);
     Object.freeze(pseudoHeaders);
     return { headers, pseudoHeaders };
+  }
+
+  /**
+   * Reads the request body of the given Node request.
+   *
+   * @param {TypeNodeRequest} request Request object.
+   * @param {?number} maxRequestBodyBytes Maxiumum allowed size of the body, in
+   *   bytes, or `null` for no limit.
+   * @returns {Buffer} The fully-read body.
+   */
+  static async #readBody(request, maxRequestBodyBytes) {
+    const max = (maxRequestBodyBytes === null)
+      ? Number.POSITIVE_INFINITY
+      : max;
+
+    const contentLength =
+      HttpUtil.numberFromContentLengthString(request.headers['content-length']);
+
+    const tooLarge = () => {
+      return new Error(
+        `Request body is larger than allowed maximum of ${maxRequestBodyBytes} bytes.`);
+    };
+
+    if ((contentLength !== null) && (contentLength > max)) {
+      // There is a valid `content-length` header, and it indicates a size over
+      // the limit. Reject the request now, before bothering to read it.
+      throw tooLarge();
+    }
+
+    if (contentLength === null) {
+      // No up-front `content-length`, so just gather buffers until we get
+      // everything or run into a size issue.
+      const chunks = [];
+      let   length = 0;
+
+      for await (const chunk of request) {
+        chunks.push(chunk);
+        length += chunk.length;
+        if (length > max) {
+          throw tooLarge();
+        }
+      }
+
+      return Buffer.concat(chunks, length);
+    } else {
+      const result = Buffer.alloc(contentLength);
+      let   at     = 0;
+
+      for await (const chunk of request) {
+        const length = chunk.length;
+        if ((at + length) > max) {
+          throw tooLarge();
+        }
+        result.set(chunk, at);
+        at += length;
+      }
+
+      return result;
+    }
   }
 
   /**

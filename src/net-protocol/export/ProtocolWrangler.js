@@ -372,7 +372,10 @@ export class ProtocolWrangler {
 
     try {
       request = await IncomingRequest.fromNodeRequest(req, requestContext,
-        { logger: this.#requestLogger });
+        {
+          logger:              this.#requestLogger,
+          maxRequestBodyBytes: this.#maxRequestBodyBytes
+        });
     } catch (e) {
       // This generally means there was something malformed about the request,
       // so we nip things in the bud here, responding with a 400 status ("Bad
