@@ -614,6 +614,38 @@ export class IncomingRequest {
   }
 
   /**
+   * Gets the canonicalized (downcased, as this project prefers) version of the
+   * given request method. This method accepts both all-caps and lowercase
+   * versions of the method names, but not mixed case.
+   *
+   * @param {string} method The request method.
+   * @returns {string} The canonicalized version.
+   * @throws {Error} Thrown if `method` was an invalid value.
+   */
+  static #canonicalizeRequestMethod(method) {
+    // The following is expected to be faster than a call to `toLowerCase()` and
+    // a lookup in a `Set` of valid values.
+    switch (method) {
+      case 'connect': case 'delete': case 'get':  case 'head':
+      case 'options': case 'patch':  case 'post': case 'put':
+      case 'trace': {
+        return method;
+      }
+      case 'CONNECT': { return 'connect'; }
+      case 'DELETE':  { return 'delete';  }
+      case 'GET':     { return 'get';     }
+      case 'HEAD':    { return 'head';    }
+      case 'OPTIONS': { return 'options'; }
+      case 'PATCH':   { return 'patch';   }
+      case 'POST':    { return 'post';    }
+      case 'PUT':     { return 'put';     }
+      case 'TRACE':   { return 'trace';   }
+    }
+
+    throw new Error(`Invalid request method: ${method}`);
+  }
+
+  /**
    * Extracts the two sets of headers from a low-level request object.
    *
    * @param {TypeNodeRequest} request Request object.
@@ -657,7 +689,14 @@ export class IncomingRequest {
             break;
           }
         }
-        pseudoHeaders.set(key, s);
+
+        if (key === 'method') {
+          // Convert the method to our preferred lowercase form here. This will
+          // also reject invalid methods.
+          pseudoHeaders.set('method', IncomingRequest.#canonicalizeRequestMethod(s));
+        } else {
+          pseudoHeaders.set(key, s);
+        }
       } else {
         switch (key) {
           case 'age': case 'authorization': case 'content-length':
@@ -722,25 +761,6 @@ export class IncomingRequest {
       throw new Error('No `method` pseudo-header found.');
     }
 
-    // The following is expected to be faster than a call to `toLowerCase()` and
-    // a lookup in a `Set` of valid values.
-    switch (rawResult) {
-      case 'connect': case 'delete': case 'get':  case 'head':
-      case 'options': case 'patch':  case 'post': case 'put':
-      case 'trace': {
-        return rawResult;
-      }
-      case 'CONNECT': { return 'connect'; }
-      case 'DELETE':  { return 'delete';  }
-      case 'GET':     { return 'get';     }
-      case 'HEAD':    { return 'head';    }
-      case 'OPTIONS': { return 'options'; }
-      case 'PATCH':   { return 'patch';   }
-      case 'POST':    { return 'post';    }
-      case 'PUT':     { return 'put';     }
-      case 'TRACE':   { return 'trace';   }
-    }
-
-    throw new Error(`Invalid request method: ${rawResult}`);
+    return IncomingRequest.#canonicalizeRequestMethod(rawResult);
   }
 }
