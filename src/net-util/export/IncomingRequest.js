@@ -510,17 +510,20 @@ export class IncomingRequest {
    * @param {TypeNodeRequest} request Request object.
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
-   * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
-   *   any logging. If passed as non-`null`, the actual logger instance will be
-   *   one that includes an additional subtag representing a new unique(ish) ID
-   *   for the request.
+   * @param {?object} [options] Miscellaneous options.
+   * @param {?IntfLogger} [options.logger] Logger to use as a base, or `null`
+   *   not to do any logging. If passed as non-`null`, the actual logger
+   *   instance will be one that includes an additional subtag representing a
+   *   new unique(ish) ID for the request.
    * @returns {IncomingRequest} Instance with data based on a low-level Node
    *   request (etc.).
    */
-  static async fromNodeRequest(request, context, logger) {
+  static async fromNodeRequest(request, context, options = null) {
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     MustBe.object(request);
+
+    const { logger = null } = options ?? {};
 
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
     const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
