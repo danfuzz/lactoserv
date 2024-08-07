@@ -105,6 +105,7 @@ export class NetworkEndpoint extends BaseDispatched {
       application,
       hostnames,
       interface: iface,
+      maxRequestBodySize,
       protocol,
       services: {
         accessLog:             accessLogName             = null,
@@ -122,6 +123,9 @@ export class NetworkEndpoint extends BaseDispatched {
     const accessLog = accessLogName
       ? serviceManager.get(accessLogName, IntfAccessLog)
       : null;
+    const maxRequestBodyBytes = maxRequestBodySize
+      ? maxRequestBodySize.byte
+      : null;
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
@@ -133,6 +137,7 @@ export class NetworkEndpoint extends BaseDispatched {
       accessLog,
       connectionRateLimiter,
       dataRateLimiter,
+      maxRequestBodyBytes,
       requestHandler: this,
       protocol,
       interface: iface,
