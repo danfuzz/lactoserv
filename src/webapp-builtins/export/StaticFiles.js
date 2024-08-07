@@ -80,7 +80,7 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    if (request.method !== 'get') {
+    if (!request.isGetOrHead()) {
       return StatusResponse.FORBIDDEN;
     }
 
