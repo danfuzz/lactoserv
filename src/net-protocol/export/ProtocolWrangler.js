@@ -296,10 +296,14 @@ export class ProtocolWrangler {
    * protocol server object. This method should be called by the concrete
    * subclass in response to receiving a request.
    *
+   * **Note:** It is expected that this method is called in a context where any
+   * error becomes uncaught. As such, this method aims never to `throw`, instead
+   * logging errors and reporting error-ish statuses to the (remote) client.
+   *
    * @param {TypeNodeRequest} req Request object.
    * @param {TypeNodeResponse} res Response object.
    */
-  _prot_incomingRequest(req, res) {
+  async _prot_incomingRequest(req, res) {
     // This method performs everything that can be done synchronously as the
     // event callback that this is, and then (assuming all's well) hands things
     // off to our main `async` request handler.
@@ -345,7 +349,7 @@ export class ProtocolWrangler {
     };
 
     try {
-      request = IncomingRequest.fromNodeRequest(req, requestContext, this.#requestLogger);
+      request = await IncomingRequest.fromNodeRequest(req, requestContext, this.#requestLogger);
     } catch (e) {
       // This generally means there was something malformed about the request,
       // so we nip things in the bud here, responding with a 400 status ("Bad

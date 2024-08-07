@@ -515,7 +515,7 @@ export class IncomingRequest {
    * @returns {IncomingRequest} Instance with data based on a low-level Node
    *   request (etc.).
    */
-  static fromNodeRequest(request, context, logger) {
+  static async fromNodeRequest(request, context, logger) {
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     MustBe.object(request);

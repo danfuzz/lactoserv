@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `net-util`:
+  * `IncomingRequest.fromNodeRequest()` is now an `async` method.
 
 Other notable changes:
 * `net-util`:
