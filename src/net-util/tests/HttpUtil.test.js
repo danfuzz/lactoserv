@@ -201,6 +201,39 @@ describe('msecFromDateString()', () => {
   });
 });
 
+describe('numberFromContentLengthString()', () => {
+  // Argument type errors. Expected to throw.
+  test.each`
+  arg
+  ${undefined}
+  ${true}
+  ${123}
+  ${['x']}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => HttpUtil.numberFromContentLengthString(arg)).toThrow();
+  });
+
+  test.each`
+  arg                    | expected
+  ${null}                | ${null}
+  ${'who knows'}         | ${null}
+  ${'0x10'}              | ${null}
+  ${' 123'}              | ${null}
+  ${'123 '}              | ${null}
+  ${'1.'}                | ${null}
+  ${'1.0'}               | ${null}
+  ${'10000000000000000'} | ${null} // Not a safe integer.
+  ${'1000000000000000'}  | ${1000000000000000}
+  ${'1234567890'}        | ${1234567890}
+  ${'0987654321'}        | ${987654321}
+  ${'0'}                 | ${0}
+  ${'9'}                 | ${9}
+  ${'10'}                | ${10}
+  `('returns $expected for $arg', ({ arg, expected }) => {
+    expect(HttpUtil.numberFromContentLengthString(arg)).toBe(expected);
+  });
+});
+
 describe('requestBodyIsAllowedFor()', () => {
   test.each`
   method       | expected

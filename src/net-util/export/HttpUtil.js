@@ -272,6 +272,28 @@ export class HttpUtil {
   }
 
   /**
+   * Given a string in the format used by `content-length` headers, returns the
+   * parsed number.
+   *
+   * @param {?string} lengthString An (alleged) `content-length` string.
+   * @returns {?number} The parsed form, or `null` if not parseable.
+   */
+  static numberFromContentLengthString(lengthString) {
+    if (lengthString === null) {
+      return null;
+    }
+
+    MustBe.string(lengthString);
+
+    if (!/^[0-9]{1,16}$/.test(lengthString)) {
+      return null;
+    }
+
+    const result = Number(lengthString);
+    return Number.isSafeInteger(result) ? result : null;
+  }
+
+  /**
    * Given an HTTP-ish request method, indicates if the request is expected to
    * have a request body (that is, "content").
    *
