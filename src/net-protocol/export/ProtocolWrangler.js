@@ -319,10 +319,42 @@ export class ProtocolWrangler {
       return;
     }
 
-    try {
-      const requestContext = new RequestContext(this.interface, context.remoteInfo);
-      const request        = IncomingRequest.fromNodeRequest(req, requestContext, this.#requestLogger);
+    const requestContext = new RequestContext(this.interface, context.remoteInfo);
+    let   request        = null;
 
+    // Responds to a problematic request with an error status of some sort,
+    // closes the request, and logs a bit of info which might help elucidate the
+    // situation.
+    const errorResponse = (e, status) => {
+      logger?.errorDuringIncomingRequest({
+        ...context.ids,
+        requestId: request?.id ?? '<unknown>',
+        url:       request?.urlForLog ?? url,
+        socketState: {
+          closed:        socket.closed,
+          destroyed:     socket.destroyed,
+          readable:      socket.readable,
+          readableEnded: socket.readableEnded,
+          writableEnded: socket.writableEnded
+        },
+        error: e
+      });
+
+      res.statusCode = status;
+      res.end();
+    };
+
+    try {
+      request = IncomingRequest.fromNodeRequest(req, requestContext, this.#requestLogger);
+    } catch (e) {
+      // This generally means there was something malformed about the request,
+      // so we nip things in the bud here, responding with a 400 status ("Bad
+      // Request").
+      errorResponse(e, 400);
+      return;
+    }
+
+    try {
       logger?.incomingRequest({
         ...context.ids,
         requestId: request.id,
@@ -340,19 +372,7 @@ export class ProtocolWrangler {
       // theorized to occur in practice when the socket for a request gets
       // closed after the request was received but before it managed to get
       // dispatched.
-      logger?.errorDuringIncomingRequest(url, e);
-      const socketState = {
-        closed:        socket.closed,
-        destroyed:     socket.destroyed,
-        readable:      socket.readable,
-        readableEnded: socket.readableEnded,
-        writableEnded: socket.writableEnded
-      };
-      logger?.socketState(url, socketState);
-
-      // In case the response was never finished, this might unwedge things.
-      res.statusCode = 500; // "Internal Server Error."
-      res.end();
+      errorResponse(e, 500); // "Internal Server Error."
     }
   }
 
