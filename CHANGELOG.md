@@ -14,7 +14,7 @@ Breaking changes:
 * `net-util`:
   * `IncomingRequest.fromNodeRequest()` is now an `async` method, and its final
     argument is now a catch-all `options`. ("If a function has more than two
-    arguments, you haven't discovered all of them yet." --Unknown)
+    arguments, you haven't yet discovered all of them." --Unknown)
 
 Other notable changes:
 * `net-util`:
