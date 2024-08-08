@@ -1,6 +1,6 @@
 {
   "name": "@this/main-lactoserv",
-  "version": "0.7.8",
+  "version": "0.8.0",
   "type": "module",
   "private": true,
   "license": "Apache-2.0",

@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.0 -- 2024-08-08
+
+Breaking changes:
 * `net-util`:
   * `IncomingRequest.fromNodeRequest()` is now an `async` method, and its final
     argument is now a catch-all `options`. ("If a function has more than two
