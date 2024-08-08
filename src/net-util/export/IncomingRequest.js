@@ -552,9 +552,15 @@ export class IncomingRequest {
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
     const requestMethod = IncomingRequest.#requestMethodFromPseudoHeaders(pseudoHeaders);
 
-    const body = HttpUtil.requestBodyIsExpectedFor(requestMethod)
-      ? await IncomingRequest.#readBody(request, maxRequestBodyBytes)
-      : await IncomingRequest.#readEmptyBody(request);
+    let body;
+    if (HttpUtil.requestBodyIsExpectedFor(requestMethod)) {
+      body = await IncomingRequest.#readBody(
+        request,
+        HttpUtil.numberFromContentLengthString(headers.get('content-length')),
+        maxRequestBodyBytes);
+    } else {
+      body = await IncomingRequest.#readEmptyBody(request);
+    }
 
     return new IncomingRequest({
       body,
@@ -783,17 +789,16 @@ export class IncomingRequest {
    * Reads the request body of the given Node request.
    *
    * @param {TypeNodeRequest} request Request object.
+   * @param {?number} contentLength The extracted `content-length` header value,
+   *   or `null` if it was absent or unparseable.
    * @param {?number} maxRequestBodyBytes Maxiumum allowed size of the body, in
    *   bytes, or `null` for no limit.
    * @returns {Buffer} The fully-read body.
    */
-  static async #readBody(request, maxRequestBodyBytes) {
+  static async #readBody(request, contentLength, maxRequestBodyBytes) {
     const max = (maxRequestBodyBytes === null)
       ? Number.POSITIVE_INFINITY
       : maxRequestBodyBytes;
-
-    const contentLength =
-      HttpUtil.numberFromContentLengthString(request.headers['content-length']);
 
     const tooLarge = () => {
       return new Error(
