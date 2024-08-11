@@ -304,10 +304,7 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 2024,
-      globals: {
-        ...globals.node,
-        ...globals.es2024
-      }
+      globals:     globals.node
     },
     plugins: {
       'jsdoc':      jsdocPlugin,
@@ -330,6 +327,7 @@ export default [
   {
     files:   ['**/*.{js,mjs,cjs}'],
     ignores: [
+      '**/assets/**/*.{js,mjs,cjs}',
       '**/export/testing/**/*.{js,mjs,cjs}',
       '**/tests/**/*.test.{js,mjs,cjs}',
       '**/*.config.{js,mjs,cjs}'
@@ -370,6 +368,19 @@ export default [
       'jsdoc/require-jsdoc':    'off',
       'jest/no-disabled-tests': 'error',
       'jest/no-focused-tests':  'error' // That is, no `.only...`.
+    }
+  },
+
+  // Client (browser) files.
+  {
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals:     globals.browser
+    },
+    files:   ['**/assets/**/*.{js,mjs,cjs}'],
+    rules: {
+      ...disallowedFunctionalityNonTesting,
+      'no-alert': 'off' // TODO: Should be disallowed, ultimately.
     }
   }
 ];
