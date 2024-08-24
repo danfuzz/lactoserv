@@ -123,9 +123,9 @@ export class Duration extends UnitQuantity {
    * * `ns` or `nsec` -- nanoseconds
    * * `us` or `usec` -- microseconds
    * * `ms` or `msec` -- milliseconds
-   * * `s` or `sec` -- seconds
-   * * `m` or `min` -- minutes
-   * * `h` or `hr` -- hours
+   * * `s` or `sec` or `second` -- seconds
+   * * `m` or `min` or `minute` -- minutes
+   * * `h` or `hr` or `hour`-- hours
    * * `d` or `day` -- days (defined as exactly 24 hours)
    *
    * @param {string|Duration|UnitQuantity} valueToParse The value to parse, or
