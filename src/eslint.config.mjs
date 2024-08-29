@@ -374,7 +374,7 @@ export default [
   // Client (browser) files.
   {
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals:     globals.browser
     },
     files:   ['**/assets/**/*.{js,mjs,cjs}'],
