@@ -74,8 +74,8 @@ export class SpecialConverters extends BaseConverter {
   addForErrors(converter) {
     MustBe.instanceOf(converter, BaseConverter);
 
-    for (const e of [Error, EvalError, RangeError, ReferenceError, SyntaxError,
-      TypeError, URIError]) {
+    for (const e of [DOMException, Error, EvalError, RangeError, ReferenceError,
+      SyntaxError, TypeError, URIError]) {
       this.add(e, converter);
     }
   }
