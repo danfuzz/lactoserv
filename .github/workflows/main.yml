@@ -35,8 +35,9 @@ jobs:
         with:
           warn-only: true
           fail-on-scopes: runtime, development, unknown
-          allow-licenses:
-            - 'Apache-2.0'
+          allow-licenses: |
+            Apache-2.0,
+            Unlicense
 
       - name: Run the linter.
         run: ./scripts/ubik dev lint
