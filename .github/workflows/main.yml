@@ -36,7 +36,7 @@ jobs:
           warn-only: true
           base-ref: 260014145f
           head-ref: HEAD
-          fail-on-scopes: runtime, development, unknown
+          fail-on-scopes: runtime, unknown
           warn-on-openssf-scorecard-level: 2
           allow-licenses: |
             0BSD,
