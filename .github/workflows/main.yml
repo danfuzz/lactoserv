@@ -42,9 +42,12 @@ jobs:
             Apache-2.0,
             BSD-2-Clause,
             BSD-3-Clause,
+            CC0-1.0,
+            CC-BY-3.0,
             CC-BY-4.0,
             ISC,
             MIT,
+            Python-2.0,
             Unlicense
 
       - name: Run the linter.
