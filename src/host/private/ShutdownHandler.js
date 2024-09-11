@@ -50,13 +50,6 @@ export class ShutdownHandler {
   static #callbacks = new CallbackList('shutdown', this.#MAX_SHUTDOWN_MSEC);
 
   /**
-   * Is the system shutting down?
-   *
-   * @type {boolean}
-   */
-  static #shuttingDown = false;
-
-  /**
    * Ultimate exit code.
    *
    * @type {number}
