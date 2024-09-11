@@ -39,7 +39,7 @@ jobs:
             - development
             - unknown
           allow-licenses:
-            - Apache-2.0
+            - 'Apache-2.0'
 
       - name: Run the linter.
         run: ./scripts/ubik dev lint
