@@ -37,6 +37,7 @@ jobs:
           base-ref: 260014145f
           head-ref: HEAD
           fail-on-scopes: runtime, development, unknown
+          warn-on-openssf-scorecard-level: 2
           allow-licenses: |
             0BSD,
             Apache-2.0,
