@@ -126,6 +126,8 @@ export class ShutdownHandler {
     try {
       await this.#callbacks.run();
     } catch (e) {
+      // The `run()` call is never supposed to throw.
+      console.log('Unexpected error in callback runner:\n', e);
       if (this.#exitCode === 0) {
         this.#exitCode = 1;
       }
