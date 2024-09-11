@@ -541,7 +541,7 @@ export class TokenBucket {
     try {
       MustBe.number(minInclusive, { finite: true, minInclusive: 0, maxInclusive: maxQueueGrantSize });
       MustBe.number(maxInclusive, { finite: true, minInclusive: 0 });
-    } catch (e) {
+    } catch {
       throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxQueueGrantSize}`);
     }
 

@@ -50,13 +50,6 @@ export class ShutdownHandler {
   static #callbacks = new CallbackList('shutdown', this.#MAX_SHUTDOWN_MSEC);
 
   /**
-   * Is the system shutting down?
-   *
-   * @type {boolean}
-   */
-  static #shuttingDown = false;
-
-  /**
    * Ultimate exit code.
    *
    * @type {number}
@@ -126,6 +119,8 @@ export class ShutdownHandler {
     try {
       await this.#callbacks.run();
     } catch (e) {
+      // The `run()` call is never supposed to throw.
+      console.log('Unexpected error in callback runner:\n', e);
       if (this.#exitCode === 0) {
         this.#exitCode = 1;
       }

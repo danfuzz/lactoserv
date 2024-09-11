@@ -205,6 +205,7 @@ export class BaseProxyHandler {
       if ((name ?? '') === '') {
         // `null ??` to force the function to be anonymous, that is, to _not_
         // "inherit" the name of the variable it's stored in.
+        // eslint-disable-next-line no-constant-binary-expression
         target = null ?? (() => null);
       } else {
         // This bit of mishegas is about the best way to dynamically set the

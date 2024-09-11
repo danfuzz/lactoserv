@@ -274,7 +274,7 @@ export class Cookies {
         }
 
         result.#setUnchecked(name, decoded);
-      } catch (e) {
+      } catch {
         // Ignore it, but don't add a cookie to the result.
       }
     }

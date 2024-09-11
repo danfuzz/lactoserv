@@ -54,13 +54,6 @@ export class RateLimitedStream {
   #outerStream;
 
   /**
-   * Count of total bytes written.
-   *
-   * @type {number}
-   */
-  #bytesWritten = 0;
-
-  /**
    * Error received via `error` event from {@link #innerStream} or produced
    * internally, if any.
    *
@@ -325,8 +318,6 @@ export class RateLimitedStream {
         this.#logger?.denied({ length, remaining, reason: grantResult.reason });
         break;
       }
-
-      this.#bytesWritten += grantResult.grant;
 
       const subChunk = (length === grantResult.grant)
         ? chunk
