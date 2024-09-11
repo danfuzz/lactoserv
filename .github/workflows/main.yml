@@ -21,6 +21,10 @@ jobs:
   check-dependencies:
     runs-on: ubuntu-latest
     steps:
+      - name: zzz_debug
+        run: |
+          echo "#### EVENT ${{ github.event_name }}"
+
       - name: Clone repo.
         uses: actions/checkout@v4
 
