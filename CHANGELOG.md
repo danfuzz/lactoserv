@@ -14,7 +14,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Updated linter version, and made various fixes that thereby arose.
 
 ### v0.8.0 -- 2024-08-08
 
