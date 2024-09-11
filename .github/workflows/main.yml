@@ -19,13 +19,9 @@ on:
 jobs:
   # Check dependencies.
   check-dependencies:
-    # if: ${{ github.event_name == "pull_request" }}
+    if: ${{ github.event_name == "pull_request" }}
     runs-on: ubuntu-latest
     steps:
-      - name: zzz_debug
-        run: |
-          echo "#### EVENT ${{ github.event_name }}"
-
       - name: Clone repo.
         uses: actions/checkout@v4
 
@@ -33,8 +29,9 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           warn-only: true
-          base-ref: 260014145f
-          head-ref: HEAD
+          # Use these if you want to run a "from-scratch" check.
+          # base-ref: 260014145f
+          # head-ref: HEAD
           fail-on-scopes: runtime, unknown
           show-openssf-scorecard: false
           warn-on-openssf-scorecard-level: 2
