@@ -38,7 +38,13 @@ jobs:
           head-ref: HEAD
           fail-on-scopes: runtime, development, unknown
           allow-licenses: |
+            0BSD,
             Apache-2.0,
+            BSD-2-Clause,
+            BSD-3-Clause,
+            CC-BY-4.0,
+            ISC,
+            MIT,
             Unlicense
 
       - name: Run the linter.
