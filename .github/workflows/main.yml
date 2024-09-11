@@ -17,20 +17,14 @@ on:
 # Workflow. Jobs run in parallel by default, but that is moot here: there's only
 # one job.
 jobs:
-  # Build the project!
-  build:
+  # Check dependencies.
+  check-dependencies:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Node.
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
         uses: actions/checkout@v4
 
-      - name: Dependency Review
+      - name: Check dependencies.
         uses: actions/dependency-review-action@v4
         with:
           warn-only: true
@@ -52,6 +46,19 @@ jobs:
             MIT,
             Python-2.0,
             Unlicense
+
+  # Build the project.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Node.
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
+      - name: Clone repo.
+        uses: actions/checkout@v4
 
       - name: Run the linter.
         run: ./scripts/ubik dev lint
