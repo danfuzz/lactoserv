@@ -31,8 +31,8 @@ export class StandardConverters {
 
   /** @returns {SpecialConverters} Standard logging instance. */
   static get STANDARD_FOR_LOGGING() {
-    this.#STANDARD ??= this.#makeStandardForLogging();
-    return this.#STANDARD;
+    this.#STANDARD_FOR_LOGGING ??= this.#makeStandardForLogging();
+    return this.#STANDARD_FOR_LOGGING;
   }
 
   /**
