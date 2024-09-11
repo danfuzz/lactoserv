@@ -43,14 +43,6 @@ export class Http2Wrangler extends TcpWrangler {
    */
   #runner = new Threadlet((ra) => this.#run(ra));
 
-  /**
-   * Per-connection storage, used to plumb connection context through to the
-   * various objects that use the connection.
-   *
-   * @type {AsyncLocalStorage}
-   */
-  #perConnectionStorage = new AsyncLocalStorage();
-
   // @defaultConstructor
 
   /** @override */
