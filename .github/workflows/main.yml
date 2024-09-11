@@ -30,6 +30,17 @@ jobs:
       - name: Clone repo.
         uses: actions/checkout@v4
 
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          warn-only: true
+          fail-on-scopes:
+            - runtime
+            - development
+            - unknown
+          allow-licenses:
+            - Apache-2.0
+
       - name: Run the linter.
         run: ./scripts/ubik dev lint
 
