@@ -17,7 +17,39 @@ on:
 # Workflow. Jobs run in parallel by default, but that is moot here: there's only
 # one job.
 jobs:
-  # Build the project!
+  # Check dependencies.
+  check-dependencies:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo.
+        uses: actions/checkout@v4
+
+      - name: Check dependencies.
+        uses: actions/dependency-review-action@v4
+        with:
+          warn-only: true
+          # Use these if you want to run a "from-scratch" check.
+          # base-ref: 260014145f
+          # head-ref: HEAD
+          fail-on-scopes: runtime, unknown
+          show-openssf-scorecard: false
+          warn-on-openssf-scorecard-level: 2
+          allow-licenses: |
+            0BSD,
+            Apache-2.0,
+            BSD-2-Clause,
+            BSD-3-Clause,
+            BSD-3-Clause-Clear,
+            CC0-1.0,
+            CC-BY-3.0,
+            CC-BY-4.0,
+            ISC,
+            MIT,
+            Python-2.0,
+            Unlicense
+
+  # Build the project.
   build:
     runs-on: ubuntu-latest
     steps:
