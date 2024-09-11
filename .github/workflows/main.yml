@@ -35,6 +35,7 @@ jobs:
         with:
           warn-only: true
           base-ref: main
+          head-ref: HEAD
           fail-on-scopes: runtime, development, unknown
           allow-licenses: |
             Apache-2.0,
