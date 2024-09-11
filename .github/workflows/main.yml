@@ -34,10 +34,7 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           warn-only: true
-          fail-on-scopes:
-            - runtime
-            - development
-            - unknown
+          fail-on-scopes: runtime, development, unknown
           allow-licenses:
             - 'Apache-2.0'
 
