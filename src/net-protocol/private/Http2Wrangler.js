@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AsyncLocalStorage } from 'node:async_hooks';
 import * as http2 from 'node:http2';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
