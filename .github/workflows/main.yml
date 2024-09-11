@@ -34,7 +34,7 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           warn-only: true
-          base-ref: main
+          base-ref: 260014145f
           head-ref: HEAD
           fail-on-scopes: runtime, development, unknown
           allow-licenses: |
