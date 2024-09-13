@@ -10,7 +10,7 @@ const CASES = [
   { label: 'rfc3',  buf: '666f6f',       encoded: 'Zm9v'     },
   { label: 'rfc4',  buf: '666f6f62',     encoded: 'Zm9vYg'   },
   { label: 'rfc5',  buf: '666f6f6261',   encoded: 'Zm9vYmE'  },
-  { label: 'rfc6',  buf: '666f6f626172', encoded: 'Zm9vYmFy' },
+  { label: 'rfc6',  buf: '666f6f626172', encoded: 'Zm9vYmFy' }
 ];
 
 for (const c of CASES) {
