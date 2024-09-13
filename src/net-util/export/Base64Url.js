@@ -6,7 +6,8 @@
  * Utilities for encoding and decoding base64url strings.
  *
  * It is the year 2024. And yet -- somehow -- writing a new base64 encoder turns
- * out to be the best of the available options.
+ * out to be the best of the available options. Notably, this class is meant to
+ * be able to be used as-is in a client (browser) context.
  *
  * This implementation is based on RFC4648, specifically the base64url variant
  * which replaces the encoding characters `+/` with `-_` (respectively). This
