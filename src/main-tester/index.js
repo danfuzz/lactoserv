@@ -10,5 +10,6 @@ process.on('warning', (warning) => {
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log('%s: %s\n', warning.name, warning.message);
 });

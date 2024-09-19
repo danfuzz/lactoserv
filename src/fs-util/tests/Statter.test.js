@@ -43,10 +43,12 @@ beforeAll(async () => {
   });
 
   proc.stderr.on('data', (data) => {
+    // eslint-disable-next-line no-console
     console.log('(netcat-stderr) %s', data.toString());
   });
 
   proc.stdout.on('data', (data) => {
+    // eslint-disable-next-line no-console
     console.log('(netcat-stdout) %s', data.toString());
   });
 

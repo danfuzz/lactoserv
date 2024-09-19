@@ -12,6 +12,8 @@ import { ProductInfo } from '#x/ProductInfo';
 import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
+// It's legit to use `console.log()` in this file, so...
+/* eslint-disable no-console */
 
 /**
  * Top-level shutdown handling. This is what attempts to arrange for clean

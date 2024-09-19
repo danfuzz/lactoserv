@@ -28,8 +28,10 @@ export default async function main() {
 
     try {
       await args.webappMaker.make();
+      // eslint-disable-next-line no-console
       console.log('Configuration file is valid.');
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log('Configuration file trouble:\n%s\n\n%s', e.message, e.stack);
       exitCode = 1;
     }
