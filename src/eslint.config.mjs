@@ -122,6 +122,7 @@ const semanticRules = {
   'consistent-return': 'error',
   'no-alert': 'warn',
   'no-array-constructor': 'error',
+  'no-console': 'error',
   'no-empty-function': 'error',
   'no-eval': 'error',
   'no-extend-native': 'error',
@@ -377,10 +378,10 @@ export default [
       ecmaVersion: 2022,
       globals:     globals.browser
     },
-    files:   ['**/assets/**/*.{js,mjs,cjs}'],
+    files: ['**/assets/**/*.{js,mjs,cjs}'],
     rules: {
       ...disallowedFunctionalityNonTesting,
-      'no-alert': 'off' // TODO: Should be disallowed, ultimately.
+      'no-console': ['error', { allow: ['log'] }]
     }
   }
 ];
