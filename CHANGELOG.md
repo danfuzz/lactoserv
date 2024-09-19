@@ -15,7 +15,9 @@ Breaking changes:
 
 Other notable changes:
 * `net-util`: New class `Base64Url`.
-* Updated linter version, and made various fixes that thereby arose.
+* Pulled in new version of sibling project Bashy-lib.
+  * Made various fixes that became evident with the new version of
+  * `node-project lint`.
 
 ### v0.8.0 -- 2024-08-08
 
