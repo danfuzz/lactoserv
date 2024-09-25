@@ -3,12 +3,12 @@
 
 import { PathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
-import { HttpUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
 import { HttpHeaders } from '#x/HttpHeaders';
+import { HttpUtil } from '#x/HttpUtil';
 import { RequestContext } from '#x/RequestContext';
 import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
