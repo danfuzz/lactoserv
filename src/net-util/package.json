@@ -20,6 +20,7 @@
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
     "@this/typey": "*",
+    "@this/util": "*",
     "mime": "^4.0.1",
     "range-parser": "^1.2.1",
     "selfsigned": "^2.4.1",
