@@ -11,9 +11,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `data-values`: Split this module apart, separating out three new modules:
-  * `structy`: struct-like class definition.
+* `data-values`: Split this module apart, separating it out into four different
+  modules, and retiring the original.
   * `codec`: value encoding / decoding.
+  * `quant`: unit quantity classes, plus wall-time representation.
+  * `structy`: struct-like class definition.
   * `util`: miscellaneous utilites (with just one class, `ErrorUtil`, at least
     for now).
 
