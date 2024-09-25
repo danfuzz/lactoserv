@@ -1,5 +1,5 @@
 {
-  "name": "@this/data-values",
+  "name": "@this/structy",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -15,7 +15,6 @@
   },
 
   "dependencies": {
-    "@this/structy": "*",
     "@this/typey": "*"
   }
 }
