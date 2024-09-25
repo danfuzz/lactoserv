@@ -3,6 +3,7 @@
 
 import { Base64Url } from '@this/net-util';
 
+
 const CASES = [
   { label: 'empty', buf: '',             encoded: ''         },
   { label: 'rfc1',  buf: '66',           encoded: 'Zg'       },

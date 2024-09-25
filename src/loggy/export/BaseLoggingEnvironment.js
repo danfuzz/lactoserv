@@ -3,8 +3,8 @@
 
 import { LinkedEvent } from '@this/async';
 import { Converter, ConverterConfig, StackTrace } from '@this/codec';
-import { Moment } from '@this/quant';
 import { IntfLoggingEnvironment, LogPayload, LogTag } from '@this/loggy-intf';
+import { Moment } from '@this/quant';
 import { Methods, MustBe } from '@this/typey';
 
 

@@ -3,13 +3,13 @@
 
 import { PathKey } from '@this/collections';
 import { Names } from '@this/compy';
-import { ByteCount } from '@this/quant';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
 import { BaseResponse, DispatchInfo, HostUtil, IntfRequestHandler }
   from '@this/net-util';
+import { ByteCount } from '@this/quant';
 import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';

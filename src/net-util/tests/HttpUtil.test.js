@@ -3,8 +3,8 @@
 
 import fs from 'node:fs/promises';
 
-import { Duration } from '@this/quant';
 import { HttpUtil } from '@this/net-util';
+import { Duration } from '@this/quant';
 
 
 describe('cacheControlHeader()', () => {

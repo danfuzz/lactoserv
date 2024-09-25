@@ -5,9 +5,9 @@ import { setImmediate as setImmediateCallback } from 'node:timers';
 import { setImmediate } from 'node:timers/promises';
 
 import { WallClock } from '@this/clocky';
-import { Duration } from '@this/quant';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
+import { Duration } from '@this/quant';
 
 import { ThisModule } from '#p/ThisModule';
 import { UsualSystem } from '#p/UsualSystem';

@@ -7,8 +7,8 @@ import { Duplex } from 'node:stream';
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
-import { Moment } from '@this/quant';
 import { Paths, StatsBase } from '@this/fs-util';
+import { Moment } from '@this/quant';
 import { MustBe } from '@this/typey';
 import { ErrorUtil } from '@this/util';
 

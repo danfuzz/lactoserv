@@ -3,9 +3,9 @@
 
 import { EventSink, LinkedEvent } from '@this/async';
 import { BaseConverter, Converter, ConverterConfig } from '@this/codec';
-import {  Duration } from '@this/quant';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 
 

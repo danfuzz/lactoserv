@@ -4,8 +4,8 @@
 import process from 'node:process';
 
 import { WallClock } from '@this/clocky';
-import { Duration } from '@this/quant';
 import { Loggy, TextFileSink } from '@this/loggy';
+import { Duration } from '@this/quant';
 
 import { ShutdownHandler } from '#p/ShutdownHandler';
 
