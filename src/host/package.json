@@ -17,10 +17,11 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
+    "@this/codec": "*",
     "@this/compy": "*",
-    "@this/data-values": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }

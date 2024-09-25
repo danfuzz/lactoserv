@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Converter, ConverterConfig, Sexp } from '@this/data-values';
+import { Converter, ConverterConfig, Sexp } from '@this/codec';
 
 import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
@@ -178,7 +178,7 @@ export class Host {
   /**
    * Helper for {@link #shutdownDisposition}, which converts a single `problem`
    * binding. This relies on assumed details of how `Error` instances get
-   * encoded by the `data-values` module.
+   * encoded by the `quant` module.
    *
    * @param {*} problem The problem, typically an `Error`.
    * @param {Converter} converter Converter instance to use for encoding.

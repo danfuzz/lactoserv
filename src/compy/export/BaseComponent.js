@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { BaseConfig } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
+import { BaseConfig } from '@this/structy';
 import { AskIf, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';

@@ -3,8 +3,8 @@
 
 import fs from 'node:fs/promises';
 
-import { Duration } from '@this/data-values';
 import { StatsBase } from '@this/fs-util';
+import { Duration } from '@this/quant';
 import { AskIf, MustBe } from '@this/typey';
 
 

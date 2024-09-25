@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
-import { Duration } from '@this/data-values';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 

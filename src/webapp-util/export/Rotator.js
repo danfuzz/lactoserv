@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { WallClock } from '@this/clocky';
-import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy-intf';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 
 import { BaseFilePreserver } from '#p/BaseFilePreserver';

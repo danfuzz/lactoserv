@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, Sexp } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';
@@ -100,7 +100,7 @@ export class PathKey {
   }
 
   /**
-   * Standard `data-values` method to produce an encoded version of this
+   * Standard `quant` method to produce an encoded version of this
    * instance.
    *
    * @returns {Sexp} The encoded form.

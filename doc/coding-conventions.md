@@ -92,7 +92,7 @@ use the following comment in place of an intentionally omitted constructor:
 ### Member naming (and details)
 
 * `_config_<name>` &mdash; Method defined by configuration classes which are
-  (direct or indirect) subclasses of `data-values.BaseConfig`. Each such method
+  (direct or indirect) subclasses of `structy.BaseConfig`. Each such method
   is responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
 
@@ -107,7 +107,7 @@ use the following comment in place of an intentionally omitted constructor:
   are more or less `protected final` methods defined by a base class.
 
 * `_struct_<name>` &mdash; Method defined by struct classes which are (direct or
-  indirect) subclasses of `data-values.BaseStruct`. Each such method is
+  indirect) subclasses of `structy.BaseStruct`. Each such method is
   responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
 

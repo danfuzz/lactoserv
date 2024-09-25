@@ -15,11 +15,13 @@
 
   "dependencies": {
     "@this/async": "*",
+    "@this/codec": "*",
     "@this/collections": "*",
-    "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
+    "@this/quant": "*",
     "@this/typey": "*",
+    "@this/util": "*",
     "mime": "^4.0.1",
     "range-parser": "^1.2.1",
     "selfsigned": "^2.4.1",

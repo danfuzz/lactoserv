@@ -1,0 +1,336 @@
+// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
+
+import { BaseConverter, Sexp } from '@this/codec';
+import { MustBe } from '@this/typey';
+
+import { Duration } from '#x/Duration';
+
+
+/**
+ * Representation of a moment in time, along with some useful utility functions.
+ * This class is kind of like `Date`, except notably (a) its unit is seconds not
+ * milliseconds, (b) it is happy to represent sub-millisecond values, and (c)
+ * other than a couple modest utilities it doesn't parse / deconstruct values.
+ *
+ * Instances of this class are always frozen.
+ *
+ * **Note:** This class intentionally does _not_ implement a `static` method to
+ * get the current wall time. There are many possible "sources of truth" for the
+ * time, and it is up to other code to use whatever source is appropriate in
+ * context.
+ */
+export class Moment {
+  /**
+   * The moment being represented, in the form of seconds since the Unix Epoch.
+   *
+   * @type {number}
+   */
+  #atSec;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {number|bigint} atSec The moment to represent, in the form of
+   *   seconds since the Unix Epoch. Must be finite.
+   */
+  constructor(atSec) {
+    this.#atSec = (typeof atSec === 'bigint')
+      ? Number(atSec)
+      : MustBe.number(atSec, { finite: true });
+
+    Object.freeze(this);
+  }
+
+  /**
+   * @returns {number} The moment being represented, in the form of milliseconds
+   * since the Unix Epoch.
+   */
+  get atMsec() {
+    return this.#atSec * 1000;
+  }
+
+  /**
+   * @returns {number} The moment being represented, in the form of seconds
+   * since the Unix Epoch.
+   */
+  get atSec() {
+    return this.#atSec;
+  }
+
+  /**
+   * Gets the sum `this + duration` as a new instance of this class.
+   *
+   * @param {Duration} duration Amount of time to add.
+   * @returns {Moment} The summed result.
+   */
+  add(duration) {
+    MustBe.instanceOf(duration, Duration);
+    return new Moment(this.#atSec + duration.sec);
+  }
+
+  /**
+   * Gets the sum `this + sec` as a new instance of this class.
+   *
+   * @param {number} sec Number of seconds to add.
+   * @returns {Moment} The summed result.
+   */
+  addSec(sec) {
+    MustBe.number(sec, { finite: true });
+    return new Moment(this.#atSec + sec);
+  }
+
+  /**
+   * Compares the value of this instance to another, returning the usual values
+   * `-1`, `0`, or `1` depending on the result of comparison.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {number} Usual comparison result.
+   */
+  compare(other) {
+    MustBe.instanceOf(other, Moment);
+
+    const thisAt  = this.#atSec;
+    const otherAt = other.#atSec;
+
+    if (thisAt === otherAt) {
+      return 0;
+    } else if (thisAt < otherAt) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
+  /**
+   * Shorthand for `.compare(other) == 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other == this`.
+   */
+  eq(other) {
+    return this.compare(other) === 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) >= 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other >= this`.
+   */
+  ge(other) {
+    return this.compare(other) >= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) > 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other > this`.
+   */
+  gt(other) {
+    return this.compare(other) > 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) <= 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other <= this`.
+   */
+  le(other) {
+    return this.compare(other) <= 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) < 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other < this`.
+   */
+  lt(other) {
+    return this.compare(other) < 0;
+  }
+
+  /**
+   * Shorthand for `.compare(other) != 0`.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff `other != this`.
+   */
+  ne(other) {
+    return this.compare(other) !== 0;
+  }
+
+  /**
+   * Gets the difference `this - other` as a {@link Duration}.
+   *
+   * @param {Moment} other Moment to subtract from this instance.
+   * @returns {Duration} The duration from `this` to `other`.
+   */
+  subtract(other) {
+    MustBe.instanceOf(other, Moment);
+    return new Duration(this.#atSec - other.#atSec);
+  }
+
+  /**
+   * Returns a `Date` instance that represents the same moment as `this`.
+   *
+   * @returns {Date} The corresponding `Date`.
+   */
+  toDate() {
+    return new Date(this.atMsec);
+  }
+
+  /**
+   * Makes a string representing this instance, in the standard HTTP format. See
+   * {@link #httpStringFromSec} for more details.
+   *
+   * @returns {string} The HTTP standard form.
+   */
+  toHttpString() {
+    return Moment.httpStringFromSec(this.#atSec);
+  }
+
+  /**
+   * Makes a friendly plain object representing this instance, which represents
+   * both seconds since the Unix Epoch as well as a string indicating the
+   * date-time in UTC.
+   *
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
+   * @returns {object} Friendly representation object.
+   */
+  toPlainObject(options = {}) {
+    return Moment.plainObjectFromSec(this.#atSec, options);
+  }
+
+  /**
+   * Makes a date-time string representing this instance, in a reasonably pithy
+   * and understandable form. The result is a string representing the date-time
+   * in UTC.
+   *
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
+   * @returns {string} The friendly time string.
+   */
+  toString(options = {}) {
+    return Moment.stringFromSec(this.#atSec, options);
+  }
+
+  /**
+   * Implementation of `quant` custom-encode protocol.
+   *
+   * @returns {Sexp} Encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    // Note: This string is included for the convenience of humans who happen to
+    // be looking at logs (etc.), but is not actually used when reconstructing
+    // an instance.
+    const str = this.toString({ decimals: 6 });
+
+    return new Sexp(Moment, null, this.#atSec, str);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Makes an instance of this class from a _millisecond_ time, such as might be
+   * returned from `Date.now()`.
+   *
+   * @param {number} atMsec The millisecond time.
+   * @returns {Moment} Corresponding instance of this class.
+   */
+  static fromMsec(atMsec) {
+    return new Moment(atMsec / 1000);
+  }
+
+  /**
+   * Makes a string representing the given number of seconds since the Unix
+   * Epoch (note: _not_ milliseconds), in the standard HTTP format. This format
+   * is used, notably, for request and response header fields that represent
+   * dates.
+   *
+   * **Note:** The HTTP standard, RFC 9110 section 5.6.7 in particular, is very
+   * specific about the format.
+   *
+   * @param {number|bigint} atSec Time in the form of seconds since the Unix
+   *   Epoch.
+   * @returns {string} The HTTP standard form.
+   */
+  static httpStringFromSec(atSec) {
+    atSec = (typeof atSec === 'bigint')
+      ? Number(atSec)
+      : MustBe.number(atSec, { finite: true });
+
+    return new Date(atSec * 1000).toUTCString();
+  }
+
+  /**
+   * Makes a friendly plain object representing a moment in time, which
+   * represents both seconds since the Unix Epoch as well as a string indicating
+   * the date-time in UTC.
+   *
+   * @param {number} atSec The moment to represent, in the form of seconds since
+   *   the Unix Epoch.
+   * @param {object} [options] Formatting options, as with
+   *   {@link #stringFromSec}.
+   * @returns {object} Friendly representation object.
+   */
+  static plainObjectFromSec(atSec, options = {}) {
+    return {
+      atSec,
+      utc: Moment.stringFromSec(atSec, options)
+    };
+  }
+
+  /**
+   * Makes a date-time string in a reasonably pithy and understandable form. The
+   * result is a string representing the date-time in UTC.
+   *
+   * @param {number} atSec Time in the form of seconds since the Unix Epoch.
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.colons] Use colons to separate the time-of-day
+   *   components?
+   * @param {number} [options.decimals] Number of fractional-second digits
+   *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
+   * @returns {string} The friendly time string.
+   */
+  static stringFromSec(atSec, options = {}) {
+    const { colons = true, decimals = 0 } = options;
+
+    // Formats a number as *t*wo *d*igits.
+    const td = (num) => {
+      return (num < 10) ? `0${num}` : `${num}`;
+    };
+
+    // Creates the fractional seconds part of the string.
+    const makeFrac = () => {
+      // Non-obvious: If you take `atSec % 1` and then operate on the remaining
+      // fraction, you can end up with a string representation that's off by 1,
+      // because of floating point (im)precision. That's why we _don't_ do that.
+      const tenPower = 10 ** decimals;
+      const frac     = Math.floor(atSec * tenPower % tenPower);
+      const result   = frac.toString().padStart(decimals, '0');
+
+      return `.${result}`;
+    };
+
+    const when    = new Date(atSec * 1000);
+    const date    = when.getUTCDate();
+    const month   = when.getUTCMonth();
+    const year    = when.getUTCFullYear();
+    const hour    = when.getUTCHours();
+    const min     = when.getUTCMinutes();
+    const sec     = when.getUTCSeconds();
+    const timeSep = colons ? ':' : '';
+    const frac    = (decimals === 0) ? '' : makeFrac();
+
+    return '' +
+      `${year}${td(month + 1)}${td(date)}-` +
+      `${td(hour)}${timeSep}${td(min)}${timeSep}${td(sec)}${frac}`;
+  }
+}

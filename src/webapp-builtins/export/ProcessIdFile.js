@@ -6,9 +6,9 @@ import { pid as processPid } from 'node:process';
 
 import { WallClock } from '@this/clocky';
 import { TemplThreadComponent } from '@this/compy';
-import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 import { BaseFileService } from '@this/webapp-util';
 

@@ -3,8 +3,8 @@
 
 import { EventTracker, LinkedEvent } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { Duration } from '@this/data-values';
 import { Loggy, TextFileSink } from '@this/loggy';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 import { BaseFileService, Rotator } from '@this/webapp-util';
 

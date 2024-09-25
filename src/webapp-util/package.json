@@ -17,9 +17,10 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
-    "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
+    "@this/quant": "*",
+    "@this/structy": "*",
     "@this/typey": "*",
     "@this/webapp-core": "*"
   }

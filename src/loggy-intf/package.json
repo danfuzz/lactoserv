@@ -15,7 +15,8 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/data-values": "*",
+    "@this/codec": "*",
+    "@this/quant": "*",
     "@this/text": "*",
     "@this/typey": "*"
   }

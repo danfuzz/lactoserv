@@ -9,7 +9,7 @@
 import * as process from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/quant';
 
 
 /**

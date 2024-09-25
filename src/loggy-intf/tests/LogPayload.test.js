@@ -3,8 +3,9 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseConverter, Moment, Sexp, StackTrace } from '@this/data-values';
+import { BaseConverter, Sexp, StackTrace } from '@this/codec';
 import { LogPayload, LogTag } from '@this/loggy-intf';
+import { Moment } from '@this/quant';
 
 
 const someMoment = new Moment(123123123);

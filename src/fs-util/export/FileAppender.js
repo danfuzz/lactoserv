@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
-import { Duration } from '@this/data-values';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 
 import { Paths } from '#x/Paths';

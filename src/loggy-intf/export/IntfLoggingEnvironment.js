@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Moment, StackTrace } from '@this/data-values';
+import { StackTrace } from '@this/codec';
+import { Moment } from '@this/quant';
 import { Methods } from '@this/typey';
 
 import { LogPayload } from '#x/LogPayload';

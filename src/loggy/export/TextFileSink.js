@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSink, LinkedEvent } from '@this/async';
-import { BaseConverter, Converter, ConverterConfig, Duration }
-  from '@this/data-values';
+import { BaseConverter, Converter, ConverterConfig } from '@this/codec';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
+import { Duration } from '@this/quant';
 import { MustBe } from '@this/typey';
 
 

@@ -16,11 +16,11 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
-    "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
+    "@this/quant": "*",
     "@this/typey": "*",
     "@this/webapp-builtins": "*",
     "@this/webapp-core": "*",
