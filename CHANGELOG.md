@@ -11,7 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `data-values`: Split this module apart, separating out two new modules:
+  * `structy`: struct-like class definition
+  * `codec`: value encoding / decoding
 
 Other notable changes:
 * `net-util`: New class `Base64Url`.
