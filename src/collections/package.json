@@ -15,7 +15,7 @@
   },
 
   "dependencies": {
-    "@this/quant": "*",
+    "@this/codec": "*",
     "@this/typey": "*"
   }
 }

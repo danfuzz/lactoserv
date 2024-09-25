@@ -10,11 +10,6 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js",
     "#tests/*": "./tests/*.js"
-  },
-
-  "dependencies": {
-    "@this/typey": "*"
   }
 }

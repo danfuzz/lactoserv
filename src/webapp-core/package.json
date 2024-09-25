@@ -24,6 +24,7 @@
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }

@@ -10,17 +10,17 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js",
-    "#tests/*": "./tests/*.js"
+    "#p/*": "./private/*.js"
   },
 
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
-    "@this/quant": "*",
+    "@this/codec": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }
