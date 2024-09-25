@@ -20,6 +20,7 @@
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
+    "@this/structy": "*",
     "@this/typey": "*",
     "@this/webapp-core": "*"
   }
