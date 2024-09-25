@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Frequency, UnitQuantity } from '@this/data-values';
+import { Frequency, UnitQuantity } from '@this/quant';
 import { TemplateUtil } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 

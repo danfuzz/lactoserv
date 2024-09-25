@@ -5,7 +5,7 @@ import { memoryUsage } from 'node:process';
 
 import { WallClock } from '@this/clocky';
 import { TemplThreadComponent } from '@this/compy';
-import { ByteCount, Duration, Moment } from '@this/data-values';
+import { ByteCount, Duration, Moment } from '@this/quant';
 import { Host } from '@this/host';
 import { BaseService } from '@this/webapp-core';
 

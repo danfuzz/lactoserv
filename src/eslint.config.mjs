@@ -227,7 +227,7 @@ const disallowedFunctionality = {
     'error',
     {
       selector: 'NewExpression[callee.name=\'Date\'][arguments.length!=1]',
-      message:  'Use module `clocky` or class `data-values.Moment`.'
+      message:  'Use module `clocky` or class `quant.Moment`.'
     },
     {
       selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_prot_/][object.type!=ThisExpression]',

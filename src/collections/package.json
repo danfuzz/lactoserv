@@ -15,7 +15,7 @@
   },
 
   "dependencies": {
-    "@this/data-values": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }

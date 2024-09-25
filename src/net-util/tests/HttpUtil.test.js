@@ -3,7 +3,7 @@
 
 import fs from 'node:fs/promises';
 
-import { Duration } from '@this/data-values';
+import { Duration } from '@this/quant';
 import { HttpUtil } from '@this/net-util';
 
 

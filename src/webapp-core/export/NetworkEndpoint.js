@@ -3,7 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { Names } from '@this/compy';
-import { ByteCount } from '@this/data-values';
+import { ByteCount } from '@this/quant';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }

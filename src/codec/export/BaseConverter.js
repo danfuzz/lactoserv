@@ -99,6 +99,6 @@ export class BaseConverter {
    * anything.
    */
   static decodingUnimplemented() {
-    throw new Error('The data-values module does not yet do any decoding.');
+    throw new Error('The quant module does not yet do any decoding.');
   }
 }

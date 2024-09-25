@@ -2,7 +2,7 @@
 ============
 
 Interface to real-world clocks. This is as opposed to simply the mechanics of
-time/date calculation, which in this project resides in the `data-values`
+time/date calculation, which in this project resides in the `quant`
 module.
 
 - - - - - - - - - -

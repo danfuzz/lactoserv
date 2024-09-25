@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocky';
 import { TemplThreadComponent } from '@this/compy';
-import { Duration } from '@this/data-values';
+import { Duration } from '@this/quant';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
   from '@this/host';

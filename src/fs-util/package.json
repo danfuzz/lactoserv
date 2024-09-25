@@ -15,7 +15,7 @@
 
   "dependencies": {
     "@this/clocky": "*",
-    "@this/data-values": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }

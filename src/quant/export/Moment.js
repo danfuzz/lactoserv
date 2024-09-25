@@ -219,7 +219,7 @@ export class Moment {
   }
 
   /**
-   * Implementation of `data-values` custom-encode protocol.
+   * Implementation of `quant` custom-encode protocol.
    *
    * @returns {Sexp} Encoded form.
    */

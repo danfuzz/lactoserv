@@ -6,7 +6,7 @@ import { setImmediate } from 'node:timers/promises';
 import { PromiseState } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
 import { MockTimeSource } from '@this/clocky/testing';
-import { Duration, Frequency, Moment } from '@this/data-values';
+import { Duration, Frequency, Moment } from '@this/quant';
 import { TokenBucket } from '@this/webapp-util';
 
 

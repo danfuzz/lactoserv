@@ -59,7 +59,7 @@ export class DispatchInfo {
   }
 
   /**
-   * Standard `data-values` method to produce an encoded version of this
+   * Standard `quant` method to produce an encoded version of this
    * instance.
    *
    * @returns {Sexp} The encoded form.

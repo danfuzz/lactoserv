@@ -18,7 +18,7 @@
   "dependencies": {
     "@this/async": "*",
     "@this/collections": "*",
-    "@this/data-values": "*",
+    "@this/quant": "*",
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
     "@this/typey": "*"

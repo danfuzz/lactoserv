@@ -58,7 +58,7 @@ In addition, all of Lactoserv's framework classes are available for import,
 using the module namespace prefix `@lactoserv/`, e.g.:
 
 ```js
-import { Moment } from '@lactoserv/data-values';
+import { Moment } from '@lactoserv/quant';
 ```
 
 And in order to use any of the built-in applications or services, you will need

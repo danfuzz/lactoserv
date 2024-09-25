@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { StackTrace } from '@this/codec';
-import { Moment } from '@this/data-values';
+import { Moment } from '@this/quant';
 import { Methods } from '@this/typey';
 
 import { LogPayload } from '#x/LogPayload';

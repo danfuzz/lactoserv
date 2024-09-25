@@ -3,7 +3,7 @@
 
 import { ManualPromise, Threadlet } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocky';
-import { Duration, Frequency, Moment } from '@this/data-values';
+import { Duration, Frequency, Moment } from '@this/quant';
 import { AskIf, MustBe } from '@this/typey';
 
 

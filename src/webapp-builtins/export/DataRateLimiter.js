@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ByteCount, ByteRate } from '@this/data-values';
+import { ByteCount, ByteRate } from '@this/quant';
 import { IntfDataRateLimiter } from '@this/net-protocol';
 import { MustBe } from '@this/typey';
 import { BaseService } from '@this/webapp-core';

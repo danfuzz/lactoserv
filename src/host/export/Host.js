@@ -178,7 +178,7 @@ export class Host {
   /**
    * Helper for {@link #shutdownDisposition}, which converts a single `problem`
    * binding. This relies on assumed details of how `Error` instances get
-   * encoded by the `data-values` module.
+   * encoded by the `quant` module.
    *
    * @param {*} problem The problem, typically an `Error`.
    * @param {Converter} converter Converter instance to use for encoding.

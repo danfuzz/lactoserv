@@ -4,7 +4,7 @@
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { BaseComponent, TemplThreadComponent } from '@this/compy';
-import { Duration } from '@this/data-values';
+import { Duration } from '@this/quant';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 

@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise } from '@this/async';
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/quant';
 
 import { IntfTimeSource } from '#x/IntfTimeSource';
 

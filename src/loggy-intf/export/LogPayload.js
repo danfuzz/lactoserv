@@ -5,7 +5,7 @@ import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Sexp, StackTrace } from '@this/codec';
-import { Moment } from '@this/data-values';
+import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
@@ -85,7 +85,7 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Implementation of `data-values` custom-encode protocol.
+   * Implementation of `quant` custom-encode protocol.
    *
    * @returns {Sexp} Encoded form.
    */

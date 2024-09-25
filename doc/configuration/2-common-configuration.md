@@ -22,7 +22,7 @@ Several configurations are specified as real-world units, including for example
 time durations and data quantities. Each type of unit has a corresponding class,
 and can be specified in a configuration file using that class directly or by
 providing a string that can be parsed into an instance of that class. The
-classes are all in either the `data-values` or `webapp-util` module.
+classes are all in either the `quant` or `webapp-util` module.
 
 When using a string, the accepted syntax is a number in the usual JavaScript
 form (including exponents and internal underscores), followed by the unit
@@ -49,7 +49,7 @@ are:
 * `KiB`, `MiB`, `GiB`, or `TiB` &mdash; Standard binary powers-of-1024 bytes.
 
 ```js
-import { ByteCount } from '@lactoserv/data-values';
+import { ByteCount } from '@lactoserv/quant';
 ```
 
 ### `ByteRate`
@@ -59,7 +59,7 @@ are the same as with `ByteCount` for the numerator and the same as with
 `Frequency` for the denominator (except that `hertz` / `Hz` isn't allowed).
 
 ```js
-import { ByteRate } from '@lactoserv/data-values';
+import { ByteRate } from '@lactoserv/quant';
 ```
 
 ### `ConnectionCount` and `ConnectionRate`
@@ -86,7 +86,7 @@ Durations are specified using the class `Duration`. The available units are:
 * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
 
 ```js
-import { Duration } from '@lactoserv/data-values';
+import { Duration } from '@lactoserv/quant';
 ```
 
 ### `Frequency`
@@ -105,7 +105,7 @@ As a rarely-useful addition, the _numerator_ unit `hertz` or `Hz` is allowed as
 an equivalent to `/sec`.
 
 ```js
-import { Frequency } from '@lactoserv/data-values';
+import { Frequency } from '@lactoserv/quant';
 ```
 
 ### `RequestCount` and `RequestRate`
