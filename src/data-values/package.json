@@ -15,6 +15,7 @@
   },
 
   "dependencies": {
+    "@this/codec": "*",
     "@this/structy": "*",
     "@this/typey": "*"
   }

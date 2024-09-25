@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, Sexp } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';

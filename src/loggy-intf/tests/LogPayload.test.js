@@ -3,7 +3,8 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseConverter, Moment, Sexp, StackTrace } from '@this/data-values';
+import { BaseConverter, Sexp, StackTrace } from '@this/codec';
+import { Moment } from '@this/data-values';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 
 

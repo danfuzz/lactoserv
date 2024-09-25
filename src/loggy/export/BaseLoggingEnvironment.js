@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LinkedEvent } from '@this/async';
-import { Converter, ConverterConfig, Moment, StackTrace }
-  from '@this/data-values';
+import { Converter, ConverterConfig, StackTrace } from '@this/codec';
+import { Moment } from '@this/data-values';
 import { IntfLoggingEnvironment, LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 

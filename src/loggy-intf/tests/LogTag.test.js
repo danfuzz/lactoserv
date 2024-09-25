@@ -3,7 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseConverter, Sexp } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/codec';
 import { LogTag } from '@this/loggy-intf';
 
 

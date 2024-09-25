@@ -3,7 +3,7 @@
 
 import { EventSource } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { StackTrace } from '@this/data-values';
+import { StackTrace } from '@this/codec';
 import { IdGenerator } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 

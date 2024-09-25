@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Converter, ConverterConfig, Sexp } from '@this/data-values';
+import { Converter, ConverterConfig, Sexp } from '@this/codec';
 
 import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';

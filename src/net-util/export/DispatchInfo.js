@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { BaseConverter, Sexp } from '@this/data-values';
+import { BaseConverter, Sexp } from '@this/codec';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
