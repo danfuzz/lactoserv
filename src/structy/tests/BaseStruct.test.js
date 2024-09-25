@@ -162,7 +162,6 @@ describe('using a subclass', () => {
   class SomeStruct extends BaseStruct {
     // @defaultConstructor
 
-    // xeslint-disable-next-line
     _struct_abc(value = 'xyz') {
       return value;
     }
