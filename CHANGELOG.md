@@ -11,9 +11,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `data-values`: Split this module apart, separating out two new modules:
-  * `structy`: struct-like class definition
-  * `codec`: value encoding / decoding
+* `data-values`: Split this module apart, separating out three new modules:
+  * `structy`: struct-like class definition.
+  * `codec`: value encoding / decoding.
+  * `util`: miscellaneous utilites (with just one class, `ErrorUtil`, at least
+    for now).
 
 Other notable changes:
 * `net-util`: New class `Base64Url`.
