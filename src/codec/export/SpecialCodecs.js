@@ -11,7 +11,7 @@ import { StandardConverters } from '#p/StandardConverters';
  * Class that knows how to dispatch to special converters, and also where to go
  * to get a standard instance that handles built-in JavaScript classes.
  */
-export class SpecialConverters extends BaseCodec {
+export class SpecialCodecs extends BaseCodec {
   /**
    * Map from each specially-handled class to the converter to use on that
    * class.
@@ -53,10 +53,10 @@ export class SpecialConverters extends BaseCodec {
    * that is, it adds all the ones not already covered by a binding in this
    * instance.
    *
-   * @param {SpecialConverters} defaults The instance to use for defaults.
+   * @param {SpecialCodecs} defaults The instance to use for defaults.
    */
   addDefaults(defaults) {
-    MustBe.instanceOf(defaults, SpecialConverters);
+    MustBe.instanceOf(defaults, SpecialCodecs);
 
     for (const [cls, converter] of defaults.#converters) {
       if (!this.#converters.has(cls)) {
@@ -116,19 +116,19 @@ export class SpecialConverters extends BaseCodec {
   /**
    * Standard instance, if known.
    *
-   * @type {?SpecialConverters}
+   * @type {?SpecialCodecs}
    */
   static #STANDARD = null;
 
   /**
    * Standard logging instance, if known.
    *
-   * @type {?SpecialConverters}
+   * @type {?SpecialCodecs}
    */
   static #STANDARD_FOR_LOGGING = null;
 
   /**
-   * @returns {SpecialConverters} Standard instance which covers many built-in
+   * @returns {SpecialCodecs} Standard instance which covers many built-in
    * JavaScript classes.
    */
   static get STANDARD() {
@@ -137,7 +137,7 @@ export class SpecialConverters extends BaseCodec {
   }
 
   /**
-   * @returns {SpecialConverters} Standard instance intended for use in logging,
+   * @returns {SpecialCodecs} Standard instance intended for use in logging,
    * which covers many built-in JavaScript classes.
    */
   static get STANDARD_FOR_LOGGING() {

@@ -7,7 +7,7 @@ import { AskIf, MustBe } from '@this/typey';
 import { BaseCodec } from '#x/BaseCodec';
 import { Ref } from '#x/Ref';
 import { Sexp } from '#x/Sexp';
-import { SpecialConverters } from '#x/SpecialConverters';
+import { SpecialCodecs } from '#x/SpecialCodecs';
 
 
 /**
@@ -116,10 +116,10 @@ export class CodecConfig extends BaseConfig {
    * configuration options, or `null` if there are no special cases.
    *
    * @param {?BaseCodec} [value] Proposed configuration value. Default
-   *   {@link SpecialConverters#STANDARD}.
+   *   {@link SpecialCodecs#STANDARD}.
    * @returns {?BaseCodec} Accepted configuration value.
    */
-  _config_specialCases(value = SpecialConverters.STANDARD) {
+  _config_specialCases(value = SpecialCodecs.STANDARD) {
     return (value === null)
       ? null
       : MustBe.instanceOf(value, BaseCodec);
@@ -178,7 +178,7 @@ export class CodecConfig extends BaseConfig {
       functionAction: 'name',
       instanceAction: 'name',
       proxyAction:    'name',
-      specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
+      specialCases:   SpecialCodecs.STANDARD_FOR_LOGGING,
       ...options
     });
   }
