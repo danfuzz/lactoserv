@@ -185,7 +185,6 @@ describe('[BaseCodec.ENCODE]()', () => {
 
     expect(got).toBeInstanceOf(Sexp);
     expect(got.functor).toBe(PathKey);
-    expect(got.options).toEqual({});
     expect(got.args).toEqual(args);
   });
 });

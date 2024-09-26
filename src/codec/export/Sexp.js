@@ -27,13 +27,6 @@ export class Sexp extends BaseDataClass {
   #functor;
 
   /**
-   * Named "options" of the structure.
-   *
-   * @type {object}
-   */
-  #options;
-
-  /**
    * Positional "arguments" of the structure.
    *
    * @type {Array<*>}
@@ -59,7 +52,6 @@ export class Sexp extends BaseDataClass {
     }
 
     this.#functor = functor;
-    this.#options = Sexp.#fixOptions(options);
     this.#args    = Object.freeze(args);
   }
 
@@ -108,7 +100,7 @@ export class Sexp extends BaseDataClass {
    * a frozen plain object.
    */
   get options() {
-    return this.#options;
+    throw new Error('###### NO LONGER AVAILABLE');
   }
 
   /**
@@ -148,22 +140,16 @@ export class Sexp extends BaseDataClass {
    */
   toJSON() {
     const args    = this.#args;
-    const options = this.#options;
     const functor = this.#jsonFunctor();
 
     const hasStringFunc = (typeof functor === 'string');
-    const hasOptions    = (Object.keys(options).length !== 0);
-    const hasArgs       = (args.length !== 0);
 
     if (hasStringFunc) {
-      if (hasOptions && hasArgs) return { [functor]: { options, args } };
-      else if (hasArgs)          return { [functor]: args };
-      else                       return { [functor]: options };
+      return { [functor]: args };
     } else {
-      if (hasOptions && hasArgs) return { '@sexp': { functor, options, args } };
-      else if (hasArgs)          return { '@sexp': { functor, args } };
-      else if (hasOptions)       return { '@sexp': { functor, options } };
-      else                       return { '@sexp': { functor } };
+      return (args.length === 0)
+        ? { '@sexp': { functor } }
+        : { '@sexp': { functor, args } };
     }
   }
 
@@ -205,15 +191,6 @@ export class Sexp extends BaseDataClass {
         parts.push(', ');
       }
       parts.push(inspect(arg, innerOptions));
-    }
-
-    for (const [key, value] of Object.entries(this.#options)) {
-      if (first) {
-        first = false;
-      } else {
-        parts.push(', ');
-      }
-      parts.push(key, ': ', inspect(value, innerOptions));
     }
 
     parts.push(' }');

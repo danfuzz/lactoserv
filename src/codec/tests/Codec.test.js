@@ -327,7 +327,6 @@ describe('encode()', () => {
         expect(got).toBeFrozen();
         expect(got.functor).toBe(value.functor);
         expect(got.args).toStrictEqual(value.args);
-        expect(got.options).toStrictEqual(value.options);
       });
     });
 

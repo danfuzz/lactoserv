@@ -246,7 +246,6 @@ describe('[BaseCodec.ENCODE]()', () => {
 
     expect(result).toBeInstanceOf(Sexp);
     expect(result.functor).toBe(LogTag);
-    expect(result.options).toStrictEqual({});
     expect(result.args).toStrictEqual(expected);
   };
 

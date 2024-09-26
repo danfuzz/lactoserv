@@ -103,7 +103,7 @@ describe('.toJSON()', () => {
   describe('with an at-string for `functor`', () => {
     test('does not include `args` when it is empty', () => {
       const sexp     = new Sexp('@x');
-      const expected = { '@x': {} };
+      const expected = { '@x': [] };
 
       expect(sexp.toJSON()).toEqual(expected);
     });
@@ -135,13 +135,13 @@ describe('.toJSON()', () => {
   });
 
   test('prefixes a string functor with an at-sign if it doesn\'t already have one', () => {
-    expect(new Sexp('florp').toJSON()).toEqual({ '@florp': {} });
+    expect(new Sexp('florp').toJSON()).toEqual({ '@florp': [] });
   });
 
   test('converts a function functor (including a class) to its name with an at-prefix', () => {
     function florp() { return null; }
 
-    expect(new Sexp(Map).toJSON()).toEqual({ '@Map': {} });
-    expect(new Sexp(florp).toJSON()).toEqual({ '@florp': {} });
+    expect(new Sexp(Map).toJSON()).toEqual({ '@Map': [] });
+    expect(new Sexp(florp).toJSON()).toEqual({ '@florp': [] });
   });
 });
