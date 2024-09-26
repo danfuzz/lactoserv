@@ -207,6 +207,23 @@ describe('drainAndStop()', () => {
 });
 
 describe('run()', () => {
+  test('does not resolve until after the instance is `stop()`ed', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => null, event);
+
+    const runResult = sink.run();
+
+    for (let i = 0; i < 10; i++) {
+      expect(PromiseState.isPending(runResult)).toBeTrue();
+      await setImmediate();
+    }
+
+    await sink.stop();
+    expect(PromiseState.isFulfilled(runResult)).toBeTrue();
+
+    expect(await runResult).toBeUndefined();
+  });
+
   test('processes the first event when it is synchronously known', async () => {
     let callCount   = 0;
     let callGot     = null;
@@ -416,6 +433,23 @@ describe('run()', () => {
   });
 });
 
+describe('start()', () => {
+  test('resolves promptly to `null`', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => null, event);
+
+    const startResult = sink.start();
+
+    expect(PromiseState.isPending(startResult)).toBeTrue();
+    await setImmediate();
+    expect(PromiseState.isFulfilled(startResult)).toBeTrue();
+
+    expect(await startResult).toBeNull();
+
+    await sink.stop();
+  });
+});
+
 describe('stop()', () => {
   test('trivially succeeds on a stopped instance', async () => {
     let callCount   = 0;
@@ -444,6 +478,55 @@ describe('stop()', () => {
     expect(callCount).toBe(0);
 
     expect (await runResult).toBeUndefined();
+  });
+});
+
+describe('whenStarted()', () => {
+  test('promptly resolves to `null` when the instance is not running', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => null, event);
+
+    const result = sink.whenStarted();
+
+    expect(PromiseState.isPending(result)).toBeTrue();
+    await setImmediate();
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+    expect(await result).toBeNull();
+  });
+
+  test('resolves promptly to `null` after the instance is `start()`ed', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => null, event);
+
+    const startResult = sink.start();
+    const result      = sink.whenStarted();
+
+    expect(PromiseState.isPending(result)).toBeTrue();
+    await startResult;
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+    expect(await result).toBeNull();
+
+    // Clean up.
+    await sink.stop();
+  });
+
+  test('resolves promptly to `null` after the instance is `run()`', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => null, event);
+
+    const runResult = sink.start();
+    const result    = sink.whenStarted();
+    expect(PromiseState.isPending(result)).toBeTrue();
+
+    await setImmediate();
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+    expect(await result).toBeNull();
+
+    // Clean up.
+    await sink.stop();
+    await runResult;
   });
 });
 
