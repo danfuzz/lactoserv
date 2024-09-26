@@ -42,10 +42,6 @@ export class Sexp extends BaseDataClass {
   constructor(functor, ...args) {
     super();
 
-    if (args[0] === 'NO-OPTS') {
-      throw new Error('#### HEY!! FIX THIS!!!');
-    }
-
     this.#functor = functor;
     this.#args    = Object.freeze(args);
   }
@@ -91,24 +87,6 @@ export class Sexp extends BaseDataClass {
   set functor(functor) {
     this.#frozenCheck();
     this.#functor = functor;
-  }
-
-  /**
-   * @returns {object} Named "options" of the structure, if any. This is always
-   * a frozen plain object.
-   */
-  get options() {
-    throw new Error('###### NO LONGER AVAILABLE');
-  }
-
-  /**
-   * Sets the named "options." This is only allowed if this instance is not
-   * frozen.
-   *
-   * @param {object} options The new options.
-   */
-  set options(options) {
-    throw new Error('##### NO SETTING THIS ANYMORE!');
   }
 
   /** @override */
