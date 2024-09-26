@@ -75,7 +75,7 @@ export class Duration extends UnitQuantity {
     // an instance.
     const str = Duration.stringFromSec(this.sec);
 
-    return new Sexp(Duration, 'NO-OPTS', this.sec, str);
+    return new Sexp(Duration, this.sec, str);
   }
 
 

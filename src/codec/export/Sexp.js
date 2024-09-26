@@ -37,18 +37,13 @@ export class Sexp extends BaseDataClass {
    * Constructs an instance.
    *
    * @param {*} functor Value representing the thing-that-is-to-be-called.
-   * @param {?object} [options] Named "options" of the structure, if any. If
-   *   non-`null` and not a frozen plain object, it will get cloned and frozen.
-   *   If `null`, becomes a frozen version of `{}` (the empty object).
    * @param {...*} args Positional "arguments" of the structure.
    */
-  constructor(functor, options = 'NO-OPTS', ...args) {
+  constructor(functor, ...args) {
     super();
 
-    if (options !== 'NO-OPTS') {
+    if (args[0] === 'NO-OPTS') {
       throw new Error('#### HEY!! FIX THIS!!!');
-    } else {
-      options = null;
     }
 
     this.#functor = functor;
@@ -66,6 +61,9 @@ export class Sexp extends BaseDataClass {
   /**
    * Sets the positional "arguments." This is only allowed if this instance is
    * not frozen.
+   *
+   * **Note:** The contents of `args` are copied into a fresh array on this
+   * instance. That is, `this.args = x; return this.args === x;` is `false`.
    *
    * @param {Array<*>} args The new arguments.
    */
@@ -115,7 +113,7 @@ export class Sexp extends BaseDataClass {
 
   /** @override */
   toEncodableValue() {
-    return [this.#functor, 'NO-OPTS', ...this.#args];
+    return [this.#functor, ...this.#args];
   }
 
   /**

@@ -290,7 +290,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = Object.freeze(new Sexp('x', 'NO-OPTS', 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', 1, 2, 3));
         const value2 = new Ref(['blort']);
 
         const conv = new Codec();
@@ -300,7 +300,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = Object.freeze(new Sexp('x', 'NO-OPTS', 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', 1, 2, 3));
         const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
@@ -319,7 +319,7 @@ describe('encode()', () => {
       });
 
       test('copies a non-frozen `Sexp` that requires no inner encoding', () => {
-        const value = new Sexp('floop', 'NO-OPTS', 1, 2, 3);
+        const value = new Sexp('floop', 1, 2, 3);
         const conv  = new Codec();
         const got   = conv.encode(value);
 

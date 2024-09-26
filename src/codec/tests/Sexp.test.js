@@ -7,15 +7,15 @@ import { AskIf } from '@this/typey';
 
 describe('constructor()', () => {
   test('does not throw given no args', () => {
-    expect(() => new Sexp('x', 'NO-OPTS')).not.toThrow();
+    expect(() => new Sexp('x')).not.toThrow();
   });
 
   test('does not throw given one arg', () => {
-    expect(() => new Sexp('x', 'NO-OPTS', 123)).not.toThrow();
+    expect(() => new Sexp('x', 123)).not.toThrow();
   });
 
   test('produces a non-frozen instance', () => {
-    expect(new Sexp(['y'], 'NO-OPTS')).not.toBeFrozen();
+    expect(new Sexp(['y'])).not.toBeFrozen();
   });
 });
 
@@ -25,21 +25,21 @@ describe('.functor', () => {
     const func2 = { name: 'blort' };
     const func3 = 'stuff';
 
-    expect(new Sexp(func1, 'NO-OPTS').functor).toBe(func1);
-    expect(new Sexp(func2, 'NO-OPTS', 'yes').functor).toBe(func2);
-    expect(new Sexp(func3, 'NO-OPTS', 123, true).functor).toBe(func3);
+    expect(new Sexp(func1).functor).toBe(func1);
+    expect(new Sexp(func2, 'yes').functor).toBe(func2);
+    expect(new Sexp(func3, 123, true).functor).toBe(func3);
   });
 });
 
 describe('.functor =', () => {
   test('is disallowed on a frozen instance', () => {
-    const sexp = new Sexp('boop', 'NO-OPTS');
+    const sexp = new Sexp('boop');
     Object.freeze(sexp);
     expect(() => { sexp.functor = 'florp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
-    const sexp = new Sexp('boop', 'NO-OPTS');
+    const sexp = new Sexp('boop');
     expect(() => { sexp.functor = 'florp'; }).not.toThrow();
     expect(sexp.functor).toBe('florp');
   });
@@ -47,13 +47,13 @@ describe('.functor =', () => {
 
 describe('.args', () => {
   test('is an array', () => {
-    expect(new Sexp('x', 'NO-OPTS').args).toBeArray();
-    expect(new Sexp('x', 'NO-OPTS', 1).args).toBeArray();
+    expect(new Sexp('x').args).toBeArray();
+    expect(new Sexp('x', 1).args).toBeArray();
   });
 
   test('is frozen', () => {
-    expect(new Sexp('x', 'NO-OPTS', 'a', 'b').args).toBeFrozen();
-    expect(new Sexp('x', 'NO-OPTS', 'a', 'b', 'c').args).toBeFrozen();
+    expect(new Sexp('x', 'a', 'b').args).toBeFrozen();
+    expect(new Sexp('x', 'a', 'b', 'c').args).toBeFrozen();
   });
 
   const argses = [
@@ -69,7 +69,7 @@ describe('.args', () => {
       argsAt = (argsAt + 1) % argsAt.length;
     }
     test(`works with ${count} argument(s)`, () => {
-      const got = new Sexp('x', 'NO-OPTS', ...args).args;
+      const got = new Sexp('x', ...args).args;
       expect(got).toBeArray();
       expect(got).toBeFrozen();
       expect(got).toStrictEqual(args);
@@ -79,19 +79,19 @@ describe('.args', () => {
 
 describe('.args =', () => {
   test('is disallowed on a frozen instance', () => {
-    const sexp = new Sexp('boop', 'NO-OPTS');
+    const sexp = new Sexp('boop');
     Object.freeze(sexp);
     expect(() => { sexp.args = [1, 2, 3]; }).toThrow();
   });
 
   test('throws if passed a non-array', () => {
-    const sexp = new Sexp('boop', 'NO-OPTS');
+    const sexp = new Sexp('boop');
     expect(() => { sexp.args = 'blorp'; }).toThrow();
   });
 
   test('is allowed on a non-frozen instance, and affects the getter', () => {
     const newArgs = [1, 2, 3];
-    const sexp    = new Sexp('boop', 'NO-OPTS', 4, 5, 6);
+    const sexp    = new Sexp('boop', 4, 5, 6);
     expect(() => { sexp.args = newArgs; }).not.toThrow();
     expect(sexp.args).toStrictEqual(newArgs);
     expect(sexp.args).not.toBe(newArgs);
@@ -109,7 +109,7 @@ describe('.toJSON()', () => {
     });
 
     test('includes non-empty `args`', () => {
-      const sexp     = new Sexp('@x', 'NO-OPTS', 'a', 'b', 123);
+      const sexp     = new Sexp('@x', 'a', 'b', 123);
       const expected = { '@x': ['a', 'b', 123] };
 
       expect(sexp.toJSON()).toEqual(expected);
@@ -127,7 +127,7 @@ describe('.toJSON()', () => {
 
     test('includes `functor` and non-empty `args`', () => {
       const functor  = 12345;
-      const sexp     = new Sexp(functor, 'NO-OPTS', 'a', 'b', 123);
+      const sexp     = new Sexp(functor, 'a', 'b', 123);
       const expected = { '@sexp': { functor, args: ['a', 'b', 123] } };
 
       expect(sexp.toJSON()).toEqual(expected);

@@ -81,7 +81,7 @@ export class StackTrace {
    * @returns {Sexp} Encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(StackTrace, 'NO-OPTS', this.#frames);
+    return new Sexp(StackTrace, this.#frames);
   }
 
 

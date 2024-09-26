@@ -105,7 +105,7 @@ export class PathKey {
    * @returns {Sexp} The encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(PathKey, 'NO-OPTS', this.#path, this.#wildcard);
+    return new Sexp(PathKey, this.#path, this.#wildcard);
   }
 
   /**

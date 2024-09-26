@@ -65,8 +65,8 @@ export class ConvError extends BaseCodec {
     if (!main.stack) delete main.stack;
 
     return (Object.getOwnPropertyNames(rest).length === 0)
-      ? new Sexp(type, 'NO-OPTS', main)
-      : new Sexp(type, 'NO-OPTS', main, rest);
+      ? new Sexp(type, main)
+      : new Sexp(type, main, rest);
   }
 
   /**
