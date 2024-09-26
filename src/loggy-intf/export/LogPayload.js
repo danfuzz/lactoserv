@@ -133,18 +133,6 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Gets a new instance just like this one except without any arguments. If
-   * this instance already lacked arguments, this will return this instance.
-   *
-   * @returns {LogPayload} An appropriately-constructed instance.
-   */
-  withoutArgs() {
-    return (this.args.length === 0)
-      ? this
-      : new LogPayload(this.#stack, this.#when, this.#tag, this.type);
-  }
-
-  /**
    * Appends the human form of {@link #payload} to the given array of parts (to
    * ultimately `join()`).
    *
