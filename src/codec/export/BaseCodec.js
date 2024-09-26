@@ -11,9 +11,9 @@ import { Methods } from '@this/typey';
  *
  * **Note:** Some converters are defined to throw errors when presented with
  * values or data which they can't handle. Others are defined to return the
- * special value {@link BaseConverter#UNHANDLED}.
+ * special value {@link BaseCodec#UNHANDLED}.
  */
-export class BaseConverter {
+export class BaseCodec {
   // @defaultConstructor
 
   /**
@@ -22,7 +22,7 @@ export class BaseConverter {
    * @abstract
    * @param {*} data The data value to convert.
    * @returns {*} The converted form, or the special value
-   *   {@link BaseConverter#UNHANDLED} if `data` is not convertible by this
+   *   {@link BaseCodec#UNHANDLED} if `data` is not convertible by this
    *   instance and the instance is not configured to throw errors in such
    *   cases.
    */
@@ -36,7 +36,7 @@ export class BaseConverter {
    * @abstract
    * @param {*} value The value to convert.
    * @returns {*} The converted form, or the special value
-   *   {@link BaseConverter#UNHANDLED} if `value` is not convertible by this
+   *   {@link BaseCodec#UNHANDLED} if `value` is not convertible by this
    *   instance and the instance is not configured to throw errors in such
    *   cases.
    */
@@ -54,21 +54,21 @@ export class BaseConverter {
    *
    * @type {symbol}
    */
-  static #ENCODE = Symbol('BaseConverter.ENCODE');
+  static #ENCODE = Symbol('BaseCodec.ENCODE');
 
   /**
    * Value for the exposed {@link #OMIT}.
    *
    * @type {symbol}
    */
-  static #OMIT = Symbol('BaseConverter.OMIT');
+  static #OMIT = Symbol('BaseCodec.OMIT');
 
   /**
    * Value for the exposed {@link #UNHANDLED}.
    *
    * @type {symbol}
    */
-  static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
+  static #UNHANDLED = Symbol('BaseCodec.UNHANDLED');
 
   /**
    * @returns {symbol} Name of method to define, in order to specify custom

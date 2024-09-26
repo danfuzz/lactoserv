@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
+import { BaseCodec } from '#x/BaseCodec';
 import { StandardConverters } from '#p/StandardConverters';
 
 
@@ -11,12 +11,12 @@ import { StandardConverters } from '#p/StandardConverters';
  * Class that knows how to dispatch to special converters, and also where to go
  * to get a standard instance that handles built-in JavaScript classes.
  */
-export class SpecialConverters extends BaseConverter {
+export class SpecialConverters extends BaseCodec {
   /**
    * Map from each specially-handled class to the converter to use on that
    * class.
    *
-   * @type {Map<function(new:object, ...*), BaseConverter>}
+   * @type {Map<function(new:object, ...*), BaseCodec>}
    */
   #converters = new Map();
 
@@ -35,11 +35,11 @@ export class SpecialConverters extends BaseConverter {
    *
    * @param {function(new:object, ...*)} cls Class whose instances are to be
    *   converted.
-   * @param {BaseConverter} converter Converter to use on instances of `cls`.
+   * @param {BaseCodec} converter Converter to use on instances of `cls`.
    */
   add(cls, converter) {
     MustBe.function(cls);
-    MustBe.instanceOf(converter, BaseConverter);
+    MustBe.instanceOf(converter, BaseCodec);
 
     if (this.#converters.has(cls)) {
       throw new Error('Class already added.');
@@ -69,10 +69,10 @@ export class SpecialConverters extends BaseConverter {
    * Adds a converter to associate with all the standard `Error` classes /
    * subclasses.
    *
-   * @param {BaseConverter} converter Converter to use on instances of `cls`.
+   * @param {BaseCodec} converter Converter to use on instances of `cls`.
    */
   addForErrors(converter) {
-    MustBe.instanceOf(converter, BaseConverter);
+    MustBe.instanceOf(converter, BaseCodec);
 
     for (const e of [DOMException, Error, EvalError, RangeError, ReferenceError,
       SyntaxError, TypeError, URIError]) {
@@ -82,19 +82,19 @@ export class SpecialConverters extends BaseConverter {
 
   /** @override */
   decode(data) {
-    throw BaseConverter.decodingUnimplemented(data);
+    throw BaseCodec.decodingUnimplemented(data);
   }
 
   /** @override */
   encode(value) {
     const cls = value?.constructor;
     if (!cls) {
-      return BaseConverter.UNHANDLED;
+      return BaseCodec.UNHANDLED;
     }
 
     const converter = this.#converters.get(cls);
     if (!converter) {
-      return BaseConverter.UNHANDLED;
+      return BaseCodec.UNHANDLED;
     }
 
     return converter.encode(value);

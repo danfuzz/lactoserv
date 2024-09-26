@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, ConverterConfig } from '@this/codec';
+import { BaseCodec, ConverterConfig } from '@this/codec';
 
 
 describe('constructor()', () => {
@@ -74,8 +74,8 @@ describe('constructor()', () => {
       expect(got.specialCases).toBeNull();
     });
 
-    test('accepts a `BaseConverter` instance', () => {
-      const conv = new BaseConverter();
+    test('accepts a `BaseCodec` instance', () => {
+      const conv = new BaseCodec();
       const got  = new ConverterConfig({ specialCases: conv });
 
       expect(got.specialCases).toBe(conv);

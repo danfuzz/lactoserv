@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Converter, ConverterConfig, Ref, Sexp }
+import { BaseCodec, Converter, ConverterConfig, Ref, Sexp }
   from '@this/codec';
 import { AskIf } from '@this/typey';
 
@@ -85,7 +85,7 @@ describe('encode()', () => {
       test('calls `ENCODE()` exactly once', () => {
         let calledCount = 0;
         class Florp {
-          [BaseConverter.ENCODE]() {
+          [BaseCodec.ENCODE]() {
             calledCount++;
             return 123;
           }
@@ -102,7 +102,7 @@ describe('encode()', () => {
       test('converts the value returned from `ENCODE()`', () => {
         const theData = [1, 2, 3];
         class Florp {
-          [BaseConverter.ENCODE]() { return theData; }
+          [BaseCodec.ENCODE]() { return theData; }
         }
         const florp = new Florp();
 

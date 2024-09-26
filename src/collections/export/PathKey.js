@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, Sexp } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';
@@ -105,7 +105,7 @@ export class PathKey {
    *
    * @returns {Sexp} The encoded form.
    */
-  [BaseConverter.ENCODE]() {
+  [BaseCodec.ENCODE]() {
     return new Sexp(PathKey, null, this.#path, this.#wildcard);
   }
 

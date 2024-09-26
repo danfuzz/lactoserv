@@ -4,7 +4,7 @@
 import { BaseConfig } from '@this/structy';
 import { AskIf, MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
+import { BaseCodec } from '#x/BaseCodec';
 import { Ref } from '#x/Ref';
 import { Sexp } from '#x/Sexp';
 import { SpecialConverters } from '#x/SpecialConverters';
@@ -29,7 +29,7 @@ import { SpecialConverters } from '#x/SpecialConverters';
  *   in a plain object or array, the key it would be bound to is omitted
  *   (possibly causing an array to be sparse).
  * * `unhandled` -- Treat the value conversion as "unhandled." The return value
- *   from `encode()` will in fact be {@link BaseConverter#UNHANDLED}.
+ *   from `encode()` will in fact be {@link BaseCodec#UNHANDLED}.
  * * `wrap` -- Wrap the value in question inside an instance of {@link Ref}, a
  *   class that is defined in this module.
  *
@@ -115,14 +115,14 @@ export class ConverterConfig extends BaseConfig {
    * Converter to handle any special cases that take precedence over other
    * configuration options, or `null` if there are no special cases.
    *
-   * @param {?BaseConverter} [value] Proposed configuration value. Default
+   * @param {?BaseCodec} [value] Proposed configuration value. Default
    *   {@link SpecialConverters#STANDARD}.
-   * @returns {?BaseConverter} Accepted configuration value.
+   * @returns {?BaseCodec} Accepted configuration value.
    */
   _config_specialCases(value = SpecialConverters.STANDARD) {
     return (value === null)
       ? null
-      : MustBe.instanceOf(value, BaseConverter);
+      : MustBe.instanceOf(value, BaseCodec);
   }
 
   /**
