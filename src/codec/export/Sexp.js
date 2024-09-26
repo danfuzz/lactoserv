@@ -10,11 +10,10 @@ import { BaseDataClass } from '#x/BaseDataClass';
 
 /**
  * Data value that represents a free-form would-be method call (or
- * method-call-like thing). This is nearly equivalent to what is historically
- * sometimes called an "s expression" or more tersely a "sexp," hence the name
- * of this class. _This_ class has a little more structure than a classic sexp,
- * to be clear. Instances of this class are commonly used as bearers of
- * "distillate" data of behavior-bearing class instances.
+ * method-call-like thing). This is more or less equivalent to what is
+ * historically sometimes called an "s-expression" or more tersely a "sexp,"
+ * hence the name of this class. Instances of this class are commonly used as
+ * bearers of "distillate" data of behavior-bearing class instances.
  *
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
