@@ -14,7 +14,7 @@ Breaking changes:
 * `codec`:
   * Renamed several classes to match with the (relatively) new module name.
   * Dropped the `options` property from `Sexp`, making it now effectively
-    identical to a "classic" s-expression.
+    identical to a classic s-expression.
 
 Other notable changes:
 * None.
