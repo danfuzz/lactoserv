@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { AskIf, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { BaseDataClass } from '#x/BaseDataClass';
 

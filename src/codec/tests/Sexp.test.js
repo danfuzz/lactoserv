@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Sexp } from '@this/codec';
-import { AskIf } from '@this/typey';
 
 
 describe('constructor()', () => {
