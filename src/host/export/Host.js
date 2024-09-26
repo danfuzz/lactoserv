@@ -156,7 +156,7 @@ export class Host {
     const fixed = {
       class: encoded.functor,
       ...encoded.args[0],
-      ...(encoded.options ?? {})
+      ...(encoded.args[1] ?? {})
     };
 
     if (fixed.name === fixed.functor) {
@@ -178,7 +178,7 @@ export class Host {
   /**
    * Helper for {@link #shutdownDisposition}, which converts a single `problem`
    * binding. This relies on assumed details of how `Error` instances get
-   * encoded by the `quant` module.
+   * encoded by the `codec` module.
    *
    * @param {*} problem The problem, typically an `Error`.
    * @param {Codec} converter Codec instance to use for encoding.

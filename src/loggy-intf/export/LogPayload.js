@@ -90,13 +90,8 @@ export class LogPayload extends EventPayload {
    * @returns {Sexp} Encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(LogPayload, {
-      when:  this.#when,
-      tag:   this.#tag,
-      stack: this.#stack,
-      type:  this.type,
-      args:  this.args
-    });
+    return new Sexp(LogPayload,
+      this.#stack, this.#when, this.#tag, this.type, ...this.args);
   }
 
   /**
@@ -119,6 +114,22 @@ export class LogPayload extends EventPayload {
     this.#appendHumanPayload(parts, colorize);
 
     return parts.join('');
+  }
+
+  /**
+   * Gets a plain object representing this instance. The result has named
+   * properties for each of the properties available on instances.
+   *
+   * @returns {object} The plain object representation of this instance.
+   */
+  toPlainObject() {
+    return {
+      stack: this.#stack,
+      when:  this.#when,
+      tag:   this.#tag,
+      type:  this.type,
+      args:  this.args
+    };
   }
 
   /**

@@ -27,20 +27,14 @@ describe('constructor', () => {
 });
 
 describe('[BaseCodec.ENCODE]()', () => {
-  test('produces a `Sexp` with the constructor arguments as options', () => {
-    const payload = new LogPayload(someStack, someMoment, someTag, 'whee', 10, 20, 'thirty');
+  test('produces a `Sexp` with the constructor arguments as the arguments', () => {
+    const args    = [someStack, someMoment, someTag, 'whee', 10, 20, 'thirty'];
+    const payload = new LogPayload(...args);
     const got     = payload[BaseCodec.ENCODE]();
 
     expect(got).toBeInstanceOf(Sexp);
     expect(got.functor).toBe(LogPayload);
-    expect(got.options).toEqual({
-      stack: someStack,
-      when:  someMoment,
-      tag:   someTag,
-      type:  'whee',
-      args:  [10, 20, 'thirty']
-    });
-    expect(got.args).toEqual([]);
+    expect(got.args).toEqual(args);
   });
 });
 
@@ -93,6 +87,21 @@ describe('toHuman()', () => {
     test('works as expected on an example payload', () => {
       doTest(true);
     });
+  });
+});
+
+describe('toPlainObject()', () => {
+  test('has the expected properties, set from the equivalent bits of the instance', () => {
+    const payload = new LogPayload(
+      someStack, someMoment, someTag, 'bonk', 123, { a: 10 }, ['x']);
+    const got = payload.toPlainObject();
+
+    expect(got).toContainAllKeys(['stack', 'when', 'tag', 'type', 'args']);
+    expect(got.stack).toBe(someStack);
+    expect(got.when).toBe(someMoment);
+    expect(got.tag).toBe(someTag);
+    expect(got.type).toBe('bonk');
+    expect(got.args).toEqual([123, { a: 10 }, ['x']]);
   });
 });
 

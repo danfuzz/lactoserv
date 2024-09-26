@@ -290,7 +290,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = Object.freeze(new Sexp('x', null, 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', 1, 2, 3));
         const value2 = new Ref(['blort']);
 
         const conv = new Codec();
@@ -300,7 +300,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = Object.freeze(new Sexp('x', { x: 123 }, 1, 2, 3));
+        const value1 = Object.freeze(new Sexp('x', 1, 2, 3));
         const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
@@ -319,7 +319,7 @@ describe('encode()', () => {
       });
 
       test('copies a non-frozen `Sexp` that requires no inner encoding', () => {
-        const value = new Sexp('floop', { a: 10, b: 20 }, 1, 2, 3);
+        const value = new Sexp('floop', 1, 2, 3);
         const conv  = new Codec();
         const got   = conv.encode(value);
 
@@ -327,7 +327,6 @@ describe('encode()', () => {
         expect(got).toBeFrozen();
         expect(got.functor).toBe(value.functor);
         expect(got.args).toStrictEqual(value.args);
-        expect(got.options).toStrictEqual(value.options);
       });
     });
 
@@ -363,9 +362,9 @@ describe('encode()', () => {
         expect(got).toBeInstanceOf(Sexp);
         expect(got.functor).toBeInstanceOf(Ref);
         expect(got.functor.value).toBe(Error);
-        expect(got.args).toBeArrayOfSize(1);
+        expect(got.args).toBeArrayOfSize(2);
         expect(got.args[0]).toContainAllKeys(['cause', 'code', 'message', 'name', 'stack']);
-        expect(got.options).toStrictEqual({ blueberries: true });
+        expect(got.args[1]).toStrictEqual({ blueberries: true });
 
         const { cause: convCause, code, message, name, stack } = got.args[0];
         expect(code).toBe(err.code);

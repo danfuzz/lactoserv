@@ -54,7 +54,7 @@ export class ByteRate extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return new Sexp(ByteRate, null, this.bytePerSec, str);
+    return new Sexp(ByteRate, this.bytePerSec, str);
   }
 
 

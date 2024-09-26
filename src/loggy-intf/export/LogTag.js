@@ -170,7 +170,7 @@ export class LogTag {
    * @returns {Sexp} Encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(LogTag, null, this.#main, ...this.#context);
+    return new Sexp(LogTag, this.#main, ...this.#context);
   }
 
 

@@ -53,7 +53,7 @@ export class ByteCount extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return new Sexp(ByteCount, null, this.byte, str);
+    return new Sexp(ByteCount, this.byte, str);
   }
 
 

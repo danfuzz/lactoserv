@@ -3,18 +3,17 @@
 
 import * as util from 'node:util';
 
-import { AskIf, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { BaseDataClass } from '#x/BaseDataClass';
 
 
 /**
  * Data value that represents a free-form would-be method call (or
- * method-call-like thing). This is nearly equivalent to what is historically
- * sometimes called an "s expression" or more tersely a "sexp," hence the name
- * of this class. _This_ class has a little more structure than a classic sexp,
- * to be clear. Instances of this class are commonly used as bearers of
- * "distillate" data of behavior-bearing class instances.
+ * method-call-like thing). This is more or less equivalent to what is
+ * historically sometimes called an "s-expression" or more tersely a "sexp,"
+ * hence the name of this class. Instances of this class are commonly used as
+ * bearers of "distillate" data of behavior-bearing class instances.
  *
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
@@ -28,13 +27,6 @@ export class Sexp extends BaseDataClass {
   #functor;
 
   /**
-   * Named "options" of the structure.
-   *
-   * @type {object}
-   */
-  #options;
-
-  /**
    * Positional "arguments" of the structure.
    *
    * @type {Array<*>}
@@ -45,16 +37,12 @@ export class Sexp extends BaseDataClass {
    * Constructs an instance.
    *
    * @param {*} functor Value representing the thing-that-is-to-be-called.
-   * @param {?object} [options] Named "options" of the structure, if any. If
-   *   non-`null` and not a frozen plain object, it will get cloned and frozen.
-   *   If `null`, becomes a frozen version of `{}` (the empty object).
    * @param {...*} args Positional "arguments" of the structure.
    */
-  constructor(functor, options = null, ...args) {
+  constructor(functor, ...args) {
     super();
 
     this.#functor = functor;
-    this.#options = Sexp.#fixOptions(options);
     this.#args    = Object.freeze(args);
   }
 
@@ -69,6 +57,9 @@ export class Sexp extends BaseDataClass {
   /**
    * Sets the positional "arguments." This is only allowed if this instance is
    * not frozen.
+   *
+   * **Note:** The contents of `args` are copied into a fresh array on this
+   * instance. That is, `this.args = x; return this.args === x;` is `false`.
    *
    * @param {Array<*>} args The new arguments.
    */
@@ -98,28 +89,9 @@ export class Sexp extends BaseDataClass {
     this.#functor = functor;
   }
 
-  /**
-   * @returns {object} Named "options" of the structure, if any. This is always
-   * a frozen plain object.
-   */
-  get options() {
-    return this.#options;
-  }
-
-  /**
-   * Sets the named "options." This is only allowed if this instance is not
-   * frozen.
-   *
-   * @param {object} options The new options.
-   */
-  set options(options) {
-    this.#frozenCheck();
-    this.#options = Sexp.#fixOptions(options);
-  }
-
   /** @override */
   toEncodableValue() {
-    return [this.#functor, this.#options, ...this.#args];
+    return [this.#functor, ...this.#args];
   }
 
   /**
@@ -144,22 +116,16 @@ export class Sexp extends BaseDataClass {
    */
   toJSON() {
     const args    = this.#args;
-    const options = this.#options;
     const functor = this.#jsonFunctor();
 
     const hasStringFunc = (typeof functor === 'string');
-    const hasOptions    = (Object.keys(options).length !== 0);
-    const hasArgs       = (args.length !== 0);
 
     if (hasStringFunc) {
-      if (hasOptions && hasArgs) return { [functor]: { options, args } };
-      else if (hasArgs)          return { [functor]: args };
-      else                       return { [functor]: options };
+      return { [functor]: args };
     } else {
-      if (hasOptions && hasArgs) return { '@sexp': { functor, options, args } };
-      else if (hasArgs)          return { '@sexp': { functor, args } };
-      else if (hasOptions)       return { '@sexp': { functor, options } };
-      else                       return { '@sexp': { functor } };
+      return (args.length === 0)
+        ? { '@sexp': { functor } }
+        : { '@sexp': { functor, args } };
     }
   }
 
@@ -203,15 +169,6 @@ export class Sexp extends BaseDataClass {
       parts.push(inspect(arg, innerOptions));
     }
 
-    for (const [key, value] of Object.entries(this.#options)) {
-      if (first) {
-        first = false;
-      } else {
-        parts.push(', ');
-      }
-      parts.push(key, ': ', inspect(value, innerOptions));
-    }
-
     parts.push(' }');
     return parts.join('');
   }
@@ -240,28 +197,6 @@ export class Sexp extends BaseDataClass {
       return `@${functor?.name ?? 'anonymous'}`;
     } else {
       return functor;
-    }
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Converts an `options` value passed into the constructor into its proper
-   * form.
-   *
-   * @param {*} options Original options value.
-   * @returns {object} The converted form.
-   */
-  static #fixOptions(options) {
-    if (options === null) {
-      return Object.freeze({});
-    } else if (AskIf.plainObject(options) && Object.isFrozen(options)) {
-      return options;
-    } else {
-      return Object.freeze({ ...options });
     }
   }
 }

@@ -229,7 +229,7 @@ export class Moment {
     // an instance.
     const str = this.toString({ decimals: 6 });
 
-    return new Sexp(Moment, null, this.#atSec, str);
+    return new Sexp(Moment, this.#atSec, str);
   }
 
 
