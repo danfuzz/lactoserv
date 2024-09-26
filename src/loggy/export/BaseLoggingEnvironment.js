@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LinkedEvent } from '@this/async';
-import { Converter, ConverterConfig, StackTrace } from '@this/codec';
+import { Codec, CodecConfig, StackTrace } from '@this/codec';
 import { IntfLoggingEnvironment, LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
 import { Methods, MustBe } from '@this/typey';
@@ -22,9 +22,9 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
   /**
    * Data converter to use for encoding payload arguments.
    *
-   * @type {Converter}
+   * @type {Codec}
    */
-  #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
+  #dataConverter = new Codec(CodecConfig.makeLoggingInstance());
 
   // @defaultConstructor
 

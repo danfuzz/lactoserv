@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSink, LinkedEvent } from '@this/async';
-import { BaseConverter, Converter, ConverterConfig } from '@this/codec';
+import { BaseCodec, Codec, CodecConfig } from '@this/codec';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
 import { Duration } from '@this/quant';
@@ -119,10 +119,10 @@ export class TextFileSink extends EventSink {
    * Data converter to use for encoding payload arguments, specifically for the
    * `json` format.
    *
-   * @type {Converter}
+   * @type {Codec}
    */
   static #CONVERTER_FOR_JSON =
-    new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
+    new Codec(CodecConfig.makeLoggingInstance({ freeze: false }));
 
   /**
    * Map from names to corresponding formatter methods.
@@ -180,7 +180,7 @@ export class TextFileSink extends EventSink {
     // everything else. So, we do a top-level encode of the payload, tweak it,
     // let the normal encode mechanism do it's thing, and then tweak it back.
 
-    const encodedPayload = payload[BaseConverter.ENCODE]();
+    const encodedPayload = payload[BaseCodec.ENCODE]();
     const objToEncode    = { ...encodedPayload.options, args: null };
     const encoded        = this.#CONVERTER_FOR_JSON.encode(objToEncode);
 

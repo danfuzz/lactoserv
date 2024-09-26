@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Sexp } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
@@ -59,12 +59,11 @@ export class DispatchInfo {
   }
 
   /**
-   * Standard `quant` method to produce an encoded version of this
-   * instance.
+   * Standard `quant` method to produce an encoded version of this instance.
    *
    * @returns {Sexp} The encoded form.
    */
-  [BaseConverter.ENCODE]() {
+  [BaseCodec.ENCODE]() {
     return new Sexp(DispatchInfo, null, this.#base, this.#extra);
   }
 

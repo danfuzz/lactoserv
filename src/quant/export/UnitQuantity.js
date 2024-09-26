@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Sexp } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
 
 
@@ -114,7 +114,7 @@ export class UnitQuantity {
    *
    * @returns {Sexp} Encoded form.
    */
-  [BaseConverter.ENCODE]() {
+  [BaseCodec.ENCODE]() {
     return new Sexp(this.constructor, null,
       this.#value, this.#numeratorUnit, this.#denominatorUnit);
   }

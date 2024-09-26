@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `codec`: Renamed several classes to match with the (relatively) new module
+  name.
 
 Other notable changes:
 * None.

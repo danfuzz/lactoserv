@@ -3,7 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseConverter, Sexp } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { LogTag } from '@this/loggy-intf';
 
 
@@ -239,10 +239,10 @@ describe('toHuman()', () => {
   });
 });
 
-describe('[BaseConverter.ENCODE]()', () => {
+describe('[BaseCodec.ENCODE]()', () => {
   const testOne = (...expected) => {
     const tag    = new LogTag(...expected);
-    const result = tag[BaseConverter.ENCODE]();
+    const result = tag[BaseCodec.ENCODE]();
 
     expect(result).toBeInstanceOf(Sexp);
     expect(result.functor).toBe(LogTag);

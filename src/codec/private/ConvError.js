@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
+import { BaseCodec } from '#x/BaseCodec';
 import { Sexp } from '#x/Sexp';
 import { StackTrace } from '#x/StackTrace';
 
@@ -14,7 +14,7 @@ import { StackTrace } from '#x/StackTrace';
  * **Note:** Subclasses have to be registered with this module explicitly in
  * order to be converted from instances to data.
  */
-export class ConvError extends BaseConverter {
+export class ConvError extends BaseCodec {
   /**
    * Should stacks be parsed?
    *
@@ -37,7 +37,7 @@ export class ConvError extends BaseConverter {
 
   /** @override */
   decode(data) {
-    throw BaseConverter.decodingUnimplemented(data);
+    throw BaseCodec.decodingUnimplemented(data);
   }
 
   /** @override */

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ConvError } from '#p/ConvError';
-import { SpecialConverters } from '#x/SpecialConverters';
+import { SpecialCodecs } from '#x/SpecialCodecs';
 
 
 /**
@@ -12,24 +12,24 @@ export class StandardConverters {
   /**
    * Standard instance, if initialized.
    *
-   * @type {?SpecialConverters}
+   * @type {?SpecialCodecs}
    */
   static #STANDARD;
 
   /**
    * Standard logging instance, if initialized.
    *
-   * @type {?SpecialConverters}
+   * @type {?SpecialCodecs}
    */
   static #STANDARD_FOR_LOGGING;
 
-  /** @returns {SpecialConverters} Standard instance. */
+  /** @returns {SpecialCodecs} Standard instance. */
   static get STANDARD() {
     this.#STANDARD ??= this.#makeStandard();
     return this.#STANDARD;
   }
 
-  /** @returns {SpecialConverters} Standard logging instance. */
+  /** @returns {SpecialCodecs} Standard logging instance. */
   static get STANDARD_FOR_LOGGING() {
     this.#STANDARD_FOR_LOGGING ??= this.#makeStandardForLogging();
     return this.#STANDARD_FOR_LOGGING;
@@ -38,10 +38,10 @@ export class StandardConverters {
   /**
    * Makes the value for {@link #STANDARD}.
    *
-   * @returns {SpecialConverters} The instance.
+   * @returns {SpecialCodecs} The instance.
    */
   static #makeStandard() {
-    const std = new SpecialConverters();
+    const std = new SpecialCodecs();
 
     std.addForErrors(new ConvError());
 
@@ -58,10 +58,10 @@ export class StandardConverters {
   /**
    * Makes the value for {@link #STANDARD_FOR_LOGGING}.
    *
-   * @returns {SpecialConverters} The instance.
+   * @returns {SpecialCodecs} The instance.
    */
   static #makeStandardForLogging() {
-    const std = new SpecialConverters();
+    const std = new SpecialCodecs();
 
     std.addForErrors(new ConvError(true));
     std.addDefaults(this.STANDARD);

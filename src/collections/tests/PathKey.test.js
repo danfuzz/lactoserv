@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Sexp } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { PathKey } from '@this/collections';
 
 
@@ -177,11 +177,11 @@ describe('.EMPTY', () => {
   });
 });
 
-describe('[BaseConverter.ENCODE]()', () => {
+describe('[BaseCodec.ENCODE]()', () => {
   test('produces a `Sexp` with the constructor arguments the arguments', () => {
     const args = [['beep', 'boop'], true];
     const key = new PathKey(...args);
-    const got = key[BaseConverter.ENCODE]();
+    const got = key[BaseCodec.ENCODE]();
 
     expect(got).toBeInstanceOf(Sexp);
     expect(got.functor).toBe(PathKey);

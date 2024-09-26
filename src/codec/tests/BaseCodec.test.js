@@ -1,25 +1,25 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter } from '@this/codec';
+import { BaseCodec } from '@this/codec';
 
 
 describe('constructor()', () => {
   test('does not throw', () => {
-    expect(() => new BaseConverter()).not.toThrow();
+    expect(() => new BaseCodec()).not.toThrow();
   });
 });
 
 describe('decode()', () => {
   test('throws', () => {
-    const conv = new BaseConverter();
+    const conv = new BaseCodec();
     expect(() => conv.decode(null)).toThrow(/Abstract/);
   });
 });
 
 describe('encode()', () => {
   test('throws', () => {
-    const conv = new BaseConverter();
+    const conv = new BaseCodec();
     expect(() => conv.encode(null)).toThrow(/Abstract/);
   });
 });
@@ -31,39 +31,39 @@ describe('encode()', () => {
 
 describe('.ENCODE', () => {
   test('is a symbol', () => {
-    expect(BaseConverter.ENCODE).toBeSymbol();
+    expect(BaseCodec.ENCODE).toBeSymbol();
   });
 
   test('is uninterned', () => {
-    const interned = Symbol.for(BaseConverter.ENCODE.description);
-    expect(BaseConverter.ENCODE).not.toBe(interned);
+    const interned = Symbol.for(BaseCodec.ENCODE.description);
+    expect(BaseCodec.ENCODE).not.toBe(interned);
   });
 });
 
 describe('.OMIT', () => {
   test('is a symbol', () => {
-    expect(BaseConverter.OMIT).toBeSymbol();
+    expect(BaseCodec.OMIT).toBeSymbol();
   });
 
   test('is uninterned', () => {
-    const interned = Symbol.for(BaseConverter.OMIT.description);
-    expect(BaseConverter.OMIT).not.toBe(interned);
+    const interned = Symbol.for(BaseCodec.OMIT.description);
+    expect(BaseCodec.OMIT).not.toBe(interned);
   });
 });
 
 describe('.UNHANDLED', () => {
   test('is a symbol', () => {
-    expect(BaseConverter.UNHANDLED).toBeSymbol();
+    expect(BaseCodec.UNHANDLED).toBeSymbol();
   });
 
   test('is uninterned', () => {
-    const interned = Symbol.for(BaseConverter.UNHANDLED.description);
-    expect(BaseConverter.UNHANDLED).not.toBe(interned);
+    const interned = Symbol.for(BaseCodec.UNHANDLED.description);
+    expect(BaseCodec.UNHANDLED).not.toBe(interned);
   });
 });
 
 describe('decodingUnimplemented()', () => {
   test('throws', () => {
-    expect(() => BaseConverter.decodingUnimplemented(null)).toThrow();
+    expect(() => BaseCodec.decodingUnimplemented(null)).toThrow();
   });
 });

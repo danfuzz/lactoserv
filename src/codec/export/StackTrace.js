@@ -3,7 +3,7 @@
 
 import { AskIf, MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
+import { BaseCodec } from '#x/BaseCodec';
 import { Sexp } from '#x/Sexp';
 import { StackFrame } from '#x/StackFrame';
 
@@ -80,7 +80,7 @@ export class StackTrace {
    *
    * @returns {Sexp} Encoded form.
    */
-  [BaseConverter.ENCODE]() {
+  [BaseCodec.ENCODE]() {
     return new Sexp(StackTrace, null, this.#frames);
   }
 

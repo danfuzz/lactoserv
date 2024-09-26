@@ -4,10 +4,10 @@
 import { BaseConfig } from '@this/structy';
 import { AskIf, MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
+import { BaseCodec } from '#x/BaseCodec';
 import { Ref } from '#x/Ref';
 import { Sexp } from '#x/Sexp';
-import { SpecialConverters } from '#x/SpecialConverters';
+import { SpecialCodecs } from '#x/SpecialCodecs';
 
 
 /**
@@ -29,14 +29,14 @@ import { SpecialConverters } from '#x/SpecialConverters';
  *   in a plain object or array, the key it would be bound to is omitted
  *   (possibly causing an array to be sparse).
  * * `unhandled` -- Treat the value conversion as "unhandled." The return value
- *   from `encode()` will in fact be {@link BaseConverter#UNHANDLED}.
+ *   from `encode()` will in fact be {@link BaseCodec#UNHANDLED}.
  * * `wrap` -- Wrap the value in question inside an instance of {@link Ref}, a
  *   class that is defined in this module.
  *
  * In cases where these values are allowed, a function is also sometimes
  * allowed, which can be called on to provide a replacement value.
  */
-export class ConverterConfig extends BaseConfig {
+export class CodecConfig extends BaseConfig {
   // @defaultConstructor
 
   /**
@@ -75,7 +75,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_functionAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
@@ -97,7 +97,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_instanceAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
@@ -108,21 +108,21 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_proxyAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
-   * Converter to handle any special cases that take precedence over other
+   * Codec to handle any special cases that take precedence over other
    * configuration options, or `null` if there are no special cases.
    *
-   * @param {?BaseConverter} [value] Proposed configuration value. Default
-   *   {@link SpecialConverters#STANDARD}.
-   * @returns {?BaseConverter} Accepted configuration value.
+   * @param {?BaseCodec} [value] Proposed configuration value. Default
+   *   {@link SpecialCodecs#STANDARD}.
+   * @returns {?BaseCodec} Accepted configuration value.
    */
-  _config_specialCases(value = SpecialConverters.STANDARD) {
+  _config_specialCases(value = SpecialCodecs.STANDARD) {
     return (value === null)
       ? null
-      : MustBe.instanceOf(value, BaseConverter);
+      : MustBe.instanceOf(value, BaseCodec);
   }
 
   /**
@@ -133,7 +133,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string} Accepted configuration value.
    */
   _config_symbolKeyAction(value = 'omit') {
-    return ConverterConfig.#checkSymbolKeyAction(value);
+    return CodecConfig.#checkSymbolKeyAction(value);
   }
 
   /**
@@ -169,7 +169,7 @@ export class ConverterConfig extends BaseConfig {
    *
    * @param {?object} [options] Extra configuration options, or `null` for
    *   nothing extra.
-   * @returns {ConverterConfig} The default / baseline logging configuration.
+   * @returns {CodecConfig} The default / baseline logging configuration.
    */
   static makeLoggingInstance(options = null) {
     options ??= {};
@@ -178,7 +178,7 @@ export class ConverterConfig extends BaseConfig {
       functionAction: 'name',
       instanceAction: 'name',
       proxyAction:    'name',
-      specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
+      specialCases:   SpecialCodecs.STANDARD_FOR_LOGGING,
       ...options
     });
   }

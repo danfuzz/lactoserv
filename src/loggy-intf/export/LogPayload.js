@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { BaseConverter, Sexp, StackTrace } from '@this/codec';
+import { BaseCodec, Sexp, StackTrace } from '@this/codec';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
@@ -89,7 +89,7 @@ export class LogPayload extends EventPayload {
    *
    * @returns {Sexp} Encoded form.
    */
-  [BaseConverter.ENCODE]() {
+  [BaseCodec.ENCODE]() {
     return new Sexp(LogPayload, {
       when:  this.#when,
       tag:   this.#tag,

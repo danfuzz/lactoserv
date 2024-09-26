@@ -5,8 +5,8 @@ import { inspect, types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
-import { BaseConverter } from '#x/BaseConverter';
-import { ConverterConfig } from '#x/ConverterConfig';
+import { BaseCodec } from '#x/BaseCodec';
+import { CodecConfig } from '#x/CodecConfig';
 import { Ref } from '#x/Ref';
 
 
@@ -17,41 +17,41 @@ import { Ref } from '#x/Ref';
 // arrays, as opposed to using `Object.entries()` and the like.
 
 /**
- * Primary concrete implementation of the {@link BaseConverter} protocol. See
- * the module `README.md` for a bit more detail.
+ * Primary concrete implementation of the {@link BaseCodec} protocol. See the
+ * module `README.md` for a bit more detail.
  */
-export class Converter extends BaseConverter {
+export class Codec extends BaseCodec {
   /**
    * Configuration to use.
    *
-   * @type {ConverterConfig}
+   * @type {CodecConfig}
    */
   #config;
 
   /**
    * Constructs an instance.
    *
-   * @param {?ConverterConfig} config Configuration to use, or `null` to use the
+   * @param {?CodecConfig} config Configuration to use, or `null` to use the
    *   default configuration.
    */
   constructor(config = null) {
     super();
 
     this.#config = (config === null)
-      ? new ConverterConfig()
-      : MustBe.instanceOf(config, ConverterConfig);
+      ? new CodecConfig()
+      : MustBe.instanceOf(config, CodecConfig);
   }
 
   /** @override */
   decode(data) {
-    throw BaseConverter.decodingUnimplemented(data);
+    throw BaseCodec.decodingUnimplemented(data);
   }
 
   /** @override */
   encode(value) {
     const result = this.#encode0(value);
 
-    return (result === BaseConverter.OMIT)
+    return (result === BaseCodec.OMIT)
       ? undefined
       : result;
   }
@@ -127,13 +127,13 @@ export class Converter extends BaseConverter {
 
         if (config.specialCases) {
           const replacement = config.specialCases.encode(orig);
-          if (replacement !== BaseConverter.UNHANDLED) {
+          if (replacement !== BaseCodec.UNHANDLED) {
             return this.#encode0(replacement);
           }
         }
 
-        if (config.honorEncodeMethod && orig[BaseConverter.ENCODE]) {
-          const replacement = orig[BaseConverter.ENCODE]();
+        if (config.honorEncodeMethod && orig[BaseCodec.ENCODE]) {
+          const replacement = orig[BaseCodec.ENCODE]();
           return this.#encode0(replacement);
         } else {
           return this.#performReplacement(orig, config.instanceAction);
@@ -170,14 +170,14 @@ export class Converter extends BaseConverter {
       const newValue = this.#encode0(value);
       anyChange ||= (value !== newValue);
       switch (newValue) {
-        case BaseConverter.OMIT: {
+        case BaseCodec.OMIT: {
           // Do nothing.
           break;
         }
-        case BaseConverter.UNHANDLED: {
+        case BaseCodec.UNHANDLED: {
           // Induce "unhandled contagion:" The whole conversion is unhandled if
           // any individual item is.
-          return BaseConverter.UNHANDLED;
+          return BaseCodec.UNHANDLED;
         }
         default: {
           result[key] = newValue;
@@ -211,10 +211,10 @@ export class Converter extends BaseConverter {
   #performReplacement(orig, action) {
     switch (action) {
       case 'error':     throw new Error('Encountered non-data.');
-      case 'inspect':   return inspect(orig, Converter.#INSPECT_OPTIONS);
-      case 'omit':      return BaseConverter.OMIT;
+      case 'inspect':   return inspect(orig, Codec.#INSPECT_OPTIONS);
+      case 'omit':      return BaseCodec.OMIT;
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
-      case 'unhandled': return BaseConverter.UNHANDLED;
+      case 'unhandled': return BaseCodec.UNHANDLED;
       case 'wrap':      return new Ref(orig);
       case 'name': {
         if (typeof orig === 'function') {
