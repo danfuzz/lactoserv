@@ -10,14 +10,14 @@ import { Methods } from '@this/typey';
  * Forward declaration of this class, because `import`ing it would cause a
  * circular dependency while loading.
  *
- * @typedef ConverterConfig
+ * @typedef CodecConfig
  * @type {object}
  */
 
 /**
  * Base class for any class which is to be considered to be peer data value
  * types to the "real" data value types of JavaScript (number, string, plain
- * object, array, etc.). Note that {@link ConverterConfig} lets one specify
+ * object, array, etc.). Note that {@link CodecConfig} lets one specify
  * which actual classes are to be treated as data values, but whatever classes
  * are in that set are all expected to inherit from this base class.
  */

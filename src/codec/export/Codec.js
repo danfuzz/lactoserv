@@ -6,7 +6,7 @@ import { inspect, types } from 'node:util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseCodec } from '#x/BaseCodec';
-import { ConverterConfig } from '#x/ConverterConfig';
+import { CodecConfig } from '#x/CodecConfig';
 import { Ref } from '#x/Ref';
 
 
@@ -24,22 +24,22 @@ export class Codec extends BaseCodec {
   /**
    * Configuration to use.
    *
-   * @type {ConverterConfig}
+   * @type {CodecConfig}
    */
   #config;
 
   /**
    * Constructs an instance.
    *
-   * @param {?ConverterConfig} config Configuration to use, or `null` to use the
+   * @param {?CodecConfig} config Configuration to use, or `null` to use the
    *   default configuration.
    */
   constructor(config = null) {
     super();
 
     this.#config = (config === null)
-      ? new ConverterConfig()
-      : MustBe.instanceOf(config, ConverterConfig);
+      ? new CodecConfig()
+      : MustBe.instanceOf(config, CodecConfig);
   }
 
   /** @override */

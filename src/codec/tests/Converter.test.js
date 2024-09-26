@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Codec, ConverterConfig, Ref, Sexp }
+import { BaseCodec, Codec, CodecConfig, Ref, Sexp }
   from '@this/codec';
 import { AskIf } from '@this/typey';
 
@@ -389,7 +389,7 @@ describe('encode()', () => {
   });
 
   describe('with default config, except `freeze === false`', () => {
-    const config = new ConverterConfig({ freeze: false });
+    const config = new CodecConfig({ freeze: false });
 
     test('returns a non-frozen array that did not need encoding, as-is', () => {
       const conv  = new Codec(config);

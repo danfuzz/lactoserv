@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Codec, ConverterConfig, Sexp } from '@this/codec';
+import { Codec, CodecConfig, Sexp } from '@this/codec';
 
 import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
@@ -127,7 +127,7 @@ export class Host {
     const problems = TopErrorHandler.problems;
     if (problems.length !== 0) {
       // Convert `Error` objects to a friendly JSON-encodable form.
-      const converter = new Codec(ConverterConfig.makeLoggingInstance());
+      const converter = new Codec(CodecConfig.makeLoggingInstance());
 
       for (const p of problems) {
         p.problem = this.#fixProblem(p.problem, converter);

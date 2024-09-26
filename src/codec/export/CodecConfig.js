@@ -36,7 +36,7 @@ import { SpecialConverters } from '#x/SpecialConverters';
  * In cases where these values are allowed, a function is also sometimes
  * allowed, which can be called on to provide a replacement value.
  */
-export class ConverterConfig extends BaseConfig {
+export class CodecConfig extends BaseConfig {
   // @defaultConstructor
 
   /**
@@ -75,7 +75,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_functionAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
@@ -97,7 +97,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_instanceAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
@@ -108,7 +108,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string|(function(*): *)} Accepted configuration value.
    */
   _config_proxyAction(value = 'wrap') {
-    return ConverterConfig.#checkAction(value);
+    return CodecConfig.#checkAction(value);
   }
 
   /**
@@ -133,7 +133,7 @@ export class ConverterConfig extends BaseConfig {
    * @returns {string} Accepted configuration value.
    */
   _config_symbolKeyAction(value = 'omit') {
-    return ConverterConfig.#checkSymbolKeyAction(value);
+    return CodecConfig.#checkSymbolKeyAction(value);
   }
 
   /**
@@ -169,7 +169,7 @@ export class ConverterConfig extends BaseConfig {
    *
    * @param {?object} [options] Extra configuration options, or `null` for
    *   nothing extra.
-   * @returns {ConverterConfig} The default / baseline logging configuration.
+   * @returns {CodecConfig} The default / baseline logging configuration.
    */
   static makeLoggingInstance(options = null) {
     options ??= {};
