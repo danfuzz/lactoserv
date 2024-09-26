@@ -21,6 +21,8 @@ Breaking changes:
     for now).
 
 Other notable changes:
+* `async`: Minor fixes of problems discovered while addressing a couple of unit
+  test coverage oversights.
 * `net-util`: New class `Base64Url`.
 * Pulled in new version of sibling project Bashy-lib.
   * Made various fixes that became evident with the new version of
