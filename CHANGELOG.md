@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.1 -- 2024-09-26
+
+Breaking changes:
 * `data-values`: This module was effectively several different modules in a
   trench coat. It has now been retired, with its former contents now in four new
   modules:
