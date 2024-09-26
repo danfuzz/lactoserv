@@ -73,7 +73,6 @@ export class EventPayload {
    * @returns {EventPayload} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(type = null) {
-    type ??= this.#KICKOFF_TYPE;
     return new EventPayload(type ?? this.#KICKOFF_TYPE);
   }
 }
