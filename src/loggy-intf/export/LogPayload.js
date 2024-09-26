@@ -117,6 +117,34 @@ export class LogPayload extends EventPayload {
   }
 
   /**
+   * Gets a plain object representing this instance. The result has named
+   * properties for each of the properties available on instances.
+   *
+   * @returns {object} The plain object representation of this instance.
+   */
+  toPlainObject() {
+    return {
+      stack: this.#stack,
+      when:  this.#when,
+      tag:   this.#tag,
+      type:  this.type,
+      args:  this.args
+    };
+  }
+
+  /**
+   * Gets a new instance just like this one except without any arguments. If
+   * this instance already lacked arguments, this will return this instance.
+   *
+   * @returns {LogPayload} An appropriately-constructed instance.
+   */
+  withoutArgs() {
+    return (this.args.length === 0)
+      ? this
+      : new LogPayload(this.#stack, this.#when, this.#tag, this.type);
+  }
+
+  /**
    * Appends the human form of {@link #payload} to the given array of parts (to
    * ultimately `join()`).
    *

@@ -156,7 +156,7 @@ export class Host {
     const fixed = {
       class: encoded.functor,
       ...encoded.args[0],
-      ...(encoded.options ?? {})
+      ...(encoded.args[1] ?? {})
     };
 
     if (fixed.name === fixed.functor) {

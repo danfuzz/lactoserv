@@ -177,14 +177,14 @@ export class TextFileSink extends EventSink {
     // What's going on: We assume that the `args` payload is already
     // sufficiently encoded (because that would have / should have happened
     // synchronously while logging), but we want to generically encode
-    // everything else. So, we do a top-level encode of the payload, tweak it,
-    // let the normal encode mechanism do it's thing, and then tweak it back.
+    // everything else. So, we convert the plain-object form except with `args`
+    // set to `null`, and then we thwack back in the presumed-good `args`.
 
-    const encodedPayload = payload[BaseCodec.ENCODE]();
-    const objToEncode    = { ...encodedPayload.options, args: null };
-    const encoded        = this.#CONVERTER_FOR_JSON.encode(objToEncode);
+    const plainObj = payload.toPlainObject();
+    const encoded  = this.#CONVERTER_FOR_JSON.encode({ ...plainObj, args: null });
 
-    encoded.args = encodedPayload.options.args;
+    encoded.args = plainObj.args;
+
     return JSON.stringify(encoded);
   }
 }
