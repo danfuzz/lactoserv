@@ -64,7 +64,7 @@ export class DispatchInfo {
    * @returns {Sexp} The encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(DispatchInfo, null, this.#base, this.#extra);
+    return new Sexp(DispatchInfo, 'NO-OPTS', this.#base, this.#extra);
   }
 
   /**

@@ -90,13 +90,8 @@ export class LogPayload extends EventPayload {
    * @returns {Sexp} Encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(LogPayload, {
-      when:  this.#when,
-      tag:   this.#tag,
-      stack: this.#stack,
-      type:  this.type,
-      args:  this.args
-    });
+    return new Sexp(LogPayload, 'NO-OPTS',
+      this.#stack, this.#when, this.#tag, this.type, ...this.args);
   }
 
   /**

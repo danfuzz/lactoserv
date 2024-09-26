@@ -115,7 +115,7 @@ export class UnitQuantity {
    * @returns {Sexp} Encoded form.
    */
   [BaseCodec.ENCODE]() {
-    return new Sexp(this.constructor, null,
+    return new Sexp(this.constructor, 'NO-OPTS',
       this.#value, this.#numeratorUnit, this.#denominatorUnit);
   }
 

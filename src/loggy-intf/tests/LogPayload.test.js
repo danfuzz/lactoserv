@@ -27,20 +27,14 @@ describe('constructor', () => {
 });
 
 describe('[BaseCodec.ENCODE]()', () => {
-  test('produces a `Sexp` with the constructor arguments as options', () => {
-    const payload = new LogPayload(someStack, someMoment, someTag, 'whee', 10, 20, 'thirty');
+  test('produces a `Sexp` with the constructor arguments as the arguments', () => {
+    const args    = [someStack, someMoment, someTag, 'whee', 10, 20, 'thirty'];
+    const payload = new LogPayload(...args);
     const got     = payload[BaseCodec.ENCODE]();
 
     expect(got).toBeInstanceOf(Sexp);
     expect(got.functor).toBe(LogPayload);
-    expect(got.options).toEqual({
-      stack: someStack,
-      when:  someMoment,
-      tag:   someTag,
-      type:  'whee',
-      args:  [10, 20, 'thirty']
-    });
-    expect(got.args).toEqual([]);
+    expect(got.args).toEqual(args);
   });
 });
 

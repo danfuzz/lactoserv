@@ -50,8 +50,14 @@ export class Sexp extends BaseDataClass {
    *   If `null`, becomes a frozen version of `{}` (the empty object).
    * @param {...*} args Positional "arguments" of the structure.
    */
-  constructor(functor, options = null, ...args) {
+  constructor(functor, options = 'NO-OPTS', ...args) {
     super();
+
+    if (!options && (options !== 'NO-OPTS')) {
+      throw new Error('#### HEY!! FIX THIS!!!');
+    } else {
+      options = null;
+    }
 
     this.#functor = functor;
     this.#options = Sexp.#fixOptions(options);
