@@ -19,8 +19,8 @@ export class HostUtil {
    * wildcards, and complete wildcards (`*`). Name components must be non-empty
    * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
    * which furthermore must neither start nor end with a dash. The entire
-   * hostname must be no more than 255 characters, and the name must either be
-   * a full wildcard (that is, just `*`) _or_ contain an alphabetic character
+   * hostname must be no more than 255 characters, and the name must either be a
+   * full wildcard (that is, just `*`) _or_ contain an alphabetic character
    * somewhere within it (because otherwise it could wouldn't be a name; it'd be
    * a numeric address).
    */

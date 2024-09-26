@@ -17,9 +17,9 @@ import { Methods } from '@this/typey';
 /**
  * Base class for any class which is to be considered to be peer data value
  * types to the "real" data value types of JavaScript (number, string, plain
- * object, array, etc.). Note that {@link CodecConfig} lets one specify
- * which actual classes are to be treated as data values, but whatever classes
- * are in that set are all expected to inherit from this base class.
+ * object, array, etc.). Note that {@link CodecConfig} lets one specify which
+ * actual classes are to be treated as data values, but whatever classes are in
+ * that set are all expected to inherit from this base class.
  */
 export class BaseDataClass {
   /**

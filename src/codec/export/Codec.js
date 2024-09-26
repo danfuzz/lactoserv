@@ -17,8 +17,8 @@ import { Ref } from '#x/Ref';
 // arrays, as opposed to using `Object.entries()` and the like.
 
 /**
- * Primary concrete implementation of the {@link BaseCodec} protocol. See
- * the module `README.md` for a bit more detail.
+ * Primary concrete implementation of the {@link BaseCodec} protocol. See the
+ * module `README.md` for a bit more detail.
  */
 export class Codec extends BaseCodec {
   /**

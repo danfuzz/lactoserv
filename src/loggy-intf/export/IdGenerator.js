@@ -15,10 +15,10 @@ import { MustBe } from '@this/typey';
  *   lowercase letters, to make IDs easier for a human to visually distinguish.
  * * `MMMMM` is a lowecase hexadecimal representation of the "current minute,"
  *   which rolls over every couple years or so.
- * * `NN` is a lowercase hexadecimal sequence number within the current
- *   minute. It is two digits, unless by some miracle there are more logged
- *   items in a minute than will fit in that, in which case it expands in
- *   two-digit increments.
+ * * `NN` is a lowercase hexadecimal sequence number within the current minute.
+ *   It is two digits, unless by some miracle there are more logged items in a
+ *   minute than will fit in that, in which case it expands in two-digit
+ *   increments.
  */
 export class IdGenerator {
   /**

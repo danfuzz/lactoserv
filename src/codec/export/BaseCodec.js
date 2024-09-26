@@ -22,9 +22,8 @@ export class BaseCodec {
    * @abstract
    * @param {*} data The data value to convert.
    * @returns {*} The converted form, or the special value
-   *   {@link BaseCodec#UNHANDLED} if `data` is not convertible by this
-   *   instance and the instance is not configured to throw errors in such
-   *   cases.
+   *   {@link BaseCodec#UNHANDLED} if `data` is not convertible by this instance
+   *   and the instance is not configured to throw errors in such cases.
    */
   decode(data) {
     throw Methods.abstract(data);
