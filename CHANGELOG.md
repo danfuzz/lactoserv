@@ -11,8 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `data-values`: Split this module apart, separating it out into four different
-  modules, and retiring the original.
+* `data-values`: This module was effectively several different modules in an
+  overcoat. It has now been retired, with its former contents now in four new
+  modules:
   * `codec`: value encoding / decoding.
   * `quant`: unit quantity classes, plus wall-time representation.
   * `structy`: struct-like class definition.
