@@ -223,26 +223,4 @@ export class Sexp extends BaseDataClass {
       return functor;
     }
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Converts an `options` value passed into the constructor into its proper
-   * form.
-   *
-   * @param {*} options Original options value.
-   * @returns {object} The converted form.
-   */
-  static #fixOptions(options) {
-    if (options === null) {
-      return Object.freeze({});
-    } else if (AskIf.plainObject(options) && Object.isFrozen(options)) {
-      return options;
-    } else {
-      return Object.freeze({ ...options });
-    }
-  }
 }
