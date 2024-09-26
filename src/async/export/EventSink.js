@@ -86,12 +86,12 @@ export class EventSink {
 
   /** @override */
   async run() {
-    await this.#thread.run();
+    return await this.#thread.run();
   }
 
   /** @override */
   async start() {
-    await this.#thread.start();
+    return await this.#thread.start();
   }
 
   /**
@@ -104,7 +104,7 @@ export class EventSink {
    * @override
    */
   async stop() {
-    await this.#thread.stop();
+    return await this.#thread.stop();
   }
 
   /** @override */
