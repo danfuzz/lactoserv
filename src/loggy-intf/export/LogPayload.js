@@ -85,7 +85,7 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Implementation of `quant` custom-encode protocol.
+   * Implementation of `codec` custom-encode protocol.
    *
    * @returns {Sexp} Encoded form.
    */

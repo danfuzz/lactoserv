@@ -65,7 +65,7 @@ export class Duration extends UnitQuantity {
   }
 
   /**
-   * Implementation of `quant` custom-encode protocol.
+   * Implementation of `codec` custom-encode protocol.
    *
    * @returns {Sexp} Encoded form.
    */
