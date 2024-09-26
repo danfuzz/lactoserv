@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Converter, ConverterConfig, Ref, Sexp }
+import { BaseCodec, Codec, ConverterConfig, Ref, Sexp }
   from '@this/codec';
 import { AskIf } from '@this/typey';
 
@@ -32,7 +32,7 @@ describe('encode()', () => {
       ${Symbol('uninterned')}
       ${Symbol.for('interned')}
       `('self-represents $value', ({ value }) => {
-        const conv = new Converter();
+        const conv = new Codec();
         expect(conv.encode(value)).toBe(value);
       });
     });
@@ -40,7 +40,7 @@ describe('encode()', () => {
     test('wraps functions', () => {
       const florp = () => 123;
 
-      const conv = new Converter();
+      const conv = new Codec();
       const data = conv.encode(florp);
 
       expect(data).toBeInstanceOf(Ref);
@@ -50,7 +50,7 @@ describe('encode()', () => {
     test('wraps proxies of regular objects', () => {
       const florp = { a: 123 };
       const proxy = new Proxy(florp, {});
-      const conv  = new Converter();
+      const conv  = new Codec();
       const data  = conv.encode(proxy);
 
       expect(data).toBeInstanceOf(Ref);
@@ -60,7 +60,7 @@ describe('encode()', () => {
     test('wraps proxies of functions', () => {
       const florp = () => 123;
       const proxy = new Proxy(florp, {});
-      const conv  = new Converter();
+      const conv  = new Codec();
       const data  = conv.encode(proxy);
 
       expect(data).toBeInstanceOf(Ref);
@@ -74,7 +74,7 @@ describe('encode()', () => {
 
       const florp = new Florp();
 
-      const conv = new Converter();
+      const conv = new Codec();
       const data = conv.encode(florp);
 
       expect(data).toBeInstanceOf(Ref);
@@ -93,7 +93,7 @@ describe('encode()', () => {
 
         const florp = new Florp();
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(florp);
         expect(calledCount).toBe(1);
         expect(data).toBe(123);
@@ -106,7 +106,7 @@ describe('encode()', () => {
         }
         const florp = new Florp();
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(florp);
         expect(data).not.toBe(theData);
         expect(data).toBeFrozen();
@@ -116,7 +116,7 @@ describe('encode()', () => {
 
     describe('on arrays', () => {
       test('returns a frozen array', () => {
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode([1]);
 
         expect(data).toBeArray();
@@ -126,7 +126,7 @@ describe('encode()', () => {
       test('does not return the same array if given a non-frozen one', () => {
         const orig = ['x'];
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
 
         expect(data).not.toBe(orig);
@@ -135,7 +135,7 @@ describe('encode()', () => {
       test('returns a strict-equal array', () => {
         const orig = ['x', [1, 2, 3], { foo: 'bar' }];
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
 
         expect(data).toStrictEqual(orig);
@@ -144,7 +144,7 @@ describe('encode()', () => {
       test('returns the same array if given a frozen one whose contents all trivially self-represent', () => {
         const orig = Object.freeze(['x', 123, false, undefined, Symbol('foo')]);
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).toBe(orig);
       });
@@ -156,7 +156,7 @@ describe('encode()', () => {
           Object.freeze({ z: Object.freeze([false, true]) })
         ]);
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).toBe(orig);
       });
@@ -164,7 +164,7 @@ describe('encode()', () => {
       test('returns a different array if any elements need to become frozen', () => {
         const orig = [1, 2, 3, [1, 2, 3], 4, 5, 6];
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).not.toBe(orig);
       });
@@ -175,7 +175,7 @@ describe('encode()', () => {
         orig[7]     = 777;
         orig.length = 10;
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(orig);
 
         expect(got).toBeArrayOfSize(10);
@@ -187,7 +187,7 @@ describe('encode()', () => {
         const orig = [1, 2, 3];
         orig.florp = ['like', 'yeah'];
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(orig);
 
         expect(got).toBeArrayOfSize(3);
@@ -202,7 +202,7 @@ describe('encode()', () => {
         const orig = ['a', 'b'];
         orig[sym] = 'never';
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(orig);
 
         expect(got).toBeArrayOfSize(2);
@@ -215,7 +215,7 @@ describe('encode()', () => {
 
     describe('on plain objects', () => {
       test('returns a frozen plain object', () => {
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode({ x: 10 });
 
         expect(AskIf.plainObject(data)).toBeTrue();
@@ -225,7 +225,7 @@ describe('encode()', () => {
       test('does not return the same object if given a non-frozen one', () => {
         const orig = { beep: 'boop' };
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
 
         expect(data).not.toBe(orig);
@@ -234,7 +234,7 @@ describe('encode()', () => {
       test('returns a strict-equal object', () => {
         const orig = { a: 10, b: 20, c: [true, false] };
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).toStrictEqual(orig);
       });
@@ -242,7 +242,7 @@ describe('encode()', () => {
       test('returns the same object if given a frozen one whose contents all trivially self-represent', () => {
         const orig = Object.freeze({ a: 10, b: false, c: Symbol('like') });
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).toBe(orig);
       });
@@ -254,7 +254,7 @@ describe('encode()', () => {
           three: Object.freeze({ z: Object.freeze([false, true]) })
         });
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
         expect(data).toBe(orig);
       });
@@ -266,7 +266,7 @@ describe('encode()', () => {
           z: { seven: 89 }
         });
 
-        const conv = new Converter();
+        const conv = new Codec();
         const data = conv.encode(orig);
 
         expect(data).not.toBe(orig);
@@ -277,7 +277,7 @@ describe('encode()', () => {
         const orig = { a: 10, b: 20 };
         orig[sym] = 'never';
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(orig);
 
         expect(got).toBeObject();
@@ -294,7 +294,7 @@ describe('encode()', () => {
         const value1 = Object.freeze(new Sexp('x', null, 1, 2, 3));
         const value2 = new Ref(['blort']);
 
-        const conv = new Converter();
+        const conv = new Codec();
 
         expect(conv.encode(value1)).toBe(value1);
         expect(conv.encode(value2)).toBe(value2);
@@ -310,7 +310,7 @@ describe('encode()', () => {
           both: [value1, value2]
         };
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(data);
 
         expect(got.v1).toBe(value1);
@@ -321,7 +321,7 @@ describe('encode()', () => {
 
       test('copies a non-frozen `Sexp` that requires no inner encoding', () => {
         const value = new Sexp('floop', { a: 10, b: 20 }, 1, 2, 3);
-        const conv  = new Converter();
+        const conv  = new Codec();
         const got   = conv.encode(value);
 
         expect(got).not.toBe(value);
@@ -336,7 +336,7 @@ describe('encode()', () => {
       test('handles class `Error` (simple case)', () => {
         const err = new Error('Oy!');
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(err);
 
         expect(got).toBeInstanceOf(Sexp);
@@ -358,7 +358,7 @@ describe('encode()', () => {
         err.name        = 'MuffinError';
         err.blueberries = true;
 
-        const conv = new Converter();
+        const conv = new Codec();
         const got  = conv.encode(err);
 
         expect(got).toBeInstanceOf(Sexp);
@@ -392,7 +392,7 @@ describe('encode()', () => {
     const config = new ConverterConfig({ freeze: false });
 
     test('returns a non-frozen array that did not need encoding, as-is', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = [1, 2, 3];
       const got   = conv.encode(value);
 
@@ -401,7 +401,7 @@ describe('encode()', () => {
     });
 
     test('returns a non-frozen object that did not need encoding, as-is', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = { a: 'hello', b: 'goodbye' };
       const got   = conv.encode(value);
 
@@ -410,7 +410,7 @@ describe('encode()', () => {
     });
 
     test('does not freeze an array that needed encoding', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = [1, 2, 3, new Map()];
       const got   = conv.encode(value);
 
@@ -422,7 +422,7 @@ describe('encode()', () => {
     });
 
     test('does not freeze a plain object that needed encoding', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = { boop: new Map() };
       const got   = conv.encode(value);
 
@@ -433,7 +433,7 @@ describe('encode()', () => {
     });
 
     test('copies an array that is frozen', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = Object.freeze([1, 2, 3]);
       const got   = conv.encode(value);
 
@@ -443,7 +443,7 @@ describe('encode()', () => {
     });
 
     test('copies a plain object that is frozen', () => {
-      const conv  = new Converter(config);
+      const conv  = new Codec(config);
       const value = Object.freeze({ florp: 'like' });
       const got   = conv.encode(value);
 

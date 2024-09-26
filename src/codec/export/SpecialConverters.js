@@ -35,7 +35,7 @@ export class SpecialConverters extends BaseCodec {
    *
    * @param {function(new:object, ...*)} cls Class whose instances are to be
    *   converted.
-   * @param {BaseCodec} converter Converter to use on instances of `cls`.
+   * @param {BaseCodec} converter Codec to use on instances of `cls`.
    */
   add(cls, converter) {
     MustBe.function(cls);
@@ -69,7 +69,7 @@ export class SpecialConverters extends BaseCodec {
    * Adds a converter to associate with all the standard `Error` classes /
    * subclasses.
    *
-   * @param {BaseCodec} converter Converter to use on instances of `cls`.
+   * @param {BaseCodec} converter Codec to use on instances of `cls`.
    */
   addForErrors(converter) {
     MustBe.instanceOf(converter, BaseCodec);

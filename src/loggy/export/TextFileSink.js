@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSink, LinkedEvent } from '@this/async';
-import { BaseCodec, Converter, ConverterConfig } from '@this/codec';
+import { BaseCodec, Codec, ConverterConfig } from '@this/codec';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
 import { Duration } from '@this/quant';
@@ -119,10 +119,10 @@ export class TextFileSink extends EventSink {
    * Data converter to use for encoding payload arguments, specifically for the
    * `json` format.
    *
-   * @type {Converter}
+   * @type {Codec}
    */
   static #CONVERTER_FOR_JSON =
-    new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
+    new Codec(ConverterConfig.makeLoggingInstance({ freeze: false }));
 
   /**
    * Map from names to corresponding formatter methods.

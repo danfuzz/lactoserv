@@ -112,7 +112,7 @@ export class ConverterConfig extends BaseConfig {
   }
 
   /**
-   * Converter to handle any special cases that take precedence over other
+   * Codec to handle any special cases that take precedence over other
    * configuration options, or `null` if there are no special cases.
    *
    * @param {?BaseCodec} [value] Proposed configuration value. Default

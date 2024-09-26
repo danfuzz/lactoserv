@@ -3,7 +3,7 @@
 
 export * from '#x/BaseCodec';
 export * from '#x/BaseDataClass';
-export * from '#x/Converter';
+export * from '#x/Codec';
 export * from '#x/ConverterConfig';
 export * from '#x/Ref';
 export * from '#x/Sexp';

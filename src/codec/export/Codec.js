@@ -20,7 +20,7 @@ import { Ref } from '#x/Ref';
  * Primary concrete implementation of the {@link BaseCodec} protocol. See
  * the module `README.md` for a bit more detail.
  */
-export class Converter extends BaseCodec {
+export class Codec extends BaseCodec {
   /**
    * Configuration to use.
    *
@@ -211,7 +211,7 @@ export class Converter extends BaseCodec {
   #performReplacement(orig, action) {
     switch (action) {
       case 'error':     throw new Error('Encountered non-data.');
-      case 'inspect':   return inspect(orig, Converter.#INSPECT_OPTIONS);
+      case 'inspect':   return inspect(orig, Codec.#INSPECT_OPTIONS);
       case 'omit':      return BaseCodec.OMIT;
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
       case 'unhandled': return BaseCodec.UNHANDLED;
