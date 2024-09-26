@@ -53,7 +53,7 @@ export class Sexp extends BaseDataClass {
   constructor(functor, options = 'NO-OPTS', ...args) {
     super();
 
-    if (!options && (options !== 'NO-OPTS')) {
+    if (options !== 'NO-OPTS') {
       throw new Error('#### HEY!! FIX THIS!!!');
     } else {
       options = null;
@@ -119,13 +119,12 @@ export class Sexp extends BaseDataClass {
    * @param {object} options The new options.
    */
   set options(options) {
-    this.#frozenCheck();
-    this.#options = Sexp.#fixOptions(options);
+    throw new Error('##### NO SETTING THIS ANYMORE!');
   }
 
   /** @override */
   toEncodableValue() {
-    return [this.#functor, this.#options, ...this.#args];
+    return [this.#functor, 'NO-OPTS', ...this.#args];
   }
 
   /**
