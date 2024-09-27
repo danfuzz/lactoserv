@@ -164,8 +164,8 @@ export class BaseValueVisitor {
 
   /**
    * Visits an array. The base implementation returns the given `node` as-is.
-   * Subclasses that wish to traverse the contents can do so by calling `<TODO
-   * call to method that does not yet exist>`.
+   * Subclasses that wish to traverse the contents can do so by calling
+   * {@link #_prot_visitArrayProperties}.
    *
    * @param {Array} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -306,5 +306,27 @@ export class BaseValueVisitor {
    */
   async _impl_visitUndefined() {
     return undefined;
+  }
+
+  /**
+   * Visits the stored values and any other properties of an array, _excluding_
+   * `length`. Returns an array consisting of all the visited values, with the
+   * same indices / property names. If the original `node` is a sparse array,
+   * the result will have the same "holes."
+   *
+   * @param {Array} node The node whose contents are to be visited.
+   * @returns {Array} An array of visited results.
+   */
+  async _prot_visitArrayProperties(node) {
+    const length    = node.length;
+    const result    = Array(length);
+
+    for (const nameOrIndex of Object.getOwnPropertyNames(node)) {
+      if (nameOrIndex !== 'length') {
+        result[nameOrIndex] = await this.#visitNode(node[nameOrIndex]);
+      }
+    }
+
+    return result;
   }
 }
