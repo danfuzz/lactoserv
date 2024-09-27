@@ -295,9 +295,13 @@ export class AskIf {
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */
   static plainObject(value) {
-    return (value !== null)
-      && (typeof value === 'object')
-      && Object.getPrototypeOf(value) === Object.prototype;
+    if ((value === null) || (typeof value !== 'object')) {
+      return false;
+    }
+
+    const proto = Object.getPrototypeOf(value);
+
+    return (proto === null) || (proto === Object.prototype);
   }
 
   /**

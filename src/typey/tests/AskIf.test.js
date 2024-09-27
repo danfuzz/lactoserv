@@ -526,6 +526,58 @@ describe('constructorFunction()', () => {
   });
 });
 
+describe('plainObject', () => {
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${false}
+  ${true}
+  ${123}
+  ${123n}
+  ${'florp'}
+  ${Symbol('boop')}
+  `('returns `false` for non-object $value', ({ value }) => {
+    expect(AskIf.plainObject(value)).toBeFalse();
+  });
+
+  test('returns `false` for a newly-defined function', () => {
+    function florp() {
+      return null;
+    }
+
+    expect(AskIf.plainObject(florp)).toBeFalse();
+  });
+
+  test('returns `false` for an instance of a built-in class', () => {
+    expect(AskIf.plainObject(new Map())).toBeFalse();
+  });
+
+  test('returns `false` for an instance of a newly-defined class', () => {
+    class Florp {
+      // @emptyBlock
+    }
+
+    expect(AskIf.plainObject(new Florp())).toBeFalse();
+  });
+
+  test('returns `true` for an empty inline plain object', () => {
+    expect(AskIf.plainObject({})).toBeTrue();
+  });
+
+  test('returns `true` for a non-empty inline plain object', () => {
+    expect(AskIf.plainObject({ a: 'florp' })).toBeTrue();
+  });
+
+  test('returns `true` for an object created with `new Object()` per se', () => {
+    expect(AskIf.plainObject(new Object())).toBeTrue(); // eslint-disable-line no-new-object
+  });
+
+  test('returns `true` for an object created with `Object.create(null)`', () => {
+    expect(AskIf.plainObject(Object.create(null))).toBeTrue();
+  });
+});
+
 describe('object()', () => {
   test.each`
   value
