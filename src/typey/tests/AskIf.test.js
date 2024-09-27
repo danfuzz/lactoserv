@@ -541,7 +541,9 @@ describe('plainObject', () => {
     expect(AskIf.plainObject(value)).toBeFalse();
   });
 
-  function WackyHookup() {}
+  function WackyHookup() {
+    // @emptyBlock
+  }
   WackyHookup.prototype.constructor = Object;
 
   test.each`
