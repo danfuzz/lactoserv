@@ -29,7 +29,7 @@ Breaking changes:
   * `codec`: value encoding / decoding.
   * `quant`: unit quantity classes, plus wall-time representation.
   * `structy`: struct-like class definition.
-  * `util`: miscellaneous utilites (with just one class, `ErrorUtil`, at least
+  * `util`: miscellaneous utilities (with just one class, `ErrorUtil`, at least
     for now).
 
 Other notable changes:
