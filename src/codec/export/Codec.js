@@ -193,7 +193,7 @@ export class Codec extends BaseCodec {
     } else {
       if (Object.isFrozen(orig) || (Object.getOwnPropertySymbols(orig).length !== 0)) {
         // It is a "change" in that the result we return omits symbol-keyed
-        // properties or is intentional not-frozen.
+        // properties or is intentionally not-frozen.
         anyChange = true;
       }
       return anyChange ? result : orig;
