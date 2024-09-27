@@ -15,18 +15,18 @@ import { AskIf } from '@this/typey';
  */
 export class BaseValueVisitor {
   /**
+   * Map from visited values to their visitor results.
+   *
+   * @type {Map<*, { ok: boolean, promise: Promise, result: *, error: * }>}
+   */
+  #results = new Map();
+
+  /**
    * The root value being visited.
    *
    * @type {*}
    */
   #value;
-
-  /**
-   * Promise for the result of visiting, or `null` if not yet set up.
-   *
-   * @type {Promise}
-   */
-  #visitResult = null;
 
   /**
    * Constructs an instance whose purpose in life is to visit the indicated
@@ -61,11 +61,7 @@ export class BaseValueVisitor {
    *   method which processed `value`.
    */
   async visit() {
-    if (!this.#visitResult) {
-      this.#visitResult = this.#visitNode(this.#value);
-    }
-
-    return this.#visitResult;
+    return this.#visitNode(this.#value);
   }
 
   /**
@@ -76,6 +72,42 @@ export class BaseValueVisitor {
    * @returns {*} Whatever the corresponding `_impl_*()` returned.
    */
   async #visitNode(node) {
+    const already = this.#results.get(node);
+
+    if (already) {
+      if (already.ok === true) {
+        return already.result;
+      } else if (already.ok === false) {
+        return already.error;
+      } else {
+        return already.promise;
+      }
+    }
+
+    const promise  = this.#visitNode0(node);
+    const mapValue = { ok: null, promise, result: null, error: null };
+
+    this.#results.set(node, mapValue);
+
+    try {
+      const result = await promise;
+      mapValue.ok     = true;
+      mapValue.result = result;
+      return result;
+    } catch (e) {
+      mapValue.ok    = false;
+      mapValue.error = e;
+      throw e;
+    }
+  }
+
+  /**
+   * Helper for {@link #visitNode}, which does the main dispatch work.
+   *
+   * @param {*} node The node being visited.
+   * @returns {*} Whatever the corresponding `_impl_*()` returned.
+   */
+  async #visitNode0(node) {
     switch (typeof node) {
       case 'bigint': {
         return this._impl_visitBigInt(node);
