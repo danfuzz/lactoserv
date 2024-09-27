@@ -1,0 +1,278 @@
+// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
+
+import { types } from 'node:util';
+
+import { AskIf } from '@this/typey';
+
+
+/**
+ * Abstract base class which implements the classic "visitor" pattern for
+ * iterating over JavaScript values and their components, using depth-first
+ * traversal.
+ *
+ * @abstract
+ */
+export class BaseValueVisitor {
+  /**
+   * The root value being visited.
+   *
+   * @type {*}
+   */
+  #value;
+
+  /**
+   * Promise for the result of visiting, or `null` if not yet set up.
+   *
+   * @type {Promise}
+   */
+  #visitResult = null;
+
+  /**
+   * Constructs an instance whose purpose in life is to visit the indicated
+   * value.
+   *
+   * @param {*} value The value to visit.
+   */
+  constructor(value) {
+    this.#value = value;
+  }
+
+  /**
+   * @returns {*} The root value being visited by this instance, that is, the
+   * `value` passed in to the constructor of this instance.
+   */
+  get value() {
+    return this.#value;
+  }
+
+  /**
+   * Visits this instance's designated value. This in turn calls through to the
+   * various `_impl_*()` methods, as appropriate. The return value is whatever
+   * was returned from the `_impl_*()` method that was called to do the main
+   * processing of the value.
+   *
+   * If this method is called more than once on any given instance, the visit
+   * procedure is only actually run once; subsequent calls reuse the return
+   * value from the first call, even if the first call is still in progress at
+   * the time of the call.
+   *
+   * @returns {*} Whatever the concrete class returned from the `_impl_*()`
+   *   method which processed `value`.
+   */
+  async visit() {
+    if (!this.#visitResult) {
+      this.#visitResult = this.#visitNode(this.#value);
+    }
+
+    return this.#visitResult;
+  }
+
+  /**
+   * Visitor for a "node" (referenced value, including possibly the root) of the
+   * graph of values being visited.
+   *
+   * @param {*} node The node being visited.
+   * @returns {*} Whatever the corresponding `_impl_*()` returned.
+   */
+  async #visitNode(node) {
+    switch (typeof node) {
+      case 'bigint': {
+        return this._impl_visitBigInt(node);
+      }
+
+      case 'boolean': {
+        return this._impl_visitBoolean(node);
+      }
+
+      case 'number': {
+        return this._impl_visitNumber(node);
+      }
+
+      case 'string': {
+        return this._impl_visitString(node);
+      }
+
+      case 'symbol': {
+        return this._impl_visitSymbol(node);
+      }
+
+      case 'undefined': {
+        return this._impl_visitUndefined();
+      }
+
+      case 'function': {
+        if (types.isProxy(node)) {
+          return this._impl_visitProxy(node, true);
+        } else if (AskIf.callableFunction(node)) {
+          return this._impl_visitFunction(node);
+        } else {
+          return this._impl_visitClass(node);
+        }
+      }
+
+      case 'object': {
+        if (node === null) {
+          return this._impl_visitNull();
+        } else if (types.isProxy(node)) {
+          return this._impl_visitProxy(node, false);
+        } else if (Array.isArray(node)) {
+          return this._impl_visitArray(node);
+        } else if (AskIf.plainObject(node)) {
+          return this._impl_visitPlainObject(node);
+        } else {
+          return this._impl_visitInstance(node);
+        }
+      }
+    }
+
+    // JavaScript added a new type after this code was written!
+    throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
+  }
+
+  /**
+   * Visits an array. The base implementation returns the given `node` as-is.
+   * Subclasses that wish to traverse the contents can do so by calling `<TODO
+   * call to method that does not yet exist>`.
+   *
+   * @param {Array} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitArray(node) {
+    return node;
+  }
+
+  /**
+   * Visits a `bigint` value. The base implementation returns the given `node`
+   * as-is.
+   *
+   * @param {bigint} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitBigInt(node) {
+    return node;
+  }
+
+  /**
+   * Visits a `boolean` value. The base implementation returns the given `node`
+   * as-is.
+   *
+   * @param {boolean} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitBoolean(node) {
+    return node;
+  }
+
+  /**
+   * Visits a "class," that is, a constructor function which is only usable via
+   * `new` expressions. The base implementation returns the given `node` as-is.
+   *
+   * @param {function(new:*)} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitClass(node) {
+    return node;
+  }
+
+  /**
+   * Visits a _callable_ function, that is, a function which is known to not
+   * _only_ be usable as a constructor (even if it is typically supposed to be
+   * used as such). The base implementation returns the given `node` as-is.
+   *
+   * @param {function()} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitFunction(node) {
+    return node;
+  }
+
+  /**
+   * Visits an instance, that is, a non-`null` value of type `object` which has
+   * a `prototype` that indicates that it is an instance of _something_ other
+   * than `Object`. The base implementation returns the given `node` as-is.
+   *
+   * @param {object} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitInstance(node) {
+    return node;
+  }
+
+  /**
+   * Visits the literal value `null`. The base implementation returns `null`.
+   *
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitNull() {
+    return null;
+  }
+
+  /**
+   * Visits a `number` value. The base implementation returns the given `node`
+   * as-is.
+   *
+   * @param {number} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitNumber(node) {
+    return node;
+  }
+
+  /**
+   * Visits a plain object value, that is, a non-`null` value of type `object`,
+   * which has a `prototype` of either `null` or the class `Object`. The base
+   * implementation returns the given `node` as-is.
+   *
+   * @param {object} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitPlainObject(node) {
+    return node;
+  }
+
+  /**
+   * Visits a proxy value, that is, a value which uses the JavaScript `Proxy`
+   * mechanism for its implementation. The base implementation returns the given
+   * `node` as-is.
+   *
+   * @param {*} node The node to visit.
+   * @param {boolean} isFunction The result of `typeof node === 'function'`.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitProxy(node, isFunction) { // eslint-disable-line no-unused-vars
+    return node;
+  }
+
+  /**
+   * Visits a `string` value. The base implementation returns the given `node`
+   * as-is.
+   *
+   * @param {string} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitString(node) {
+    return node;
+  }
+
+  /**
+   * Visits a `symbol` value. The base implementation returns the given `node`
+   * as-is.
+   *
+   * @param {number} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitSymbol(node) {
+    return node;
+  }
+
+  /**
+   * Visits the literal value `undefined`. The base implementation returns
+   * `undefined`.
+   *
+   * @returns {*} Arbitrary result of visiting.
+   */
+  async _impl_visitUndefined() {
+    return undefined;
+  }
+}
