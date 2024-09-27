@@ -17,7 +17,8 @@ Breaking changes:
     identical to a classic s-expression.
 
 Other notable changes:
-* None.
+* `webapp-util`:
+  * Fixed `Rotator` and `Saver` to not bother "preserving" empty files.
 
 ### v0.8.1 -- 2024-09-26
 
