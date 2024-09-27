@@ -445,9 +445,10 @@ describe('constructorFunction()', () => {
     }
 
     test.each`
-    label                         | value
-    ${'an arrow function'}        | ${() => 123}
-    ${'a modern class\'s method'} | ${new Boop().beep}
+    label                           | value
+    ${'an arrow function'}          | ${() => 123}
+    ${'a built-in class\'s method'} | ${new Map().get}
+    ${'a modern class\'s method'}   | ${new Boop().beep}
     `('returns false given $label', ({ value }) => {
       expect(AskIf.constructorFunction(value)).toBeFalse();
     });
@@ -463,6 +464,8 @@ describe('constructorFunction()', () => {
     });
   });
 
+  // This is the surprising but -- alas! -- correct result due to JavaScript's
+  // historical "all functions are constructors" stance.
   test('returns true given a classic `function` function', () => {
     function florp() { return 123; }
     expect(AskIf.constructorFunction(florp)).toBeTrue();

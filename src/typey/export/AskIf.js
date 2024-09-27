@@ -168,10 +168,13 @@ export class AskIf {
   /**
    * Checks for type "constructor function," that is whether the given value is
    * a function which will allow calling when preceded by `new`. These are of
-   * course also often just called "classes."
+   * course also often just called "classes." However, unfortunately, many "just
+   * supposed to be a function" functions in JavaScript are in fact still set up
+   * such that they don't mind getting called with `new`, and this method cannot
+   * tell the difference between those and "real" classes.
    *
-   * **Note:** This implementation is imperfect and inefficient. There is a TC39
-   * proposal that would address this problem:
+   * **Note:** This implementation is imperfect (see above) and inefficient.
+   * There is a TC39 proposal that would address this problem:
    * <https://github.com/caitp/TC39-Proposals/blob/HEAD/tc39-reflect-isconstructor-iscallable.md>
    * Unfortunately it is not (as of this writing) close to being accepted.
    *
