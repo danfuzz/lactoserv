@@ -254,7 +254,9 @@ export class BaseValueVisitor {
   /**
    * Visits a plain object value, that is, a non-`null` value of type `object`,
    * which has a `prototype` of either `null` or the class `Object`. The base
-   * implementation returns the given `node` as-is.
+   * implementation returns the given `node` as-is. Subclasses that wish to
+   * traverse the contents can do so by calling {@link
+   * #_prot_visitObjectProperties}.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -309,10 +311,10 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the stored values and any other properties of an array, _excluding_
-   * `length`. Returns an array consisting of all the visited values, with the
-   * same indices / property names. If the original `node` is a sparse array,
-   * the result will have the same "holes."
+   * Visits the indexed values and any other properties of an array, _excluding_
+   * `length`. Returns an array consisting of all the visited values, with
+   * indices / property names corresponding to the original. If the original
+   * `node` is a sparse array, the result will have the same "holes."
    *
    * @param {Array} node The node whose contents are to be visited.
    * @returns {Array} An array of visited results.
@@ -325,6 +327,24 @@ export class BaseValueVisitor {
       if (nameOrIndex !== 'length') {
         result[nameOrIndex] = await this.#visitNode(node[nameOrIndex]);
       }
+    }
+
+    return result;
+  }
+
+  /**
+   * Visits the property valies of an object (typically a plain object).
+   * Returns a new plain object consisting of all the visited values, with
+   * property names corresponding to the original.
+   *
+   * @param {object} node The node whose contents are to be visited.
+   * @returns {object} A `null`-prototype object with the visited results.
+   */
+  async _prot_visitObjectProperties(node) {
+    const result = Object.create(null);
+
+    for (const name of Object.getOwnPropertyNames(node)) {
+      result[name] = await this.#visitNode(node[name]);
     }
 
     return result;
