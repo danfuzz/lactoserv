@@ -263,7 +263,7 @@ export class BaseFilePreserver {
 
     try {
       stats = await Statter.statOrNull(origPath);
-      if (!stats) {
+      if (!stats || (stats.size === 0)) {
         return;
       }
     } catch (e) {
