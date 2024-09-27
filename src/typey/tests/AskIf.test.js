@@ -541,6 +541,19 @@ describe('plainObject', () => {
     expect(AskIf.plainObject(value)).toBeFalse();
   });
 
+  function WackyHookup() {}
+  WackyHookup.prototype.constructor = Object;
+
+  test.each`
+  value                | label
+  ${/regex/}           | ${'RegExp instance'}
+  ${[]}                | ${'empty array'}
+  ${['boop']}          | ${'non-empty array'}
+  ${new WackyHookup()} | ${'strangely hooked-up "old-style" class'}
+  `('returns `false` for $label', ({ value }) => {
+    expect(AskIf.plainObject(value)).toBeFalse();
+  });
+
   test('returns `false` for a newly-defined function', () => {
     function florp() {
       return null;
@@ -567,6 +580,10 @@ describe('plainObject', () => {
 
   test('returns `true` for a non-empty inline plain object', () => {
     expect(AskIf.plainObject({ a: 'florp' })).toBeTrue();
+  });
+
+  test('returns `true` for an inline plain object with property `constructor`', () => {
+    expect(AskIf.plainObject({ constructor: Map })).toBeTrue();
   });
 
   test('returns `true` for an object created with `new Object()` per se', () => {
