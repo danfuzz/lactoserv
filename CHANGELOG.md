@@ -13,8 +13,8 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * `codec`:
   * Renamed several classes to match with the (relatively) new module name.
-  * Dropped the `options` property from `Sexp`, making it now effectively
-    identical to a classic s-expression.
+  * Dropped the `options` property from `Sexp`, making it now equivalent
+    to a classic s-expression (practically speaking, at least).
 
 Other notable changes:
 * `webapp-util`:
