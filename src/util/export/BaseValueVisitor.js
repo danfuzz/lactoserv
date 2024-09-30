@@ -385,19 +385,11 @@ export class BaseValueVisitor {
    * `node` is a sparse array, the result will have the same "holes."
    *
    * @param {Array} node The node whose contents are to be visited.
-   * @returns {Array} An array of visited results.
+   * @returns {Array|Promise} An array of visited results, or a promise for same
+   *   in the case where any of the visitor methods act asynchronously.
    */
-  async _prot_visitArrayProperties(node) {
-    const length    = node.length;
-    const result    = Array(length);
-
-    for (const nameOrIndex of Object.getOwnPropertyNames(node)) {
-      if (nameOrIndex !== 'length') {
-        result[nameOrIndex] = await this.#visitNode(node[nameOrIndex]);
-      }
-    }
-
-    return result;
+  _prot_visitArrayProperties(node) {
+    return this.#visitProperties(node, Array(node.length));
   }
 
   /**
@@ -406,16 +398,12 @@ export class BaseValueVisitor {
    * property names corresponding to the original.
    *
    * @param {object} node The node whose contents are to be visited.
-   * @returns {object} A `null`-prototype object with the visited results.
+   * @returns {object|Promise} A `null`-prototype object with the visited
+   *   results, or a promise for same in the case where any of the visitor
+   *   methods act asynchronously.
    */
-  async _prot_visitObjectProperties(node) {
-    const result = Object.create(null);
-
-    for (const name of Object.getOwnPropertyNames(node)) {
-      result[name] = await this.#visitNode(node[name]);
-    }
-
-    return result;
+  _prot_visitObjectProperties(node) {
+    return this.#visitProperties(node, Object.create(null));
   }
 
   /**
@@ -438,6 +426,47 @@ export class BaseValueVisitor {
     }
 
     return result;
+  }
+
+  /**
+   * Helper for {@link #_prot_visitArrayProperties} and
+   * {@link #_prot_visitObjectProperties}, which does most of the work.
+   *
+   * @param {object} node The node whose contents are to be visited.
+   * @param {object} result The result object or array to be filled in.
+   * @returns {object|Promise} `result` if the visitor acted entirely
+   *   synchronously, or a promise for `result` if not.
+   */
+  #visitProperties(node, result) {
+    const isArray   = Array.isArray(result);
+    const promNames = [];
+
+    for (const nameOrIndex of Object.getOwnPropertyNames(node)) {
+      if (!(isArray && (nameOrIndex === 'length'))) {
+        const got = this.#visitNode(node[nameOrIndex]);
+        if (got instanceof Promise) {
+          promNames.push(nameOrIndex);
+          result[nameOrIndex] = got.promise;
+        } else if (got.ok) {
+          result[nameOrIndex] = got.result;
+        } else {
+          throw got.error;
+        }
+      }
+    }
+
+    if (promNames.length === 0) {
+      return result;
+    } else {
+      // There was at least one promise returned from visiting an element.
+      return (async () => {
+        for (const nameOrIndex of promNames) {
+          result[nameOrIndex] = await result[nameOrIndex];
+        }
+
+        return result;
+      })();
+    }
   }
 
 
