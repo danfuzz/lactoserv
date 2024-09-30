@@ -475,17 +475,29 @@ export class BaseValueVisitor {
     const isArray   = Array.isArray(result);
     const promNames = [];
 
-    for (const nameOrIndex of Object.getOwnPropertyNames(node)) {
-      if (!(isArray && (nameOrIndex === 'length'))) {
-        const got = this.#visitNode(node[nameOrIndex]);
+    for (const name of Object.getOwnPropertyNames(node)) {
+      if (!(isArray && (name === 'length'))) {
+        const got = this.#visitNode(node[name]);
         if (got.ok === null) {
-          promNames.push(nameOrIndex);
-          result[nameOrIndex] = got.promise;
+          promNames.push(name);
+          result[name] = got.promise;
         } else if (got.ok) {
-          result[nameOrIndex] = got.result;
+          result[name] = got.result;
         } else {
           throw got.error;
         }
+      }
+    }
+
+    for (const name of Object.getOwnPropertySymbols(node)) {
+      const got = this.#visitNode(node[name]);
+      if (got.ok === null) {
+        promNames.push(name);
+        result[name] = got.promise;
+      } else if (got.ok) {
+        result[name] = got.result;
+      } else {
+        throw got.error;
       }
     }
 
@@ -494,8 +506,8 @@ export class BaseValueVisitor {
     } else {
       // There was at least one promise returned from visiting an element.
       return (async () => {
-        for (const nameOrIndex of promNames) {
-          result[nameOrIndex] = (await result[nameOrIndex]).extract();
+        for (const name of promNames) {
+          result[name] = (await result[name]).extract();
         }
 
         return result;
