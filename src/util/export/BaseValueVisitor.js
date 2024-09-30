@@ -49,7 +49,10 @@ export class BaseValueVisitor {
    * Visits this instance's designated value. This in turn calls through to the
    * various `_impl_*()` methods, as appropriate. The return value is whatever
    * was returned from the `_impl_*()` method that was called to do the main
-   * processing of the value.
+   * processing of the value, except that this method "collapses" the promises
+   * that result from asynchronous visitor behavior with the promises that are
+   * direct visitor results. See {@link #visitWrap} for a "promise-preserving"
+   * variant.
    *
    * If this method is called more than once on any given instance, the visit
    * procedure is only actually run once; subsequent calls reuse the return
@@ -62,18 +65,26 @@ export class BaseValueVisitor {
   async visit() {
     const visitEntry = this.#visitNode(this.#value);
 
-    // If `ok` is _either_ `null` or `false`, we just let the promise mechanics
-    // handle it, keeping things simpler (with the cost being a negligible bit
-    // of performance in the case of an error).
-    return visitEntry.ok
-      ? visitEntry.result
-      : visitEntry.promise;
+    if (visitEntry.ok === null) {
+      // Wait for the visit to complete, either successfully or not. This should
+      // never throw.
+      await visitEntry.promise;
+    }
+
+    if (visitEntry.ok) {
+      // Note: If `result` is a promise, this will cause the caller to
+      // ultimately receive the resolved/rejected value of it. See the header
+      // comment for details.
+      return visitEntry.result;
+    } else {
+      throw visitEntry.error;
+    }
   }
 
   /**
-   * Visits this instance's designated value synchronously, failing if the visit
-   * could not in fact be completed synchronously. Other than that, this is
-   * identical to {@link #visit}.
+   * Similar to {@link #visit}, except (a) it will fail if the visit could not
+   * complete synchronously, and (b) a returned promise is only ever due to a
+   * visitor returning a promise per se (and not from it acting asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
@@ -95,6 +106,32 @@ export class BaseValueVisitor {
         // This is indicative of a bug in this class.
         throw new Error('Shouldn\'t happen.');
       }
+    }
+  }
+
+  /**
+   * Like {@link #visit}, except that successful results are wrapped in an
+   * instance of {@link BaseValueVisitor#WrappedResult}, which makes it possible
+   * for a caller to tell the difference between a promise which is returned
+   * because the visitor is acting asynchronously and a promise which is
+   * returned because that's an actual visitor result.
+   *
+   * @returns {*} Whatever result was returned from the `_impl_*()` method which
+   * processed the original `value`.
+   */
+  async visitWrap() {
+    const visitEntry = this.#visitNode(this.#value);
+
+    if (visitEntry.ok === null) {
+      // Wait for the visit to complete, either successfully or not. This should
+      // never throw.
+      await visitEntry.promise;
+    }
+
+    if (visitEntry.ok) {
+      return new BaseValueVisitor.WrappedResult(visitEntry.result);
+    } else {
+      throw visitEntry.error;
     }
   }
 
@@ -126,15 +163,12 @@ export class BaseValueVisitor {
       const done = this.#visitNode0(visitEntry);
 
       if (visitEntry.ok === null) {
-        // This is not ever supposed to throw. (See implementation below.)
+        // This is not ever supposed to throw. (See implementation of
+        // `visitNode0()`, below.)
         await done;
       }
 
-      if (visitEntry.ok) {
-        return visitEntry.result;
-      } else {
-        throw visitEntry.error;
-      }
+      return visitEntry;
     })();
 
     return visitEntry;
@@ -158,7 +192,7 @@ export class BaseValueVisitor {
       }
 
       visitEntry.ok     = true;
-      visitEntry.result = (result instanceof BaseValueVisitor.#WrappedResult)
+      visitEntry.result = (result instanceof BaseValueVisitor.WrappedResult)
         ? result.value
         : result;
     } catch (e) {
@@ -421,7 +455,7 @@ export class BaseValueVisitor {
     if ((type === 'object') || (type === 'function')) {
       // Intentionally conservative check.
       if ((typeof result.then) === 'function') {
-        return new BaseValueVisitor.#WrappedResult(result);
+        return new BaseValueVisitor.WrappedResult(result);
       }
     }
 
@@ -461,7 +495,7 @@ export class BaseValueVisitor {
       // There was at least one promise returned from visiting an element.
       return (async () => {
         for (const nameOrIndex of promNames) {
-          result[nameOrIndex] = await result[nameOrIndex];
+          result[nameOrIndex] = (await result[nameOrIndex]).extract();
         }
 
         return result;
@@ -475,11 +509,41 @@ export class BaseValueVisitor {
   //
 
   /**
+   * Entry in a {@link #visits} map.
+   */
+  static #VisitEntry = class VisitEntry {
+    node;
+    ok = null;
+    promise;
+    error = null;
+    result = null;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {*} node The node whose visit is being represented.
+     */
+    constructor(node) {
+      this.node = node;
+    }
+
+    extract() {
+      if (this.ok === null) {
+        throw new Error('Visit not complete.');
+      } else if (this.ok) {
+        return this.result;
+      } else {
+        throw this.error;
+      }
+    }
+  };
+
+  /**
    * Wrapper for visitor results, used to disambiguate `Promises` used as part
    * of the visitor mechanism from `Promises` used as the actual results of
    * visiting something.
    */
-  static #WrappedResult = class WrappedResult {
+  static WrappedResult = class WrappedResult {
     /**
      * The wrapped value.
      *
@@ -499,26 +563,6 @@ export class BaseValueVisitor {
     /** @returns {*} The wrapped value. */
     get value() {
       return this.#value;
-    }
-  };
-
-  /**
-   * Entry in a {@link #visits} map.
-   */
-  static #VisitEntry = class VisitEntry {
-    node;
-    ok = null;
-    promise;
-    error = null;
-    result = null;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {*} node The node whose visit is being represented.
-     */
-    constructor(node) {
-      this.node = node;
     }
   };
 }
