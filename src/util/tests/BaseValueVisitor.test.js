@@ -33,6 +33,10 @@ const EXAMPLES = [
  * Visitor subclass, with some synchronous and some asynchronous behavior.
  */
 class SubVisit extends BaseValueVisitor {
+  _impl_visitBigInt(node) {
+    throw new Error('Nope!');
+  }
+
   async _impl_visitBoolean(node) {
     await setImmediate();
     return `${node}`;
@@ -101,6 +105,13 @@ describe('visit()', () => {
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
   });
+
+  test('throws the error which was thrown by an `_impl_visit*()` method', async () => {
+    const vv  = new SubVisit(123n);
+    const got = vv.visit();
+
+    await expect(got).rejects.toThrow('Nope!');
+  });
 });
 
 describe('visitSync()', () => {
@@ -118,6 +129,12 @@ describe('visitSync()', () => {
     const vv  = new BaseValueVisitor(value);
     const got = vv.visitSync();
     expect(got).toBe(value);
+  });
+
+  test('throws the error which was thrown by an `_impl_visit*()` method', () => {
+    const vv  = new SubVisit(123n);
+
+    expect(() => vv.visitSync()).toThrow('Nope!');
   });
 });
 
@@ -146,6 +163,13 @@ describe('visitWrap()', () => {
     expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
 
     expect(got.value).toBe(value);
+  });
+
+  test('throws the error which was thrown by an `_impl_visit*()` method', async () => {
+    const vv  = new SubVisit(123n);
+    const got = vv.visitWrap();
+
+    await expect(got).rejects.toThrow('Nope!');
   });
 });
 
