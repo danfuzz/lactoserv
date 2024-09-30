@@ -48,6 +48,10 @@ class SubVisit extends BaseValueVisitor {
     return `${node}`;
   }
 
+  async _impl_visitSymbol(node_unused) {
+    throw new Error('NO');
+  }
+
   _impl_visitArray(node) {
     return this._prot_visitArrayProperties(node);
   }
@@ -108,11 +112,18 @@ describe('visit()', () => {
     expect(await got).toBe('zonk');
   });
 
-  test('throws the error which was thrown by an `_impl_visit*()` method', async () => {
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
     const vv  = new SubVisit(123n);
     const got = vv.visit();
 
     await expect(got).rejects.toThrow('Nope!');
+  });
+
+  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+    const vv  = new SubVisit(Symbol('eep'));
+    const got = vv.visit();
+
+    await expect(got).rejects.toThrow('NO');
   });
 });
 
@@ -133,7 +144,7 @@ describe('visitSync()', () => {
     expect(got).toBe(value);
   });
 
-  test('throws the error which was thrown by an `_impl_visit*()` method', () => {
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', () => {
     const vv  = new SubVisit(123n);
 
     expect(() => vv.visitSync()).toThrow('Nope!');
@@ -167,11 +178,18 @@ describe('visitWrap()', () => {
     expect(got.value).toBe(value);
   });
 
-  test('throws the error which was thrown by an `_impl_visit*()` method', async () => {
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
     const vv  = new SubVisit(123n);
     const got = vv.visitWrap();
 
     await expect(got).rejects.toThrow('Nope!');
+  });
+
+  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+    const vv  = new SubVisit(Symbol('eep'));
+    const got = vv.visitWrap();
+
+    await expect(got).rejects.toThrow('NO');
   });
 });
 
