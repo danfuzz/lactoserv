@@ -62,21 +62,12 @@ export class BaseValueVisitor {
   async visit() {
     const visitEntry = this.#visitNode(this.#value);
 
-    switch (visitEntry.ok) {
-      case null: {
-        return visitEntry.promise;
-      }
-      case false: {
-        throw visitEntry.error;
-      }
-      case true: {
-        return visitEntry.result;
-      }
-      default: {
-        // There should be no other cases in practice.
-        throw new Error('Shouldn\'t happen.');
-      }
-    }
+    // If `ok` is _either_ `null` or `false`, we just let the promise mechanics
+    // handle it, keeping things simpler (with the cost being a negligible bit
+    // of performance in the case of an error).
+    return visitEntry.ok
+      ? visitEntry.result
+      : visitEntry.promise;
   }
 
   /**
@@ -101,7 +92,7 @@ export class BaseValueVisitor {
         return visitEntry.result;
       }
       default: {
-        // There should be no other cases in practice.
+        // This is indicative of a bug in this class.
         throw new Error('Shouldn\'t happen.');
       }
     }
