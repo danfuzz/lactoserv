@@ -206,6 +206,12 @@ describe('_prot_visitArrayProperties()', () => {
     expect(got).toEqual(['false', '1', ['true', '2'], 'false']);
   });
 
+  test('synchronously propagates an error thrown by one of the sub-calls', () => {
+    const vv = new SubVisit([456n]);
+
+    expect(() => vv.visitSync()).toThrow('Nope!');
+  });
+
   test('preserves sparseness', () => {
     const UND  = undefined;
     const orig = Array(7);
@@ -288,6 +294,12 @@ describe('_prot_visitObjectProperties()', () => {
     const got  = await vv.visit();
 
     expect(got).toEqual({ x: 'false', y: '1', z: { a: 'true', b: '2' } });
+  });
+
+  test('synchronously propagates an error thrown by one of the sub-calls', () => {
+    const vv = new SubVisit({ blorp: 456n });
+
+    expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
   test('handles symbol properties', () => {
