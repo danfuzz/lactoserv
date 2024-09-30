@@ -126,3 +126,67 @@ describe('visitWrap()', () => {
     expect(got.value).toBe(value);
   });
 });
+
+describe('_prot_visitArrayProperties()', () => {
+  class SubVisit extends BaseValueVisitor {
+    async _impl_visitBoolean(node) {
+      await setImmediate();
+      return `${node}`;
+    }
+    _impl_visitNumber(node) {
+      return `${node}`;
+    }
+    _impl_visitArray(node) {
+      return this._prot_visitArrayProperties(node);
+    }
+  }
+
+  test('operates synchronously when possible', () => {
+    const orig = [1, 2];
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual(['1', '2']);
+  });
+
+  test('operates synchronously when possible, and recursively', () => {
+    const orig = [1, 2, [3, 4], 5];
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual(['1', '2', ['3', '4'], '5']);
+  });
+
+  test('operates asynchronously', async () => {
+    const orig = [false, true];
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+
+    expect(got).toEqual(['false', 'true']);
+  });
+
+  test('operates asynchronously and recursively', async () => {
+    const orig = [false, 1, [true, 2], false];
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+
+    expect(got).toEqual(['false', '1', ['true', '2'], 'false']);
+  });
+
+  test('preserves sparseness', () => {
+    const UND  = undefined;
+    const orig = Array(7);
+
+    orig[2] = 'x';
+    orig[4] = 'y';
+    orig[5] = 5;
+
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual([UND, UND, 'x', UND, 'y', '5', UND]);
+    for (let i = 0; i < 10; i++) {
+      expect(i in got).toBe(i in orig);
+    }
+  });
+});
