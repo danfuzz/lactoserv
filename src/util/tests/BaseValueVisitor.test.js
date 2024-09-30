@@ -26,7 +26,9 @@ const EXAMPLES = [
   Symbol('zonk'),
   ['yo', 'there'],
   { what: 'is up?' },
-  new Set(['x', 'y', 'z'])
+  new Set(['x', 'y', 'z']),
+  (x, y) => { return x < y; },
+  class Flomp { /*empty*/ }
 ];
 
 /**
