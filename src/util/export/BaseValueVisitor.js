@@ -478,7 +478,7 @@ export class BaseValueVisitor {
     for (const nameOrIndex of Object.getOwnPropertyNames(node)) {
       if (!(isArray && (nameOrIndex === 'length'))) {
         const got = this.#visitNode(node[nameOrIndex]);
-        if (got instanceof Promise) {
+        if (got.ok === null) {
           promNames.push(nameOrIndex);
           result[nameOrIndex] = got.promise;
         } else if (got.ok) {
