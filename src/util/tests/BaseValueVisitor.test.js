@@ -35,7 +35,7 @@ const EXAMPLES = [
  * Visitor subclass, with some synchronous and some asynchronous behavior.
  */
 class SubVisit extends BaseValueVisitor {
-  _impl_visitBigInt(node) {
+  _impl_visitBigInt(node_unused) {
     throw new Error('Nope!');
   }
 
