@@ -12,6 +12,8 @@ const REJECTED_ERROR   = new Error('from-a-promise');
 const PENDING_PROMISE  = Promise.race([]);
 const RESOLVED_PROMISE = Promise.resolve(RESOLVED_VALUE);
 const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
+
+REJECTED_ERROR.stack = 'some-stack';
 PromiseUtil.handleRejection(REJECTED_PROMISE);
 
 const EXAMPLES = [
@@ -99,6 +101,21 @@ describe('visitSync()', () => {
 
 describe('visitWrap()', () => {
   test.each(EXAMPLES)('async-returns value as-is: %o', async (value) => {
+    const vv      = new BaseValueVisitor(value);
+    const gotProm = vv.visitWrap();
+    expect(gotProm).toBeInstanceOf(Promise);
+
+    const got = await gotProm;
+    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+
+    expect(got.value).toBe(value);
+  });
+
+  test.each([
+    RESOLVED_PROMISE,
+    REJECTED_PROMISE,
+    PENDING_PROMISE
+  ])('async-returns promise as-is: %o', async (value) => {
     const vv      = new BaseValueVisitor(value);
     const gotProm = vv.visitWrap();
     expect(gotProm).toBeInstanceOf(Promise);
