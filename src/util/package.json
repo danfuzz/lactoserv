@@ -11,5 +11,10 @@
   "imports": {
     "#x/*": "./export/*.js",
     "#tests/*": "./tests/*.js"
+  },
+
+  "dependencies": {
+    "@this/async": "*",
+    "@this/typey": "*"
   }
 }
