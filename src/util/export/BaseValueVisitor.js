@@ -102,10 +102,12 @@ export class BaseValueVisitor {
       case true: {
         return visitEntry.result;
       }
+      /* c8 ignore start */
       default: {
         // This is indicative of a bug in this class.
         throw new Error('Shouldn\'t happen.');
       }
+      /* c8 ignore stop */
     }
   }
 
@@ -257,10 +259,12 @@ export class BaseValueVisitor {
         }
       }
 
+      /* c8 ignore start */
       default: {
         // JavaScript added a new type after this code was written!
         throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
       }
+      /* c8 ignore stop */
     }
   }
 
