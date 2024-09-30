@@ -16,6 +16,9 @@ const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
 REJECTED_ERROR.stack = 'some-stack';
 PromiseUtil.handleRejection(REJECTED_PROMISE);
 
+const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
+const FUNCTION_PROXY = new Proxy(() => 123, {});
+
 const EXAMPLES = [
   undefined,
   null,
@@ -28,7 +31,9 @@ const EXAMPLES = [
   { what: 'is up?' },
   new Set(['x', 'y', 'z']),
   (x, y) => { return x < y; },
-  class Flomp { /*empty*/ }
+  class Flomp { /*empty*/ },
+  OBJECT_PROXY,
+  FUNCTION_PROXY
 ];
 
 /**
