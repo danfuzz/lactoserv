@@ -29,6 +29,28 @@ const EXAMPLES = [
   new Set(['x', 'y', 'z'])
 ];
 
+/**
+ * Visitor subclass, with some synchronous and some asynchronous behavior.
+ */
+class SubVisit extends BaseValueVisitor {
+  async _impl_visitBoolean(node) {
+    await setImmediate();
+    return `${node}`;
+  }
+
+  _impl_visitNumber(node) {
+    return `${node}`;
+  }
+
+  _impl_visitArray(node) {
+    return this._prot_visitArrayProperties(node);
+  }
+
+  _impl_visitPlainObject(node) {
+    return this._prot_visitObjectProperties(node);
+  }
+}
+
 describe('constructor()', () => {
   test.each(EXAMPLES)('does not throw given value: %o', (value) => {
     expect(() => new BaseValueVisitor(value)).not.toThrow();
@@ -78,7 +100,7 @@ describe('visit()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
-  })
+  });
 });
 
 describe('visitSync()', () => {
@@ -128,19 +150,6 @@ describe('visitWrap()', () => {
 });
 
 describe('_prot_visitArrayProperties()', () => {
-  class SubVisit extends BaseValueVisitor {
-    async _impl_visitBoolean(node) {
-      await setImmediate();
-      return `${node}`;
-    }
-    _impl_visitNumber(node) {
-      return `${node}`;
-    }
-    _impl_visitArray(node) {
-      return this._prot_visitArrayProperties(node);
-    }
-  }
-
   test('operates synchronously when possible', () => {
     const orig = [1, 2];
     const vv   = new SubVisit(orig);
@@ -219,6 +228,55 @@ describe('_prot_visitArrayProperties()', () => {
     const got  = vv.visitSync();
     expect(got).toBeArrayOfSize(1);
     expect(got[0]).toBe('123');
+    expect(got[SYM1]).toBe('234');
+    expect(got[SYM2]).toBe('321');
+  });
+});
+
+describe('_prot_visitObjectProperties()', () => {
+  test('operates synchronously when possible', () => {
+    const orig = { a: 10, b: 20 };
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual({ a: '10', b: '20' });
+  });
+
+  test('operates synchronously when possible, and recursively', () => {
+    const orig = { a: 1, b: 2, c: { d: 3, e: 4 }, f: 5 };
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual({ a: '1', b: '2',  c: { d: '3', e: '4' }, f: '5' });
+  });
+
+  test('operates asynchronously', async () => {
+    const orig = { x: false, y: true };
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+
+    expect(got).toEqual({ x: 'false', y: 'true' });
+  });
+
+  test('operates asynchronously and recursively', async () => {
+    const orig = { x: false, y: 1, z: { a: true, b: 2 } };
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+
+    expect(got).toEqual({ x: 'false', y: '1', z: { a: 'true', b: '2' } });
+  });
+
+  test('handles symbol properties', () => {
+    const SYM1 = Symbol.for('x');
+    const SYM2 = Symbol('y');
+    const orig = {
+      [SYM1]: 234,
+      [SYM2]: 321
+    };
+
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+    expect(got).toBeObject();
     expect(got[SYM1]).toBe('234');
     expect(got[SYM2]).toBe('321');
   });
