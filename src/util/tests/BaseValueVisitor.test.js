@@ -189,4 +189,37 @@ describe('_prot_visitArrayProperties()', () => {
       expect(i in got).toBe(i in orig);
     }
   });
+
+  test('handles non-numeric string properties', () => {
+    const orig = [1];
+    orig.x = 2;
+    orig.y = 3;
+
+    const expected = ['1'];
+    expected.x = '2';
+    expected.y = '3';
+
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+    expect(got).toEqual(expected);
+  });
+
+  test('handles symbol properties', () => {
+    const SYM1 = Symbol.for('x');
+    const SYM2 = Symbol('y');
+    const orig = [123];
+    orig[SYM1] = 234;
+    orig[SYM2] = 321;
+
+    const expected = ['123'];
+    expected[SYM1] = '234';
+    expected[SYM2] = '321';
+
+    const vv   = new SubVisit(orig);
+    const got  = vv.visitSync();
+    expect(got).toBeArrayOfSize(1);
+    expect(got[0]).toBe('123');
+    expect(got[SYM1]).toBe('234');
+    expect(got[SYM2]).toBe('321');
+  });
 });
