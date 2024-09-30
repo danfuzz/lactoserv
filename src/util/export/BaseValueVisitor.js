@@ -524,10 +524,40 @@ export class BaseValueVisitor {
    * Entry in a {@link #visits} map.
    */
   static #VisitEntry = class VisitEntry {
+    /**
+     * The value whose visit this entry represents.
+     *
+     * @type {*}
+     */
     node;
+
+    /**
+     * Success-or-error flag, or `null` if the visit is still in progress.
+     *
+     * @type {?boolean}
+     */
     ok = null;
+
+    /**
+     * Promise for this instance, which resolves only after the visit completes.
+     *
+     * @type {Promise<BaseValueVisitor#VisitEntry>}
+     */
     promise;
+
+    /**
+     * Error thrown by the visit, or `null` if no error has yet been thrown.
+     *
+     * @type {Error}
+     */
     error = null;
+
+    /**
+     * Successful result of the visit, or `null` if the visit is either still in
+     * progress or ended with a failure.
+     *
+     * @type {*}
+     */
     result = null;
 
     /**
@@ -539,6 +569,14 @@ export class BaseValueVisitor {
       this.node = node;
     }
 
+    /**
+     * Extracts the result or error of a visit.
+     *
+     * @returns {*} The successful result of the visit, if it was indeed
+     *   successful.
+     * @throws {Error} The error resulting from the visit, if it failed; or
+     *   an error indicating that the visit is still in progress.
+     */
     extract() {
       if (this.ok === null) {
         throw new Error('Visit not complete.');
