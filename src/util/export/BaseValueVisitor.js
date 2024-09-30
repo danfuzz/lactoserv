@@ -540,10 +540,11 @@ export class BaseValueVisitor {
 
     /**
      * Promise for this instance, which resolves only after the visit completes.
+     * or `null` if this instance's corresponding visit hasn't yet been started.
      *
      * @type {Promise<BaseValueVisitor#VisitEntry>}
      */
-    promise;
+    promise = null;
 
     /**
      * Error thrown by the visit, or `null` if no error has yet been thrown.
@@ -579,7 +580,11 @@ export class BaseValueVisitor {
      */
     extract() {
       if (this.ok === null) {
-        throw new Error('Visit not complete.');
+        if (this.promise === null) {
+          throw new Error('Visit not yet started.');
+        } else {
+          throw new Error('Visit not yet complete.');
+        }
       } else if (this.ok) {
         return this.result;
       } else {
