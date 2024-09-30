@@ -5,7 +5,6 @@ import { types } from 'node:util';
 
 import { AskIf } from '@this/typey';
 
-
 /**
  * Abstract base class which implements the classic "visitor" pattern for
  * iterating over JavaScript values and their components, using depth-first
@@ -15,11 +14,11 @@ import { AskIf } from '@this/typey';
  */
 export class BaseValueVisitor {
   /**
-   * Map from visited values to their visitor results.
+   * Map from visited values to their visit-in-progress-or-completed entries.
    *
-   * @type {Map<*, { ok: boolean, promise: Promise, result: *, error: * }>}
+   * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
-  #results = new Map();
+  #visits = new Map();
 
   /**
    * The root value being visited.
@@ -57,57 +56,133 @@ export class BaseValueVisitor {
    * value from the first call, even if the first call is still in progress at
    * the time of the call.
    *
-   * @returns {*} Whatever the concrete class returned from the `_impl_*()`
-   *   method which processed `value`.
+   * @returns {*} Whatever result was returned from the `_impl_*()` method which
+   * processed the original `value`.
    */
   async visit() {
-    return this.#visitNode(this.#value);
+    const visitEntry = this.#visitNode(this.#value);
+
+    switch (visitEntry.ok) {
+      case null: {
+        return visitEntry.promise;
+      }
+      case false: {
+        throw visitEntry.error;
+      }
+      case true: {
+        return visitEntry.result;
+      }
+      default: {
+        // There should be no other cases in practice.
+        throw new Error('Shouldn\'t happen.');
+      }
+    }
+  }
+
+  /**
+   * Visits this instance's designated value synchronously, failing if the visit
+   * could not in fact be completed synchronously. Other than that, this is
+   * identical to {@link #visit}.
+   *
+   * @returns {*} Whatever result was returned from the `_impl_*()` method which
+   * processed the original `value`.
+   */
+  visitSync() {
+    const visitEntry = this.#visitNode(this.#value);
+
+    switch (visitEntry.ok) {
+      case null: {
+        throw new Error('Could not complete synchronously.');
+      }
+      case false: {
+        throw visitEntry.error;
+      }
+      case true: {
+        return visitEntry.result;
+      }
+      default: {
+        // There should be no other cases in practice.
+        throw new Error('Shouldn\'t happen.');
+      }
+    }
   }
 
   /**
    * Visitor for a "node" (referenced value, including possibly the root) of the
-   * graph of values being visited.
+   * graph of values being visited. If there is already an entry in
+   * {@link #visits} for the node, it is returned. Otherwise, a new entry is
+   * created, and visiting is initiated (and possibly, but not necessarily,
+   * finished).
    *
    * @param {*} node The node being visited.
-   * @returns {*} Whatever the corresponding `_impl_*()` returned.
+   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visits} which
+   *   represents the current state of the visit.
    */
-  async #visitNode(node) {
-    const already = this.#results.get(node);
+  #visitNode(node) {
+    const already = this.#visits.get(node);
 
     if (already) {
-      if (already.ok === true) {
-        return already.result;
-      } else if (already.ok === false) {
-        return already.error;
-      } else {
-        return already.promise;
-      }
+      return already;
     }
 
-    const promise  = this.#visitNode0(node);
-    const mapValue = { ok: null, promise, result: null, error: null };
+    const visitEntry = new BaseValueVisitor.#VisitEntry(node);
+    this.#visits.set(node, visitEntry);
 
-    this.#results.set(node, mapValue);
+    visitEntry.promise = (async () => {
+      // This is called without `await` exactly so that, in the case of a fully
+      // synchronous visitor, the ultimate result will be able to be made
+      // available synchronously.
+      const done = this.#visitNode0(visitEntry);
 
+      if (visitEntry.ok === null) {
+        // This is not ever supposed to throw. (See implementation below.)
+        await done;
+      }
+
+      if (visitEntry.ok) {
+        return visitEntry.result;
+      } else {
+        throw visitEntry.error;
+      }
+    })();
+
+    return visitEntry;
+  }
+
+  /**
+   * Helper for {@link #visitNode}, which does the main dispatch work, and
+   * stores the result or error into the entry.
+   *
+   * @param {BaseValueVisitor#VisitorEntry} visitEntry The entry for the node
+   *   being visited.
+   * @returns {null} Async-returned when visiting is completed, whether or not
+   *   successful.
+   */
+  async #visitNode0(visitEntry) {
     try {
-      const result = await promise;
-      mapValue.ok     = true;
-      mapValue.result = result;
-      return result;
+      let result = this.#visitNode1(visitEntry.node);
+
+      if (result instanceof Promise) {
+        result = await result;
+      }
+
+      visitEntry.ok     = true;
+      visitEntry.result = (result instanceof BaseValueVisitor.#WrappedResult)
+        ? result.value
+        : result;
     } catch (e) {
-      mapValue.ok    = false;
-      mapValue.error = e;
-      throw e;
+      visitEntry.ok    = false;
+      visitEntry.error = e;
     }
   }
 
   /**
-   * Helper for {@link #visitNode}, which does the main dispatch work.
+   * Helper for {@link #visitNode}, which does the actual dispatch.
    *
    * @param {*} node The node being visited.
-   * @returns {*} Whatever the corresponding `_impl_*()` returned.
+   * @returns {*} Whatever the `_impl_visit*()` method returned.
    */
-  async #visitNode0(node) {
+  #visitNode1(node) {
     switch (typeof node) {
       case 'bigint': {
         return this._impl_visitBigInt(node);
@@ -156,10 +231,12 @@ export class BaseValueVisitor {
           return this._impl_visitInstance(node);
         }
       }
-    }
 
-    // JavaScript added a new type after this code was written!
-    throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
+      default: {
+        // JavaScript added a new type after this code was written!
+        throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
+      }
+    }
   }
 
   /**
@@ -170,8 +247,8 @@ export class BaseValueVisitor {
    * @param {Array} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitArray(node) {
-    return node;
+  _impl_visitArray(node) {
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -181,7 +258,7 @@ export class BaseValueVisitor {
    * @param {bigint} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitBigInt(node) {
+  _impl_visitBigInt(node) {
     return node;
   }
 
@@ -192,7 +269,7 @@ export class BaseValueVisitor {
    * @param {boolean} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitBoolean(node) {
+  _impl_visitBoolean(node) {
     return node;
   }
 
@@ -203,8 +280,8 @@ export class BaseValueVisitor {
    * @param {function(new:*)} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitClass(node) {
-    return node;
+  _impl_visitClass(node) {
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -215,8 +292,8 @@ export class BaseValueVisitor {
    * @param {function()} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitFunction(node) {
-    return node;
+  _impl_visitFunction(node) {
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -227,8 +304,8 @@ export class BaseValueVisitor {
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitInstance(node) {
-    return node;
+  _impl_visitInstance(node) {
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -236,7 +313,7 @@ export class BaseValueVisitor {
    *
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitNull() {
+  _impl_visitNull() {
     return null;
   }
 
@@ -247,7 +324,7 @@ export class BaseValueVisitor {
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitNumber(node) {
+  _impl_visitNumber(node) {
     return node;
   }
 
@@ -261,8 +338,8 @@ export class BaseValueVisitor {
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitPlainObject(node) {
-    return node;
+  _impl_visitPlainObject(node) {
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -274,8 +351,8 @@ export class BaseValueVisitor {
    * @param {boolean} isFunction The result of `typeof node === 'function'`.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitProxy(node, isFunction) { // eslint-disable-line no-unused-vars
-    return node;
+  _impl_visitProxy(node, isFunction) { // eslint-disable-line no-unused-vars
+    return this._prot_wrapResult(node);
   }
 
   /**
@@ -285,7 +362,7 @@ export class BaseValueVisitor {
    * @param {string} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitString(node) {
+  _impl_visitString(node) {
     return node;
   }
 
@@ -296,7 +373,7 @@ export class BaseValueVisitor {
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitSymbol(node) {
+  _impl_visitSymbol(node) {
     return node;
   }
 
@@ -306,7 +383,7 @@ export class BaseValueVisitor {
    *
    * @returns {*} Arbitrary result of visiting.
    */
-  async _impl_visitUndefined() {
+  _impl_visitUndefined() {
     return undefined;
   }
 
@@ -349,4 +426,79 @@ export class BaseValueVisitor {
 
     return result;
   }
+
+  /**
+   * Wraps a visitor result, so as to make it unambiguous that it is indeed a
+   * result. This is primarily useful for concrete visitors that have reason to
+   * return `Promise` instances as the result of visiting per se, as opposed to
+   * returning them because the visitor is itself asynchronous.
+   *
+   * @param {*} result The result of visiting, per se.
+   * @returns {*} Unambiguous visitor result.
+   */
+  _prot_wrapResult(result) {
+    const type = typeof result;
+
+    if ((type === 'object') || (type === 'function')) {
+      // Intentionally conservative check.
+      if ((typeof result.then) === 'function') {
+        return new BaseValueVisitor.#WrappedResult(result);
+      }
+    }
+
+    return result;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Wrapper for visitor results, used to disambiguate `Promises` used as part
+   * of the visitor mechanism from `Promises` used as the actual results of
+   * visiting something.
+   */
+  static #WrappedResult = class WrappedResult {
+    /**
+     * The wrapped value.
+     *
+     * @type {*}
+     */
+    #value;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {*} value The value to wrap.
+     */
+    constructor(value) {
+      this.#value = value;
+    }
+
+    /** @returns {*} The wrapped value. */
+    get value() {
+      return this.#value;
+    }
+  };
+
+  /**
+   * Entry in a {@link #visits} map.
+   */
+  static #VisitEntry = class VisitEntry {
+    node;
+    ok = null;
+    promise;
+    error = null;
+    result = null;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {*} node The node whose visit is being represented.
+     */
+    constructor(node) {
+      this.node = node;
+    }
+  };
 }
