@@ -1,7 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { PromiseUtil } from '@this/async';
+import { setImmediate } from 'node:timers/promises';
+
+import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 import { BaseValueVisitor } from '@this/util';
 
 
@@ -47,19 +49,34 @@ describe('visit()', () => {
     expect(await got).toBe(value);
   });
 
-  test('async-returns a resolved promise value', async () => {
+  test('plumbs through a resolved promise value', async () => {
     const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
     const got = vv.visit();
 
     await expect(got).resolves.toBe(RESOLVED_VALUE);
   });
 
-  test('async-rejects a rejected promise value', async () => {
+  test('plumbs through a rejected promise value', async () => {
     const vv  = new BaseValueVisitor(REJECTED_PROMISE);
     const got = vv.visit();
 
     await expect(got).rejects.toThrow(REJECTED_ERROR);
   });
+
+  test('plumbs through a pending promise', async () => {
+    const mp  = new ManualPromise();
+    const vv  = new BaseValueVisitor(mp.promise);
+    const got = vv.visit();
+
+    await setImmediate();
+    expect(PromiseState.isPending(got)).toBeTrue();
+
+    mp.resolve('zonk');
+
+    await setImmediate();
+    expect(PromiseState.isFulfilled(got)).toBeTrue();
+    expect(await got).toBe('zonk');
+  })
 });
 
 describe('visitSync()', () => {
