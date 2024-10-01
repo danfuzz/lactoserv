@@ -444,7 +444,7 @@ export class BaseValueVisitor {
    * results. The method will only bother wrapping things that could be mistaken
    * for promises.
    *
-   * @param {*} result The result of visiting, per se.
+   * @param {*} result A direct result of visiting, per se.
    * @returns {*} Unambiguous visitor result.
    */
   _prot_wrapResult(result) {
