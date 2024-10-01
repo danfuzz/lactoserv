@@ -5,16 +5,35 @@ import { types } from 'node:util';
 
 import { AskIf } from '@this/typey';
 
+
 /**
- * Abstract base class which implements the classic "visitor" pattern for
- * iterating over JavaScript values and their components, using depth-first
- * traversal.
+ * Base class which implements the classic "visitor" pattern for iterating over
+ * JavaScript values and their components, using depth-first traversal.
  *
- * @abstract
+ * Note that, though this class isn't abstract, it isn't particularly useful
+ * without being (effectively) subclassed. In particular, there are a set of
+ * methods on this class named `_impl_visit*()`, for each possible category of
+ * value. The default implementation of each of these is a pass-through. A
+ * useful subclass will override one or more of these to do something else. And
+ * in service of implementing subclasses, there are a handful of `_prot_*()`
+ * methods, which implement standard common visiting behaviors.
+ *
+ * Of particular note, JavaScript makes it easy to induce a "layering ambiguity"
+ * when working with promises, in that `async` methods naturally return
+ * promises, and yet promises are also just objects. This class makes it
+ * possible to maintain the distinction about what layer a promise is coming
+ * from -- asynchrounous visitor or simply a visitor returning a promise -- but
+ * it requires explicit coding on the part of the visitor. Specifically, if a
+ * visitor implementation wants to return a promise as the result of a visit, it
+ * must use the method `_prot_wrapResult()` on its return value. Such a wrapped
+ * value will get treated literally through all the visitor plumbing. Then, in
+ * order to receive a promise from a visit call, client code can either use
+ * {@link #visitSync} or {@link #visitWrap} (but not normal asynchronous
+ * {@link #visit}).
  */
 export class BaseValueVisitor {
   /**
-   * Map from visited values to their visit-in-progress-or-completed entries.
+   * Map from visited values to their visit representatives.
    *
    * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
@@ -68,8 +87,9 @@ export class BaseValueVisitor {
 
   /**
    * Similar to {@link #visit}, except (a) it will fail if the visit could not
-   * complete synchronously, and (b) a returned promise is only ever due to a
-   * visitor returning a promise per se (and not from it acting asynchronously).
+   * become finished synchronously, and (b) a returned promise is only ever due
+   * to a visitor returning a promise per se (and not from it acting
+   * asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
@@ -113,49 +133,10 @@ export class BaseValueVisitor {
     const visitEntry = new BaseValueVisitor.#VisitEntry(node);
     this.#visits.set(node, visitEntry);
 
-    visitEntry.promise = (async () => {
-      // This is called without `await` exactly so that, in the case of a fully
-      // synchronous visitor, the ultimate result will be able to be made
-      // available synchronously.
-      const done = this.#visitNode0(visitEntry);
-
-      if (visitEntry.ok === null) {
-        // This is not ever supposed to throw. (See implementation of
-        // `visitNode0()`, below.)
-        await done;
-      }
-
-      return visitEntry;
-    })();
+    // This call synchronously calls back to `visitNode0()`.
+    visitEntry.startVisit(this);
 
     return visitEntry;
-  }
-
-  /**
-   * Helper for {@link #visitNode}, which does the main dispatch work, and
-   * stores the result or error into the entry.
-   *
-   * @param {BaseValueVisitor#VisitorEntry} visitEntry The entry for the node
-   *   being visited.
-   * @returns {null} Async-returned when visiting is completed, whether or not
-   *   successful.
-   */
-  async #visitNode0(visitEntry) {
-    try {
-      let result = this.#visitNode1(visitEntry.node);
-
-      if (result instanceof Promise) {
-        result = await result;
-      }
-
-      visitEntry.ok     = true;
-      visitEntry.result = (result instanceof BaseValueVisitor.WrappedResult)
-        ? result.value
-        : result;
-    } catch (e) {
-      visitEntry.ok    = false;
-      visitEntry.error = e;
-    }
   }
 
   /**
@@ -164,7 +145,7 @@ export class BaseValueVisitor {
    * @param {*} node The node being visited.
    * @returns {*} Whatever the `_impl_visit*()` method returned.
    */
-  #visitNode1(node) {
+  #visitNode0(node) {
     switch (typeof node) {
       case 'bigint': {
         return this._impl_visitBigInt(node);
@@ -224,8 +205,9 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits an array. The base implementation returns the given `node` as-is.
-   * Subclasses that wish to traverse the contents can do so by calling
+   * Visits an array, that is, an object for which `Array.isArray()` returns
+   * `true`. The base implementation returns the given `node` as-is. Subclasses
+   * that wish to visit the contents can do so by calling
    * {@link #_prot_visitArrayProperties}.
    *
    * @param {Array} node The node to visit.
@@ -236,8 +218,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `bigint` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `bigint`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {bigint} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -247,8 +229,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `boolean` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `boolean`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {boolean} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -258,8 +240,10 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a "class," that is, a constructor function which is only usable via
-   * `new` expressions. The base implementation returns the given `node` as-is.
+   * Visits a class, that is, a value of type `function` which is only usable
+   * via `new` expressions by virtue of the fact that it was (effectively)
+   * defined using a `class` statement or expression. The base implementation
+   * returns the given `node` as-is.
    *
    * @param {function(new:*)} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -269,9 +253,15 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a _callable_ function, that is, a function which is known to not
-   * _only_ be usable as a constructor (even if it is typically supposed to be
-   * used as such). The base implementation returns the given `node` as-is.
+   * Visits a _callable_ function, that is, a value of type `function` which is
+   * not known _only_ to be usable as a constructor (even if it is typically
+   * supposed to be used as such). The base implementation returns the given
+   * `node` as-is.
+   *
+   * **Note:** Because of JavaScript history, this method will get called on
+   * constructor functions which are _not_ defined using `class` but which
+   * nonetheless throw an error when used without `new`, such as, notably, many
+   * of the built-in JavaScript classes (such as `Map`).
    *
    * @param {function()} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -282,8 +272,8 @@ export class BaseValueVisitor {
 
   /**
    * Visits an instance, that is, a non-`null` value of type `object` which has
-   * a `prototype` that indicates that it is an instance of _something_ other
-   * than `Object`. The base implementation returns the given `node` as-is.
+   * a prototype that indicates that it is an instance of _something_ other than
+   * `Object`. The base implementation returns the given `node` as-is.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -302,8 +292,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `number` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `number`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -316,8 +306,8 @@ export class BaseValueVisitor {
    * Visits a plain object value, that is, a non-`null` value of type `object`,
    * which has a `prototype` of either `null` or the class `Object`. The base
    * implementation returns the given `node` as-is. Subclasses that wish to
-   * traverse the contents can do so by calling {@link
-   * #_prot_visitObjectProperties}.
+   * visit the contents can do so by calling
+   * {@link #_prot_visitObjectProperties}.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -328,8 +318,9 @@ export class BaseValueVisitor {
 
   /**
    * Visits a proxy value, that is, a value which uses the JavaScript `Proxy`
-   * mechanism for its implementation. The base implementation returns the given
-   * `node` as-is.
+   * mechanism for its implementation and as such which `Proxy.isProxy()`
+   * indicates is a proxy. The base implementation returns the given `node`
+   * as-is.
    *
    * @param {*} node The node to visit.
    * @param {boolean} isFunction The result of `typeof node === 'function'`.
@@ -340,8 +331,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `string` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `string`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {string} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -351,8 +342,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `symbol` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `symbol`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -372,10 +363,13 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the indexed values and any other properties of an array, _excluding_
-   * `length`. Returns an array consisting of all the visited values, with
-   * indices / property names corresponding to the original. If the original
-   * `node` is a sparse array, the result will have the same "holes."
+   * Visits the indexed values and any other "own" property values of an array,
+   * _excluding_ `length`. Returns an array consisting of all the visited
+   * values, with indices / property names corresponding to the original. If the
+   * original `node` is a sparse array, the result will have the same "holes."
+   *
+   * **Note:** If the given `node` has synthetic properties, this method will
+   * call those properties' getters.
    *
    * @param {Array} node The node whose contents are to be visited.
    * @returns {Array|Promise} An array of visited results, or a promise for same
@@ -386,9 +380,12 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the property valies of an object (typically a plain object).
+   * Visits the "own" property values of an object (typically a plain object).
    * Returns a new plain object consisting of all the visited values, with
    * property names corresponding to the original.
+   *
+   * **Note:** If the given `node` has synthetic properties, this method will
+   * call those properties' getters.
    *
    * @param {object} node The node whose contents are to be visited.
    * @returns {object|Promise} A `null`-prototype object with the visited
@@ -402,10 +399,15 @@ export class BaseValueVisitor {
   /**
    * Wraps a visitor result, so as to make it unambiguous that it is indeed a
    * result. This is primarily useful for concrete visitors that have reason to
-   * return `Promise` instances as the result of visiting per se, as opposed to
-   * returning them because the visitor is itself asynchronous.
+   * return `Promise` (or promise-like) instances as the result of visiting per
+   * se, as opposed to returning them because the visitor is itself
+   * asynchronous.
    *
-   * @param {*} result The result of visiting, per se.
+   * **Note:** It is safe to call this method indiscriminately on all visitor
+   * results. The method will only bother wrapping things that could be mistaken
+   * for promises.
+   *
+   * @param {*} result A direct result of visiting, per se.
    * @returns {*} Unambiguous visitor result.
    */
   _prot_wrapResult(result) {
@@ -438,13 +440,11 @@ export class BaseValueVisitor {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
           const got = this.#visitNode(node[name]);
-          if (got.ok === null) {
+          if (!got.isFinished()) {
             promNames.push(name);
             result[name] = got.promise;
-          } else if (got.ok) {
-            result[name] = got.result;
           } else {
-            throw got.error;
+            result[name] = got.extractSync();
           }
         }
       }
@@ -481,56 +481,73 @@ export class BaseValueVisitor {
      *
      * @type {*}
      */
-    node;
+    #node;
 
     /**
      * Success-or-error flag, or `null` if the visit is still in progress.
      *
      * @type {?boolean}
      */
-    ok = null;
+    #ok = null;
 
     /**
-     * Promise for this instance, which resolves only after the visit completes.
+     * Promise for this instance, which resolves only after the visit finishes;
      * or `null` if this instance's corresponding visit hasn't yet been started.
      *
      * @type {Promise<BaseValueVisitor#VisitEntry>}
      */
-    promise = null;
+    #promise = null;
 
     /**
      * Error thrown by the visit, or `null` if no error has yet been thrown.
      *
      * @type {Error}
      */
-    error = null;
+    #error = null;
 
     /**
-     * Successful result of the visit, or `null` if the visit is either still in
-     * progress or ended with a failure.
+     * Successful result value of the visit, or `null` if the visit is either
+     * still in progress or ended with a failure.
      *
      * @type {*}
      */
-    result = null;
+    #value = null;
 
     /**
      * Constructs an instance.
      *
-     * @param {*} node The node whose visit is being represented.
+     * @param {*} node The value whose visit is being represented.
      */
     constructor(node) {
-      this.node = node;
+      this.#node = node;
+    }
+
+    /**
+     * @returns {Promise} A promise for `this`, which resolves once the visit
+     * has been finished (whether or not successful). It is only valid to use
+     * this getter after {@link #startVisit} has been called.
+     */
+    get promise() {
+      /* c8 ignore start */
+      if (!this.#promise) {
+        // This is indicative of a bug in this class: This method should never
+        // get called before a visit is started.
+        throw new Error('Shouldn\'t happen: Visit not yet started.');
+      }
+      /* c8 ignore end */
+
+      return this.#promise;
     }
 
     /**
      * Extracts the result or error of a visit, always first waiting until after
-     * the visit is complete.
+     * the visit is finished.
      *
-     * Note: If `visitEntry.result` is a promise and `wrapResult` is passed as
-     * `false`, this will cause the caller to ultimately receive the fulfilled
-     * (resolved/rejected) value of that promise and not the result promise per
-     * se. This is the crux of the difference between {link #visit} and
-     * {@link #visitWrap} (see which).
+     * Note: If this visit finished successfully with a promise value, and
+     * `wrapResult` is passed as `false`, this will cause the client (external
+     * caller) to ultimately receive the fulfilled (resolved/rejected) value of
+     * that promise and not the result promise per se. This is the crux of the
+     * difference between {link #visit} and {@link #visitWrap} (see which).
      *
      * @param {boolean} wrapResult Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed
@@ -538,18 +555,18 @@ export class BaseValueVisitor {
      * @throws {Error} The error resulting from the visit, if it failed.
      */
     async extractAsync(wrapResult) {
-      if (this.ok === null) {
-        // Wait for the visit to complete, either successfully or not. This
-        // should never throw.
-        await this.promise;
+      if (!this.isFinished()) {
+        // Wait for the visit to finish, either successfully or not. This should
+        // never throw.
+        await this.#promise;
       }
 
-      if (this.ok) {
+      if (this.#ok) {
         return wrapResult
-          ? new BaseValueVisitor.WrappedResult(this.result)
-          : this.result;
+          ? new BaseValueVisitor.WrappedResult(this.#value)
+          : this.#value;
       } else {
-        throw this.error;
+        throw this.#error;
       }
     }
 
@@ -564,36 +581,100 @@ export class BaseValueVisitor {
      *   an error indicating that the visit is still in progress.
      */
     extractSync(possiblyUnfinished = false) {
-      if (this.ok === null) {
-        // This is indicative of a bug in this class: Either the call should
-        // know the visit is finished, or it should be part of an API that
-        // exposes the possibility of an unfinished visit (in which case, it
-        // should have passed `true`).
-        /* c8 ignore start */
-        if (this.promise === null) {
-          // This is indicative of a bug in this class: This method should never
-          // get called before a visit is started.
-          throw new Error('Shouldn\'t happen: Visit not yet started.');
+      if (this.isFinished()) {
+        if (this.#ok) {
+          return this.#value;
+        } else {
+          throw this.#error;
         }
-        /* c8 ignore end */
-
-        if (possiblyUnfinished) {
-          throw new Error('Visit did not complete synchronously.');
-        }
-
-        // This is indicative of a bug in this class: If the caller thinks its
-        // possible that the visit hasn't finished, it should have passed `true`
-        // to this method.
-        /* c8 ignore start */
-        throw new Error('Shouldn\'t happen: Visit not yet complete.');
-        /* c8 ignore end */
+      } else if (possiblyUnfinished) {
+        throw new Error('Visit did not finish synchronously.');
       }
 
-      if (this.ok) {
-        return this.result;
-      } else {
-        throw this.error;
+      // This is indicative of a bug in this class: If the caller thinks it's
+      // possible that the visit hasn't finished, it should have passed `true`
+      // to this method.
+      /* c8 ignore start */
+      throw new Error('Shouldn\'t happen: Visit not yet finished.');
+      /* c8 ignore end */
+    }
+
+    /**
+     * Returns an indication of whether the visit is started or finished,
+     * throwing in the case where the visit hasn't _yet_ been started.
+     *
+     * @returns {boolean} `false` if the visit is in progress, or `true` if it
+     *   is finished.
+     * @throws {Error} Thrown if the visit hasn't yet started. This is
+     *   indicative of a bug in this class.
+     */
+    isFinished() {
+      if (this.#ok !== null) {
+        return true;
       }
+
+      // This causes a "shouldn't happen" error when appropriate (hopefully
+      // never.)
+      this.#promise;
+
+      return false;
+    }
+
+    /**
+     * Starts the visit for this instance. If the visit could be synchronously
+     * finished, the instance state will reflect that fact upon return. If not,
+     * the visit will continue asynchronously, after this method returns.
+     *
+     * @param {BaseValueVisitor} outerThis The outer instance associated with
+     *   this instance.
+     */
+    startVisit(outerThis) {
+      this.#promise = (async () => {
+        try {
+          let result = outerThis.#visitNode0(this.#node);
+
+          if (result instanceof Promise) {
+            // This is the moment that this visit becomes "not synchronously
+            // finished." If we don't end up here, then, even though this
+            // (anonymous IIFE) function is `async`, by the time the call
+            // synchronously completes, the visit will have finished. (This is
+            // because an `async` function runs synchronously with respect to
+            // the caller up to the first `await`.)
+            result = await result;
+          }
+
+          this.#finishWithValue(result);
+        } catch (e) {
+          this.#finishWithError(e);
+        }
+
+        return this;
+      })();
+    }
+
+    /**
+     * Sets the visit result to be a non-error value. This indicates that the
+     * visit has in fact finished with `ok === true`. If given a
+     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
+     *
+     * @param {*} value The visit result.
+     */
+    #finishWithValue(value) {
+      this.#ok     = true;
+      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
+        ? value.value
+        : value;
+    }
+
+    /**
+     * Sets the visit result to be an error value. This indicates that the
+     * visit has in fact finished with `ok === false`.
+     *
+     * @param {Error} error The visit error.
+     */
+    #finishWithError(error) {
+      this.#ok    = false;
+      this.#error = error;
     }
   };
 

@@ -4,6 +4,29 @@
 import { MustBe } from '@this/typey';
 
 
+describe('bigint()', () => {
+  test('accepts a bigint', () => {
+    const value = 567n;
+    expect(MustBe.bigint(value)).toBe(value);
+  });
+
+  test('rejects a regular number', () => {
+    expect(() => MustBe.bigint(123)).toThrow();
+  });
+
+  test('accepts a bigint within specified constraints', () => {
+    const value = 98765n;
+    const opts  = { minInclusive: 90_000n, maxExclusive: 100_000 };
+    expect(MustBe.bigint(value, opts)).toBe(value);
+  });
+
+  test('rejects a bigint outside specified constraints', () => {
+    const value = 5432n;
+    const opts  = { minInclusive: 6000n, maxExclusive: 7000 };
+    expect(() => MustBe.bigint(value, opts)).toThrow();
+  });
+});
+
 describe('object()', () => {
   test('accepts a plain object', () => {
     const value = { x: 12 };

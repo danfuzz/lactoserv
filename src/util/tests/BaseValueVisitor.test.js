@@ -154,9 +154,9 @@ describe('visitSync()', () => {
     expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
-  test('throws the right error if the visit did not complete synchronously', () => {
+  test('throws the right error if the visit did not finish synchronously', () => {
     const vv = new SubVisit(true);
-    expect(() => vv.visitSync()).toThrow('Visit did not complete synchronously.');
+    expect(() => vv.visitSync()).toThrow('Visit did not finish synchronously.');
   });
 });
 
