@@ -103,8 +103,13 @@ ${'visit'}     | ${true}  | ${false} | ${false}
 ${'visitSync'} | ${false} | ${false} | ${true}
 ${'visitWrap'} | ${true}  | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
-  async function doTest(value) {
-    const visitor = new BaseValueVisitor(value);
+  async function doTest(value, options = {}) {
+    const {
+      cls = BaseValueVisitor,
+      check = (got) => { expect(got).toBe(value); }
+    } = options;
+
+    const visitor = new cls(value);
 
     if (isAsync) {
       const got = visitor[methodName]();
@@ -112,16 +117,16 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       if (wraps) {
         const wrapper = await got;
         expect(wrapper).toBeInstanceOf(BaseValueVisitor.WrappedResult);
-        expect(wrapper.value).toBe(value);
+        check(wrapper.value);
       } else {
-        expect(await got).toBe(value);
+        check(await got);
       }
     } else {
-      expect(visitor[methodName]()).toBe(value);
+      check(visitor[methodName]());
     }
   }
 
-  test.each(EXAMPLES)('returns value as-is: %o', async (value) => {
+  test.each(EXAMPLES)('returns the given value as-is: %o', async (value) => {
     await doTest(value);
   });
 
@@ -134,6 +139,24 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       await doTest(value);
     });
   }
+
+  describe('when `_impl_proxyAware() === false`', () => {
+    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
+      await doTest(value);
+    });
+  });
+
+  describe('when `_impl_proxyAware() === true`', () => {
+    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
+      await doTest(value, {
+        cls: ProxyAwareVisitor,
+        check: (got) => {
+          expect(got).toEqual({ proxy: value });
+          expect(got.proxy).toBe(value);
+        }
+      });
+    });
+  });
 });
 
 describe('visit()', () => {
@@ -179,23 +202,6 @@ describe('visit()', () => {
 
     await expect(got).rejects.toThrow('NO');
   });
-
-  describe('when `_impl_proxyAware() === false`', () => {
-    test.each(PROXY_EXAMPLES)('async-returns value as-is: %o', async (value) => {
-      const vv  = new BaseValueVisitor(value);
-      const got = await vv.visit();
-      expect(got).toBe(value);
-    });
-  });
-
-  describe('when `_impl_proxyAware() === true`', () => {
-    test.each(PROXY_EXAMPLES)('async-returns value returned from `_impl_visitProxy()`: %o', async (value) => {
-      const vv  = new ProxyAwareVisitor(value);
-      const got = await vv.visit();
-      expect(got).toEqual({ proxy: value });
-      expect(got.proxy).toBe(value);
-    });
-  });
 });
 
 describe('visitSync()', () => {
@@ -207,23 +213,6 @@ describe('visitSync()', () => {
   test('throws the right error if the visit did not finish synchronously', () => {
     const vv = new SubVisit(true);
     expect(() => vv.visitSync()).toThrow('Visit did not finish synchronously.');
-  });
-
-  describe('when `_impl_proxyAware() === false`', () => {
-    test.each(PROXY_EXAMPLES)('returns value as-is: %o', (value) => {
-      const vv  = new BaseValueVisitor(value);
-      const got = vv.visitSync();
-      expect(got).toBe(value);
-    });
-  });
-
-  describe('when `_impl_proxyAware() === true`', () => {
-    test.each(PROXY_EXAMPLES)('returns value returned from `_impl_visitProxy()`: %o', (value) => {
-      const vv  = new ProxyAwareVisitor(value);
-      const got = vv.visitSync();
-      expect(got).toEqual({ proxy: value });
-      expect(got.proxy).toBe(value);
-    });
   });
 });
 
@@ -240,23 +229,6 @@ describe('visitWrap()', () => {
     const got = vv.visitWrap();
 
     await expect(got).rejects.toThrow('NO');
-  });
-
-  describe('when `_impl_proxyAware() === false`', () => {
-    test.each(PROXY_EXAMPLES)('async-returns value as-is: %o', async (value) => {
-      const vv  = new BaseValueVisitor(value);
-      const got = await vv.visitWrap();
-      expect(got.value).toBe(value);
-    });
-  });
-
-  describe('when `_impl_proxyAware() === true`', () => {
-    test.each(PROXY_EXAMPLES)('async-returns value returned from `_impl_visitProxy()`: %o', async (value) => {
-      const vv  = new ProxyAwareVisitor(value);
-      const got = await vv.visitWrap();
-      expect(got.value).toEqual({ proxy: value });
-      expect(got.value.proxy).toBe(value);
-    });
   });
 });
 
