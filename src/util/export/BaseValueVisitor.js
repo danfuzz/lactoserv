@@ -63,18 +63,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visit() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    if (visitEntry.ok === null) {
-      // Wait for the visit to complete, either successfully or not. This should
-      // never throw.
-      await visitEntry.promise;
-    }
-
-    // Note: If `visitEntry.result` is a promise, this will cause the caller to
-    // ultimately receive the resolved/rejected value of it. See the header
-    // comment for details.
-    return visitEntry.extract();
+    return this.#visitNode(this.#value).extractAsync(false);
   }
 
   /**
@@ -100,19 +89,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visitWrap() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    if (visitEntry.ok === null) {
-      // Wait for the visit to complete, either successfully or not. This should
-      // never throw.
-      await visitEntry.promise;
-    }
-
-    if (visitEntry.ok) {
-      return new BaseValueVisitor.WrappedResult(visitEntry.result);
-    } else {
-      throw visitEntry.error;
-    }
+    return this.#visitNode(this.#value).extractAsync(true);
   }
 
   /**
@@ -553,7 +530,38 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Extracts the result or error of a visit.
+     * Extracts the result or error of a visit, always first waiting until after
+     * the visit is complete.
+     *
+     * Note: If `visitEntry.result` is a promise and `wrapResult` is passed as
+     * `false`, this will cause the caller to ultimately receive the fulfilled
+     * (resolved/rejected) value of that promise and not the result promise per
+     * se. This is the crux of the difference between {link #visit} and
+     * {@link #visitWrap} (see which).
+     *
+     * @param {boolean} wrapResult Should a successful result be wrapped?
+     * @returns {*} The successful result of the visit, if it was indeed
+     *   successful.
+     * @throws {Error} The error resulting from the visit, if it failed.
+     */
+    async extractAsync(wrapResult) {
+      if (this.ok === null) {
+        // Wait for the visit to complete, either successfully or not. This
+        // should never throw.
+        await this.promise;
+      }
+
+      if (this.ok) {
+        return wrapResult
+          ? new BaseValueVisitor.WrappedResult(this.result)
+          : this.result;
+      } else {
+        throw this.error;
+      }
+    }
+
+    /**
+     * Synchronously extracts the result or error of a visit.
      *
      * @param {boolean} [possiblyUnfinished] Should it be an _expected_
      *   possibility that the visit has been started but not finished?
