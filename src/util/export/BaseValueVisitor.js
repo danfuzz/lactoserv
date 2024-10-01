@@ -3,7 +3,7 @@
 
 import { types } from 'node:util';
 
-import { AskIf } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -33,11 +33,11 @@ import { AskIf } from '@this/typey';
  */
 export class BaseValueVisitor {
   /**
-   * Map from visited values to their visit representatives.
+   * Is this instance proxy-aware?
    *
-   * @type {Map<*, BaseValueVisitor#VisitEntry>}
+   * @type {boolean}
    */
-  #visits = new Map();
+  #proxyAware;
 
   /**
    * The root value being visited.
@@ -47,13 +47,21 @@ export class BaseValueVisitor {
   #value;
 
   /**
+   * Map from visited values to their visit representatives.
+   *
+   * @type {Map<*, BaseValueVisitor#VisitEntry>}
+   */
+  #visits = new Map();
+
+  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
    * @param {*} value The value to visit.
    */
   constructor(value) {
-    this.#value = value;
+    this.#proxyAware = MustBe.boolean(this._impl_isProxyAware());
+    this.#value      = value;
   }
 
   /**
@@ -172,7 +180,7 @@ export class BaseValueVisitor {
       }
 
       case 'function': {
-        if (types.isProxy(node)) {
+        if (this.#isProxy(node)) {
           return this._impl_visitProxy(node, true);
         } else if (AskIf.callableFunction(node)) {
           return this._impl_visitFunction(node);
@@ -184,7 +192,7 @@ export class BaseValueVisitor {
       case 'object': {
         if (node === null) {
           return this._impl_visitNull();
-        } else if (types.isProxy(node)) {
+        } else if (this.#isProxy(node)) {
           return this._impl_visitProxy(node, false);
         } else if (Array.isArray(node)) {
           return this._impl_visitArray(node);
@@ -202,6 +210,22 @@ export class BaseValueVisitor {
       }
       /* c8 ignore stop */
     }
+  }
+
+  /**
+   * Indicates whether this instance should be aware of proxies. If `true`,
+   * visiting a proxy will cause {@link #_impl_visitProxy} to be called. If
+   * `false`, visiting a proxy will cause an `_impl_visit*()` method to be
+   * called based on the type of value that the proxy is proxying.
+   *
+   * This method is called once during construction of this instance. By
+   * default, it returns `false`, that is, by default instances are unaware of
+   * proxies.
+   *
+   * @returns {boolean} The proxy-awareness indicator.
+   */
+  _impl_isProxyAware() {
+    return false;
   }
 
   /**
@@ -421,6 +445,17 @@ export class BaseValueVisitor {
     }
 
     return result;
+  }
+
+  /**
+   * Is the given value a proxy which should be detected as such? This checks
+   * proxyness, but only if the instance is configured to do so.
+   *
+   * @param {*} value Value to check.
+   * @returns {boolean} `true` iff it is detected as a proxy.
+   */
+  #isProxy(value) {
+    return this.#proxyAware && types.isProxy(value);
   }
 
   /**
