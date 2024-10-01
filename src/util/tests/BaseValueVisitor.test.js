@@ -140,6 +140,25 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await doTest(value);
   });
 
+  if (isAsync) {
+    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+      const value = Symbol('eep');
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
+    });
+
+    test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
+      const value = true;
+      await doTest(value, {
+        cls: SubVisit,
+        check: (got) => {
+          expect(got).toBe('true');
+        }
+      });
+    });
+  } else {
+    /// TODO######
+  }
+
   if (canReturnPromises) {
     test.each([
       RESOLVED_PROMISE,
@@ -149,6 +168,11 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       await doTest(value);
     });
   }
+
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
+    const value = 123n;
+    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('Nope!');
+  });
 
   describe('when `_impl_proxyAware() === false`', () => {
     test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
@@ -198,47 +222,12 @@ describe('visit()', () => {
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
   });
-
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(123n);
-    const got = vv.visit();
-
-    await expect(got).rejects.toThrow('Nope!');
-  });
-
-  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(Symbol('eep'));
-    const got = vv.visit();
-
-    await expect(got).rejects.toThrow('NO');
-  });
 });
 
 describe('visitSync()', () => {
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', () => {
-    const vv = new SubVisit(123n);
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
-
   test('throws the right error if the visit did not finish synchronously', () => {
     const vv = new SubVisit(true);
     expect(() => vv.visitSync()).toThrow('Visit did not finish synchronously.');
-  });
-});
-
-describe('visitWrap()', () => {
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(123n);
-    const got = vv.visitWrap();
-
-    await expect(got).rejects.toThrow('Nope!');
-  });
-
-  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(Symbol('eep'));
-    const got = vv.visitWrap();
-
-    await expect(got).rejects.toThrow('NO');
   });
 });
 
