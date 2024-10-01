@@ -553,15 +553,15 @@ export class BaseValueVisitor {
      * this getter after {@link #startVisit} has been called.
      */
     get promise() {
-      if (this.#promise) {
-        return this.#promise;
-      }
-
       /* c8 ignore start */
-      // This is indicative of a bug in this class: This method should never get
-      // called before a visit is started.
-      throw new Error('Shouldn\'t happen: Visit not yet started.');
+      if (!this.#promise) {
+        // This is indicative of a bug in this class: This method should never
+        // get called before a visit is started.
+        throw new Error('Shouldn\'t happen: Visit not yet started.');
+      }
       /* c8 ignore end */
+
+      return this.#promise;
     }
 
     /**
