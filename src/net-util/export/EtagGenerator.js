@@ -207,11 +207,9 @@ export class EtagGenerator {
 
     Paths.checkAbsolutePath(absolutePath);
 
-    // Converts a number (including bigint) to hex.
+    // Converts a number to hex.
     const hex = (num) => {
-      return (typeof num === 'number')
-        ? Math.floor(num).toString(16)
-        : num.toString(16);
+      return Math.floor(num).toString(16);
     };
 
     const stats = await fs.stat(absolutePath, true);
