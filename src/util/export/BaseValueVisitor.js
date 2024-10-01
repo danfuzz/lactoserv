@@ -166,13 +166,9 @@ export class BaseValueVisitor {
         result = await result;
       }
 
-      visitEntry.ok     = true;
-      visitEntry.result = (result instanceof BaseValueVisitor.WrappedResult)
-        ? result.value
-        : result;
+      visitEntry.finishWithValue(result);
     } catch (e) {
-      visitEntry.ok    = false;
-      visitEntry.error = e;
+      visitEntry.finishWithError(e);
     }
   }
 
@@ -477,7 +473,7 @@ export class BaseValueVisitor {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
           const got = this.#visitNode(node[name]);
-          if (got.ok === null) {
+          if (!got.isFinished()) {
             promNames.push(name);
             result[name] = got.promise;
           } else if (got.ok) {
@@ -619,6 +615,31 @@ export class BaseValueVisitor {
       /* c8 ignore start */
       throw new Error('Shouldn\'t happen: Visit not yet complete.');
       /* c8 ignore end */
+    }
+
+    /**
+     * Sets the visit result to be a non-error value. This indicates that the
+     * visit has in fact finished with `ok === true`. If given a
+     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
+     *
+     * @param {*} value The visit result.
+     */
+    finishWithValue(value) {
+      this.ok     = true;
+      this.result = (value instanceof BaseValueVisitor.WrappedResult)
+        ? value.value
+        : value;
+    }
+
+    /**
+     * Sets the visit result to be an error value. This indicates that the
+     * visit has in fact finished with `ok === false`.
+     *
+     * @param {Error} error The visit error.
+     */
+    finishWithError(error) {
+      this.ok    = false;
+      this.error = error;
     }
 
     /**
