@@ -7,15 +7,6 @@ import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 import { BaseValueVisitor } from '@this/util';
 
 
-const RESOLVED_VALUE   = 'resolved-promise-value';
-const REJECTED_ERROR   = new Error('from-a-promise');
-const PENDING_PROMISE  = Promise.race([]);
-const RESOLVED_PROMISE = Promise.resolve(RESOLVED_VALUE);
-const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
-
-REJECTED_ERROR.stack = 'some-stack';
-PromiseUtil.handleRejection(REJECTED_PROMISE);
-
 const EXAMPLES = [
   undefined,
   null,
@@ -36,6 +27,21 @@ const FUNCTION_PROXY = new Proxy(() => 123, {});
 const PROXY_EXAMPLES = [
   OBJECT_PROXY,
   FUNCTION_PROXY
+];
+
+const RESOLVED_VALUE   = 'resolved-promise-value';
+const REJECTED_ERROR   = new Error('from-a-promise');
+const PENDING_PROMISE  = Promise.race([]);
+const RESOLVED_PROMISE = Promise.resolve(RESOLVED_VALUE);
+const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
+
+REJECTED_ERROR.stack = 'some-stack';
+PromiseUtil.handleRejection(REJECTED_PROMISE);
+
+const PROMISE_EXAMPLES = [
+  PENDING_PROMISE,
+  RESOLVED_PROMISE,
+  REJECTED_PROMISE
 ];
 
 /**
@@ -82,7 +88,7 @@ class ProxyAwareVisitor extends BaseValueVisitor {
 }
 
 describe('constructor()', () => {
-  const CASES = [...EXAMPLES, ...PROXY_EXAMPLES];
+  const CASES = [...EXAMPLES, ...PROXY_EXAMPLES, ...PROMISE_EXAMPLES];
   test.each(CASES)('does not throw given value: %o', (value) => {
     expect(() => new BaseValueVisitor(value)).not.toThrow();
   });
