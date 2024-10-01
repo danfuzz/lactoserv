@@ -75,7 +75,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    return this.#visitNode(this.#value).extract(true);
+    return this.#visitNode(this.#value).extractSync(true);
   }
 
   /**
@@ -466,7 +466,7 @@ export class BaseValueVisitor {
       // There was at least one promise returned from visiting an element.
       return (async () => {
         for (const name of promNames) {
-          result[name] = (await result[name]).extract();
+          result[name] = (await result[name]).extractSync();
         }
 
         return result;
@@ -570,7 +570,7 @@ export class BaseValueVisitor {
      * @throws {Error} The error resulting from the visit, if it failed; or
      *   an error indicating that the visit is still in progress.
      */
-    extract(possiblyUnfinished = false) {
+    extractSync(possiblyUnfinished = false) {
       if (this.ok === null) {
         // This is indicative of a bug in this class: Either the call should
         // know the visit is finished, or it should be part of an API that
