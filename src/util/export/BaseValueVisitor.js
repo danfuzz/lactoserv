@@ -514,7 +514,7 @@ export class BaseValueVisitor {
      *
      * @type {*}
      */
-    node;
+    #node;
 
     /**
      * Success-or-error flag, or `null` if the visit is still in progress.
@@ -549,10 +549,15 @@ export class BaseValueVisitor {
     /**
      * Constructs an instance.
      *
-     * @param {*} node The node whose visit is being represented.
+     * @param {*} node The value whose visit is being represented.
      */
     constructor(node) {
-      this.node = node;
+      this.#node = node;
+    }
+
+    /** @returns {*} The value whose visit this instance represents. */
+    get node() {
+      return this.#node;
     }
 
     /**
