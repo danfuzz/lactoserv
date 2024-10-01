@@ -131,20 +131,7 @@ export class BaseValueVisitor {
     const visitEntry = new BaseValueVisitor.#VisitEntry(node);
     this.#visits.set(node, visitEntry);
 
-    visitEntry.promise = (async () => {
-      // This is called without `await` exactly so that, in the case of a fully
-      // synchronous visitor, the ultimate result will be able to be made
-      // available synchronously.
-      const done = this.#visitNode0(visitEntry);
-
-      if (visitEntry.ok === null) {
-        // This is not ever supposed to throw. (See implementation of
-        // `visitNode0()`, below.)
-        await done;
-      }
-
-      return visitEntry;
-    })();
+    visitEntry.promise = visitEntry.startVisit(this);
 
     return visitEntry;
   }
@@ -668,6 +655,32 @@ export class BaseValueVisitor {
       /* c8 ignore end */
 
       return false;
+    }
+
+    /**
+     * Starts the visit for this instance. This method async-returns when the
+     * visit is complete, but also, if the visit could be synchronously
+     * completed, the instance state will reflect that fact upon synchronous
+     * return.
+     *
+     * @param {BaseValueVisitor} outerThis The outer instance associated with
+     *   this instance.
+     * @returns {BaseValueVisitor#VisitEntry} `this`, asynchronously once the
+     *   visit is finished (either successfully or with an error).
+     */
+    async startVisit(outerThis) {
+      // This is called without `await` exactly so that, in the case of a fully
+      // synchronous visitor, the ultimate result will be able to be made
+      // available synchronously.
+      const done = outerThis.#visitNode0(this);
+
+      if (this.ok === null) {
+        // This is not ever supposed to throw. (See implementation of
+        // `visitNode0()`.)
+        await done;
+      }
+
+      return this;
     }
   };
 
