@@ -138,35 +138,12 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Helper for {@link #visitNode}, which does the main dispatch work, and
-   * stores the result or error into the entry.
-   *
-   * @param {BaseValueVisitor#VisitorEntry} visitEntry The entry for the node
-   *   being visited.
-   * @returns {null} Async-returned when visiting is completed, whether or not
-   *   successful.
-   */
-  async #visitNode0(visitEntry) {
-    try {
-      let result = this.#visitNode1(visitEntry.node);
-
-      if (result instanceof Promise) {
-        result = await result;
-      }
-
-      visitEntry.finishWithValue(result);
-    } catch (e) {
-      visitEntry.finishWithError(e);
-    }
-  }
-
-  /**
    * Helper for {@link #visitNode}, which does the actual dispatch.
    *
    * @param {*} node The node being visited.
    * @returns {*} Whatever the `_impl_visit*()` method returned.
    */
-  #visitNode1(node) {
+  #visitNode0(node) {
     switch (typeof node) {
       case 'bigint': {
         return this._impl_visitBigInt(node);
@@ -674,22 +651,29 @@ export class BaseValueVisitor {
     /**
      * Starts the visit for this instance. If the visit could be synchronously
      * completed, the instance state will reflect that fact upon return. If not,
-     * the visit will simply continue asynchronously.
+     * the visit will continue asynchronously, after this method returns.
      *
      * @param {BaseValueVisitor} outerThis The outer instance associated with
      *   this instance.
      */
     startVisit(outerThis) {
       this.#promise = (async () => {
-        // This is called without `await` exactly so that, in the case of a
-        // fully synchronous visitor, the ultimate result will be able to be
-        // made available synchronously.
-        const done = outerThis.#visitNode0(this);
+        try {
+          let result = outerThis.#visitNode0(this.#node);
 
-        if (this.#ok === null) {
-          // This is not ever supposed to throw. (See implementation of
-          // `visitNode0()`.)
-          await done;
+          if (result instanceof Promise) {
+            // This is the moment that this visit becomes "not synchronously
+            // completed." If we don't end up here, then, even though this
+            // (anonymous IIFE) function is `async`, by the time the call
+            // synchronously completes, the visit will have also completed.
+            // (This is because an `async` function runs synchronously with
+            // respect to the caller up to the first `await`.)
+            result = await result;
+          }
+
+          this.finishWithValue(result);
+        } catch (e) {
+          this.finishWithError(e);
         }
 
         return this;
