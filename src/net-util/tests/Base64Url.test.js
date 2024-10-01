@@ -60,4 +60,16 @@ describe('encode()', () => {
       expect(got).toBe(encoded);
     });
   }
+
+  test('accepts `ArrayBuffer`s and processes them correctly', () => {
+    for (let i = 0; i < CASES.length; i += 123) {
+      const { buf, encoded }           = CASES[i];
+      const { byteOffset, byteLength } = buf;
+
+      const arrayBuf = (buf.buffer).slice(byteOffset, byteOffset + byteLength);
+      const got      = Base64Url.encode(arrayBuf);
+
+      expect(got).toBe(encoded);
+    }
+  });
 });
