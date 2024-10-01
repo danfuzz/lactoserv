@@ -63,22 +63,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visit() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    if (visitEntry.ok === null) {
-      // Wait for the visit to complete, either successfully or not. This should
-      // never throw.
-      await visitEntry.promise;
-    }
-
-    if (visitEntry.ok) {
-      // Note: If `result` is a promise, this will cause the caller to
-      // ultimately receive the resolved/rejected value of it. See the header
-      // comment for details.
-      return visitEntry.result;
-    } else {
-      throw visitEntry.error;
-    }
+    return this.#visitNode(this.#value).extractAsync(false);
   }
 
   /**
@@ -90,25 +75,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    switch (visitEntry.ok) {
-      case null: {
-        throw new Error('Could not complete synchronously.');
-      }
-      case false: {
-        throw visitEntry.error;
-      }
-      case true: {
-        return visitEntry.result;
-      }
-      /* c8 ignore start */
-      default: {
-        // This is indicative of a bug in this class.
-        throw new Error('Shouldn\'t happen.');
-      }
-      /* c8 ignore stop */
-    }
+    return this.#visitNode(this.#value).extractSync(true);
   }
 
   /**
@@ -122,19 +89,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visitWrap() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    if (visitEntry.ok === null) {
-      // Wait for the visit to complete, either successfully or not. This should
-      // never throw.
-      await visitEntry.promise;
-    }
-
-    if (visitEntry.ok) {
-      return new BaseValueVisitor.WrappedResult(visitEntry.result);
-    } else {
-      throw visitEntry.error;
-    }
+    return this.#visitNode(this.#value).extractAsync(true);
   }
 
   /**
@@ -479,31 +434,24 @@ export class BaseValueVisitor {
     const isArray   = Array.isArray(result);
     const promNames = [];
 
-    for (const name of Object.getOwnPropertyNames(node)) {
-      if (!(isArray && (name === 'length'))) {
-        const got = this.#visitNode(node[name]);
-        if (got.ok === null) {
-          promNames.push(name);
-          result[name] = got.promise;
-        } else if (got.ok) {
-          result[name] = got.result;
-        } else {
-          throw got.error;
+    const addResults = (iter) => {
+      for (const name of iter) {
+        if (!(isArray && (name === 'length'))) {
+          const got = this.#visitNode(node[name]);
+          if (got.ok === null) {
+            promNames.push(name);
+            result[name] = got.promise;
+          } else if (got.ok) {
+            result[name] = got.result;
+          } else {
+            throw got.error;
+          }
         }
       }
-    }
+    };
 
-    for (const name of Object.getOwnPropertySymbols(node)) {
-      const got = this.#visitNode(node[name]);
-      if (got.ok === null) {
-        promNames.push(name);
-        result[name] = got.promise;
-      } else if (got.ok) {
-        result[name] = got.result;
-      } else {
-        throw got.error;
-      }
-    }
+    addResults(Object.getOwnPropertyNames(node));
+    addResults(Object.getOwnPropertySymbols(node));
 
     if (promNames.length === 0) {
       return result;
@@ -511,7 +459,7 @@ export class BaseValueVisitor {
       // There was at least one promise returned from visiting an element.
       return (async () => {
         for (const name of promNames) {
-          result[name] = (await result[name]).extract();
+          result[name] = (await result[name]).extractSync();
         }
 
         return result;
@@ -575,21 +523,73 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Extracts the result or error of a visit.
+     * Extracts the result or error of a visit, always first waiting until after
+     * the visit is complete.
      *
+     * Note: If `visitEntry.result` is a promise and `wrapResult` is passed as
+     * `false`, this will cause the caller to ultimately receive the fulfilled
+     * (resolved/rejected) value of that promise and not the result promise per
+     * se. This is the crux of the difference between {link #visit} and
+     * {@link #visitWrap} (see which).
+     *
+     * @param {boolean} wrapResult Should a successful result be wrapped?
+     * @returns {*} The successful result of the visit, if it was indeed
+     *   successful.
+     * @throws {Error} The error resulting from the visit, if it failed.
+     */
+    async extractAsync(wrapResult) {
+      if (this.ok === null) {
+        // Wait for the visit to complete, either successfully or not. This
+        // should never throw.
+        await this.promise;
+      }
+
+      if (this.ok) {
+        return wrapResult
+          ? new BaseValueVisitor.WrappedResult(this.result)
+          : this.result;
+      } else {
+        throw this.error;
+      }
+    }
+
+    /**
+     * Synchronously extracts the result or error of a visit.
+     *
+     * @param {boolean} [possiblyUnfinished] Should it be an _expected_
+     *   possibility that the visit has been started but not finished?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or
      *   an error indicating that the visit is still in progress.
      */
-    extract() {
+    extractSync(possiblyUnfinished = false) {
       if (this.ok === null) {
+        // This is indicative of a bug in this class: Either the call should
+        // know the visit is finished, or it should be part of an API that
+        // exposes the possibility of an unfinished visit (in which case, it
+        // should have passed `true`).
+        /* c8 ignore start */
         if (this.promise === null) {
-          throw new Error('Visit not yet started.');
-        } else {
-          throw new Error('Visit not yet complete.');
+          // This is indicative of a bug in this class: This method should never
+          // get called before a visit is started.
+          throw new Error('Shouldn\'t happen: Visit not yet started.');
         }
-      } else if (this.ok) {
+        /* c8 ignore end */
+
+        if (possiblyUnfinished) {
+          throw new Error('Visit did not complete synchronously.');
+        }
+
+        // This is indicative of a bug in this class: If the caller thinks its
+        // possible that the visit hasn't finished, it should have passed `true`
+        // to this method.
+        /* c8 ignore start */
+        throw new Error('Shouldn\'t happen: Visit not yet complete.');
+        /* c8 ignore end */
+      }
+
+      if (this.ok) {
         return this.result;
       } else {
         throw this.error;
