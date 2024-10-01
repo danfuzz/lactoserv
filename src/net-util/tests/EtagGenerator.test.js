@@ -245,7 +245,6 @@ describe('etagFromFileData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'weak' });
     const result = eg.etagFromFileData(dirPath);
     expect(result).rejects.toThrow();
-
   });
 });
 
