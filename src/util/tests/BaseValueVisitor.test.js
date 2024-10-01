@@ -24,9 +24,13 @@ const EXAMPLES = [
 
 const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
 const FUNCTION_PROXY = new Proxy(() => 123, {});
+const CLASS_PROXY    = new Proxy(class Florp {}, {});
+const ARRAY_PROXY    = new Proxy(['array'], {});
 const PROXY_EXAMPLES = [
   OBJECT_PROXY,
-  FUNCTION_PROXY
+  FUNCTION_PROXY,
+  CLASS_PROXY,
+  ARRAY_PROXY
 ];
 
 const RESOLVED_VALUE   = 'resolved-promise-value';
