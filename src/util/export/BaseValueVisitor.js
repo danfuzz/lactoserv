@@ -439,7 +439,7 @@ export class BaseValueVisitor {
 
     if ((type === 'object') || (type === 'function')) {
       // Intentionally conservative check.
-      if ((typeof result.then) === 'function') {
+      if (result && ((typeof result.then) === 'function')) {
         return new BaseValueVisitor.WrappedResult(result);
       }
     }

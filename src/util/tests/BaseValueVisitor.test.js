@@ -203,6 +203,8 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   });
 });
 
+// Tests for plain `visit()` not easily covered by the common `visit*()` test
+// mechanism above.
 describe('visit()', () => {
   test('plumbs through a resolved promise value', async () => {
     const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
@@ -231,6 +233,28 @@ describe('visit()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
+  });
+});
+
+describe.each`
+methodName                  | value
+${'_impl_visitArray'}       | ${[1, 2, 3]}
+${'_impl_visitBigInt'}      | ${99988777n}
+${'_impl_visitBoolean'}     | ${false}
+${'_impl_visitClass'}       | ${class Florp {}}
+${'_impl_visitFunction'}    | ${() => 'x'}
+${'_impl_visitInstance'}    | ${new Set(['woo'])}
+${'_impl_visitNull'}        | ${null}
+${'_impl_visitNumber'}      | ${54.321}
+${'_impl_visitPlainObject'} | ${{ x: 'bonk' }}
+${'_impl_visitProxy'}       | ${new Proxy({}, {})}
+${'_impl_visitString'}      | ${'florp'}
+${'_impl_visitSymbol'}      | ${Symbol('woo')}
+${'_impl_visitUndefined'}   | ${undefined}
+`('$methodName()', ({ methodName, value }) => {
+  test('returns the given value as-is (default implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv[methodName](value)).toBe(value);
   });
 });
 
@@ -422,5 +446,32 @@ describe('_prot_visitObjectProperties()', () => {
     expect(got).toBeObject();
     expect(got[SYM1]).toBe('true');
     expect(got[SYM2]).toBe('false');
+  });
+});
+
+describe('_prot_wrapResult()', () => {
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${'boop'}
+  ${123}
+  ${978123n}
+  ${{ x: 123 }}
+  ${new Set(['x'])}
+  ${() => 123}
+  `('does not wrap non-promise-looking value $value', ({ value }) => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._prot_wrapResult(value)).toBe(value);
+  });
+
+  test('wraps a `Promise` per se', () => {
+    const value = RESOLVED_PROMISE;
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got.value).toBe(value);
   });
 });
