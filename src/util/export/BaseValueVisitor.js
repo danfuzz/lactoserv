@@ -6,11 +6,29 @@ import { types } from 'node:util';
 import { AskIf } from '@this/typey';
 
 /**
- * Abstract base class which implements the classic "visitor" pattern for
- * iterating over JavaScript values and their components, using depth-first
- * traversal.
+ * Base class which implements the classic "visitor" pattern for iterating over
+ * JavaScript values and their components, using depth-first traversal.
  *
- * @abstract
+ * Note that, though this class isn't abstract, it isn't particularly useful
+ * without being (effectively) subclassed. In particular, there are a set of
+ * methods on this class named `_impl_visit*()`, for each possible category of
+ * value. The default implementation of each of these is a pass-through. A
+ * useful subclass will override one or more of these to do something else. And
+ * in service of implementing subclasses, there are a handful of `_prot_*()`
+ * methods, which implement standard common visiting behaviors.
+ *
+ * Of particular note, JavaScript makes it easy to induce a "layering ambiguity"
+ * when working with promises, in that `async` methods naturally return
+ * promises, and yet promises are also just objects. This class makes it
+ * possible to maintain the distinction about what layer a promise is coming
+ * from -- asynchrounous visitor or simply a visitor returning a promise -- but
+ * it requires explicit coding on the part of the visitor. Specifically, if a
+ * visitor implementation wants to return a promise as the result of a visit, it
+ * must use the method `_prot_wrapResult()` on its return value. Such a wrapped
+ * value will get treated literally through all the visitor plumbing. Then, in
+ * order to receive a promise from a visit call, client code can either use
+ * {@link #visitSync} or {@link #visitWrap} (but not normal asynchronous
+ * {@link #visit}).
  */
 export class BaseValueVisitor {
   /**
@@ -224,8 +242,9 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits an array. The base implementation returns the given `node` as-is.
-   * Subclasses that wish to traverse the contents can do so by calling
+   * Visits an array, that is, an object for which `Array.isArray()` returns
+   * `true`. The base implementation returns the given `node` as-is. Subclasses
+   * that wish to visit the contents can do so by calling
    * {@link #_prot_visitArrayProperties}.
    *
    * @param {Array} node The node to visit.
@@ -236,8 +255,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `bigint` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `bigint`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {bigint} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -247,8 +266,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `boolean` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `boolean`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {boolean} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -258,8 +277,10 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a "class," that is, a constructor function which is only usable via
-   * `new` expressions. The base implementation returns the given `node` as-is.
+   * Visits a class, that is, a value of type `function` which is only usable
+   * via `new` expressions by virtue of the fact that it was (effectively)
+   * defined using a `class` statement or expression. The base implementation
+   * returns the given `node` as-is.
    *
    * @param {function(new:*)} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -269,9 +290,15 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a _callable_ function, that is, a function which is known to not
-   * _only_ be usable as a constructor (even if it is typically supposed to be
-   * used as such). The base implementation returns the given `node` as-is.
+   * Visits a _callable_ function, that is, a value of type `function` which is
+   * not known _only_ to be usable as a constructor (even if it is typically
+   * supposed to be used as such). The base implementation returns the given
+   * `node` as-is.
+   *
+   * **Note:** Because of JavaScript history, this method will get called on
+   * constructor functions which are _not_ defined using `class` but which
+   * nonetheless throw an error when used without `new`, such as, notably, many
+   * of the built-in JavaScript classes (such as `Map`).
    *
    * @param {function()} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -282,8 +309,8 @@ export class BaseValueVisitor {
 
   /**
    * Visits an instance, that is, a non-`null` value of type `object` which has
-   * a `prototype` that indicates that it is an instance of _something_ other
-   * than `Object`. The base implementation returns the given `node` as-is.
+   * a prototype that indicates that it is an instance of _something_ other than
+   * `Object`. The base implementation returns the given `node` as-is.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -302,8 +329,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `number` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `number`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -316,8 +343,8 @@ export class BaseValueVisitor {
    * Visits a plain object value, that is, a non-`null` value of type `object`,
    * which has a `prototype` of either `null` or the class `Object`. The base
    * implementation returns the given `node` as-is. Subclasses that wish to
-   * traverse the contents can do so by calling {@link
-   * #_prot_visitObjectProperties}.
+   * visit the contents can do so by calling
+   * {@link #_prot_visitObjectProperties}.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -328,8 +355,9 @@ export class BaseValueVisitor {
 
   /**
    * Visits a proxy value, that is, a value which uses the JavaScript `Proxy`
-   * mechanism for its implementation. The base implementation returns the given
-   * `node` as-is.
+   * mechanism for its implementation and as such which `Proxy.isProxy()`
+   * indicates is a proxy. The base implementation returns the given `node`
+   * as-is.
    *
    * @param {*} node The node to visit.
    * @param {boolean} isFunction The result of `typeof node === 'function'`.
@@ -340,8 +368,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `string` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `string`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {string} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -351,8 +379,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits a `symbol` value. The base implementation returns the given `node`
-   * as-is.
+   * Visits a value of type `symbol`. The base implementation returns the given
+   * `node` as-is.
    *
    * @param {number} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -372,10 +400,13 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the indexed values and any other properties of an array, _excluding_
-   * `length`. Returns an array consisting of all the visited values, with
-   * indices / property names corresponding to the original. If the original
-   * `node` is a sparse array, the result will have the same "holes."
+   * Visits the indexed values and any other "own" property values of an array,
+   * _excluding_ `length`. Returns an array consisting of all the visited
+   * values, with indices / property names corresponding to the original. If the
+   * original `node` is a sparse array, the result will have the same "holes."
+   *
+   * **Note:** If the given `node` has synthetic properties, this method will
+   * call those properties' getters.
    *
    * @param {Array} node The node whose contents are to be visited.
    * @returns {Array|Promise} An array of visited results, or a promise for same
@@ -386,9 +417,12 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the property valies of an object (typically a plain object).
+   * Visits the "own" property values of an object (typically a plain object).
    * Returns a new plain object consisting of all the visited values, with
    * property names corresponding to the original.
+   *
+   * **Note:** If the given `node` has synthetic properties, this method will
+   * call those properties' getters.
    *
    * @param {object} node The node whose contents are to be visited.
    * @returns {object|Promise} A `null`-prototype object with the visited
