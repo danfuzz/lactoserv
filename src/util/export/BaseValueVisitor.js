@@ -434,31 +434,24 @@ export class BaseValueVisitor {
     const isArray   = Array.isArray(result);
     const promNames = [];
 
-    for (const name of Object.getOwnPropertyNames(node)) {
-      if (!(isArray && (name === 'length'))) {
-        const got = this.#visitNode(node[name]);
-        if (got.ok === null) {
-          promNames.push(name);
-          result[name] = got.promise;
-        } else if (got.ok) {
-          result[name] = got.result;
-        } else {
-          throw got.error;
+    const addResults = (iter) => {
+      for (const name of iter) {
+        if (!(isArray && (name === 'length'))) {
+          const got = this.#visitNode(node[name]);
+          if (got.ok === null) {
+            promNames.push(name);
+            result[name] = got.promise;
+          } else if (got.ok) {
+            result[name] = got.result;
+          } else {
+            throw got.error;
+          }
         }
       }
-    }
+    };
 
-    for (const name of Object.getOwnPropertySymbols(node)) {
-      const got = this.#visitNode(node[name]);
-      if (got.ok === null) {
-        promNames.push(name);
-        result[name] = got.promise;
-      } else if (got.ok) {
-        result[name] = got.result;
-      } else {
-        throw got.error;
-      }
-    }
+    addResults(Object.getOwnPropertyNames(node));
+    addResults(Object.getOwnPropertySymbols(node));
 
     if (promNames.length === 0) {
       return result;
