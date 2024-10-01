@@ -508,7 +508,7 @@ export class BaseValueVisitor {
      *
      * @type {?boolean}
      */
-    ok = null;
+    #ok = null;
 
     /**
      * Promise for this instance, which resolves only after the visit completes.
@@ -569,7 +569,7 @@ export class BaseValueVisitor {
         await this.promise;
       }
 
-      if (this.ok) {
+      if (this.#ok) {
         return wrapResult
           ? new BaseValueVisitor.WrappedResult(this.#value)
           : this.#value;
@@ -590,7 +590,7 @@ export class BaseValueVisitor {
      */
     extractSync(possiblyUnfinished = false) {
       if (this.isFinished()) {
-        if (this.ok) {
+        if (this.#ok) {
           return this.#value;
         } else {
           throw this.#error;
@@ -615,8 +615,8 @@ export class BaseValueVisitor {
      * @param {*} value The visit result.
      */
     finishWithValue(value) {
-      this.ok     = true;
-      this.#value = (value instanceof BaseValueVisitor.WrappedResult)
+      this.#ok     = true;
+      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
         ? value.value
         : value;
     }
@@ -628,7 +628,7 @@ export class BaseValueVisitor {
      * @param {Error} error The visit error.
      */
     finishWithError(error) {
-      this.ok     = false;
+      this.#ok    = false;
       this.#error = error;
     }
 
@@ -642,7 +642,7 @@ export class BaseValueVisitor {
      *   indicative of a bug in this class.
      */
     isFinished() {
-      if (this.ok !== null) {
+      if (this.#ok !== null) {
         return true;
       }
 
@@ -674,7 +674,7 @@ export class BaseValueVisitor {
       // available synchronously.
       const done = outerThis.#visitNode0(this);
 
-      if (this.ok === null) {
+      if (this.#ok === null) {
         // This is not ever supposed to throw. (See implementation of
         // `visitNode0()`.)
         await done;
