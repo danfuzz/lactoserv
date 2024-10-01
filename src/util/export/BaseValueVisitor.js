@@ -131,6 +131,7 @@ export class BaseValueVisitor {
     const visitEntry = new BaseValueVisitor.#VisitEntry(node);
     this.#visits.set(node, visitEntry);
 
+    // This call synchronously calls back to `visitNode0()`.
     visitEntry.startVisit(this);
 
     return visitEntry;
