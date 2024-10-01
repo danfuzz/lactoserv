@@ -86,25 +86,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    const visitEntry = this.#visitNode(this.#value);
-
-    switch (visitEntry.ok) {
-      case null: {
-        throw new Error('Could not complete synchronously.');
-      }
-      case false: {
-        throw visitEntry.error;
-      }
-      case true: {
-        return visitEntry.result;
-      }
-      /* c8 ignore start */
-      default: {
-        // This is indicative of a bug in this class.
-        throw new Error('Shouldn\'t happen.');
-      }
-      /* c8 ignore stop */
-    }
+    return this.#visitNode(this.#value).extract(true);
   }
 
   /**
@@ -573,23 +555,38 @@ export class BaseValueVisitor {
     /**
      * Extracts the result or error of a visit.
      *
+     * @param {boolean} [possiblyUnfinished] Should it be an _expected_
+     *   possibility that the visit has been started but not finished?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or
      *   an error indicating that the visit is still in progress.
      */
-    extract() {
-      /* c8 ignore start */
+    extract(possiblyUnfinished = false) {
       if (this.ok === null) {
-        // The code that calls this should only end up doing so when the
-        // instance's visit is known to be finished.
+        // This is indicative of a bug in this class: Either the call should
+        // know the visit is finished, or it should be part of an API that
+        // exposes the possibility of an unfinished visit (in which case, it
+        // should have passed `true`).
+        /* c8 ignore start */
         if (this.promise === null) {
+          // This is indicative of a bug in this class: This method should never
+          // get called before a visit is started.
           throw new Error('Shouldn\'t happen: Visit not yet started.');
-        } else {
-          throw new Error('Shouldn\'t happen: Visit not yet complete.');
         }
+        /* c8 ignore end */
+
+        if (possiblyUnfinished) {
+          throw new Error('Visit did not complete synchronously.');
+        }
+
+        // This is indicative of a bug in this class: If the caller thinks its
+        // possible that the visit hasn't finished, it should have passed `true`
+        // to this method.
+        /* c8 ignore start */
+        throw new Error('Shouldn\'t happen: Visit not yet complete.');
+        /* c8 ignore end */
       }
-      /* c8 ignore end */
 
       if (this.ok) {
         return this.result;
