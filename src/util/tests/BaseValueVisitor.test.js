@@ -474,4 +474,21 @@ describe('_prot_wrapResult()', () => {
     expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
     expect(got.value).toBe(value);
   });
+
+  test('wraps a "thenable"', () => {
+    const value = { then: () => true };
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got.value).toBe(value);
+  });
+
+  test('does not wrap an object with a non-function `then`', () => {
+    const value = { then: 'bonk' };
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBe(value);
+  });
 });
