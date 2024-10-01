@@ -436,8 +436,13 @@ export class BaseValueVisitor {
   /**
    * Wraps a visitor result, so as to make it unambiguous that it is indeed a
    * result. This is primarily useful for concrete visitors that have reason to
-   * return `Promise` instances as the result of visiting per se, as opposed to
-   * returning them because the visitor is itself asynchronous.
+   * return `Promise` (or promise-like) instances as the result of visiting per
+   * se, as opposed to returning them because the visitor is itself
+   * asynchronous.
+   *
+   * **Note:** It is safe to call this method indiscriminately on all visitor
+   * results. The method will only bother wrapping things that could be mistaken
+   * for promises.
    *
    * @param {*} result The result of visiting, per se.
    * @returns {*} Unambiguous visitor result.
