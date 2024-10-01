@@ -577,7 +577,7 @@ export class BaseValueVisitor {
      * @throws {Error} The error resulting from the visit, if it failed.
      */
     async extractAsync(wrapResult) {
-      if (this.ok === null) {
+      if (!this.isFinished()) {
         // Wait for the visit to complete, either successfully or not. This
         // should never throw.
         await this.promise;
@@ -603,36 +603,47 @@ export class BaseValueVisitor {
      *   an error indicating that the visit is still in progress.
      */
     extractSync(possiblyUnfinished = false) {
-      if (this.ok === null) {
-        // This is indicative of a bug in this class: Either the call should
-        // know the visit is finished, or it should be part of an API that
-        // exposes the possibility of an unfinished visit (in which case, it
-        // should have passed `true`).
-        /* c8 ignore start */
-        if (this.promise === null) {
-          // This is indicative of a bug in this class: This method should never
-          // get called before a visit is started.
-          throw new Error('Shouldn\'t happen: Visit not yet started.');
+      if (this.isFinished()) {
+        if (this.ok) {
+          return this.result;
+        } else {
+          throw this.error;
         }
-        /* c8 ignore end */
-
-        if (possiblyUnfinished) {
-          throw new Error('Visit did not complete synchronously.');
-        }
-
-        // This is indicative of a bug in this class: If the caller thinks its
-        // possible that the visit hasn't finished, it should have passed `true`
-        // to this method.
-        /* c8 ignore start */
-        throw new Error('Shouldn\'t happen: Visit not yet complete.');
-        /* c8 ignore end */
+      } else if (possiblyUnfinished) {
+        throw new Error('Visit did not complete synchronously.');
       }
 
-      if (this.ok) {
-        return this.result;
-      } else {
-        throw this.error;
+      // This is indicative of a bug in this class: If the caller thinks it's
+      // possible that the visit hasn't finished, it should have passed `true`
+      // to this method.
+      /* c8 ignore start */
+      throw new Error('Shouldn\'t happen: Visit not yet complete.');
+      /* c8 ignore end */
+    }
+
+    /**
+     * Returns an indication of whether the visit is started or finished,
+     * throwing in the case where the visit hasn't _yet_ been started.
+     *
+     * @returns {boolean} `false` if the visit is in progress, or `true` if it
+     *   is finished.
+     * @throws {Error} Thrown if the visit hasn't yet started. This is
+     *   indicative of a bug in this class.
+     */
+    isFinished() {
+      if (this.ok !== null) {
+        return true;
       }
+
+      /* c8 ignore start */
+      if (this.promise === null) {
+        // This is indicative of a bug in this class: This method should never
+        // get called before a visit is started.
+        throw new Error('Shouldn\'t happen: Visit not yet started.');
+      }
+      /* c8 ignore end */
+
+      return false;
     }
   };
 
