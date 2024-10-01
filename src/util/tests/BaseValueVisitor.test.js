@@ -237,25 +237,40 @@ describe('visit()', () => {
 });
 
 describe.each`
-methodName                  | value
-${'_impl_visitArray'}       | ${[1, 2, 3]}
-${'_impl_visitBigInt'}      | ${99988777n}
-${'_impl_visitBoolean'}     | ${false}
-${'_impl_visitClass'}       | ${class Florp {}}
-${'_impl_visitFunction'}    | ${() => 'x'}
-${'_impl_visitInstance'}    | ${new Set(['woo'])}
-${'_impl_visitNull'}        | ${null}
-${'_impl_visitNumber'}      | ${54.321}
-${'_impl_visitPlainObject'} | ${{ x: 'bonk' }}
-${'_impl_visitProxy'}       | ${new Proxy({}, {})}
-${'_impl_visitString'}      | ${'florp'}
-${'_impl_visitSymbol'}      | ${Symbol('woo')}
-${'_impl_visitUndefined'}   | ${undefined}
-`('$methodName()', ({ methodName, value }) => {
+methodName                  | canWrap  | value
+${'_impl_visitArray'}       | ${true}  | ${[1, 2, 3]}
+${'_impl_visitBigInt'}      | ${false} | ${99988777n}
+${'_impl_visitBoolean'}     | ${false} | ${false}
+${'_impl_visitClass'}       | ${true}  | ${class Florp {}}
+${'_impl_visitFunction'}    | ${true}  | ${() => 'x'}
+${'_impl_visitInstance'}    | ${true}  | ${new Set(['woo'])}
+${'_impl_visitNull'}        | ${false} | ${null}
+${'_impl_visitNumber'}      | ${false} | ${54.321}
+${'_impl_visitPlainObject'} | ${true}  | ${{ x: 'bonk' }}
+${'_impl_visitProxy'}       | ${true}  | ${new Proxy({}, {})}
+${'_impl_visitString'}      | ${false} | ${'florp'}
+${'_impl_visitSymbol'}      | ${false} | ${Symbol('woo')}
+${'_impl_visitUndefined'}   | ${false} | ${undefined}
+`('$methodName()', ({ methodName, canWrap, value }) => {
   test('returns the given value as-is (default implementation)', () => {
     const vv = new BaseValueVisitor(null);
     expect(vv[methodName](value)).toBe(value);
   });
+
+  if (canWrap) {
+    test('returns a wrapper given a needs-wrapping value', () => {
+      const vv = new BaseValueVisitor(null);
+      value.then = () => null;
+
+      try {
+        const got = vv[methodName](value);
+        expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+        expect(got.value).toBe(value);
+      } finally {
+        delete value.then;
+      }
+    });
+  }
 });
 
 describe('_prot_visitArrayProperties()', () => {
