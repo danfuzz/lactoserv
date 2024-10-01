@@ -272,7 +272,7 @@ describe('_prot_visitArrayProperties()', () => {
     expect(got).toEqual(expected);
   });
 
-  test('handles symbol properties', () => {
+  test('handles synchronously-visitable symbol properties', () => {
     const SYM1 = Symbol.for('x');
     const SYM2 = Symbol('y');
     const orig = [123];
@@ -289,6 +289,25 @@ describe('_prot_visitArrayProperties()', () => {
     expect(got[0]).toBe('123');
     expect(got[SYM1]).toBe('234');
     expect(got[SYM2]).toBe('321');
+  });
+
+  test('handles asynchronously-visitable symbol properties', async () => {
+    const SYM1 = Symbol.for('x');
+    const SYM2 = Symbol('y');
+    const orig = [123];
+    orig[SYM1] = true;
+    orig[SYM2] = false;
+
+    const expected = ['123'];
+    expected[SYM1] = 'true';
+    expected[SYM2] = 'false';
+
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+    expect(got).toBeArrayOfSize(1);
+    expect(got[0]).toBe('123');
+    expect(got[SYM1]).toBe('true');
+    expect(got[SYM2]).toBe('false');
   });
 });
 
