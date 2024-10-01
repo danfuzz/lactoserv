@@ -167,6 +167,8 @@ describe('etagFromFile()', () => {
 describe('etagFromFileData()', () => {
   const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
   const longFilePath  = new URL('fixtures/long-file.txt', import.meta.url).pathname;
+  const notFoundPath  = new URL('fixtures/zonk-zonk-zonk', import.meta.url).pathname;
+  const dirPath       = new URL('fixtures', import.meta.url).pathname;
 
   // Make the long file.
   beforeAll(async () => {
@@ -231,6 +233,19 @@ describe('etagFromFileData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: null }, tagForm: 'weak' });
     const result = await eg.etagFromFileData(shortFilePath);
     expect(result).toBe('W/"aZtirMkeaJFgxHEdUuy+RVb64ck"');
+  });
+
+  test('returns `null` if the file does not exist', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'weak' });
+    const result = await eg.etagFromFileData(notFoundPath);
+    expect(result).toBeNull();
+  });
+
+  test('throws if the path is not a regular file', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'weak' });
+    const result = eg.etagFromFileData(dirPath);
+    expect(result).rejects.toThrow();
+
   });
 });
 
