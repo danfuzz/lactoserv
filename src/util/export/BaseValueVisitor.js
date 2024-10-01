@@ -318,9 +318,9 @@ export class BaseValueVisitor {
 
   /**
    * Visits a proxy value, that is, a value which uses the JavaScript `Proxy`
-   * mechanism for its implementation and as such which `Proxy.isProxy()`
-   * indicates is a proxy. The base implementation returns the given `node`
-   * as-is.
+   * mechanism for its implementation and as such which
+   * `node:util.types.isProxy()` indicates is a proxy. The base implementation
+   * returns the given `node` as-is.
    *
    * @param {*} node The node to visit.
    * @param {boolean} isFunction The result of `typeof node === 'function'`.
