@@ -74,8 +74,8 @@ export class MustBe {
    * Checks for type `bigint`, which may optionally be restricted further.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options] Options for restrictions. See {@link
-   * AskIf#number} for details.
+   * @param {?object} [options] Options for restrictions. See
+   *   {@link AskIf#bigint} for details.
    * @returns {bigint} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
    *   optional restrictions.
@@ -207,8 +207,8 @@ export class MustBe {
    * Checks for type `number`, which may optionally be restricted further.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options] Options for restrictions. See {@link
-   * AskIf#number} for details.
+   * @param {?object} [options] Options for restrictions. See
+   *   {@link AskIf#number} for details.
    * @returns {number} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
    *   optional restrictions.
