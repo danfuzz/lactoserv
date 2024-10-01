@@ -71,14 +71,10 @@ export class BaseValueVisitor {
       await visitEntry.promise;
     }
 
-    if (visitEntry.ok) {
-      // Note: If `result` is a promise, this will cause the caller to
-      // ultimately receive the resolved/rejected value of it. See the header
-      // comment for details.
-      return visitEntry.result;
-    } else {
-      throw visitEntry.error;
-    }
+    // Note: If `visitEntry.result` is a promise, this will cause the caller to
+    // ultimately receive the resolved/rejected value of it. See the header
+    // comment for details.
+    return visitEntry.extract();
   }
 
   /**
@@ -583,13 +579,19 @@ export class BaseValueVisitor {
      *   an error indicating that the visit is still in progress.
      */
     extract() {
+      /* c8 ignore start */
       if (this.ok === null) {
+        // The code that calls this should only end up doing so when the
+        // instance's visit is known to be finished.
         if (this.promise === null) {
-          throw new Error('Visit not yet started.');
+          throw new Error('Shouldn\'t happen: Visit not yet started.');
         } else {
-          throw new Error('Visit not yet complete.');
+          throw new Error('Shouldn\'t happen: Visit not yet complete.');
         }
-      } else if (this.ok) {
+      }
+      /* c8 ignore end */
+
+      if (this.ok) {
         return this.result;
       } else {
         throw this.error;
