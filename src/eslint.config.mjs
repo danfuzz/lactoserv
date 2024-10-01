@@ -228,14 +228,6 @@ const disallowedFunctionality = {
     {
       selector: 'NewExpression[callee.name=\'Date\'][arguments.length!=1]',
       message:  'Use module `clocky` or class `quant.Moment`.'
-    },
-    {
-      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_prot_/][object.type!=ThisExpression]',
-      message:  'Only access `_prot_*` (protected method) on `this`.'
-    },
-    {
-      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_impl_/][object.type!=ThisExpression][object.type!=Super]',
-      message:  'Only access `_impl_*` (subclass-implementation method) on `this`.'
     }
   ]
 };
@@ -254,6 +246,14 @@ const disallowedFunctionalityNonTesting = {
     {
       selector: 'ImportDeclaration[source.value=/^#tests\\u002f/]',
       message:  'Only import `#tests` classes inside other test-related files.'
+    },
+    {
+      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_prot_/][object.type!=ThisExpression]',
+      message:  'Only access `_prot_*` (protected method) on `this`.'
+    },
+    {
+      selector: ':not(AssignmentExpression) > MemberExpression[property.name=/^_impl_/][object.type!=ThisExpression][object.type!=Super]',
+      message:  'Only access `_impl_*` (subclass-implementation method) on `this`.'
     }
   ]
 };

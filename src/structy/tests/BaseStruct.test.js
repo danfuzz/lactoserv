@@ -76,7 +76,6 @@ describe('using the (base) class directly', () => {
     test('is `struct`', () => {
       const instance = new BaseStruct();
 
-      // eslint-disable-next-line no-restricted-syntax
       expect(instance._impl_propertyPrefix()).toBe('struct');
     });
   });
@@ -86,7 +85,6 @@ describe('using the (base) class directly', () => {
       const instance = new BaseStruct();
       const someObj  = { a: 'bcd' };
 
-      // eslint-disable-next-line no-restricted-syntax
       expect(instance._impl_validate(someObj)).toBe(someObj);
     });
   });

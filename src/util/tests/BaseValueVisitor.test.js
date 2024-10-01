@@ -7,18 +7,6 @@ import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 import { BaseValueVisitor } from '@this/util';
 
 
-const RESOLVED_VALUE   = 'resolved-promise-value';
-const REJECTED_ERROR   = new Error('from-a-promise');
-const PENDING_PROMISE  = Promise.race([]);
-const RESOLVED_PROMISE = Promise.resolve(RESOLVED_VALUE);
-const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
-
-REJECTED_ERROR.stack = 'some-stack';
-PromiseUtil.handleRejection(REJECTED_PROMISE);
-
-const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
-const FUNCTION_PROXY = new Proxy(() => 123, {});
-
 const EXAMPLES = [
   undefined,
   null,
@@ -31,9 +19,33 @@ const EXAMPLES = [
   { what: 'is up?' },
   new Set(['x', 'y', 'z']),
   (x, y) => { return x < y; },
-  class Flomp { /*empty*/ },
+  class Flomp { /*empty*/ }
+];
+
+const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
+const FUNCTION_PROXY = new Proxy(() => 123, {});
+const CLASS_PROXY    = new Proxy(class Florp {}, {});
+const ARRAY_PROXY    = new Proxy(['array'], {});
+const PROXY_EXAMPLES = [
   OBJECT_PROXY,
-  FUNCTION_PROXY
+  FUNCTION_PROXY,
+  CLASS_PROXY,
+  ARRAY_PROXY
+];
+
+const RESOLVED_VALUE   = 'resolved-promise-value';
+const REJECTED_ERROR   = new Error('from-a-promise');
+const PENDING_PROMISE  = Promise.race([]);
+const RESOLVED_PROMISE = Promise.resolve(RESOLVED_VALUE);
+const REJECTED_PROMISE = Promise.reject(REJECTED_ERROR);
+
+REJECTED_ERROR.stack = 'some-stack';
+PromiseUtil.handleRejection(REJECTED_PROMISE);
+
+const PROMISE_EXAMPLES = [
+  PENDING_PROMISE,
+  RESOLVED_PROMISE,
+  REJECTED_PROMISE
 ];
 
 /**
@@ -66,8 +78,22 @@ class SubVisit extends BaseValueVisitor {
   }
 }
 
+/**
+ * Visitor subclass, which is set up to be proxy aware.
+ */
+class ProxyAwareVisitor extends BaseValueVisitor {
+  _impl_isProxyAware() {
+    return true;
+  }
+
+  _impl_visitProxy(node) {
+    return { proxy: node };
+  }
+}
+
 describe('constructor()', () => {
-  test.each(EXAMPLES)('does not throw given value: %o', (value) => {
+  const CASES = [...EXAMPLES, ...PROXY_EXAMPLES, ...PROMISE_EXAMPLES];
+  test.each(CASES)('does not throw given value: %o', (value) => {
     expect(() => new BaseValueVisitor(value)).not.toThrow();
   });
 });
@@ -80,14 +106,106 @@ describe('.value', () => {
   });
 });
 
-describe('visit()', () => {
-  test.each(EXAMPLES)('async-returns value as-is: %o', async (value) => {
-    const vv  = new BaseValueVisitor(value);
-    const got = vv.visit();
-    expect(got).toBeInstanceOf(Promise);
-    expect(await got).toBe(value);
+// Tests for all three `visit*()` methods.
+describe.each`
+methodName     | isAsync  | wraps    | canReturnPromises
+${'visit'}     | ${true}  | ${false} | ${false}
+${'visitSync'} | ${false} | ${false} | ${true}
+${'visitWrap'} | ${true}  | ${true}  | ${true}
+`('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
+  async function doTest(value, options = {}) {
+    const {
+      cls = BaseValueVisitor,
+      check = (got) => { expect(got).toBe(value); }
+    } = options;
+
+    const visitor = new cls(value);
+
+    if (isAsync) {
+      const got = visitor[methodName]();
+      expect(got).toBeInstanceOf(Promise);
+      if (wraps) {
+        const wrapper = await got;
+        expect(wrapper).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+        check(wrapper.value);
+      } else {
+        check(await got);
+      }
+    } else {
+      check(visitor[methodName]());
+    }
+  }
+
+  test.each(EXAMPLES)('returns the given value as-is: %o', async (value) => {
+    await doTest(value);
   });
 
+  if (isAsync) {
+    test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
+      const value = true;
+      await doTest(value, {
+        cls: SubVisit,
+        check: (got) => {
+          expect(got).toBe('true');
+        }
+      });
+    });
+
+    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+      const value = Symbol('eep');
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
+    });
+  } else {
+    const MSG = 'Visit did not finish synchronously.';
+
+    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
+      const value = true;
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    });
+
+    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
+      const value = Symbol('eeeeek');
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    });
+  }
+
+  if (canReturnPromises) {
+    test.each([
+      RESOLVED_PROMISE,
+      REJECTED_PROMISE,
+      PENDING_PROMISE
+    ])('returns promise as-is: %o', async (value) => {
+      await doTest(value);
+    });
+  }
+
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
+    const value = 123n;
+    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('Nope!');
+  });
+
+  describe('when `_impl_proxyAware() === false`', () => {
+    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
+      await doTest(value);
+    });
+  });
+
+  describe('when `_impl_proxyAware() === true`', () => {
+    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
+      await doTest(value, {
+        cls: ProxyAwareVisitor,
+        check: (got) => {
+          expect(got).toEqual({ proxy: value });
+          expect(got.proxy).toBe(value);
+        }
+      });
+    });
+  });
+});
+
+// Tests for plain `visit()` not easily covered by the common `visit*()` test
+// mechanism above.
+describe('visit()', () => {
   test('plumbs through a resolved promise value', async () => {
     const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
     const got = vv.visit();
@@ -116,90 +234,43 @@ describe('visit()', () => {
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
   });
-
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(123n);
-    const got = vv.visit();
-
-    await expect(got).rejects.toThrow('Nope!');
-  });
-
-  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(Symbol('eep'));
-    const got = vv.visit();
-
-    await expect(got).rejects.toThrow('NO');
-  });
 });
 
-describe('visitSync()', () => {
-  test.each(EXAMPLES)('synchronously returns value as-is: %o', (value) => {
-    const vv  = new BaseValueVisitor(value);
-    const got = vv.visitSync();
-    expect(got).toBe(value);
+describe.each`
+methodName                  | canWrap  | value
+${'_impl_visitArray'}       | ${true}  | ${[1, 2, 3]}
+${'_impl_visitBigInt'}      | ${false} | ${99988777n}
+${'_impl_visitBoolean'}     | ${false} | ${false}
+${'_impl_visitClass'}       | ${true}  | ${class Florp {}}
+${'_impl_visitFunction'}    | ${true}  | ${() => 'x'}
+${'_impl_visitInstance'}    | ${true}  | ${new Set(['woo'])}
+${'_impl_visitNull'}        | ${false} | ${null}
+${'_impl_visitNumber'}      | ${false} | ${54.321}
+${'_impl_visitPlainObject'} | ${true}  | ${{ x: 'bonk' }}
+${'_impl_visitProxy'}       | ${true}  | ${new Proxy({}, {})}
+${'_impl_visitString'}      | ${false} | ${'florp'}
+${'_impl_visitSymbol'}      | ${false} | ${Symbol('woo')}
+${'_impl_visitUndefined'}   | ${false} | ${undefined}
+`('$methodName()', ({ methodName, canWrap, value }) => {
+  test('returns the given value as-is (default implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv[methodName](value)).toBe(value);
   });
 
-  test.each([
-    RESOLVED_PROMISE,
-    REJECTED_PROMISE,
-    PENDING_PROMISE
-  ])('synchronously returns promise as-is: %o', (value) => {
-    const vv  = new BaseValueVisitor(value);
-    const got = vv.visitSync();
-    expect(got).toBe(value);
-  });
+  if (canWrap) {
+    test('returns a wrapper given a needs-wrapping value', () => {
+      const vv = new BaseValueVisitor(null);
+      value.then = () => null;
 
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', () => {
-    const vv = new SubVisit(123n);
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
-
-  test('throws the right error if the visit did not finish synchronously', () => {
-    const vv = new SubVisit(true);
-    expect(() => vv.visitSync()).toThrow('Visit did not finish synchronously.');
-  });
-});
-
-describe('visitWrap()', () => {
-  test.each(EXAMPLES)('async-returns value as-is: %o', async (value) => {
-    const vv      = new BaseValueVisitor(value);
-    const gotProm = vv.visitWrap();
-    expect(gotProm).toBeInstanceOf(Promise);
-
-    const got = await gotProm;
-    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
-
-    expect(got.value).toBe(value);
-  });
-
-  test.each([
-    RESOLVED_PROMISE,
-    REJECTED_PROMISE,
-    PENDING_PROMISE
-  ])('async-returns promise as-is: %o', async (value) => {
-    const vv      = new BaseValueVisitor(value);
-    const gotProm = vv.visitWrap();
-    expect(gotProm).toBeInstanceOf(Promise);
-
-    const got = await gotProm;
-    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
-
-    expect(got.value).toBe(value);
-  });
-
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(123n);
-    const got = vv.visitWrap();
-
-    await expect(got).rejects.toThrow('Nope!');
-  });
-
-  test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-    const vv  = new SubVisit(Symbol('eep'));
-    const got = vv.visitWrap();
-
-    await expect(got).rejects.toThrow('NO');
-  });
+      try {
+        const got = vv[methodName](value);
+        expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+        expect(got.value).toBe(value);
+      } finally {
+        delete value.then;
+      }
+    });
+  }
 });
 
 describe('_prot_visitArrayProperties()', () => {
@@ -390,5 +461,49 @@ describe('_prot_visitObjectProperties()', () => {
     expect(got).toBeObject();
     expect(got[SYM1]).toBe('true');
     expect(got[SYM2]).toBe('false');
+  });
+});
+
+describe('_prot_wrapResult()', () => {
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${'boop'}
+  ${123}
+  ${978123n}
+  ${{ x: 123 }}
+  ${new Set(['x'])}
+  ${() => 123}
+  `('does not wrap non-promise-looking value $value', ({ value }) => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._prot_wrapResult(value)).toBe(value);
+  });
+
+  test('wraps a `Promise` per se', () => {
+    const value = RESOLVED_PROMISE;
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got.value).toBe(value);
+  });
+
+  test('wraps a "thenable"', () => {
+    const value = { then: () => true };
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got.value).toBe(value);
+  });
+
+  test('does not wrap an object with a non-function `then`', () => {
+    const value = { then: 'bonk' };
+    const vv    = new BaseValueVisitor(null);
+    const got   = vv._prot_wrapResult(value);
+
+    expect(got).toBe(value);
   });
 });
