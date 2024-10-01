@@ -520,11 +520,6 @@ export class BaseValueVisitor {
       this.#node = node;
     }
 
-    /** @returns {*} The value whose visit this instance represents. */
-    get node() {
-      return this.#node;
-    }
-
     /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
      * has been finished (whether or not successful). It is only valid to use
