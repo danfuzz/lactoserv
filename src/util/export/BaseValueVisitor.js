@@ -5,6 +5,7 @@ import { types } from 'node:util';
 
 import { AskIf } from '@this/typey';
 
+
 /**
  * Base class which implements the classic "visitor" pattern for iterating over
  * JavaScript values and their components, using depth-first traversal.
