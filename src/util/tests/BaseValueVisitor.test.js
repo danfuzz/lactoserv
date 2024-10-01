@@ -106,7 +106,7 @@ describe('.value', () => {
   });
 });
 
-// Common tests for all three `visit*()` methods.
+// Tests for all three `visit*()` methods.
 describe.each`
 methodName     | isAsync  | wraps    | canReturnPromises
 ${'visit'}     | ${true}  | ${false} | ${false}
@@ -141,11 +141,6 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   });
 
   if (isAsync) {
-    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-      const value = Symbol('eep');
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
-    });
-
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
       const value = true;
       await doTest(value, {
@@ -155,8 +150,23 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
         }
       });
     });
+
+    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+      const value = Symbol('eep');
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
+    });
   } else {
-    /// TODO######
+    const MSG = 'Visit did not finish synchronously.';
+
+    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
+      const value = true;
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    });
+
+    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
+      const value = Symbol('eeeeek');
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    });
   }
 
   if (canReturnPromises) {
@@ -221,13 +231,6 @@ describe('visit()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
-  });
-});
-
-describe('visitSync()', () => {
-  test('throws the right error if the visit did not finish synchronously', () => {
-    const vv = new SubVisit(true);
-    expect(() => vv.visitSync()).toThrow('Visit did not finish synchronously.');
   });
 });
 
