@@ -476,10 +476,8 @@ export class BaseValueVisitor {
           if (!got.isFinished()) {
             promNames.push(name);
             result[name] = got.promise;
-          } else if (got.ok) {
-            result[name] = got.result;
           } else {
-            throw got.error;
+            result[name] = got.extractSync();
           }
         }
       }
@@ -538,15 +536,15 @@ export class BaseValueVisitor {
      *
      * @type {Error}
      */
-    error = null;
+    #error = null;
 
     /**
-     * Successful result of the visit, or `null` if the visit is either still in
-     * progress or ended with a failure.
+     * Successful result value of the visit, or `null` if the visit is either
+     * still in progress or ended with a failure.
      *
      * @type {*}
      */
-    result = null;
+    #value = null;
 
     /**
      * Constructs an instance.
@@ -561,11 +559,11 @@ export class BaseValueVisitor {
      * Extracts the result or error of a visit, always first waiting until after
      * the visit is complete.
      *
-     * Note: If `visitEntry.result` is a promise and `wrapResult` is passed as
-     * `false`, this will cause the caller to ultimately receive the fulfilled
-     * (resolved/rejected) value of that promise and not the result promise per
-     * se. This is the crux of the difference between {link #visit} and
-     * {@link #visitWrap} (see which).
+     * Note: If this visit finished successfully with a promise value, and
+     * `wrapResult` is passed as `false`, this will cause the client (external
+     * caller) to ultimately receive the fulfilled (resolved/rejected) value of
+     * that promise and not the result promise per se. This is the crux of the
+     * difference between {link #visit} and {@link #visitWrap} (see which).
      *
      * @param {boolean} wrapResult Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed
@@ -581,10 +579,10 @@ export class BaseValueVisitor {
 
       if (this.ok) {
         return wrapResult
-          ? new BaseValueVisitor.WrappedResult(this.result)
-          : this.result;
+          ? new BaseValueVisitor.WrappedResult(this.#value)
+          : this.#value;
       } else {
-        throw this.error;
+        throw this.#error;
       }
     }
 
@@ -601,9 +599,9 @@ export class BaseValueVisitor {
     extractSync(possiblyUnfinished = false) {
       if (this.isFinished()) {
         if (this.ok) {
-          return this.result;
+          return this.#value;
         } else {
-          throw this.error;
+          throw this.#error;
         }
       } else if (possiblyUnfinished) {
         throw new Error('Visit did not complete synchronously.');
@@ -626,7 +624,7 @@ export class BaseValueVisitor {
      */
     finishWithValue(value) {
       this.ok     = true;
-      this.result = (value instanceof BaseValueVisitor.WrappedResult)
+      this.#value = (value instanceof BaseValueVisitor.WrappedResult)
         ? value.value
         : value;
     }
@@ -638,8 +636,8 @@ export class BaseValueVisitor {
      * @param {Error} error The visit error.
      */
     finishWithError(error) {
-      this.ok    = false;
-      this.error = error;
+      this.ok     = false;
+      this.#error = error;
     }
 
     /**
