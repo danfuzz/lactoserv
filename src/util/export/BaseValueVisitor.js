@@ -603,31 +603,6 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Sets the visit result to be a non-error value. This indicates that the
-     * visit has in fact finished with `ok === true`. If given a
-     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
-     *
-     * @param {*} value The visit result.
-     */
-    finishWithValue(value) {
-      this.#ok     = true;
-      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
-        ? value.value
-        : value;
-    }
-
-    /**
-     * Sets the visit result to be an error value. This indicates that the
-     * visit has in fact finished with `ok === false`.
-     *
-     * @param {Error} error The visit error.
-     */
-    finishWithError(error) {
-      this.#ok    = false;
-      this.#error = error;
-    }
-
-    /**
      * Returns an indication of whether the visit is started or finished,
      * throwing in the case where the visit hasn't _yet_ been started.
      *
@@ -671,13 +646,38 @@ export class BaseValueVisitor {
             result = await result;
           }
 
-          this.finishWithValue(result);
+          this.#finishWithValue(result);
         } catch (e) {
-          this.finishWithError(e);
+          this.#finishWithError(e);
         }
 
         return this;
       })();
+    }
+
+    /**
+     * Sets the visit result to be a non-error value. This indicates that the
+     * visit has in fact finished with `ok === true`. If given a
+     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
+     *
+     * @param {*} value The visit result.
+     */
+    #finishWithValue(value) {
+      this.#ok     = true;
+      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
+        ? value.value
+        : value;
+    }
+
+    /**
+     * Sets the visit result to be an error value. This indicates that the
+     * visit has in fact finished with `ok === false`.
+     *
+     * @param {Error} error The visit error.
+     */
+    #finishWithError(error) {
+      this.#ok    = false;
+      this.#error = error;
     }
   };
 
