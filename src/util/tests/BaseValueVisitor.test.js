@@ -150,9 +150,13 @@ describe('visitSync()', () => {
   });
 
   test('throws the error which was thrown synchronously by an `_impl_visit*()` method', () => {
-    const vv  = new SubVisit(123n);
-
+    const vv = new SubVisit(123n);
     expect(() => vv.visitSync()).toThrow('Nope!');
+  });
+
+  test('throws the right error if the visit did not complete synchronously', () => {
+    const vv = new SubVisit(true);
+    expect(() => vv.visitSync()).toThrow('Visit did not complete synchronously.');
   });
 });
 
