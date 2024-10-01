@@ -241,6 +241,12 @@ describe('_prot_visitArrayProperties()', () => {
     expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
+  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
+    const vv = new SubVisit([Symbol('zonk')]);
+
+    expect(vv.visit()).rejects.toThrow('NO');
+  });
+
   test('preserves sparseness', () => {
     const UND  = undefined;
     const orig = Array(7);
@@ -350,7 +356,13 @@ describe('_prot_visitObjectProperties()', () => {
     expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
-  test('handles symbol properties', () => {
+  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
+    const vv = new SubVisit({ blorp: Symbol('zonk') });
+
+    expect(vv.visit()).rejects.toThrow('NO');
+  });
+
+  test('handles synchronously-visitable symbol properties', () => {
     const SYM1 = Symbol.for('x');
     const SYM2 = Symbol('y');
     const orig = {
@@ -363,5 +375,20 @@ describe('_prot_visitObjectProperties()', () => {
     expect(got).toBeObject();
     expect(got[SYM1]).toBe('234');
     expect(got[SYM2]).toBe('321');
+  });
+
+  test('handles asynchronously-visitable symbol properties', async () => {
+    const SYM1 = Symbol.for('x');
+    const SYM2 = Symbol('y');
+    const orig = {
+      [SYM1]: true,
+      [SYM2]: false
+    };
+
+    const vv   = new SubVisit(orig);
+    const got  = await vv.visit();
+    expect(got).toBeObject();
+    expect(got[SYM1]).toBe('true');
+    expect(got[SYM2]).toBe('false');
   });
 });
