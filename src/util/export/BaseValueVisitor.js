@@ -32,7 +32,7 @@ import { AskIf } from '@this/typey';
  */
 export class BaseValueVisitor {
   /**
-   * Map from visited values to their visit-in-progress-or-completed entries.
+   * Map from visited values to their visit representatives.
    *
    * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
@@ -86,8 +86,9 @@ export class BaseValueVisitor {
 
   /**
    * Similar to {@link #visit}, except (a) it will fail if the visit could not
-   * complete synchronously, and (b) a returned promise is only ever due to a
-   * visitor returning a promise per se (and not from it acting asynchronously).
+   * become finished synchronously, and (b) a returned promise is only ever due
+   * to a visitor returning a promise per se (and not from it acting
+   * asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
@@ -489,7 +490,7 @@ export class BaseValueVisitor {
     #ok = null;
 
     /**
-     * Promise for this instance, which resolves only after the visit completes.
+     * Promise for this instance, which resolves only after the visit finishes;
      * or `null` if this instance's corresponding visit hasn't yet been started.
      *
      * @type {Promise<BaseValueVisitor#VisitEntry>}
@@ -539,7 +540,7 @@ export class BaseValueVisitor {
 
     /**
      * Extracts the result or error of a visit, always first waiting until after
-     * the visit is complete.
+     * the visit is finished.
      *
      * Note: If this visit finished successfully with a promise value, and
      * `wrapResult` is passed as `false`, this will cause the client (external
@@ -554,8 +555,8 @@ export class BaseValueVisitor {
      */
     async extractAsync(wrapResult) {
       if (!this.isFinished()) {
-        // Wait for the visit to complete, either successfully or not. This
-        // should never throw.
+        // Wait for the visit to finish, either successfully or not. This should
+        // never throw.
         await this.#promise;
       }
 
@@ -586,14 +587,14 @@ export class BaseValueVisitor {
           throw this.#error;
         }
       } else if (possiblyUnfinished) {
-        throw new Error('Visit did not complete synchronously.');
+        throw new Error('Visit did not finish synchronously.');
       }
 
       // This is indicative of a bug in this class: If the caller thinks it's
       // possible that the visit hasn't finished, it should have passed `true`
       // to this method.
       /* c8 ignore start */
-      throw new Error('Shouldn\'t happen: Visit not yet complete.');
+      throw new Error('Shouldn\'t happen: Visit not yet finished.');
       /* c8 ignore end */
     }
 
@@ -620,7 +621,7 @@ export class BaseValueVisitor {
 
     /**
      * Starts the visit for this instance. If the visit could be synchronously
-     * completed, the instance state will reflect that fact upon return. If not,
+     * finished, the instance state will reflect that fact upon return. If not,
      * the visit will continue asynchronously, after this method returns.
      *
      * @param {BaseValueVisitor} outerThis The outer instance associated with
@@ -633,11 +634,11 @@ export class BaseValueVisitor {
 
           if (result instanceof Promise) {
             // This is the moment that this visit becomes "not synchronously
-            // completed." If we don't end up here, then, even though this
+            // finished." If we don't end up here, then, even though this
             // (anonymous IIFE) function is `async`, by the time the call
-            // synchronously completes, the visit will have also completed.
-            // (This is because an `async` function runs synchronously with
-            // respect to the caller up to the first `await`.)
+            // synchronously completes, the visit will have finished. (This is
+            // because an `async` function runs synchronously with respect to
+            // the caller up to the first `await`.)
             result = await result;
           }
 
