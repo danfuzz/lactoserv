@@ -516,7 +516,7 @@ export class BaseValueVisitor {
      *
      * @type {Promise<BaseValueVisitor#VisitEntry>}
      */
-    promise = null;
+    #promise = null;
 
     /**
      * Error thrown by the visit, or `null` if no error has yet been thrown.
@@ -548,6 +548,23 @@ export class BaseValueVisitor {
     }
 
     /**
+     * @returns {Promise} A promise for `this`, which resolves once the visit
+     * has been finished (whether or not successful). It is only valid to use
+     * this getter after {@link #startVisit} has been called.
+     */
+    get promise() {
+      if (this.#promise) {
+        return this.#promise;
+      }
+
+      /* c8 ignore start */
+      // This is indicative of a bug in this class: This method should never get
+      // called before a visit is started.
+      throw new Error('Shouldn\'t happen: Visit not yet started.');
+      /* c8 ignore end */
+    }
+
+    /**
      * Extracts the result or error of a visit, always first waiting until after
      * the visit is complete.
      *
@@ -566,7 +583,7 @@ export class BaseValueVisitor {
       if (!this.isFinished()) {
         // Wait for the visit to complete, either successfully or not. This
         // should never throw.
-        await this.promise;
+        await this.#promise;
       }
 
       if (this.#ok) {
@@ -646,13 +663,9 @@ export class BaseValueVisitor {
         return true;
       }
 
-      /* c8 ignore start */
-      if (this.promise === null) {
-        // This is indicative of a bug in this class: This method should never
-        // get called before a visit is started.
-        throw new Error('Shouldn\'t happen: Visit not yet started.');
-      }
-      /* c8 ignore end */
+      // This causes a "shouldn't happen" error when appropriate (hopefully
+      // never.)
+      this.#promise;
 
       return false;
     }
@@ -666,7 +679,7 @@ export class BaseValueVisitor {
      *   this instance.
      */
     startVisit(outerThis) {
-      this.promise = (async () => {
+      this.#promise = (async () => {
         // This is called without `await` exactly so that, in the case of a
         // fully synchronous visitor, the ultimate result will be able to be
         // made available synchronously.
