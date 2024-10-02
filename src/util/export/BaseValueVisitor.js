@@ -526,18 +526,22 @@ export class BaseValueVisitor {
    *   synchronously, or a promise for `result` if not.
    */
   #visitProperties(node, result) {
-    const isArray   = Array.isArray(result);
-    const promNames = [];
+    const isArray  = Array.isArray(result);
+    const promInfo = [];
 
     const addResults = (iter) => {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
-          const got = this.#visitNode(node[name]);
-          if (!got.isFinished()) {
-            promNames.push(name);
-            result[name] = got.promise;
+          const entry = this.#visitNode(node[name]);
+          if (!entry.isFinished()) {
+            // Note: In order for synchronously-discoverable circular references
+            // to be _actually_ discovered, we need to get `entry.promise` here
+            // (as opposed to waiting to do so in the loop in the `else` clause
+            // below).
+            promInfo.push({ name, entry, promise: entry.promise });
+            result[name] = null; // For consistent result property order.
           } else {
-            result[name] = got.extractSync();
+            result[name] = entry.extractSync();
           }
         }
       }
@@ -546,13 +550,14 @@ export class BaseValueVisitor {
     addResults(Object.getOwnPropertyNames(node));
     addResults(Object.getOwnPropertySymbols(node));
 
-    if (promNames.length === 0) {
+    if (promInfo.length === 0) {
       return result;
     } else {
-      // There was at least one promise returned from visiting an element.
+      // At least one property's visit entry isn't finished.
       return (async () => {
-        for (const name of promNames) {
-          result[name] = (await result[name]).extractSync();
+        for (const { name, entry, promise } of promInfo) {
+          await promise;
+          result[name] = entry.extractSync();
         }
 
         return result;
