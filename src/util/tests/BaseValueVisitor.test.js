@@ -92,6 +92,19 @@ class ProxyAwareVisitor extends BaseValueVisitor {
   }
 }
 
+/**
+ * Visitor subclass, which is set up to use refs for duplicate objects.
+ */
+class RefMakingVisitor extends BaseValueVisitor {
+  _impl_shouldRef(value) {
+    return (value && (typeof value === 'object'));
+  }
+
+  _impl_visitArray(node) {
+    return this._prot_visitArrayProperties(node);
+  }
+}
+
 describe('constructor()', () => {
   const CASES = [...EXAMPLES, ...PROXY_EXAMPLES, ...PROMISE_EXAMPLES];
   test.each(CASES)('does not throw given value: %o', (value) => {
@@ -281,6 +294,50 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
         check: (got) => {
           expect(got).toEqual({ proxy: value });
           expect(got.proxy).toBe(value);
+        }
+      });
+    });
+  });
+
+  describe('when `_impl_shouldRef()` can return `true`', () => {
+    test('will make a ref for a non-circular duplicate value', async () => {
+      const inner = ['bonk'];
+      const outer = [inner, [inner], inner];
+
+      await doTest(outer, {
+        cls: RefMakingVisitor,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(3);
+          const gotInner = got[0];
+          const gotMiddle = got[1];
+          expect(got[0]).toEqual(['bonk']);
+          expect(gotMiddle).toBeArrayOfSize(1);
+          const gotRef = gotMiddle[0];
+          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(got[2]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotRef).toBe(got[2]);
+        }
+      });
+    });
+
+    test('will make a ref for a circularly-referenced value', async () => {
+      const inner = ['bonk'];
+      const outer = [inner, inner];
+
+      inner.push(inner);
+
+      await doTest(outer, {
+        cls: RefMakingVisitor,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(2);
+          const gotInner = got[0];
+          const gotRef   = got[1];
+
+          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotInner).toBeArrayOfSize(2);
+          expect(gotInner[0]).toEqual('bonk');
+          expect(gotInner[1]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotInner[1]).toBe(gotRef);
         }
       });
     });
