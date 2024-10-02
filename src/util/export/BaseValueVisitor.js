@@ -5,6 +5,8 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { VisitResult } from '#x/VisitResult';
+
 
 /**
  * Base class which implements the classic "visitor" pattern for iterating over
@@ -44,7 +46,7 @@ export class BaseValueVisitor {
    *
    * @type {*}
    */
-  #value;
+  #rootValue;
 
   /**
    * Map from visited values to their visit representatives.
@@ -54,6 +56,22 @@ export class BaseValueVisitor {
   #visits = new Map();
 
   /**
+   * The next index to use for a ref (circular / shared references).
+   *
+   * @type {number}
+   */
+  #nextRefIndex = 0;
+
+  /**
+   * The set of visit entries that are currently part of an `await` chain. This
+   * is used to detect attempts to visit a value with a circular reference,
+   * where the circular nature only becomes apparent asynchronously.
+   *
+   * @type {Set<BaseValueVisitor#VisitEntry>}
+   */
+  #waitSet = new Set();
+
+  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
@@ -61,15 +79,15 @@ export class BaseValueVisitor {
    */
   constructor(value) {
     this.#proxyAware = MustBe.boolean(this._impl_isProxyAware());
-    this.#value      = value;
+    this.#rootValue  = value;
   }
 
   /**
    * @returns {*} The root value being visited by this instance, that is, the
    * `value` passed in to the constructor of this instance.
    */
-  get value() {
-    return this.#value;
+  get rootValue() {
+    return this.#rootValue;
   }
 
   /**
@@ -90,7 +108,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visit() {
-    return this.#visitNode(this.#value).extractAsync(false);
+    return this.#visitRoot().extractAsync(false);
   }
 
   /**
@@ -103,21 +121,21 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    return this.#visitNode(this.#value).extractSync(true);
+    return this.#visitRoot().extractSync(true);
   }
 
   /**
    * Like {@link #visit}, except that successful results are wrapped in an
-   * instance of {@link BaseValueVisitor#WrappedResult}, which makes it possible
-   * for a caller to tell the difference between a promise which is returned
-   * because the visitor is acting asynchronously and a promise which is
-   * returned because that's an actual visitor result.
+   * instance of {@link VisitResult}, which makes it possible for a caller to
+   * tell the difference between a promise which is returned because the visitor
+   * is acting asynchronously and a promise which is returned because that's an
+   * actual visitor result.
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
    */
   async visitWrap() {
-    return this.#visitNode(this.#value).extractAsync(true);
+    return this.#visitRoot().extractAsync(true);
   }
 
   /**
@@ -135,7 +153,18 @@ export class BaseValueVisitor {
     const already = this.#visits.get(node);
 
     if (already) {
-      return already;
+      const ref = already.ref;
+      if (ref) {
+        return this.#visitNode(ref);
+      } else if (this.#shouldRef(node)) {
+        const newRef =
+          new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
+        this.#nextRefIndex++;
+        already.ref = newRef;
+        return this.#visitNode(newRef);
+      } else {
+        return already;
+      }
     }
 
     const visitEntry = new BaseValueVisitor.#VisitEntry(node);
@@ -198,6 +227,8 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
+        } else if (node instanceof BaseValueVisitor.VisitRef) {
+          return this._impl_visitRef(node);
         } else {
           return this._impl_visitInstance(node);
         }
@@ -213,18 +244,56 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Gets the entry for the root value being visited, including starting the
+   * visit (and possibly completing it) if this is the first time a `visit*()`
+   * method is being called.
+   *
+   * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
+   */
+  #visitRoot() {
+    const node = this.#rootValue;
+    return this.#visits.get(node) ?? this.#visitNode(node);
+  }
+
+  /**
    * Indicates whether this instance should be aware of proxies. If `true`,
    * visiting a proxy will cause {@link #_impl_visitProxy} to be called. If
    * `false`, visiting a proxy will cause an `_impl_visit*()` method to be
    * called based on the type of value that the proxy is proxying.
    *
-   * This method is called once during construction of this instance. By
-   * default, it returns `false`, that is, by default instances are unaware of
-   * proxies.
+   * This method is called once during construction of this instance. The base
+   * implementation always returns `false`, that is, by default instances are
+   * unaware of proxies.
    *
    * @returns {boolean} The proxy-awareness indicator.
    */
   _impl_isProxyAware() {
+    return false;
+  }
+
+  /**
+   * Indicates whether the given value, which has already been determined to be
+   * referenced more than once in the graph of values being visited, should be
+   * converted into a ref object for all but the first visit. The various
+   * `visit*()` methods will call this any time they encounter a value (of any
+   * type) which has been visited before (or is currently being visited),
+   * _except_ a ref instance (instance of {@link #VisitRef}) will never be
+   * subject to potential "re-reffing."
+   *
+   * Note that, for values that are visited recursively and have at least one
+   * self-reference (that is, a circular reference), returning `false` will
+   * cause the visit to _not_ be able to finish, in that the construction of a
+   * visit result will require itself to be known before its own construction.
+   *
+   * The base implementation always returns `false`. A common choice for a
+   * subclass is to return `true` for objects and functions and `false` for
+   * everything else.
+   *
+   * @param {*} value The value to check.
+   * @returns {boolean} `true` if `value` should be converted into a reference.
+   *   or `false` if not.
+   */
+  _impl_shouldRef(value) { // eslint-disable-line no-unused-vars
     return false;
   }
 
@@ -355,6 +424,20 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Visits a reference to a visit result from the visit currently in progress.
+   * When {@link #_impl_shouldRef} indicates that an already-seen value should
+   * become a "ref," then this is the method that ultimately gets called in
+   * order to visit that ref. The base implementation returns the given node
+   * as-is.
+   *
+   * @param {BaseValueVisitor#VisitRef} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  _impl_visitRef(node) {
+    return node;
+  }
+
+  /**
    * Visits a value of type `string`. The base implementation returns the given
    * `node` as-is.
    *
@@ -440,7 +523,7 @@ export class BaseValueVisitor {
     if ((type === 'object') || (type === 'function')) {
       // Intentionally conservative check.
       if (result && ((typeof result.then) === 'function')) {
-        return new BaseValueVisitor.WrappedResult(result);
+        return new VisitResult(result);
       }
     }
 
@@ -459,6 +542,20 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Assuming this is its second-or-later (recursive or sibling) visit, should
+   * the given value be turned into a ref? This just defers to
+   * {@link #_impl_shouldRef}, except that refs themselves are never considered
+   * for re-(re-...)reffing.
+   *
+   * @param {*} value Value to check.
+   * @returns {boolean} `true` iff `value` should be turned into a ref.
+   */
+  #shouldRef(value) {
+    return !(value instanceof BaseValueVisitor.VisitRef)
+      && this._impl_shouldRef(value);
+  }
+
+  /**
    * Helper for {@link #_prot_visitArrayProperties} and
    * {@link #_prot_visitObjectProperties}, which does most of the work.
    *
@@ -468,18 +565,22 @@ export class BaseValueVisitor {
    *   synchronously, or a promise for `result` if not.
    */
   #visitProperties(node, result) {
-    const isArray   = Array.isArray(result);
-    const promNames = [];
+    const isArray  = Array.isArray(result);
+    const promInfo = [];
 
     const addResults = (iter) => {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
-          const got = this.#visitNode(node[name]);
-          if (!got.isFinished()) {
-            promNames.push(name);
-            result[name] = got.promise;
+          const entry = this.#visitNode(node[name]);
+          if (!entry.isFinished()) {
+            // Note: In order for synchronously-discoverable circular references
+            // to be _actually_ discovered, we need to get `entry.promise` here
+            // (as opposed to waiting to do so in the loop in the `else` clause
+            // below).
+            promInfo.push({ name, entry, promise: entry.promise });
+            result[name] = null; // For consistent result property order.
           } else {
-            result[name] = got.extractSync();
+            result[name] = entry.extractSync();
           }
         }
       }
@@ -488,13 +589,24 @@ export class BaseValueVisitor {
     addResults(Object.getOwnPropertyNames(node));
     addResults(Object.getOwnPropertySymbols(node));
 
-    if (promNames.length === 0) {
+    if (promInfo.length === 0) {
       return result;
     } else {
-      // There was at least one promise returned from visiting an element.
+      // At least one property's visit isn't finished.
       return (async () => {
-        for (const name of promNames) {
-          result[name] = (await result[name]).extractSync();
+        for (const { name, entry, promise } of promInfo) {
+          if (this.#waitSet.has(entry)) {
+            throw new Error('Visit is deadlocked due to circular reference.');
+          }
+
+          try {
+            this.#waitSet.add(entry);
+            await promise;
+          } finally {
+            this.#waitSet.delete(entry);
+          }
+
+          result[name] = entry.extractSync();
         }
 
         return result;
@@ -527,7 +639,8 @@ export class BaseValueVisitor {
 
     /**
      * Promise for this instance, which resolves only after the visit finishes;
-     * or `null` if this instance's corresponding visit hasn't yet been started.
+     * or `null` if this instance's corresponding visit hasn't yet been started
+     * enough to have a promise.
      *
      * @type {Promise<BaseValueVisitor#VisitEntry>}
      */
@@ -558,20 +671,30 @@ export class BaseValueVisitor {
     }
 
     /**
+     * @returns {*} The original value (not the visit result) which this
+     * instance is a reference to.
+     */
+    get originalValue() {
+      return this.#node;
+    }
+
+    /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
      * has been finished (whether or not successful). It is only valid to use
      * this getter after {@link #startVisit} has been called.
      */
     get promise() {
-      /* c8 ignore start */
-      if (!this.#promise) {
-        // This is indicative of a bug in this class: This method should never
-        // get called before a visit is started.
-        throw new Error('Shouldn\'t happen: Visit not yet started.');
+      if (this.#promise) {
+        return this.#promise;
       }
-      /* c8 ignore end */
 
-      return this.#promise;
+      // This is the case when a visited value has a synchronously-discovered
+      // circular reference, that is, when the synchronous portion of visiting
+      // the value causes a (non-ref) request to visit itself. More or less by
+      // definition, there is no possible way to handle this. To visit values
+      // with circular references, all circles must be broken by replacing them
+      // with refs.
+      throw new Error('Visit is deadlocked due to circular reference.');
     }
 
     /**
@@ -598,7 +721,7 @@ export class BaseValueVisitor {
 
       if (this.#ok) {
         return wrapResult
-          ? new BaseValueVisitor.WrappedResult(this.#value)
+          ? new VisitResult(this.#value)
           : this.#value;
       } else {
         throw this.#error;
@@ -624,14 +747,14 @@ export class BaseValueVisitor {
         }
       } else if (possiblyUnfinished) {
         throw new Error('Visit did not finish synchronously.');
+        /* c8 ignore start */
+      } else {
+        // This is indicative of a bug in this class: If the caller thinks it's
+        // possible that the visit hasn't finished, it should have passed `true`
+        // to this method.
+        throw new Error('Shouldn\'t happen: Visit not yet finished.');
+        /* c8 ignore end */
       }
-
-      // This is indicative of a bug in this class: If the caller thinks it's
-      // possible that the visit hasn't finished, it should have passed `true`
-      // to this method.
-      /* c8 ignore start */
-      throw new Error('Shouldn\'t happen: Visit not yet finished.');
-      /* c8 ignore end */
     }
 
     /**
@@ -664,6 +787,8 @@ export class BaseValueVisitor {
      *   this instance.
      */
     startVisit(outerThis) {
+      // Note: See the implementation of `.promise` for an important detail
+      // about circular references.
       this.#promise = (async () => {
         try {
           let result = outerThis.#visitNode0(this.#node);
@@ -690,13 +815,13 @@ export class BaseValueVisitor {
     /**
      * Sets the visit result to be a non-error value. This indicates that the
      * visit has in fact finished with `ok === true`. If given a
-     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
+     * {@link VisitResult}, this unwraps it before storing.
      *
      * @param {*} value The visit result.
      */
     #finishWithValue(value) {
       this.#ok     = true;
-      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
+      this.#value  = (value instanceof VisitResult)
         ? value.value
         : value;
     }
@@ -714,30 +839,57 @@ export class BaseValueVisitor {
   };
 
   /**
-   * Wrapper for visitor results, used to disambiguate `Promises` used as part
-   * of the visitor mechanism from `Promises` used as the actual results of
-   * visiting something.
+   * Back / sibling / or circular reference to a visit result.
    */
-  static WrappedResult = class WrappedResult {
+  static VisitRef = class VisitRef {
     /**
-     * The wrapped value.
+     * The entry which is being referred to.
      *
-     * @type {*}
+     * @type {BaseValueVisitor#VisitEntry}
      */
-    #value;
+    #entry;
+
+    /**
+     * The reference index number.
+     *
+     * @type {number}
+     */
+    #index;
 
     /**
      * Constructs an instance.
      *
-     * @param {*} value The value to wrap.
+     * @param {BaseValueVisitor#VisitEntry} entry The visit-in-progress entry
+     *   representing the original visit.
+     * @param {number} index The reference index number.
      */
-    constructor(value) {
-      this.#value = value;
+    constructor(entry, index) {
+      this.#entry = entry;
+      this.#index = index;
     }
 
-    /** @returns {*} The wrapped value. */
+    /**
+     * @returns {number} The reference index number. Each instance of this class
+     * used within a particular visitor has a unique index number.
+     */
+    get index() {
+      return this.#index;
+    }
+
+    /**
+     * @returns {*} The original value (not the visit result) which this
+     * instance is a reference to.
+     */
+    get originalValue() {
+      return this.#entry.originalValue;
+    }
+
+    /**
+     * @returns {*} The result value of the visit. This will throw an error if
+     * the visit was unsuccessful.
+     */
     get value() {
-      return this.#value;
+      return this.#entry.extractSync();
     }
   };
 }
