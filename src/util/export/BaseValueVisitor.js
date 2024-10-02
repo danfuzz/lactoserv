@@ -274,16 +274,20 @@ export class BaseValueVisitor {
   /**
    * Indicates whether the given value, which has already been determined to be
    * referenced more than once in the graph of values being visited, should be
-   * converted into a ref object for all but the first visit. A typical use case
-   * is to return `true` for objects and functions and `false` for everything
-   * else.
+   * converted into a ref object for all but the first visit. The various
+   * `visit*()` methods will call this any time they encounter a value (of any
+   * type) which has been visited before (or is currently being visited),
+   * _except_ a ref instance (instance of {@link #VisitRef}) will never be
+   * subject to potential "re-reffing."
    *
    * Note that, for values that are visited recursively and have at least one
    * self-reference (that is, a circular reference), returning `false` will
    * cause the visit to _not_ be able to finish, in that the construction of a
    * visit result will require itself to be known before its own construction.
    *
-   * The base implementation always returns `false`.
+   * The base implementation always returns `false`. A common choice for a
+   * subclass is to return `true` for objects and functions and `false` for
+   * everything else.
    *
    * @param {*} value The value to check.
    * @returns {boolean} `true` if `value` should be converted into a reference.
