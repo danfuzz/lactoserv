@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
-import { BaseValueVisitor } from '@this/util';
+import { BaseValueVisitor, VisitResult } from '@this/util';
 
 
 const EXAMPLES = [
@@ -126,7 +126,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       expect(got).toBeInstanceOf(Promise);
       if (wraps) {
         const wrapper = await got;
-        expect(wrapper).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+        expect(wrapper).toBeInstanceOf(VisitResult);
         check(wrapper.value);
       } else {
         check(await got);
@@ -264,7 +264,7 @@ ${'_impl_visitUndefined'}   | ${false} | ${undefined}
 
       try {
         const got = vv[methodName](value);
-        expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+        expect(got).toBeInstanceOf(VisitResult);
         expect(got.value).toBe(value);
       } finally {
         delete value.then;
@@ -486,7 +486,7 @@ describe('_prot_wrapResult()', () => {
     const vv    = new BaseValueVisitor(null);
     const got   = vv._prot_wrapResult(value);
 
-    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got).toBeInstanceOf(VisitResult);
     expect(got.value).toBe(value);
   });
 
@@ -495,7 +495,7 @@ describe('_prot_wrapResult()', () => {
     const vv    = new BaseValueVisitor(null);
     const got   = vv._prot_wrapResult(value);
 
-    expect(got).toBeInstanceOf(BaseValueVisitor.WrappedResult);
+    expect(got).toBeInstanceOf(VisitResult);
     expect(got.value).toBe(value);
   });
 

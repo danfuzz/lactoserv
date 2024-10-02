@@ -3,3 +3,4 @@
 
 export * from '#x/BaseValueVisitor';
 export * from '#x/ErrorUtil';
+export * from '#x/VisitResult';

@@ -5,6 +5,8 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { VisitResult } from '#x/VisitResult';
+
 
 /**
  * Base class which implements the classic "visitor" pattern for iterating over
@@ -115,10 +117,10 @@ export class BaseValueVisitor {
 
   /**
    * Like {@link #visit}, except that successful results are wrapped in an
-   * instance of {@link BaseValueVisitor#WrappedResult}, which makes it possible
-   * for a caller to tell the difference between a promise which is returned
-   * because the visitor is acting asynchronously and a promise which is
-   * returned because that's an actual visitor result.
+   * instance of {@link VisitResult}, which makes it possible for a caller to
+   * tell the difference between a promise which is returned because the visitor
+   * is acting asynchronously and a promise which is returned because that's an
+   * actual visitor result.
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
@@ -496,7 +498,7 @@ export class BaseValueVisitor {
     if ((type === 'object') || (type === 'function')) {
       // Intentionally conservative check.
       if (result && ((typeof result.then) === 'function')) {
-        return new BaseValueVisitor.WrappedResult(result);
+        return new VisitResult(result);
       }
     }
 
@@ -662,7 +664,7 @@ export class BaseValueVisitor {
 
       if (this.#ok) {
         return wrapResult
-          ? new BaseValueVisitor.WrappedResult(this.#value)
+          ? new VisitResult(this.#value)
           : this.#value;
       } else {
         throw this.#error;
@@ -754,13 +756,13 @@ export class BaseValueVisitor {
     /**
      * Sets the visit result to be a non-error value. This indicates that the
      * visit has in fact finished with `ok === true`. If given a
-     * {@link BaseValueVisitor#WrappedResult}, this unwraps it before storing.
+     * {@link VisitResult}, this unwraps it before storing.
      *
      * @param {*} value The visit result.
      */
     #finishWithValue(value) {
       this.#ok     = true;
-      this.#value  = (value instanceof BaseValueVisitor.WrappedResult)
+      this.#value  = (value instanceof VisitResult)
         ? value.value
         : value;
     }
@@ -821,34 +823,6 @@ export class BaseValueVisitor {
      */
     get originalValue() {
       return this.#entry.originalValue;
-    }
-  };
-
-  /**
-   * Wrapper for visitor results, used to disambiguate `Promises` used as part
-   * of the visitor mechanism from `Promises` used as the actual results of
-   * visiting something.
-   */
-  static WrappedResult = class WrappedResult {
-    /**
-     * The wrapped value.
-     *
-     * @type {*}
-     */
-    #value;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {*} value The value to wrap.
-     */
-    constructor(value) {
-      this.#value = value;
-    }
-
-    /** @returns {*} The wrapped value. */
-    get value() {
-      return this.#value;
     }
   };
 }
