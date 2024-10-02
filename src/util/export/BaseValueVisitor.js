@@ -747,8 +747,8 @@ export class BaseValueVisitor {
         }
       } else if (possiblyUnfinished) {
         throw new Error('Visit did not finish synchronously.');
-      } else {
         /* c8 ignore start */
+      } else {
         // This is indicative of a bug in this class: If the caller thinks it's
         // possible that the visit hasn't finished, it should have passed `true`
         // to this method.
