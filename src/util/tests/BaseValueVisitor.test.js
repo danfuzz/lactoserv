@@ -168,6 +168,33 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       const value = Symbol('eep');
       await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
     });
+
+    test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
+      const circ1 = [true, 4];
+      const circ2 = [true, 5, 6, circ1];
+      const value = [true, 1, [2, 3, circ1]];
+
+      circ1.push(circ2);
+
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
+    });
+
+    test.skip('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
+      class ExtraAsyncVisitor extends SubVisit {
+        async _impl_visitArray(node) {
+          await setImmediate();
+          return this._prot_visitArrayProperties(node);
+        }
+      }
+
+      const circ1 = [true, 4];
+      const circ2 = [true, 5, 6, circ1];
+      const value = [true, 1, [2, 3, circ1]];
+
+      circ1.push(circ2);
+
+      await expect(doTest(value, { cls: ExtraAsyncVisitor })).rejects.toThrow(CIRCULAR_MSG);
+    });
   } else {
     const MSG = 'Visit did not finish synchronously.';
 
