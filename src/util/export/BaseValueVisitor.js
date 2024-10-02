@@ -86,7 +86,7 @@ export class BaseValueVisitor {
    * @returns {*} The root value being visited by this instance, that is, the
    * `value` passed in to the constructor of this instance.
    */
-  get value() {
+  get rootValue() {
     return this.#rootValue;
   }
 

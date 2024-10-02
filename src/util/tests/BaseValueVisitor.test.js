@@ -112,11 +112,11 @@ describe('constructor()', () => {
   });
 });
 
-describe('.value', () => {
+describe('.rootValue', () => {
   test('is the value passed into the constructor', () => {
     const value = ['yes', 'this', 'is', 'it'];
     const vv    = new BaseValueVisitor(value);
-    expect(vv.value).toBe(value);
+    expect(vv.rootValue).toBe(value);
   });
 });
 
