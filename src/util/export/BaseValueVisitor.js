@@ -634,11 +634,12 @@ export class BaseValueVisitor {
         return this.#promise;
       }
 
-      // This is the case when a visited value has a circular reference, that
-      // is, when visiting the value causes a (non-ref) request to visit itself.
-      // More or less by definition, there is no possible way to handle this. To
-      // visit values with circular references, all circles must be broken by
-      // replacing them with refs.
+      // This is the case when a visited value has a synchronously-discovered
+      // circular reference, that is, when the synchronous portion of visiting
+      // the value causes a (non-ref) request to visit itself. More or less by
+      // definition, there is no possible way to handle this. To visit values
+      // with circular references, all circles must be broken by replacing them
+      // with refs.
       throw new Error('Visit is deadlocked due to circular reference.');
     }
 
