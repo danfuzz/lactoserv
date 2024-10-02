@@ -114,6 +114,8 @@ ${'visit'}     | ${true}  | ${false} | ${false}
 ${'visitSync'} | ${false} | ${false} | ${true}
 ${'visitWrap'} | ${true}  | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
+  const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
+
   async function doTest(value, options = {}) {
     const {
       cls = BaseValueVisitor,
@@ -141,15 +143,14 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await doTest(value);
   });
 
-  test('throws the right error if given a value whose visit would directly contain a circular reference', async () => {
+  test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
     const circ1 = [4];
     const circ2 = [5, 6, circ1];
     const value = [1, [2, 3, circ1]];
 
     circ1.push(circ2);
 
-    const MSG = 'Visit is deadlocked due to circular reference.';
-    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
   });
 
   if (isAsync) {
