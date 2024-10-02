@@ -167,6 +167,16 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       const value = Symbol('eeeeek');
       await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
     });
+
+    test('throws the right error if given a value containing a circular reference', async () => {
+      const circ1 = [4];
+      const circ2 = [5, 6, circ1];
+      const value = [1, [2, 3, circ1]];
+
+      circ1.push(circ2);
+
+      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+    });
   }
 
   if (canReturnPromises) {

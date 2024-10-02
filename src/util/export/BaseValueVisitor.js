@@ -3,6 +3,7 @@
 
 import { types } from 'node:util';
 
+import { ManualPromise } from '@this/async';
 import { AskIf, MustBe } from '@this/typey';
 
 import { VisitResult } from '#x/VisitResult';
@@ -585,9 +586,11 @@ export class BaseValueVisitor {
 
     /**
      * Promise for this instance, which resolves only after the visit finishes;
-     * or `null` if this instance's corresponding visit hasn't yet been started.
+     * or a {@link ManualPromise} whose `.promise` has that meaning; or `null`
+     * if this instance's corresponding visit hasn't yet been started enough to
+     * have a promise(-ish thing).
      *
-     * @type {Promise<BaseValueVisitor#VisitEntry>}
+     * @type {Promise<BaseValueVisitor#VisitEntry>|ManualPromise}
      */
     #promise = null;
 
@@ -629,15 +632,19 @@ export class BaseValueVisitor {
      * this getter after {@link #startVisit} has been called.
      */
     get promise() {
-      /* c8 ignore start */
       if (!this.#promise) {
-        // This is indicative of a bug in this class: This method should never
-        // get called before a visit is started.
-        throw new Error('Shouldn\'t happen: Visit not yet started.');
+        // This is the case when a visited value has a circular reference, that
+        // is, when visiting the value recurses into itself. In this case, we
+        // have to set up a promise for the result which can be returned as the
+        // recursive visit result. (In the non-circular-reference case, the
+        // promise gets set up in `startVisit()`.)
+        this.#promise = new ManualPromise();
       }
-      /* c8 ignore end */
 
-      return this.#promise;
+      const promiseOrMp = this.#promise;
+      return (promiseOrMp instanceof ManualPromise)
+        ? promiseOrMp.promise
+        : promiseOrMp;
     }
 
     /**
@@ -730,7 +737,7 @@ export class BaseValueVisitor {
      *   this instance.
      */
     startVisit(outerThis) {
-      this.#promise = (async () => {
+      const promise = (async () => {
         try {
           let result = outerThis.#visitNode0(this.#node);
 
@@ -751,6 +758,16 @@ export class BaseValueVisitor {
 
         return this;
       })();
+
+      if (this.#promise) {
+        // The synchronous portion of the visit encountered a circular
+        // reference to this instance, so there's a `ManualPromise` in
+        // `.#promise` waiting to be resolved. We resolve it, and then continue
+        // below so as to elide it in case of future calls to `.promise`.
+        this.#promise.resolve(promise);
+      }
+
+      this.#promise = promise;
     }
 
     /**
