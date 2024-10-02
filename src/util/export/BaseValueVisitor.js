@@ -54,6 +54,13 @@ export class BaseValueVisitor {
   #visits = new Map();
 
   /**
+   * The next index to use for a ref (circular / shared references).
+   *
+   * @type {number}
+   */
+  #nextRefIndex = 0;
+
+  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
@@ -135,7 +142,18 @@ export class BaseValueVisitor {
     const already = this.#visits.get(node);
 
     if (already) {
-      return already;
+      const ref = already.ref;
+      if (ref) {
+        return this.#visitNode(ref);
+      } else if (this._impl_shouldRef(node)) {
+        const newRef =
+          new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
+        this.#nextRefIndex++;
+        already.ref = newRef;
+        return this.#visitNode(newRef);
+      } else {
+        return already;
+      }
     }
 
     const visitEntry = new BaseValueVisitor.#VisitEntry(node);
@@ -198,6 +216,8 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
+        } else if (node instanceof BaseValueVisitor.VisitRef) {
+          return this._impl_visitRef(node);
         } else {
           return this._impl_visitInstance(node);
         }
@@ -218,13 +238,35 @@ export class BaseValueVisitor {
    * `false`, visiting a proxy will cause an `_impl_visit*()` method to be
    * called based on the type of value that the proxy is proxying.
    *
-   * This method is called once during construction of this instance. By
-   * default, it returns `false`, that is, by default instances are unaware of
-   * proxies.
+   * This method is called once during construction of this instance. The base
+   * implementation always returns `false`, that is, by default instances are
+   * unaware of proxies.
    *
    * @returns {boolean} The proxy-awareness indicator.
    */
   _impl_isProxyAware() {
+    return false;
+  }
+
+  /**
+   * Indicates whether the given value, which has already been determined to be
+   * referenced more than once in the graph of values being visited, should be
+   * converted into a ref object for all but the first visit. A typical use case
+   * is to return `true` for objects and functions and `false` for everything
+   * else.
+   *
+   * Note that, for values that are visited recursively and have at least one
+   * self-reference (that is, a circular reference), returning `false` will
+   * cause the visit to _not_ be able to finish, in that the construction of a
+   * visit result will require itself to be known before its own construction.
+   *
+   * The base implementation always returns `false`.
+   *
+   * @param {*} value The value to check.
+   * @returns {boolean} `true` if `value` should be converted into a reference.
+   *   or `false` if not.
+   */
+  _impl_shouldRef(value) { // eslint-disable-line no-unused-vars
     return false;
   }
 
@@ -352,6 +394,20 @@ export class BaseValueVisitor {
    */
   _impl_visitProxy(node, isFunction) { // eslint-disable-line no-unused-vars
     return this._prot_wrapResult(node);
+  }
+
+  /**
+   * Visits a reference to a visit result from the visit currently in progress.
+   * When {@link #_impl_shouldRef} indicates that an already-seen value should
+   * become a "ref," then this is the method that ultimately gets called in
+   * order to visit that ref. The base implementation returns the given node
+   * as-is.
+   *
+   * @param {BaseValueVisitor#VisitRef} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  _impl_visitRef(node) {
+    return node;
   }
 
   /**
@@ -558,6 +614,14 @@ export class BaseValueVisitor {
     }
 
     /**
+     * @returns {*} The original value (not the visit result) which this
+     * instance is a reference to.
+     */
+    get originalValue() {
+      return this.#node;
+    }
+
+    /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
      * has been finished (whether or not successful). It is only valid to use
      * this getter after {@link #startVisit} has been called.
@@ -710,6 +774,53 @@ export class BaseValueVisitor {
     #finishWithError(error) {
       this.#ok    = false;
       this.#error = error;
+    }
+  };
+
+  /**
+   * Back / sibling / or circular reference to a visit result.
+   */
+  static VisitRef = class VisitRef {
+    /**
+     * The entry which is being referred to.
+     *
+     * @type {BaseValueVisitor#VisitEntry}
+     */
+    #entry;
+
+    /**
+     * The reference index number.
+     *
+     * @type {number}
+     */
+    #index;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {BaseValueVisitor#VisitEntry} entry The visit-in-progress entry
+     *   representing the original visit.
+     * @param {number} index The reference index number.
+     */
+    constructor(entry, index) {
+      this.#entry = entry;
+      this.#index = index;
+    }
+
+    /**
+     * @returns {number} The reference index number. Each instance of this class
+     * used within a particular visitor has a unique index number.
+     */
+    get index() {
+      return this.#index;
+    }
+
+    /**
+     * @returns {*} The original value (not the visit result) which this
+     * instance is a reference to.
+     */
+    get originalValue() {
+      return this.#entry.originalValue;
     }
   };
 
