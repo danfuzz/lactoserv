@@ -312,7 +312,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           const gotInner  = got[0];
           const gotMiddle = got[1];
 
-          expect(got[0]).toEqual(['bonk']);
+          expect(gotInner).toEqual(['bonk']);
           expect(gotMiddle).toBeArrayOfSize(1);
 
           const gotRef = gotMiddle[0];
@@ -321,6 +321,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           expect(got[2]).toBeInstanceOf(BaseValueVisitor.VisitRef);
           expect(gotRef).toBe(got[2]);
           expect(gotRef.originalValue).toBe(inner);
+          expect(gotRef.value).toBe(gotInner);
         }
       });
     });
@@ -344,6 +345,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           expect(gotInner[1]).toBeInstanceOf(BaseValueVisitor.VisitRef);
           expect(gotInner[1]).toBe(gotRef);
           expect(gotRef.originalValue).toBe(inner);
+          expect(gotRef.value).toBe(gotInner);
         }
       });
     });

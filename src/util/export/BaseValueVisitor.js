@@ -883,5 +883,13 @@ export class BaseValueVisitor {
     get originalValue() {
       return this.#entry.originalValue;
     }
+
+    /**
+     * @returns {*} The result value of the visit. This will throw an error if
+     * the visit was unsuccessful.
+     */
+    get value() {
+      return this.#entry.extractSync();
+    }
   };
 }
