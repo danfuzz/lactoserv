@@ -140,6 +140,17 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await doTest(value);
   });
 
+  test('throws the right error if given a value whose visit would directly contain a circular reference', async () => {
+    const circ1 = [4];
+    const circ2 = [5, 6, circ1];
+    const value = [1, [2, 3, circ1]];
+
+    circ1.push(circ2);
+
+    const MSG = 'Visit is deadlocked due to circular reference.';
+    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+  });
+
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
       const value = true;
@@ -165,16 +176,6 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
     test('throws the right error if a will-fail visit did not finish synchronously', async () => {
       const value = Symbol('eeeeek');
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
-    });
-
-    test('throws the right error if given a value containing a circular reference', async () => {
-      const circ1 = [4];
-      const circ2 = [5, 6, circ1];
-      const value = [1, [2, 3, circ1]];
-
-      circ1.push(circ2);
-
       await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
     });
   }

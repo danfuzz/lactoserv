@@ -3,7 +3,6 @@
 
 import { types } from 'node:util';
 
-import { ManualPromise } from '@this/async';
 import { AskIf, MustBe } from '@this/typey';
 
 import { VisitResult } from '#x/VisitResult';
@@ -586,11 +585,10 @@ export class BaseValueVisitor {
 
     /**
      * Promise for this instance, which resolves only after the visit finishes;
-     * or a {@link ManualPromise} whose `.promise` has that meaning; or `null`
-     * if this instance's corresponding visit hasn't yet been started enough to
-     * have a promise(-ish thing).
+     * or `null` if this instance's corresponding visit hasn't yet been started
+     * enough to have a promise.
      *
-     * @type {Promise<BaseValueVisitor#VisitEntry>|ManualPromise}
+     * @type {Promise<BaseValueVisitor#VisitEntry>}
      */
     #promise = null;
 
@@ -632,19 +630,16 @@ export class BaseValueVisitor {
      * this getter after {@link #startVisit} has been called.
      */
     get promise() {
-      if (!this.#promise) {
-        // This is the case when a visited value has a circular reference, that
-        // is, when visiting the value recurses into itself. In this case, we
-        // have to set up a promise for the result which can be returned as the
-        // recursive visit result. (In the non-circular-reference case, the
-        // promise gets set up in `startVisit()`.)
-        this.#promise = new ManualPromise();
+      if (this.#promise) {
+        return this.#promise;
       }
 
-      const promiseOrMp = this.#promise;
-      return (promiseOrMp instanceof ManualPromise)
-        ? promiseOrMp.promise
-        : promiseOrMp;
+      // This is the case when a visited value has a circular reference, that
+      // is, when visiting the value causes a (non-ref) request to visit itself.
+      // More or less by definition, there is no possible way to handle this. To
+      // visit values with circular references, all circles must be broken by
+      // replacing them with refs.
+      throw new Error('Visit is deadlocked due to circular reference.');
     }
 
     /**
@@ -737,7 +732,9 @@ export class BaseValueVisitor {
      *   this instance.
      */
     startVisit(outerThis) {
-      const promise = (async () => {
+      // Note: See the implementation of `.promise` for an important detail
+      // about circular references.
+      this.#promise = (async () => {
         try {
           let result = outerThis.#visitNode0(this.#node);
 
@@ -758,16 +755,6 @@ export class BaseValueVisitor {
 
         return this;
       })();
-
-      if (this.#promise) {
-        // The synchronous portion of the visit encountered a circular
-        // reference to this instance, so there's a `ManualPromise` in
-        // `.#promise` waiting to be resolved. We resolve it, and then continue
-        // below so as to elide it in case of future calls to `.promise`.
-        this.#promise.resolve(promise);
-      }
-
-      this.#promise = promise;
     }
 
     /**
