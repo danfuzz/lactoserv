@@ -153,6 +153,28 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
   });
 
+  test('handles non-circular synchronously-visited duplicate references correctly', async () => {
+    const inner  = [1];
+    const middle = [inner, inner, inner, 2];
+    const outer  = [middle, inner, middle, 3];
+
+    await doTest(outer, {
+      cls: SubVisit,
+      check: (got) => {
+        expect(got).toBeArrayOfSize(4);
+        expect(got[0]).toBe(got[2]);
+        expect(got[3]).toBe('3');
+        const gotMiddle = got[0];
+        const gotInner  = got[1];
+        expect(gotMiddle[0]).toBe(gotInner);
+        expect(gotMiddle[1]).toBe(gotInner);
+        expect(gotMiddle[2]).toBe(gotInner);
+        expect(gotMiddle[3]).toEqual('2');
+        expect(gotInner).toEqual(['1']);
+      }
+    });
+  });
+
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
       const value = true;
