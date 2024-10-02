@@ -156,7 +156,7 @@ export class BaseValueVisitor {
       const ref = already.ref;
       if (ref) {
         return this.#visitNode(ref);
-      } else if (this._impl_shouldRef(node)) {
+      } else if (this.#shouldRef(node)) {
         const newRef =
           new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
         this.#nextRefIndex++;
@@ -535,6 +535,20 @@ export class BaseValueVisitor {
    */
   #isProxy(value) {
     return this.#proxyAware && types.isProxy(value);
+  }
+
+  /**
+   * Assuming this is its second-or-later (recursive or sibling) visit, should
+   * the given value be turned into a ref? This just defers to
+   * {@link #_impl_shouldRef}, except that refs themselves are never considered
+   * for re-(re-...)reffing.
+   *
+   * @param {*} value Value to check.
+   * @returns {boolean} `true` iff `value` should be turned into a ref.
+   */
+  #shouldRef(value) {
+    return !(value instanceof BaseValueVisitor.VisitRef)
+      && this._impl_shouldRef(value);
   }
 
   /**
