@@ -729,14 +729,14 @@ export class BaseValueVisitor {
         }
       } else if (possiblyUnfinished) {
         throw new Error('Visit did not finish synchronously.');
+      } else {
+        /* c8 ignore start */
+        // This is indicative of a bug in this class: If the caller thinks it's
+        // possible that the visit hasn't finished, it should have passed `true`
+        // to this method.
+        throw new Error('Shouldn\'t happen: Visit not yet finished.');
+        /* c8 ignore end */
       }
-
-      // This is indicative of a bug in this class: If the caller thinks it's
-      // possible that the visit hasn't finished, it should have passed `true`
-      // to this method.
-      /* c8 ignore start */
-      throw new Error('Shouldn\'t happen: Visit not yet finished.');
-      /* c8 ignore end */
     }
 
     /**
