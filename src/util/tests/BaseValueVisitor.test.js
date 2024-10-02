@@ -332,6 +332,7 @@ ${'_impl_visitNull'}        | ${false} | ${null}
 ${'_impl_visitNumber'}      | ${false} | ${54.321}
 ${'_impl_visitPlainObject'} | ${true}  | ${{ x: 'bonk' }}
 ${'_impl_visitProxy'}       | ${true}  | ${new Proxy({}, {})}
+${'_impl_visitRef'}         | ${false} | ${new BaseValueVisitor.VisitRef(null, 5)}
 ${'_impl_visitString'}      | ${false} | ${'florp'}
 ${'_impl_visitSymbol'}      | ${false} | ${Symbol('woo')}
 ${'_impl_visitUndefined'}   | ${false} | ${undefined}
