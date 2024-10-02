@@ -46,7 +46,7 @@ export class BaseValueVisitor {
    *
    * @type {*}
    */
-  #value;
+  #rootValue;
 
   /**
    * Map from visited values to their visit representatives.
@@ -79,7 +79,7 @@ export class BaseValueVisitor {
    */
   constructor(value) {
     this.#proxyAware = MustBe.boolean(this._impl_isProxyAware());
-    this.#value      = value;
+    this.#rootValue  = value;
   }
 
   /**
@@ -87,7 +87,7 @@ export class BaseValueVisitor {
    * `value` passed in to the constructor of this instance.
    */
   get value() {
-    return this.#value;
+    return this.#rootValue;
   }
 
   /**
@@ -108,7 +108,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visit() {
-    return this.#visitNode(this.#value).extractAsync(false);
+    return this.#visitRoot().extractAsync(false);
   }
 
   /**
@@ -121,7 +121,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    return this.#visitNode(this.#value).extractSync(true);
+    return this.#visitRoot().extractSync(true);
   }
 
   /**
@@ -135,7 +135,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   async visitWrap() {
-    return this.#visitNode(this.#value).extractAsync(true);
+    return this.#visitRoot().extractAsync(true);
   }
 
   /**
@@ -241,6 +241,18 @@ export class BaseValueVisitor {
       }
       /* c8 ignore stop */
     }
+  }
+
+  /**
+   * Gets the entry for the root value being visited, including starting the
+   * visit (and possibly completing it) if this is the first time a `visit*()`
+   * method is being called.
+   *
+   * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
+   */
+  #visitRoot() {
+    const node = this.#rootValue;
+    return this.#visits.get(node) ?? this.#visitNode(node);
   }
 
   /**
