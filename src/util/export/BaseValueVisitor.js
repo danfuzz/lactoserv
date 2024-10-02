@@ -63,6 +63,15 @@ export class BaseValueVisitor {
   #nextRefIndex = 0;
 
   /**
+   * The set of visit entries that are currently part of an `await` chain. This
+   * is used to detect attempts to visit a value with a circular reference,
+   * where the circular nature only becomes apparent asynchronously.
+   *
+   * @type {Set<BaseValueVisitor#VisitEntry>}
+   */
+  #waitSet = new Set();
+
+  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
@@ -553,10 +562,20 @@ export class BaseValueVisitor {
     if (promInfo.length === 0) {
       return result;
     } else {
-      // At least one property's visit entry isn't finished.
+      // At least one property's visit isn't finished.
       return (async () => {
         for (const { name, entry, promise } of promInfo) {
-          await promise;
+          if (this.#waitSet.has(entry)) {
+            throw new Error('Visit is deadlocked due to circular reference.');
+          }
+
+          try {
+            this.#waitSet.add(entry);
+            await promise;
+          } finally {
+            this.#waitSet.delete(entry);
+          }
+
           result[name] = entry.extractSync();
         }
 

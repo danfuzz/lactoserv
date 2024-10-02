@@ -164,6 +164,28 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       });
     });
 
+    test('handles non-circular asynchronously-visited duplicate references correctly', async () => {
+      const inner  = [true];
+      const middle = [inner, inner, inner, true];
+      const outer  = [middle, inner, middle, false];
+
+      await doTest(outer, {
+        cls: SubVisit,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(4);
+          expect(got[0]).toBe(got[2]);
+          expect(got[3]).toBe('false');
+          const gotMiddle = got[0];
+          const gotInner  = got[1];
+          expect(gotMiddle[0]).toBe(gotInner);
+          expect(gotMiddle[1]).toBe(gotInner);
+          expect(gotMiddle[2]).toBe(gotInner);
+          expect(gotMiddle[3]).toEqual('true');
+          expect(gotInner).toEqual(['true']);
+        }
+      });
+    });
+
     test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
       const value = Symbol('eep');
       await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
@@ -179,7 +201,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
     });
 
-    test.skip('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
+    test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
       class ExtraAsyncVisitor extends SubVisit {
         async _impl_visitArray(node) {
           await setImmediate();
