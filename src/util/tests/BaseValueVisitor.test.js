@@ -308,14 +308,19 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
         cls: RefMakingVisitor,
         check: (got) => {
           expect(got).toBeArrayOfSize(3);
-          const gotInner = got[0];
+
+          const gotInner  = got[0];
           const gotMiddle = got[1];
+
           expect(got[0]).toEqual(['bonk']);
           expect(gotMiddle).toBeArrayOfSize(1);
+
           const gotRef = gotMiddle[0];
+
           expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
           expect(got[2]).toBeInstanceOf(BaseValueVisitor.VisitRef);
           expect(gotRef).toBe(got[2]);
+          expect(gotRef.originalValue).toBe(inner);
         }
       });
     });
@@ -338,6 +343,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           expect(gotInner[0]).toEqual('bonk');
           expect(gotInner[1]).toBeInstanceOf(BaseValueVisitor.VisitRef);
           expect(gotInner[1]).toBe(gotRef);
+          expect(gotRef.originalValue).toBe(inner);
         }
       });
     });
