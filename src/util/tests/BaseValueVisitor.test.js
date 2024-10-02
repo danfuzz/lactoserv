@@ -66,6 +66,7 @@ class SubVisit extends BaseValueVisitor {
   }
 
   async _impl_visitSymbol(node_unused) {
+    await setImmediate();
     throw new Error('NO');
   }
 
