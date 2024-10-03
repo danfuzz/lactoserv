@@ -585,8 +585,8 @@ export class BaseValueVisitor {
    *   synchronously, or a promise for `result` if not.
    */
   #visitProperties(node, result) {
-    const isArray  = Array.isArray(result);
-    const promInfo = [];
+    const isArray   = Array.isArray(result);
+    const promNames = [];
 
     const addResults = (iter) => {
       for (const name of iter) {
@@ -596,8 +596,8 @@ export class BaseValueVisitor {
           if (entry.isFinished()) {
             result[name] = entry.extractSync();
           } else {
-            promInfo.push({ name, entry });
-            result[name] = null; // For consistent result property order.
+            promNames.push(name);
+            result[name] = entry;
           }
         }
       }
@@ -606,12 +606,14 @@ export class BaseValueVisitor {
     addResults(Object.getOwnPropertyNames(node));
     addResults(Object.getOwnPropertySymbols(node));
 
-    if (promInfo.length === 0) {
+    if (promNames.length === 0) {
       return result;
     } else {
       // At least one property's visit didn't finish synchronously.
       return (async () => {
-        for (const { name, entry } of promInfo) {
+        for (const name of promNames) {
+          const entry = result[name];
+
           if (this.#waitSet.has(entry)) {
             throw new Error('Visit is deadlocked due to circular reference.');
           }
