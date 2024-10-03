@@ -18,8 +18,8 @@
  */
 
 /**
- * Companion class of {@link BaseValueVisitor}, which represents the result of
- * a visit of a value that had been visited elsewhere during a visit.
+ * Companion class of {@link BaseValueVisitor}, which represents the result of a
+ * visit of a value that had been visited elsewhere during a visit.
  *
  * Along with just having a record of the shared nature of the structure,
  * instances of this class are also instrucmental in "breaking" circular
@@ -43,8 +43,8 @@ export class VisitRef {
   #index;
 
   /**
-   * Constructs an instance. Note that the first parameter is an instance of
-   * a private inner class of {@link BaseValueVisitor}, and as such, this
+   * Constructs an instance. Note that the first parameter is an instance of a
+   * private inner class of {@link BaseValueVisitor}, and as such, this
    * constructor isn't usable publicly.
    *
    * @param {VisitEntry} entry The visit-in-progress entry representing the

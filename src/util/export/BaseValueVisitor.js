@@ -784,8 +784,8 @@ export class BaseValueVisitor {
      *   possibility that the visit has been started but not finished?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
-     * @throws {Error} The error resulting from the visit, if it failed; or
-     *   an error indicating that the visit is still in progress.
+     * @throws {Error} The error resulting from the visit, if it failed; or an
+     *   error indicating that the visit is still in progress.
      */
     extractSync(possiblyUnfinished = false) {
       if (this.isFinished()) {
@@ -814,8 +814,8 @@ export class BaseValueVisitor {
      *   is finished.
      * @throws {Error} Thrown if this method is called before a call to
      *   {@link #startVisit} on this instance returns (including being called
-     *   before any call to {@link #startVisit}), which indicates that the
-     *   value being visited is involved in a circular reference.
+     *   before any call to {@link #startVisit}), which indicates that the value
+     *   being visited is involved in a circular reference.
      */
     isFinished() {
       if (this.#ok === null) {
@@ -893,8 +893,8 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Sets the visit result to be an error value. This indicates that the
-     * visit has in fact finished with `ok === false`.
+     * Sets the visit result to be an error value. This indicates that the visit
+     * has in fact finished with `ok === false`.
      *
      * @param {Error} error The visit error.
      */
