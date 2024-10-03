@@ -5,6 +5,7 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
 
 
@@ -160,7 +161,7 @@ export class BaseValueVisitor {
    * converted into a ref object for all but the first visit. The various
    * `visit*()` methods will call this any time they encounter a value (of any
    * type) which has been visited before (or is currently being visited),
-   * _except_ a ref instance (instance of {@link #VisitRef}) will never be
+   * _except_ a ref instance (instance of {@link VisitRef}) will never be
    * subject to potential "re-reffing."
    *
    * Note that, for values that are visited recursively and have at least one
@@ -313,7 +314,7 @@ export class BaseValueVisitor {
    * order to visit that ref. The base implementation returns the given node
    * as-is.
    *
-   * @param {BaseValueVisitor#VisitRef} node The node to visit.
+   * @param {VisitRef} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
    */
   _impl_visitRef(node) {
@@ -434,7 +435,7 @@ export class BaseValueVisitor {
    * @returns {boolean} `true` iff `value` should be turned into a ref.
    */
   #shouldRef(value) {
-    return !(value instanceof BaseValueVisitor.VisitRef)
+    return !(value instanceof VisitRef)
       && this._impl_shouldRef(value);
   }
 
@@ -457,8 +458,7 @@ export class BaseValueVisitor {
       if (ref) {
         return this.#visitNode(ref);
       } else if (this.#shouldRef(node)) {
-        const newRef =
-          new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
+        const newRef = new VisitRef(already, this.#nextRefIndex);
         this.#nextRefIndex++;
         already.ref = newRef;
         return this.#visitNode(newRef);
@@ -527,7 +527,7 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
-        } else if (node instanceof BaseValueVisitor.VisitRef) {
+        } else if (node instanceof VisitRef) {
           return this._impl_visitRef(node);
         } else {
           return this._impl_visitInstance(node);
@@ -835,61 +835,6 @@ export class BaseValueVisitor {
     #finishWithError(error) {
       this.#ok    = false;
       this.#error = error;
-    }
-  };
-
-  /**
-   * Back / sibling / or circular reference to a visit result.
-   */
-  static VisitRef = class VisitRef {
-    /**
-     * The entry which is being referred to.
-     *
-     * @type {BaseValueVisitor#VisitEntry}
-     */
-    #entry;
-
-    /**
-     * The reference index number.
-     *
-     * @type {number}
-     */
-    #index;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {BaseValueVisitor#VisitEntry} entry The visit-in-progress entry
-     *   representing the original visit.
-     * @param {number} index The reference index number.
-     */
-    constructor(entry, index) {
-      this.#entry = entry;
-      this.#index = index;
-    }
-
-    /**
-     * @returns {number} The reference index number. Each instance of this class
-     * used within a particular visitor has a unique index number.
-     */
-    get index() {
-      return this.#index;
-    }
-
-    /**
-     * @returns {*} The original value (not the visit result) which this
-     * instance is a reference to.
-     */
-    get originalValue() {
-      return this.#entry.originalValue;
-    }
-
-    /**
-     * @returns {*} The result value of the visit. This will throw an error if
-     * the visit was unsuccessful.
-     */
-    get value() {
-      return this.#entry.extractSync();
     }
   };
 }

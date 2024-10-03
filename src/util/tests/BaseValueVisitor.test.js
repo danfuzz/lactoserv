@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
-import { BaseValueVisitor, VisitResult } from '@this/util';
+import { BaseValueVisitor, VisitRef, VisitResult } from '@this/util';
 
 
 const EXAMPLES = [
@@ -317,8 +317,8 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
           const gotRef = gotMiddle[0];
 
-          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
-          expect(got[2]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotRef).toBeInstanceOf(VisitRef);
+          expect(got[2]).toBeInstanceOf(VisitRef);
           expect(gotRef).toBe(got[2]);
           expect(gotRef.originalValue).toBe(inner);
           expect(gotRef.value).toBe(gotInner);
@@ -339,10 +339,10 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           const gotInner = got[0];
           const gotRef   = got[1];
 
-          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotRef).toBeInstanceOf(VisitRef);
           expect(gotInner).toBeArrayOfSize(2);
           expect(gotInner[0]).toEqual('bonk');
-          expect(gotInner[1]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotInner[1]).toBeInstanceOf(VisitRef);
           expect(gotInner[1]).toBe(gotRef);
           expect(gotRef.originalValue).toBe(inner);
           expect(gotRef.value).toBe(gotInner);
@@ -397,7 +397,7 @@ ${'_impl_visitNull'}        | ${false} | ${null}
 ${'_impl_visitNumber'}      | ${false} | ${54.321}
 ${'_impl_visitPlainObject'} | ${true}  | ${{ x: 'bonk' }}
 ${'_impl_visitProxy'}       | ${true}  | ${new Proxy({}, {})}
-${'_impl_visitRef'}         | ${false} | ${new BaseValueVisitor.VisitRef(null, 5)}
+${'_impl_visitRef'}         | ${false} | ${new VisitRef(null, 5)}
 ${'_impl_visitString'}      | ${false} | ${'florp'}
 ${'_impl_visitSymbol'}      | ${false} | ${Symbol('woo')}
 ${'_impl_visitUndefined'}   | ${false} | ${undefined}

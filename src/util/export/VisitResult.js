@@ -11,7 +11,7 @@
  */
 
 /**
- * Companion class of {@link #BaseValueVisitor}, which holds the result from a
+ * Companion class of {@link BaseValueVisitor}, which holds the result from a
  * visit.
  *
  * This class exists to avoid ambiguity when promises are used as results-per-se
