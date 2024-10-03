@@ -127,10 +127,10 @@ export class Host {
     const problems = TopErrorHandler.problems;
     if (problems.length !== 0) {
       // Convert `Error` objects to a friendly JSON-encodable form.
-      const converter = new Codec(CodecConfig.makeLoggingInstance());
+      const encoder = new Codec(CodecConfig.makeLoggingInstance());
 
       for (const p of problems) {
-        p.problem = this.#fixProblem(p.problem, converter);
+        p.problem = this.#fixProblem(p.problem, encoder);
       }
 
       result.problems = problems;
@@ -181,15 +181,15 @@ export class Host {
    * encoded by the `codec` module.
    *
    * @param {*} problem The problem, typically an `Error`.
-   * @param {Codec} converter Codec instance to use for encoding.
+   * @param {Codec} encoder Codec instance to use for encoding.
    * @returns {*} The fixed (maximally human-friendly) form.
    */
-  static #fixProblem(problem, converter) {
+  static #fixProblem(problem, encoder) {
     if (!(problem instanceof Error)) {
       return problem;
     }
 
-    const encoded = converter.encode(problem);
+    const encoded = encoder.encode(problem);
     return this.#fixEncodedError(encoded);
   }
 }

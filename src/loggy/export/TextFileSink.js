@@ -116,12 +116,12 @@ export class TextFileSink extends EventSink {
   //
 
   /**
-   * Data converter to use for encoding payload arguments, specifically for the
-   * `json` format.
+   * Codec to use for encoding payload arguments, specifically for the `json`
+   * format.
    *
    * @type {Codec}
    */
-  static #CONVERTER_FOR_JSON =
+  static #ENCODER_FOR_JSON =
     new Codec(CodecConfig.makeLoggingInstance({ freeze: false }));
 
   /**
@@ -181,7 +181,7 @@ export class TextFileSink extends EventSink {
     // set to `null`, and then we thwack back in the presumed-good `args`.
 
     const plainObj = payload.toPlainObject();
-    const encoded  = this.#CONVERTER_FOR_JSON.encode({ ...plainObj, args: null });
+    const encoded  = this.#ENCODER_FOR_JSON.encode({ ...plainObj, args: null });
 
     encoded.args = plainObj.args;
 

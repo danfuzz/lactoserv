@@ -12,7 +12,7 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * `codec`:
-  * Renamed several classes to match with the (relatively) new module name.
+  * Renamed several classes to match the (relatively) new module name.
   * Dropped the `options` property from `Sexp`, making it now equivalent
     to a classic s-expression (practically speaking, at least).
 

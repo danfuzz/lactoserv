@@ -20,11 +20,11 @@ import { Methods, MustBe } from '@this/typey';
  */
 export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
   /**
-   * Data converter to use for encoding payload arguments.
+   * Codec to use for encoding payload arguments.
    *
    * @type {Codec}
    */
-  #dataConverter = new Codec(CodecConfig.makeLoggingInstance());
+  #encoder = new Codec(CodecConfig.makeLoggingInstance());
 
   // @defaultConstructor
 
@@ -142,7 +142,7 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
    */
   #makePayloadUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
-    const fixedArgs = this.#dataConverter.encode(args);
+    const fixedArgs = this.#encoder.encode(args);
 
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);

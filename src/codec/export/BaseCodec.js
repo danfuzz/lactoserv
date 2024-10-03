@@ -98,6 +98,6 @@ export class BaseCodec {
    * anything.
    */
   static decodingUnimplemented() {
-    throw new Error('The quant module does not yet do any decoding.');
+    throw new Error('The `codec` module does not yet do any decoding.');
   }
 }
