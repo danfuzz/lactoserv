@@ -592,15 +592,15 @@ export class BaseValueVisitor {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
           const entry = this.#visitNode(node[name]);
-          if (!entry.isFinished()) {
+          if (entry.isFinished()) {
+            result[name] = entry.extractSync();
+          } else {
             // Note: In order for synchronously-discoverable circular references
             // to be _actually_ discovered, we need to get `entry.promise` here
             // (as opposed to waiting to do so in the loop in the `else` clause
             // below).
             promInfo.push({ name, entry, promise: entry.promise });
             result[name] = null; // For consistent result property order.
-          } else {
-            result[name] = entry.extractSync();
           }
         }
       }
