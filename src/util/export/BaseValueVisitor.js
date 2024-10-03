@@ -595,10 +595,9 @@ export class BaseValueVisitor {
           if (entry.isFinished()) {
             result[name] = entry.extractSync();
           } else {
-            // Note: In order for synchronously-discoverable circular references
-            // to be _actually_ discovered, we need to get `entry.promise` here
-            // (as opposed to waiting to do so in the loop in the `else` clause
-            // below).
+            // Note: In order for synchronously-discoverable reference cycles to
+            // _actually_ get detected as such, we need to get `entry.promise`
+            // here (as opposed to waiting to do so in the loop below).
             promInfo.push({ name, entry, promise: entry.promise });
             result[name] = null; // For consistent result property order.
           }
