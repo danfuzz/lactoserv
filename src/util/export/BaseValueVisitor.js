@@ -592,13 +592,11 @@ export class BaseValueVisitor {
       for (const name of iter) {
         if (!(isArray && (name === 'length'))) {
           const entry = this.#visitNode(node[name]);
+          // Note: `isFinished()` detects synchronous reference cycles.
           if (entry.isFinished()) {
             result[name] = entry.extractSync();
           } else {
-            // Note: In order for synchronously-discoverable reference cycles to
-            // _actually_ get detected as such, we need to get `entry.promise`
-            // here (as opposed to waiting to do so in the loop below).
-            promInfo.push({ name, entry, promise: entry.promise });
+            promInfo.push({ name, entry });
             result[name] = null; // For consistent result property order.
           }
         }
@@ -613,14 +611,14 @@ export class BaseValueVisitor {
     } else {
       // At least one property's visit didn't finish synchronously.
       return (async () => {
-        for (const { name, entry, promise } of promInfo) {
+        for (const { name, entry } of promInfo) {
           if (this.#waitSet.has(entry)) {
             throw new Error('Visit is deadlocked due to circular reference.');
           }
 
           try {
             this.#waitSet.add(entry);
-            await promise;
+            await entry.promise;
           } finally {
             this.#waitSet.delete(entry);
           }
@@ -807,13 +805,24 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Returns an indication of whether the visit has finished.
+     * Returns an indication of whether the visit has finished, also detecting
+     * the case of a synchronously-detected reference cycle.
      *
      * @returns {boolean} `false` if the visit is in progress, or `true` if it
      *   is finished.
+     * @throws {Error} Thrown if this method is called before a call to
+     *   {@link #startVisit} on this instance returns (including being called
+     *   before any call to {@link #startVisit}), which indicates that the
+     *   value being visited is involved in a circular reference.
      */
     isFinished() {
-      return (this.#ok !== null);
+      if (this.#ok === null) {
+        // Force a "circular reference" error if this method is called in the
+        // middle of a call to `this.startVisit()`.
+        this.promise;
+      } else {
+        return true;
+      }
     }
 
     /**
