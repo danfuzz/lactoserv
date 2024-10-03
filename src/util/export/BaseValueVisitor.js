@@ -162,7 +162,7 @@ export class BaseValueVisitor {
    * Like {@link #visit}, except that successful results are wrapped in an
    * instance of {@link VisitResult}, which makes it possible for a caller to
    * tell the difference between a promise which is returned because the visitor
-   * is acting asynchronously and a promise which is returned because that's an
+   * is acting asynchronously and a promise which is returned because it is an
    * actual visitor result.
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
