@@ -437,7 +437,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           expect(got[3].index).toBe(1);
         }
       });
-    })
+    });
   });
 });
 
