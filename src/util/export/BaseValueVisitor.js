@@ -611,7 +611,7 @@ export class BaseValueVisitor {
     if (promInfo.length === 0) {
       return result;
     } else {
-      // At least one property's visit isn't finished.
+      // At least one property's visit didn't finish synchronously.
       return (async () => {
         for (const { name, entry, promise } of promInfo) {
           if (this.#waitSet.has(entry)) {
