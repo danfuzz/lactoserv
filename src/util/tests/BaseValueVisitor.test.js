@@ -487,6 +487,23 @@ ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
       vv[methodName] = () => expected;
       expect(vv.visitSync()).toBe(expected);
     });
+
+    test('gets called during a visit to a non-root value of the appropriate type', () => {
+      // What's going on: We use `null` as the root value as a hook to make a
+      // sub-visit on the appropriate-typed value. _Except_, if the value is
+      // `null`, then we use a string instead.
+      const rootValue = (value === null) ? 'bonk' : null;
+      const rootImpl  = (rootValue === null) ? '_impl_visitNull' : '_impl_visitString';
+      const expected  = ['this', 'is', 'it'];
+      const vv        = new BaseValueVisitor(rootValue);
+      vv[methodName]  = () => expected;
+      vv[rootImpl]    = () => vv._prot_visitArrayProperties([value]);
+
+      const got = vv.visitSync();
+      expect(got).toBeInstanceOf(Array);
+      expect(got).toBeArrayOfSize(1);
+      expect(got[0]).toBe(expected);
+    });
   }
 
   if (canWrap) {
