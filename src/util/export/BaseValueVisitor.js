@@ -719,7 +719,10 @@ export class BaseValueVisitor {
     /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
      * has been finished (whether or not successful). It is only valid to use
-     * this getter after {@link #startVisit} has been called.
+     * this getter after {@link #startVisit} has been called, and in the case
+     * where this gets called _after_ a call to {@link #startVisit} but _before_
+     * it synchronously returns, this will throw an error indicating that the
+     * visit contains a (synchronously detected) circular reference.
      */
     get promise() {
       if (this.#promise) {
@@ -804,24 +807,13 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Returns an indication of whether the visit is started or finished,
-     * throwing in the case where the visit hasn't _yet_ been started.
+     * Returns an indication of whether the visit has finished.
      *
      * @returns {boolean} `false` if the visit is in progress, or `true` if it
      *   is finished.
-     * @throws {Error} Thrown if the visit hasn't yet started. This is
-     *   indicative of a bug in this class.
      */
     isFinished() {
-      if (this.#ok !== null) {
-        return true;
-      }
-
-      // This causes a "shouldn't happen" error when appropriate (hopefully
-      // never.)
-      this.#promise;
-
-      return false;
+      return (this.#ok !== null);
     }
 
     /**
