@@ -202,9 +202,9 @@ export class BaseValueVisitor {
    * cause the visit to _not_ be able to finish, in that the construction of a
    * visit result will require itself to be known before its own construction.
    *
-   * The base implementation always returns `false`. A common choice for a
-   * subclass is to return `true` for objects and functions and `false` for
-   * everything else.
+   * The base implementation of this method always returns `false`. A common
+   * choice for a subclass is to return `true` for objects and functions and
+   * `false` for everything else.
    *
    * @param {*} value The value to check.
    * @returns {boolean} `true` if `value` should be converted into a reference.
