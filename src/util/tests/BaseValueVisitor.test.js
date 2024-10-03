@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
-import { BaseValueVisitor, VisitResult } from '@this/util';
+import { BaseValueVisitor, VisitRef, VisitResult } from '@this/util';
 
 
 const EXAMPLES = [
@@ -103,6 +103,11 @@ class RefMakingVisitor extends BaseValueVisitor {
   _impl_visitArray(node) {
     return this._prot_visitArrayProperties(node);
   }
+
+  async _impl_visitPlainObject(node) {
+    await setImmediate();
+    return this._prot_visitObjectProperties(node);
+  }
 }
 
 describe('constructor()', () => {
@@ -117,6 +122,73 @@ describe('.rootValue', () => {
     const value = ['yes', 'this', 'is', 'it'];
     const vv    = new BaseValueVisitor(value);
     expect(vv.rootValue).toBe(value);
+  });
+});
+
+describe('refFromResultValue()', () => {
+  test('finds a root result reference', () => {
+    // Note: This test can only possibly work if the root value itself
+    // participates in a reference cycle.
+    const value = [123];
+    value.push(value);
+
+    const vv  = new RefMakingVisitor(value);
+    const got = vv.visitSync();
+
+    // Baseline.
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toBe(123);
+    const gotRef = got[1];
+    expect(gotRef).toBeInstanceOf(VisitRef);
+
+    // The actual test.
+    expect(vv.refFromResultValue(got)).toBe(gotRef);
+    expect(gotRef.originalValue).toBe(value);
+    expect(gotRef.value).toBe(got);
+  });
+
+  test('finds a sub-visit result reference', () => {
+    const inner = [123];
+    const value = [inner, inner];
+
+    const vv  = new RefMakingVisitor(value);
+    const got = vv.visitSync();
+
+    // Baseline.
+    expect(got).toBeArrayOfSize(2);
+    const gotInner = got[0];
+    const gotRef = got[1];
+    expect(gotInner).toEqual(inner);
+    expect(gotInner).not.toBe(inner);
+    expect(gotRef).toBeInstanceOf(VisitRef);
+
+    // The actual test.
+    expect(vv.refFromResultValue(gotInner)).toBe(gotRef);
+    expect(gotRef.originalValue).toBe(inner);
+    expect(gotRef.value).toBe(gotInner);
+  });
+
+  test('returns `null` given any argument if there were no refs created', () => {
+    const vv  = new BaseValueVisitor(123);
+    const got = vv.visitSync();
+
+    expect(got).toBe(123); // Baseline
+    expect(vv.refFromResultValue(123)).toBeNull();
+    expect(vv.refFromResultValue('boop')).toBeNull();
+  });
+
+  test('returns `null` given any argument if the visit is still in progress, then works after the visit is done', async () => {
+    const inner   = { b: { c: 123 } };
+    const value   = { a1: inner, a2: inner };
+    const vv      = new RefMakingVisitor(value);
+    const gotProm = vv.visit();
+
+    expect(PromiseState.isPending(gotProm)); // Baseline.
+    expect(vv.refFromResultValue('bonk')).toBeNull();
+
+    // Make sure the call didn't mess up the post-visit behavior.
+    const got = await gotProm;
+    expect(vv.refFromResultValue(got.a1)).toBe(got.a2);
   });
 });
 
@@ -300,7 +372,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   });
 
   describe('when `_impl_shouldRef()` can return `true`', () => {
-    test('will make a ref for a non-circular duplicate value', async () => {
+    test('makes a ref for a non-circular duplicate value', async () => {
       const inner = ['bonk'];
       const outer = [inner, [inner], inner];
 
@@ -317,8 +389,8 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
           const gotRef = gotMiddle[0];
 
-          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
-          expect(got[2]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotRef).toBeInstanceOf(VisitRef);
+          expect(got[2]).toBeInstanceOf(VisitRef);
           expect(gotRef).toBe(got[2]);
           expect(gotRef.originalValue).toBe(inner);
           expect(gotRef.value).toBe(gotInner);
@@ -326,7 +398,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       });
     });
 
-    test('will make a ref for a circularly-referenced value', async () => {
+    test('makes a ref for a circularly-referenced value', async () => {
       const inner = ['bonk'];
       const outer = [inner, inner];
 
@@ -339,13 +411,30 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           const gotInner = got[0];
           const gotRef   = got[1];
 
-          expect(gotRef).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotRef).toBeInstanceOf(VisitRef);
           expect(gotInner).toBeArrayOfSize(2);
           expect(gotInner[0]).toEqual('bonk');
-          expect(gotInner[1]).toBeInstanceOf(BaseValueVisitor.VisitRef);
+          expect(gotInner[1]).toBeInstanceOf(VisitRef);
           expect(gotInner[1]).toBe(gotRef);
           expect(gotRef.originalValue).toBe(inner);
           expect(gotRef.value).toBe(gotInner);
+        }
+      });
+    });
+
+    test('makes refs with the expected `index`es', async () => {
+      const shared0 = ['bonk'];
+      const shared1 = ['boop'];
+      const outer   = [shared0, shared1, shared0, shared1];
+
+      await doTest(outer, {
+        cls: RefMakingVisitor,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(4);
+          expect(got[2]).toBeInstanceOf(VisitRef);
+          expect(got[3]).toBeInstanceOf(VisitRef);
+          expect(got[2].index).toBe(0);
+          expect(got[3].index).toBe(1);
         }
       });
     });
@@ -385,27 +474,54 @@ describe('visit()', () => {
   });
 });
 
+// Common tests for type-specific visitors.
 describe.each`
-methodName                  | canWrap  | value
-${'_impl_visitArray'}       | ${true}  | ${[1, 2, 3]}
-${'_impl_visitBigInt'}      | ${false} | ${99988777n}
-${'_impl_visitBoolean'}     | ${false} | ${false}
-${'_impl_visitClass'}       | ${true}  | ${class Florp {}}
-${'_impl_visitFunction'}    | ${true}  | ${() => 'x'}
-${'_impl_visitInstance'}    | ${true}  | ${new Set(['woo'])}
-${'_impl_visitNull'}        | ${false} | ${null}
-${'_impl_visitNumber'}      | ${false} | ${54.321}
-${'_impl_visitPlainObject'} | ${true}  | ${{ x: 'bonk' }}
-${'_impl_visitProxy'}       | ${true}  | ${new Proxy({}, {})}
-${'_impl_visitRef'}         | ${false} | ${new BaseValueVisitor.VisitRef(null, 5)}
-${'_impl_visitString'}      | ${false} | ${'florp'}
-${'_impl_visitSymbol'}      | ${false} | ${Symbol('woo')}
-${'_impl_visitUndefined'}   | ${false} | ${undefined}
-`('$methodName()', ({ methodName, canWrap, value }) => {
+methodName                  | canWrap  | testVisit | value
+${'_impl_visitArray'}       | ${true}  | ${true}   | ${[1, 2, 3]}
+${'_impl_visitBigInt'}      | ${false} | ${true}   | ${99988777n}
+${'_impl_visitBoolean'}     | ${false} | ${true}   | ${false}
+${'_impl_visitClass'}       | ${true}  | ${true}   | ${class Florp {}}
+${'_impl_visitFunction'}    | ${true}  | ${true}   | ${() => 'x'}
+${'_impl_visitInstance'}    | ${true}  | ${true}   | ${new Set(['woo'])}
+${'_impl_visitNull'}        | ${false} | ${true}   | ${null}
+${'_impl_visitNumber'}      | ${false} | ${true}   | ${54.321}
+${'_impl_visitPlainObject'} | ${true}  | ${true}   | ${{ x: 'bonk' }}
+${'_impl_visitProxy'}       | ${true}  | ${false}  | ${new Proxy({}, {})}
+${'_impl_visitRef'}         | ${false} | ${true}   | ${new VisitRef(null, 5)}
+${'_impl_visitString'}      | ${false} | ${true}   | ${'florp'}
+${'_impl_visitSymbol'}      | ${false} | ${true}   | ${Symbol('woo')}
+${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
+`('$methodName()', ({ methodName, canWrap, testVisit, value }) => {
   test('returns the given value as-is (default implementation)', () => {
     const vv = new BaseValueVisitor(null);
     expect(vv[methodName](value)).toBe(value);
   });
+
+  if (testVisit) {
+    test('gets called during a visit to a root value of the appropriate type', () => {
+      const expected = ['yep', 'it', 'was', 'called'];
+      const vv       = new BaseValueVisitor(value);
+      vv[methodName] = () => expected;
+      expect(vv.visitSync()).toBe(expected);
+    });
+
+    test('gets called during a visit to a non-root value of the appropriate type', () => {
+      // What's going on: We use `null` as the root value as a hook to make a
+      // sub-visit on the appropriate-typed value. _Except_, if the value is
+      // `null`, then we use a string instead.
+      const rootValue = (value === null) ? 'bonk' : null;
+      const rootImpl  = (rootValue === null) ? '_impl_visitNull' : '_impl_visitString';
+      const expected  = ['this', 'is', 'it'];
+      const vv        = new BaseValueVisitor(rootValue);
+      vv[methodName]  = () => expected;
+      vv[rootImpl]    = () => vv._prot_visitArrayProperties([value]);
+
+      const got = vv.visitSync();
+      expect(got).toBeInstanceOf(Array);
+      expect(got).toBeArrayOfSize(1);
+      expect(got[0]).toBe(expected);
+    });
+  }
 
   if (canWrap) {
     test('returns a wrapper given a needs-wrapping value', () => {
@@ -421,6 +537,25 @@ ${'_impl_visitUndefined'}   | ${false} | ${undefined}
       }
     });
   }
+});
+
+describe('_impl_visitProxy()', () => {
+  test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
+    const value = new Proxy({}, {});
+    const vv    = new BaseValueVisitor(value);
+    vv._impl_visitProxy = () => 'wrong-value';
+
+    expect(vv.visitSync()).toBe(value);
+  });
+
+  test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
+    const value    = new Proxy({}, {});
+    const expected = 'right-value';
+    const vv       = new ProxyAwareVisitor(value);
+    vv._impl_visitProxy = () => expected;
+
+    expect(vv.visitSync()).toBe(expected);
+  });
 });
 
 describe('_prot_visitArrayProperties()', () => {
