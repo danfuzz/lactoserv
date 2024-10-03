@@ -9,12 +9,12 @@ import { StackTrace } from '#x/StackTrace';
 
 
 /**
- * Special-case converter for instances of `Error` including subclasses.
+ * Special-case codec for instances of `Error` including subclasses.
  *
  * **Note:** Subclasses have to be registered with this module explicitly in
  * order to be converted from instances to data.
  */
-export class ConvError extends BaseCodec {
+export class ErrorCodec extends BaseCodec {
   /**
    * Should stacks be parsed?
    *
