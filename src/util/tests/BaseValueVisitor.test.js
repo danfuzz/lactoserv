@@ -372,7 +372,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   });
 
   describe('when `_impl_shouldRef()` can return `true`', () => {
-    test('will make a ref for a non-circular duplicate value', async () => {
+    test('makes a ref for a non-circular duplicate value', async () => {
       const inner = ['bonk'];
       const outer = [inner, [inner], inner];
 
@@ -398,7 +398,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       });
     });
 
-    test('will make a ref for a circularly-referenced value', async () => {
+    test('makes a ref for a circularly-referenced value', async () => {
       const inner = ['bonk'];
       const outer = [inner, inner];
 
@@ -421,6 +421,23 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
         }
       });
     });
+
+    test('makes refs with the expected `index`es', async () => {
+      const shared0 = ['bonk'];
+      const shared1 = ['boop'];
+      const outer   = [shared0, shared1, shared0, shared1];
+
+      await doTest(outer, {
+        cls: RefMakingVisitor,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(4);
+          expect(got[2]).toBeInstanceOf(VisitRef);
+          expect(got[3]).toBeInstanceOf(VisitRef);
+          expect(got[2].index).toBe(0);
+          expect(got[3].index).toBe(1);
+        }
+      });
+    })
   });
 });
 
