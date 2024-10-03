@@ -540,21 +540,25 @@ ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
 });
 
 describe('_impl_visitProxy()', () => {
-  test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
-    const value = new Proxy({}, {});
-    const vv    = new BaseValueVisitor(value);
-    vv._impl_visitProxy = () => 'wrong-value';
+  describe.each`
+  type          | value
+  ${'object'}   | ${new Proxy({}, {})}
+  ${'function'} | ${new Proxy(() => null, {})}
+  `('for a proxy of type `$type`', ({ value }) => {
+    test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
+      const vv = new BaseValueVisitor(value);
+      vv._impl_visitProxy = () => 'wrong-value';
 
-    expect(vv.visitSync()).toBe(value);
-  });
+      expect(vv.visitSync()).toBe(value);
+    });
 
-  test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
-    const value    = new Proxy({}, {});
-    const expected = 'right-value';
-    const vv       = new ProxyAwareVisitor(value);
-    vv._impl_visitProxy = () => expected;
+    test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
+      const expected = 'right-value';
+      const vv       = new ProxyAwareVisitor(value);
+      vv._impl_visitProxy = () => expected;
 
-    expect(vv.visitSync()).toBe(expected);
+      expect(vv.visitSync()).toBe(expected);
+    });
   });
 });
 
