@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConvError } from '#p/ConvError';
+import { ErrorCodec } from '#p/ErrorCodec';
 import { SpecialCodecs } from '#x/SpecialCodecs';
 
 
@@ -43,7 +43,7 @@ export class StandardConverters {
   static #makeStandard() {
     const std = new SpecialCodecs();
 
-    std.addForErrors(new ConvError());
+    std.addForErrors(new ErrorCodec());
 
     // TODO: More! Good reference:
     // <https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm>
@@ -63,7 +63,7 @@ export class StandardConverters {
   static #makeStandardForLogging() {
     const std = new SpecialCodecs();
 
-    std.addForErrors(new ConvError(true));
+    std.addForErrors(new ErrorCodec(true));
     std.addDefaults(this.STANDARD);
 
     std.freeze();
