@@ -139,123 +139,6 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visitor for a "node" (referenced value, including possibly the root) of the
-   * graph of values being visited. If there is already an entry in
-   * {@link #visits} for the node, it is returned. Otherwise, a new entry is
-   * created, and visiting is initiated (and possibly, but not necessarily,
-   * finished).
-   *
-   * @param {*} node The node being visited.
-   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visits} which
-   *   represents the current state of the visit.
-   */
-  #visitNode(node) {
-    const already = this.#visits.get(node);
-
-    if (already) {
-      const ref = already.ref;
-      if (ref) {
-        return this.#visitNode(ref);
-      } else if (this.#shouldRef(node)) {
-        const newRef =
-          new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
-        this.#nextRefIndex++;
-        already.ref = newRef;
-        return this.#visitNode(newRef);
-      } else {
-        return already;
-      }
-    }
-
-    const visitEntry = new BaseValueVisitor.#VisitEntry(node);
-    this.#visits.set(node, visitEntry);
-
-    // This call synchronously calls back to `visitNode0()`.
-    visitEntry.startVisit(this);
-
-    return visitEntry;
-  }
-
-  /**
-   * Helper for {@link #visitNode}, which does the actual dispatch.
-   *
-   * @param {*} node The node being visited.
-   * @returns {*} Whatever the `_impl_visit*()` method returned.
-   */
-  #visitNode0(node) {
-    switch (typeof node) {
-      case 'bigint': {
-        return this._impl_visitBigInt(node);
-      }
-
-      case 'boolean': {
-        return this._impl_visitBoolean(node);
-      }
-
-      case 'number': {
-        return this._impl_visitNumber(node);
-      }
-
-      case 'string': {
-        return this._impl_visitString(node);
-      }
-
-      case 'symbol': {
-        return this._impl_visitSymbol(node);
-      }
-
-      case 'undefined': {
-        return this._impl_visitUndefined();
-      }
-
-      case 'function': {
-        if (this.#isProxy(node)) {
-          return this._impl_visitProxy(node, true);
-        } else if (AskIf.callableFunction(node)) {
-          return this._impl_visitFunction(node);
-        } else {
-          return this._impl_visitClass(node);
-        }
-      }
-
-      case 'object': {
-        if (node === null) {
-          return this._impl_visitNull();
-        } else if (this.#isProxy(node)) {
-          return this._impl_visitProxy(node, false);
-        } else if (Array.isArray(node)) {
-          return this._impl_visitArray(node);
-        } else if (AskIf.plainObject(node)) {
-          return this._impl_visitPlainObject(node);
-        } else if (node instanceof BaseValueVisitor.VisitRef) {
-          return this._impl_visitRef(node);
-        } else {
-          return this._impl_visitInstance(node);
-        }
-      }
-
-      /* c8 ignore start */
-      default: {
-        // JavaScript added a new type after this code was written!
-        throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
-      }
-      /* c8 ignore stop */
-    }
-  }
-
-  /**
-   * Gets the entry for the root value being visited, including starting the
-   * visit (and possibly completing it) if this is the first time a `visit*()`
-   * method is being called.
-   *
-   * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
-   */
-  #visitRoot() {
-    const node = this.#rootValue;
-    return this.#visits.get(node) ?? this.#visitNode(node);
-  }
-
-  /**
    * Indicates whether this instance should be aware of proxies. If `true`,
    * visiting a proxy will cause {@link #_impl_visitProxy} to be called. If
    * `false`, visiting a proxy will cause an `_impl_visit*()` method to be
@@ -556,6 +439,111 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Visitor for a "node" (referenced value, including possibly the root) of the
+   * graph of values being visited. If there is already an entry in
+   * {@link #visits} for the node, it is returned. Otherwise, a new entry is
+   * created, and visiting is initiated (and possibly, but not necessarily,
+   * finished).
+   *
+   * @param {*} node The node being visited.
+   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visits} which
+   *   represents the current state of the visit.
+   */
+  #visitNode(node) {
+    const already = this.#visits.get(node);
+
+    if (already) {
+      const ref = already.ref;
+      if (ref) {
+        return this.#visitNode(ref);
+      } else if (this.#shouldRef(node)) {
+        const newRef =
+          new BaseValueVisitor.VisitRef(already, this.#nextRefIndex);
+        this.#nextRefIndex++;
+        already.ref = newRef;
+        return this.#visitNode(newRef);
+      } else {
+        return already;
+      }
+    }
+
+    const visitEntry = new BaseValueVisitor.#VisitEntry(node);
+    this.#visits.set(node, visitEntry);
+
+    // This call synchronously calls back to `visitNode0()`.
+    visitEntry.startVisit(this);
+
+    return visitEntry;
+  }
+
+  /**
+   * Helper for {@link #visitNode}, which does the actual dispatch.
+   *
+   * @param {*} node The node being visited.
+   * @returns {*} Whatever the `_impl_visit*()` method returned.
+   */
+  #visitNode0(node) {
+    switch (typeof node) {
+      case 'bigint': {
+        return this._impl_visitBigInt(node);
+      }
+
+      case 'boolean': {
+        return this._impl_visitBoolean(node);
+      }
+
+      case 'number': {
+        return this._impl_visitNumber(node);
+      }
+
+      case 'string': {
+        return this._impl_visitString(node);
+      }
+
+      case 'symbol': {
+        return this._impl_visitSymbol(node);
+      }
+
+      case 'undefined': {
+        return this._impl_visitUndefined();
+      }
+
+      case 'function': {
+        if (this.#isProxy(node)) {
+          return this._impl_visitProxy(node, true);
+        } else if (AskIf.callableFunction(node)) {
+          return this._impl_visitFunction(node);
+        } else {
+          return this._impl_visitClass(node);
+        }
+      }
+
+      case 'object': {
+        if (node === null) {
+          return this._impl_visitNull();
+        } else if (this.#isProxy(node)) {
+          return this._impl_visitProxy(node, false);
+        } else if (Array.isArray(node)) {
+          return this._impl_visitArray(node);
+        } else if (AskIf.plainObject(node)) {
+          return this._impl_visitPlainObject(node);
+        } else if (node instanceof BaseValueVisitor.VisitRef) {
+          return this._impl_visitRef(node);
+        } else {
+          return this._impl_visitInstance(node);
+        }
+      }
+
+      /* c8 ignore start */
+      default: {
+        // JavaScript added a new type after this code was written!
+        throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
+      }
+      /* c8 ignore stop */
+    }
+  }
+
+  /**
    * Helper for {@link #_prot_visitArrayProperties} and
    * {@link #_prot_visitObjectProperties}, which does most of the work.
    *
@@ -612,6 +600,18 @@ export class BaseValueVisitor {
         return result;
       })();
     }
+  }
+
+  /**
+   * Gets the entry for the root value being visited, including starting the
+   * visit (and possibly completing it) if this is the first time a `visit*()`
+   * method is being called.
+   *
+   * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
+   */
+  #visitRoot() {
+    const node = this.#rootValue;
+    return this.#visits.get(node) ?? this.#visitNode(node);
   }
 
 
