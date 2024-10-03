@@ -146,9 +146,9 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Similar to {@link #visit}, except (a) it will fail if the visit could not
-   * become finished synchronously, and (b) a returned promise is only ever due
-   * to a visitor returning a promise per se (and not from it acting
+   * Similar to {@link #visit}, except (a) it will fail if the visit did not
+   * finish synchronously; and (b) if a promise is returned, it is only ever
+   * because a visitor returned a promise per se (and not from a visitor acting
    * asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
