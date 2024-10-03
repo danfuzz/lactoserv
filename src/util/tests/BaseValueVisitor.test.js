@@ -103,6 +103,11 @@ class RefMakingVisitor extends BaseValueVisitor {
   _impl_visitArray(node) {
     return this._prot_visitArrayProperties(node);
   }
+
+  async _impl_visitPlainObject(node) {
+    await setImmediate();
+    return this._prot_visitObjectProperties(node);
+  }
 }
 
 describe('constructor()', () => {
@@ -170,6 +175,20 @@ describe('refFromResultValue()', () => {
     expect(got).toBe(123); // Baseline
     expect(vv.refFromResultValue(123)).toBeNull();
     expect(vv.refFromResultValue('boop')).toBeNull();
+  });
+
+  test('returns `null` given any argument if the visit is still in progress, then works after the visit is done', async () => {
+    const inner   = { b: { c: 123 } };
+    const value   = { a1: inner, a2: inner };
+    const vv      = new RefMakingVisitor(value);
+    const gotProm = vv.visit();
+
+    expect(PromiseState.isPending(gotProm)); // Baseline.
+    expect(vv.refFromResultValue('bonk')).toBeNull();
+
+    // Make sure the call didn't mess up the post-visit behavior.
+    const got = await gotProm;
+    expect(vv.refFromResultValue(got.a1)).toBe(got.a2);
   });
 });
 
