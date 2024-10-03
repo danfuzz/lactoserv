@@ -822,6 +822,7 @@ export class BaseValueVisitor {
         // Force a "circular reference" error if this method is called in the
         // middle of a call to `this.startVisit()`.
         this.promise;
+        return false;
       } else {
         return true;
       }
