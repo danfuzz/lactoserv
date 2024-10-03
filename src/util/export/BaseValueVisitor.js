@@ -57,11 +57,13 @@ export class BaseValueVisitor {
   #visits = new Map();
 
   /**
-   * The next index to use for a ref (circular / shared references).
+   * During a visit, the array of all refs created during the visit, in order;
+   * after the first post-visit call to {@link #refFromResultValue}, a map from
+   * result values to corresponding refs.
    *
-   * @type {number}
+   * @type {Array<VisitRef>|Map<*, VisitRef>}
    */
-  #nextRefIndex = 0;
+  #allRefs = [];
 
   /**
    * The set of visit entries that are currently part of an `await` chain. This
@@ -89,6 +91,37 @@ export class BaseValueVisitor {
    */
   get rootValue() {
     return this.#rootValue;
+  }
+
+  /**
+   * Gets the ref corresponding to a particular visit result value (either the
+   * root visit result or the result of a sub-visit), if such a ref was created
+   * during the visit. This method only produces valid results after a visit has
+   * finished.
+   *
+   * @param {*} value The result value to look up.
+   * @returns {?VisitRef} The corresponding ref, or `null` if there is no ref
+   *   for `value`.
+   */
+  refFromResultValue(value) {
+    if (Array.isArray(this.#allRefs)) {
+      // Either the visit is still in progress, or this is the first post-visit
+      // call to this method.
+      const entry = this.#visitRoot();
+      if (!entry.isFinished()) {
+        // The visit is still in progress.
+        return null;
+      }
+
+      const refMap = new Map();
+      for (const ref of this.#allRefs) {
+        refMap.set(ref.value, ref);
+      }
+
+      this.#allRefs = refMap;
+    }
+
+    return this.#allRefs.get(value) ?? null;
   }
 
   /**
@@ -458,9 +491,8 @@ export class BaseValueVisitor {
       if (ref) {
         return this.#visitNode(ref);
       } else if (this.#shouldRef(node)) {
-        const newRef = new VisitRef(already, this.#nextRefIndex);
-        this.#nextRefIndex++;
-        already.ref = newRef;
+        const newRef = already.setRef(this.#allRefs.length);
+        this.#allRefs.push(newRef);
         return this.#visitNode(newRef);
       } else {
         return already;
@@ -662,6 +694,13 @@ export class BaseValueVisitor {
     #value = null;
 
     /**
+     * Ref which corresponds to this instance, or `null` if there is none.
+     *
+     * @type {?VisitRef}
+     */
+    #ref = null;
+
+    /**
      * Constructs an instance.
      *
      * @param {*} node The value whose visit is being represented.
@@ -695,6 +734,14 @@ export class BaseValueVisitor {
       // with circular references, all circles must be broken by replacing them
       // with refs.
       throw new Error('Visit is deadlocked due to circular reference.');
+    }
+
+    /**
+     * @returns {?VisitRef} Ref which corresponds to this instance, or `null` if
+     * there is none.
+     */
+    get ref() {
+      return this.#ref;
     }
 
     /**
@@ -776,6 +823,23 @@ export class BaseValueVisitor {
       this.#promise;
 
       return false;
+    }
+
+    /**
+     * Creates and stores a ref which is to correspond to this instance,
+     * assigning it the indicated index. It is only valid to ever call this
+     * method once on any given instance.
+     *
+     * @param {number} index The index for the ref.
+     * @returns {VisitRef} The newly-constructed ref.
+     */
+    setRef(index) {
+      if (this.#ref) {
+        throw new Error('Ref already set.');
+      }
+
+      this.#ref = new VisitRef(this, index);
+      return this.#ref;
     }
 
     /**

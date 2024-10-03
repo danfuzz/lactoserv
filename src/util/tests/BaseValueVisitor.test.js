@@ -120,6 +120,59 @@ describe('.rootValue', () => {
   });
 });
 
+describe('refFromResultValue()', () => {
+  test('finds a root result reference', () => {
+    // Note: This test can only possibly work if the root value itself
+    // participates in a reference cycle.
+    const value = [123];
+    value.push(value);
+
+    const vv  = new RefMakingVisitor(value);
+    const got = vv.visitSync();
+
+    // Baseline.
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toBe(123);
+    const gotRef = got[1];
+    expect(gotRef).toBeInstanceOf(VisitRef);
+
+    // The actual test.
+    expect(vv.refFromResultValue(got)).toBe(gotRef);
+    expect(gotRef.originalValue).toBe(value);
+    expect(gotRef.value).toBe(got);
+  });
+
+  test('finds a sub-visit result reference', () => {
+    const inner = [123];
+    const value = [inner, inner];
+
+    const vv  = new RefMakingVisitor(value);
+    const got = vv.visitSync();
+
+    // Baseline.
+    expect(got).toBeArrayOfSize(2);
+    const gotInner = got[0];
+    const gotRef = got[1];
+    expect(gotInner).toEqual(inner);
+    expect(gotInner).not.toBe(inner);
+    expect(gotRef).toBeInstanceOf(VisitRef);
+
+    // The actual test.
+    expect(vv.refFromResultValue(gotInner)).toBe(gotRef);
+    expect(gotRef.originalValue).toBe(inner);
+    expect(gotRef.value).toBe(gotInner);
+  });
+
+  test('returns `null` given any argument if there were no refs created', () => {
+    const vv  = new BaseValueVisitor(123);
+    const got = vv.visitSync();
+
+    expect(got).toBe(123); // Baseline
+    expect(vv.refFromResultValue(123)).toBeNull();
+    expect(vv.refFromResultValue('boop')).toBeNull();
+  });
+});
+
 // Tests for all three `visit*()` methods.
 describe.each`
 methodName     | isAsync  | wraps    | canReturnPromises
