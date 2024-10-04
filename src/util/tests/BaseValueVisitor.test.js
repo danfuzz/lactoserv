@@ -49,9 +49,10 @@ const PROMISE_EXAMPLES = [
 ];
 
 /**
- * Visitor subclass, with some synchronous and some asynchronous behavior.
+ * Visitor subclass, with some synchronous and some asynchronous behavior, which
+ * recursively visits plain objects and arrays.
  */
-class SubVisit extends BaseValueVisitor {
+class RecursiveVisitor extends BaseValueVisitor {
   _impl_visitBigInt(node_unused) {
     throw new Error('Nope!');
   }
@@ -235,7 +236,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
     circ1.push(circ2);
 
-    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
+    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
   });
 
   test('handles non-circular synchronously-visited duplicate references correctly', async () => {
@@ -244,7 +245,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     const outer  = [middle, inner, middle, 3];
 
     await doTest(outer, {
-      cls: SubVisit,
+      cls: RecursiveVisitor,
       check: (got) => {
         expect(got).toBeArrayOfSize(4);
         expect(got[0]).toBe(got[2]);
@@ -264,7 +265,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
       const value = true;
       await doTest(value, {
-        cls: SubVisit,
+        cls: RecursiveVisitor,
         check: (got) => {
           expect(got).toBe('true');
         }
@@ -277,7 +278,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       const outer  = [middle, inner, middle, false];
 
       await doTest(outer, {
-        cls: SubVisit,
+        cls: RecursiveVisitor,
         check: (got) => {
           expect(got).toBeArrayOfSize(4);
           expect(got[0]).toBe(got[2]);
@@ -295,7 +296,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
     test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
       const value = Symbol('eep');
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('NO');
+      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('NO');
     });
 
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
@@ -305,11 +306,11 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
       circ1.push(circ2);
 
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(CIRCULAR_MSG);
+      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
     });
 
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
-      class ExtraAsyncVisitor extends SubVisit {
+      class ExtraAsyncVisitor extends RecursiveVisitor {
         async _impl_visitArray(node) {
           await setImmediate();
           return this._prot_visitArrayProperties(node);
@@ -329,12 +330,12 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
     test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
       const value = true;
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
     });
 
     test('throws the right error if a will-fail visit did not finish synchronously', async () => {
       const value = Symbol('eeeeek');
-      await expect(doTest(value, { cls: SubVisit })).rejects.toThrow(MSG);
+      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
     });
   }
 
@@ -350,7 +351,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
   test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
     const value = 123n;
-    await expect(doTest(value, { cls: SubVisit })).rejects.toThrow('Nope!');
+    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('Nope!');
   });
 
   describe('when `_impl_proxyAware() === false`', () => {
@@ -565,7 +566,7 @@ describe('_impl_visitProxy()', () => {
 describe('_prot_visitArrayProperties()', () => {
   test('operates synchronously when possible', () => {
     const orig = [1, 2];
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
 
     expect(got).toEqual(['1', '2']);
@@ -573,7 +574,7 @@ describe('_prot_visitArrayProperties()', () => {
 
   test('operates synchronously when possible, and recursively', () => {
     const orig = [1, 2, [3, 4], 5];
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
 
     expect(got).toEqual(['1', '2', ['3', '4'], '5']);
@@ -581,7 +582,7 @@ describe('_prot_visitArrayProperties()', () => {
 
   test('operates asynchronously', async () => {
     const orig = [false, true];
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
 
     expect(got).toEqual(['false', 'true']);
@@ -589,20 +590,20 @@ describe('_prot_visitArrayProperties()', () => {
 
   test('operates asynchronously and recursively', async () => {
     const orig = [false, 1, [true, 2], false];
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
 
     expect(got).toEqual(['false', '1', ['true', '2'], 'false']);
   });
 
   test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new SubVisit([456n]);
+    const vv = new RecursiveVisitor([456n]);
 
     expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
   test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new SubVisit([Symbol('zonk')]);
+    const vv = new RecursiveVisitor([Symbol('zonk')]);
 
     expect(vv.visit()).rejects.toThrow('NO');
   });
@@ -615,7 +616,7 @@ describe('_prot_visitArrayProperties()', () => {
     orig[4] = 'y';
     orig[5] = 5;
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
 
     expect(got).toEqual([UND, UND, 'x', UND, 'y', '5', UND]);
@@ -633,7 +634,7 @@ describe('_prot_visitArrayProperties()', () => {
     expected.x = '2';
     expected.y = '3';
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
     expect(got).toEqual(expected);
   });
@@ -649,7 +650,7 @@ describe('_prot_visitArrayProperties()', () => {
     expected[SYM1] = '234';
     expected[SYM2] = '321';
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
     expect(got).toBeArrayOfSize(1);
     expect(got[0]).toBe('123');
@@ -668,7 +669,7 @@ describe('_prot_visitArrayProperties()', () => {
     expected[SYM1] = 'true';
     expected[SYM2] = 'false';
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
     expect(got).toBeArrayOfSize(1);
     expect(got[0]).toBe('123');
@@ -680,7 +681,7 @@ describe('_prot_visitArrayProperties()', () => {
 describe('_prot_visitObjectProperties()', () => {
   test('operates synchronously when possible', () => {
     const orig = { a: 10, b: 20 };
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
 
     expect(got).toEqual({ a: '10', b: '20' });
@@ -688,7 +689,7 @@ describe('_prot_visitObjectProperties()', () => {
 
   test('operates synchronously when possible, and recursively', () => {
     const orig = { a: 1, b: 2, c: { d: 3, e: 4 }, f: 5 };
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
 
     expect(got).toEqual({ a: '1', b: '2',  c: { d: '3', e: '4' }, f: '5' });
@@ -696,7 +697,7 @@ describe('_prot_visitObjectProperties()', () => {
 
   test('operates asynchronously', async () => {
     const orig = { x: false, y: true };
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
 
     expect(got).toEqual({ x: 'false', y: 'true' });
@@ -704,20 +705,20 @@ describe('_prot_visitObjectProperties()', () => {
 
   test('operates asynchronously and recursively', async () => {
     const orig = { x: false, y: 1, z: { a: true, b: 2 } };
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
 
     expect(got).toEqual({ x: 'false', y: '1', z: { a: 'true', b: '2' } });
   });
 
   test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new SubVisit({ blorp: 456n });
+    const vv = new RecursiveVisitor({ blorp: 456n });
 
     expect(() => vv.visitSync()).toThrow('Nope!');
   });
 
   test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new SubVisit({ blorp: Symbol('zonk') });
+    const vv = new RecursiveVisitor({ blorp: Symbol('zonk') });
 
     expect(vv.visit()).rejects.toThrow('NO');
   });
@@ -730,7 +731,7 @@ describe('_prot_visitObjectProperties()', () => {
       [SYM2]: 321
     };
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = vv.visitSync();
     expect(got).toBeObject();
     expect(got[SYM1]).toBe('234');
@@ -745,7 +746,7 @@ describe('_prot_visitObjectProperties()', () => {
       [SYM2]: false
     };
 
-    const vv   = new SubVisit(orig);
+    const vv   = new RecursiveVisitor(orig);
     const got  = await vv.visit();
     expect(got).toBeObject();
     expect(got[SYM1]).toBe('true');
