@@ -65,10 +65,11 @@ export class ErrorUtil {
   static extractErrorCode(error) {
     const shortenAndFormat = (str) => {
       return str
-        .replaceAll(/[^- _A-Za-z0-9]/g, '')
+        .replaceAll(/[^-_ A-Za-z0-9]|^[-_ ]+|[-_ ]+$/g, '')
         .slice(0, 30)
         .toLowerCase()
-        .replaceAll(/[_ ]/g, '-');
+        .replaceAll(/[_ ]/g, '-')
+        .replace(/-+$/, '');
     };
 
     if (error instanceof Error) {

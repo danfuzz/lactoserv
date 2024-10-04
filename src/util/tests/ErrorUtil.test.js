@@ -131,7 +131,7 @@ describe('extractErrorCode()', () => {
 
   test('given a string, returns a formatted extract of it', () => {
     const err = 'Well, isn\'t THAT a poke or 2 in the nose.';
-    expect(ErrorUtil.extractErrorCode(err)).toBe('well-isnt-that-a-poke-or-2-in-');
+    expect(ErrorUtil.extractErrorCode(err)).toBe('well-isnt-that-a-poke-or-2-in');
   });
 
   test('given a non-Error non-string, returns a generic value', () => {
