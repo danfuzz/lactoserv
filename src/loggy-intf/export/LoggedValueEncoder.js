@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Sexp } from '@this/codec';
+import { AskIf } from '@this/typey';
 import { BaseValueVisitor, ErrorUtil } from '@this/util';
 
 
@@ -30,8 +31,20 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   }
 
   /** @override */
-  _impl_shouldRef(value_unused) {
-    return true;
+  _impl_shouldRef(value) {
+    switch (typeof value) {
+      case 'function': {
+        return AskIf.callableFunction(value);
+      }
+
+      case 'object': {
+        return true;
+      }
+
+      default: {
+        return false;
+      }
+    }
   }
 
   /** @override */
