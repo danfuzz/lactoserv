@@ -183,7 +183,7 @@ describe('deconstruct()', () => {
     const got = key.deconstruct();
 
     expect(got).toBeArray();
-    expect(got).toEqual([PathKey, ...args]);
+    expect(got).toStrictEqual([PathKey, ...args]);
   });
 });
 
