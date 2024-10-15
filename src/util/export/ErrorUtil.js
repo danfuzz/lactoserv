@@ -1,6 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { IntfDeconstructable } from '#x/IntfDeconstructable';
+import { StackTrace } from '#x/StackTrace';
+
 
 /**
  * Utilities for dealing with `Error` objects.
@@ -56,6 +59,48 @@ export class ErrorUtil {
   }
 
   /**
+   * Encodes an `Error` instance into a standardized "deconstructed" form, along
+   * the lines of what is defined for {@link IntfDeconstructable#deconstruct}.
+   *
+   * @param {*} error The error to process.
+   * @returns {Array} The deconstructed form.
+   */
+  static deconstructError(error) {
+    if (!(error instanceof Error)) {
+      return [Error, `${error}`];
+    }
+
+    const { cause, code, errors, message, name } = error;
+    const type  = error.constructor;
+    const stack = this.#deconstructStack(error);
+    const rest  = { ...error };
+    const main  = {
+      name: name ?? type.name ?? 'Error',
+      code,
+      message: message ?? '',
+      stack,
+      cause,
+      errors
+    };
+
+    delete rest.cause;
+    delete rest.code;
+    delete rest.errors;
+    delete rest.message;
+    delete rest.name;
+    delete rest.stack;
+
+    if (!main.cause)  delete main.cause;
+    if (!main.code)   delete main.code;
+    if (!main.errors) delete main.errors;
+    if (!main.stack)  delete main.stack;
+
+    return (Object.getOwnPropertyNames(rest).length === 0)
+      ? [type, main]
+      : [type, main, rest];
+  }
+
+  /**
    * Extracts a string error code from the given `Error`, or returns a generic
    * "unknown error" if there's nothing else reasonable.
    *
@@ -83,5 +128,17 @@ export class ErrorUtil {
     }
 
     return 'err-unknown';
+  }
+
+  /**
+   * Gets the appropriate value for a deconstructed `stack` property.
+   *
+   * @param {Error} error The original error.
+   * @returns {*} The value to use in the result for {@link #deconstructError}.
+   */
+  static #deconstructStack(error) {
+    return (typeof error?.stack === 'string')
+      ? new StackTrace(error)
+      : error.stack;
   }
 }
