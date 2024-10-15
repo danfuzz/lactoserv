@@ -135,6 +135,9 @@ export class Codec extends BaseCodec {
         if (config.honorEncodeMethod && orig[BaseCodec.ENCODE]) {
           const replacement = orig[BaseCodec.ENCODE]();
           return this.#encode0(replacement);
+        } else if (config.honorDeconstructMethod && orig.deconstruct) {
+            const replacement = new Sexp(...orig.deconstruct());
+            return this.#encode0(replacement);
         } else {
           return this.#performReplacement(orig, config.instanceAction);
         }

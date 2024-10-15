@@ -79,6 +79,16 @@ export class CodecConfig extends BaseConfig {
   }
 
   /**
+   * Should instance-defined `deconstruct()` methods be honored?
+   *
+   * @param {boolean} [value] Proposed configuration value. Default `true`.
+   * @returns {boolean} Accepted configuration value.
+   */
+  _config_honorDeconstructMethod(value = true) {
+    return MustBe.boolean(value);
+  }
+
+  /**
    * Should instance-defined `ENCODE()` methods be honored?
    *
    * @param {boolean} [value] Proposed configuration value. Default `true`.
