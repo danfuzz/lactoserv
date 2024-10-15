@@ -29,17 +29,6 @@ describe('encode()', () => {
 // Static members
 //
 
-describe('.ENCODE', () => {
-  test('is a symbol', () => {
-    expect(BaseCodec.ENCODE).toBeSymbol();
-  });
-
-  test('is uninterned', () => {
-    const interned = Symbol.for(BaseCodec.ENCODE.description);
-    expect(BaseCodec.ENCODE).not.toBe(interned);
-  });
-});
-
 describe('.OMIT', () => {
   test('is a symbol', () => {
     expect(BaseCodec.OMIT).toBeSymbol();

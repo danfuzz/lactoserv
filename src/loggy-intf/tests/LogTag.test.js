@@ -3,7 +3,6 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { LogTag } from '@this/loggy-intf';
 
 
@@ -239,14 +238,13 @@ describe('toHuman()', () => {
   });
 });
 
-describe('[BaseCodec.ENCODE]()', () => {
+describe('deconstruct()', () => {
   const testOne = (...expected) => {
     const tag    = new LogTag(...expected);
-    const result = tag[BaseCodec.ENCODE]();
+    const result = tag.deconstruct();
 
-    expect(result).toBeInstanceOf(Sexp);
-    expect(result.functor).toBe(LogTag);
-    expect(result.args).toStrictEqual(expected);
+    expect(result).toBeArray();
+    expect(result).toStrictEqual([LogTag, ...expected]);
   };
 
   test('works with just a main tag (no context strings)', () => {

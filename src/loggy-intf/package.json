@@ -18,6 +18,7 @@
     "@this/codec": "*",
     "@this/quant": "*",
     "@this/text": "*",
-    "@this/typey": "*"
+    "@this/typey": "*",
+    "@this/util": "*"
   }
 }

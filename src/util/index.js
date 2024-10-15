@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseValueVisitor';
+export * from '#x/IntfDeconstructable';
 export * from '#x/ErrorUtil';
+export * from '#x/StackFrame';
+export * from '#x/StackTrace';
 export * from '#x/VisitRef';
 export * from '#x/VisitResult';

@@ -49,13 +49,6 @@ export class BaseCodec {
   //
 
   /**
-   * Value for the exposed {@link #ENCODE}.
-   *
-   * @type {symbol}
-   */
-  static #ENCODE = Symbol('BaseCodec.ENCODE');
-
-  /**
    * Value for the exposed {@link #OMIT}.
    *
    * @type {symbol}
@@ -68,14 +61,6 @@ export class BaseCodec {
    * @type {symbol}
    */
   static #UNHANDLED = Symbol('BaseCodec.UNHANDLED');
-
-  /**
-   * @returns {symbol} Name of method to define, in order to specify custom
-   * value encoding behavior on an instance.
-   */
-  static get ENCODE() {
-    return this.#ENCODE;
-  }
 
   /**
    * @returns {symbol} Return value from an `encode()` method to indicate "omit

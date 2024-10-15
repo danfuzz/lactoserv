@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Codec, CodecConfig, Ref, Sexp } from '@this/codec';
+import { Codec, CodecConfig, Ref, Sexp } from '@this/codec';
 import { AskIf } from '@this/typey';
 
 
@@ -80,13 +80,13 @@ describe('encode()', () => {
       expect(data.value).toBe(florp);
     });
 
-    describe('on instances that define an `ENCODE()` method', () => {
-      test('calls `ENCODE()` exactly once', () => {
+    describe('on instances that define a `deconstruct()` method', () => {
+      test('calls `deconstruct()` exactly once', () => {
         let calledCount = 0;
         class Florp {
-          [BaseCodec.ENCODE]() {
+          deconstruct() {
             calledCount++;
-            return 123;
+            return [Florp, 123];
           }
         }
 
@@ -95,21 +95,26 @@ describe('encode()', () => {
         const conv = new Codec();
         const data = conv.encode(florp);
         expect(calledCount).toBe(1);
-        expect(data).toBe(123);
+        expect(data).toBeInstanceOf(Sexp);
+        expect(data.functor).toBeInstanceOf(Ref);
+        expect(data.functor.value).toBe(Florp);
+        expect(data.args).toStrictEqual([123]);
       });
 
-      test('converts the value returned from `ENCODE()`', () => {
+      test('converts the value returned from `deconstruct()`', () => {
         const theData = [1, 2, 3];
         class Florp {
-          [BaseCodec.ENCODE]() { return theData; }
+          deconstruct() { return [Florp, ...theData]; }
         }
         const florp = new Florp();
 
         const conv = new Codec();
         const data = conv.encode(florp);
-        expect(data).not.toBe(theData);
-        expect(data).toBeFrozen();
-        expect(data).toStrictEqual(theData);
+        expect(data).toBeInstanceOf(Sexp);
+        expect(data.functor).toBeInstanceOf(Ref);
+        expect(data.functor.value).toBe(Florp);
+        expect(data.args).toStrictEqual(theData);
+        expect(data.args).not.toBe(theData);
       });
     });
 

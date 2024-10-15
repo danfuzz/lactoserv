@@ -3,9 +3,9 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseCodec, Sexp, StackTrace } from '@this/codec';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
+import { StackTrace } from '@this/util';
 
 
 const someMoment = new Moment(123123123);
@@ -26,15 +26,14 @@ describe('constructor', () => {
   });
 });
 
-describe('[BaseCodec.ENCODE]()', () => {
-  test('produces a `Sexp` with the constructor arguments as the arguments', () => {
+describe('deconstruct()', () => {
+  test('produces an array of the constructor class and arguments', () => {
     const args    = [someStack, someMoment, someTag, 'whee', 10, 20, 'thirty'];
     const payload = new LogPayload(...args);
-    const got     = payload[BaseCodec.ENCODE]();
+    const got     = payload.deconstruct();
 
-    expect(got).toBeInstanceOf(Sexp);
-    expect(got.functor).toBe(LogPayload);
-    expect(got.args).toEqual(args);
+    expect(got).toBeArray();
+    expect(got).toStrictEqual([LogPayload, ...args]);
   });
 });
 

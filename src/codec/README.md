@@ -31,13 +31,10 @@ codec code, many (and ultimately, one hopes, all) are covered by special case
 conversion to and from `Sexp` instances.
 
 Beyond the built-in special cases, and similar to how `JSON.stringify()`
-knows to look for a `.toJSON()` method, this class understands the symbol-named
-method `BaseCodec.ENCODE` to define an instance-specific value-encoding
-behavior. The expectation is that most such custom converters end up producing
-`Sexp` instances (though that isn't strictly required).
-
-This module includes a small handful of general low-ish-level classes that
-"play nice" with `BaseCodec.ENCODE`, including notably `StackTrace`.
+knows to look for a `.toJSON()` method, this class understands the interface
+`@this/util.IntfDeconstructable`, that is, the method `deconstruct()`, as
+defining an instance-specific value-encoding behavior. The (array) return value
+from these methods gets wrapped in a `Sexp`.
 
 **Note:** This module is intended to handle both encoding and decoding of
 values, but as of this writing decoding is not yet implemented. So, that

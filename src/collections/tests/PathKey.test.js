@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { PathKey } from '@this/collections';
 
 
@@ -177,15 +176,14 @@ describe('.EMPTY', () => {
   });
 });
 
-describe('[BaseCodec.ENCODE]()', () => {
-  test('produces a `Sexp` with the constructor arguments the arguments', () => {
+describe('deconstruct()', () => {
+  test('produces an array of the constructor class and arguments', () => {
     const args = [['beep', 'boop'], true];
     const key = new PathKey(...args);
-    const got = key[BaseCodec.ENCODE]();
+    const got = key.deconstruct();
 
-    expect(got).toBeInstanceOf(Sexp);
-    expect(got.functor).toBe(PathKey);
-    expect(got.args).toEqual(args);
+    expect(got).toBeArray();
+    expect(got).toStrictEqual([PathKey, ...args]);
   });
 });
 

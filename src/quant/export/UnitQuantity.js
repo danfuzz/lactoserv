@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
+import { IntfDeconstructable } from '@this/util';
 
 
 /**
@@ -26,7 +26,7 @@ const INVERSE_SYMBOL = Symbol('UnitQuantity.INVERSE');
  *
  * Instances of this class are always frozen.
  */
-export class UnitQuantity {
+export class UnitQuantity extends IntfDeconstructable {
   /**
    * The numeric value being represented.
    *
@@ -56,6 +56,8 @@ export class UnitQuantity {
    * @param {?string} denominatorUnit The denominator unit, or `null` if none.
    */
   constructor(value, numeratorUnit, denominatorUnit) {
+    super();
+
     this.#value = MustBe.number(value, { finite: true });
 
     if (numeratorUnit !== null) {
@@ -109,14 +111,10 @@ export class UnitQuantity {
     return this.#value;
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(this.constructor,
-      this.#value, this.#numeratorUnit, this.#denominatorUnit);
+  /** @override */
+  deconstruct() {
+    return [this.constructor,
+      this.#value, this.#numeratorUnit, this.#denominatorUnit];
   }
 
   /**

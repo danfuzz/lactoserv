@@ -16,6 +16,7 @@
 
   "dependencies": {
     "@this/structy": "*",
-    "@this/typey": "*"
+    "@this/typey": "*",
+    "@this/util": "*"
   }
 }

@@ -3,8 +3,8 @@
 
 import * as util from 'node:util';
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
+import { IntfDeconstructable } from '@this/util';
 
 import { TreeMap } from '#x/TreeMap';
 
@@ -13,7 +13,7 @@ import { TreeMap } from '#x/TreeMap';
  * Key for use with {@link TreeMap}. Instances are immutable, and contents are
  * strongly type-checked.
  */
-export class PathKey {
+export class PathKey extends IntfDeconstructable {
   /**
    * Path portion of the key.
    *
@@ -46,6 +46,8 @@ export class PathKey {
    *   related) things, depending on the context in which an instance is used.
    */
   constructor(path, wildcard) {
+    super();
+
     PathKey.checkArguments(path, wildcard);
 
     this.#path     = Object.isFrozen(path) ? path : Object.freeze([...path]);
@@ -99,13 +101,9 @@ export class PathKey {
     return this.#wildcard;
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} The encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(PathKey, this.#path, this.#wildcard);
+  /** @override */
+  deconstruct() {
+    return [PathKey, this.#path, this.#wildcard];
   }
 
   /**
