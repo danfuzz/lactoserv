@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { MustBe } from '@this/typey';
+import { IntfDeconstructable } from '@this/util';
 
 import { Duration } from '#x/Duration';
 
@@ -20,7 +20,7 @@ import { Duration } from '#x/Duration';
  * time, and it is up to other code to use whatever source is appropriate in
  * context.
  */
-export class Moment {
+export class Moment extends IntfDeconstructable {
   /**
    * The moment being represented, in the form of seconds since the Unix Epoch.
    *
@@ -35,6 +35,8 @@ export class Moment {
    *   seconds since the Unix Epoch. Must be finite.
    */
   constructor(atSec) {
+    super();
+
     this.#atSec = (typeof atSec === 'bigint')
       ? Number(atSec)
       : MustBe.number(atSec, { finite: true });
@@ -218,18 +220,14 @@ export class Moment {
     return Moment.stringFromSec(this.#atSec, options);
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
+  /** @override */
+  deconstruct() {
     // Note: This string is included for the convenience of humans who happen to
     // be looking at logs (etc.), but is not actually used when reconstructing
     // an instance.
     const str = this.toString({ decimals: 6 });
 
-    return new Sexp(Moment, this.#atSec, str);
+    return [Moment, this.#atSec, str];
   }
 
 

@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
-
 import { Frequency } from '#x/Frequency';
 import { UnitQuantity } from '#x/UnitQuantity';
 
@@ -64,18 +62,14 @@ export class Duration extends UnitQuantity {
     return Duration.stringFromSec(this.sec, options);
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
+  /** @override */
+  deconstruct() {
     // Note: This string is included for the convenience of humans who happen to
     // be looking at logs (etc.), but is not actually used when reconstructing
     // an instance.
     const str = Duration.stringFromSec(this.sec);
 
-    return new Sexp(Duration, this.sec, str);
+    return [Duration, this.sec, str];
   }
 
 

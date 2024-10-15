@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
-
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -42,18 +40,14 @@ export class ByteCount extends UnitQuantity {
     return ByteCount.stringFromByteCount(this.byte, options);
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
+  /** @override */
+  deconstruct() {
     // Note: This string is included for the convenience of humans who happen to
     // be looking at logs (etc.), but is not actually used when reconstructing
     // an instance.
     const str = this.toString();
 
-    return new Sexp(ByteCount, this.byte, str);
+    return [ByteCount, this.byte, str];
   }
 
 
