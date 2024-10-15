@@ -19,6 +19,8 @@ Breaking changes:
 * `util`:
   * Moved stack-trace-related classes from `codec` into this module.
   * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
+* `loggy`:
+  * Removed `IntfLoggingEnviroment.logPayload()`.
 
 Other notable changes:
 * `webapp-util`:
