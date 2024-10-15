@@ -74,8 +74,8 @@ export class SpecialCodecs extends BaseCodec {
   addForErrors(converter) {
     MustBe.instanceOf(converter, BaseCodec);
 
-    for (const e of [DOMException, Error, EvalError, RangeError, ReferenceError,
-      SyntaxError, TypeError, URIError]) {
+    for (const e of [AggregateError, DOMException, Error, EvalError, RangeError,
+      ReferenceError, SyntaxError, TypeError, URIError]) {
       this.add(e, converter);
     }
   }
