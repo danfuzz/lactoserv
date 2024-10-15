@@ -1,9 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
+import { IntfDeconstructable } from '@this/util';
 
 
 /**
@@ -20,7 +20,7 @@ const chalk = Chalk.ON;
  * module. The context strings, if any, are specific to the main tag (defined by
  * the component being so represented).
  */
-export class LogTag {
+export class LogTag extends IntfDeconstructable {
   /**
    * Main tag.
    *
@@ -51,6 +51,8 @@ export class LogTag {
    *   characters.
    */
   constructor(main, ...context) {
+    super();
+
     this.#main = LogTag.#checkMainString(main);
 
     for (const c of context) {
@@ -164,13 +166,9 @@ export class LogTag {
     return new LogTag(this.#main, ...this.#context, ...context);
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(LogTag, this.#main, ...this.#context);
+  /** @override */
+  deconstruct() {
+    return [LogTag, this.#main, ...this.#context];
   }
 
 

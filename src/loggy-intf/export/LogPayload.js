@@ -4,11 +4,10 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { BaseCodec, Sexp } from '@this/codec';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { StackTrace } from '@this/util';
+import { IntfDeconstructable, StackTrace } from '@this/util';
 
 import { LogTag } from '#x/LogTag';
 
@@ -25,6 +24,8 @@ const chalk = Chalk.ON;
  * constructed by this module. It includes the same basic event properties as
  * {@link EventPayload} (which it inherits from), to which it adds a few
  * logging-specific properties.
+ *
+ * @implements {IntfDeconstructable}
  */
 export class LogPayload extends EventPayload {
   /**
@@ -85,14 +86,10 @@ export class LogPayload extends EventPayload {
     return this.#when;
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(LogPayload,
-      this.#stack, this.#when, this.#tag, this.type, ...this.args);
+  /** @override */
+  deconstruct() {
+    return [LogPayload,
+      this.#stack, this.#when, this.#tag, this.type, ...this.args];
   }
 
   /**
