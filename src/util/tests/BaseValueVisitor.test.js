@@ -564,6 +564,44 @@ describe('_impl_visitError()', () => {
   });
 });
 
+describe('_prot_nameFromValue()', () => {
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${true}
+  ${123}
+  ${567n}
+  ${'zonk'}
+  `('stringifies $value', ({ value }) => {
+    const vv  = new BaseValueVisitor(null);
+    const got = vv._prot_nameFromValue(value);
+    expect(got).toBe(`${value}`);
+  });
+
+  test('returns the expected form for a symbol', () => {
+    const vv  = new BaseValueVisitor(null);
+    const got = vv._prot_nameFromValue(Symbol('bonk'));
+    expect(got).toBe(`symbol {bonk}`);
+  });
+
+  test.each`
+  label                               | value                           | expected
+  ${'an anonymous plain object'}      | ${{ a: 123 }}                   | ${'object {...}'}
+  ${'a named plain object'}           | ${{ name: 'flomp' }}            | ${'flomp {...}'}
+  ${'an anonymous class'}             | ${class {}}                     | ${'class <anonymous>'}
+  ${'a named class'}                  | ${class Florp {}}               | ${'class Florp'}
+  ${'an instance of anonymous class'} | ${new (class {})()}             | ${'<anonymous> {...}'}
+  ${'an instance of named class'}     | ${new (class Boop {})()}        | ${'Boop {...}'}
+  ${'an anonymous function'}          | ${() => 123}                    | ${'<anonymous>()'}
+  ${'a named function'}               | ${function bip() { return 1; }} | ${'bip()'}
+  `('derives the expected name from $label', ({ value, expected }) => {
+    const vv  = new BaseValueVisitor(null);
+    const got = vv._prot_nameFromValue(value);
+    expect(got).toBe(expected);
+  });
+});
+
 describe('_impl_visitProxy()', () => {
   describe.each`
   type          | value

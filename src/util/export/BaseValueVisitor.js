@@ -402,6 +402,59 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Determines a "name" for the given value, in a standardized way, meant to be
+   * suggestive (to a human) of what type of value it is as well. For anything
+   * but objects or functions, this returns the string form of the given value.
+   * Beyond that, it makes reasonable efforts to find a name, also marking
+   * proxies explicitly as such.
+   *
+   * @param {*} value Value to figure out the name of.
+   * @returns {string} The name.
+   */
+  _prot_nameFromValue(value) {
+    const proxyWrapIfNecessary = (name) => {
+      return types.isProxy(value) ? `Proxy {${name}}` : name;
+    };
+
+    switch (typeof value) {
+      case 'function': {
+        const rawName   = value.name;
+        const basicName = ((typeof rawName === 'string') && (rawName !== '')) ? rawName : '<anonymous>';
+        const name      = AskIf.callableFunction(value)
+          ? `${basicName}()`
+          : `class ${basicName}`;
+        return proxyWrapIfNecessary(name);
+      }
+
+      case 'object': {
+        if (value === null) {
+          return 'null';
+        } else if (AskIf.plainObject(value)) {
+          if (typeof value.name === 'string') {
+            return proxyWrapIfNecessary(`${value.name} {...}`);
+          } else {
+            return proxyWrapIfNecessary('object {...}');
+          }
+        } else if (typeof value.constructor === 'function') {
+          const rawName = value.constructor?.name;
+          const name    = ((typeof rawName === 'string') && (rawName !== '')) ? rawName : '<anonymous>';
+          return proxyWrapIfNecessary(`${name} {...}`);
+        } else {
+          return proxyWrapIfNecessary('<anonymous> {...}');
+        }
+      }
+
+      case 'symbol': {
+        return `symbol {${value.description}}`;
+      }
+
+      default: {
+        return `${value}`;
+      }
+    }
+  }
+
+  /**
    * Visits the indexed values and any other "own" property values of an array,
    * _excluding_ `length`. Returns an array consisting of all the visited
    * values, with indices / property names corresponding to the original. If the
