@@ -1,10 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseCodec, Sexp } from '@this/codec';
 import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
+import { IntfDeconstructable } from '@this/util';
 
 import { IncomingRequest } from '#x/IncomingRequest';
 import { UriUtil } from '#x/UriUtil';
@@ -18,7 +18,7 @@ import { UriUtil } from '#x/UriUtil';
  * need somewhere -- that is, instances of this class -- to hold the ephemera of
  * the request dispatch process.
  */
-export class DispatchInfo {
+export class DispatchInfo extends IntfDeconstructable {
   /**
    * The base path.
    *
@@ -53,18 +53,16 @@ export class DispatchInfo {
    *   or `null` not to do dispatch logging.
    */
   constructor(base, extra, logger = null) {
+    super();
+
     this.#base   = MustBe.instanceOf(base, PathKey);
     this.#extra  = MustBe.instanceOf(extra, PathKey);
     this.#logger = (logger === null) ? null : MustBe.callableFunction(logger);
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} The encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(DispatchInfo, this.#base, this.#extra);
+  /** @override */
+  deconstruct() {
+    return [DispatchInfo, this.#base, this.#extra];
   }
 
   /**
