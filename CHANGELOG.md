@@ -15,6 +15,10 @@ Breaking changes:
   * Renamed several classes to match the (relatively) new module name.
   * Dropped the `options` property from `Sexp`, making it now equivalent
     to a classic s-expression (practically speaking, at least).
+  * See also `util`.
+* `util`:
+  * Moved stack-trace-related classes from `codec` into this module.
+  * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
 
 Other notable changes:
 * `webapp-util`:
