@@ -3,8 +3,7 @@
 
 import { AskIf, MustBe } from '@this/typey';
 
-import { BaseCodec } from '#x/BaseCodec';
-import { Sexp } from '#x/Sexp';
+import { IntfDeconstructable } from '#x/IntfDeconstructable';
 import { StackFrame } from '#x/StackFrame';
 
 
@@ -20,8 +19,10 @@ import { StackFrame } from '#x/StackFrame';
  * strings, so it's not like that stuff could just get dropped; it's more like
  * there would be extra work for minimal (if any) benefit. In any case, see
  * <https://v8.dev/docs/stack-trace-api> for the details on what V8 offers.
+ *
+ * @implements {IntfDeconstructable}
  */
-export class StackTrace {
+export class StackTrace extends IntfDeconstructable {
   /**
    * The frames of the stack trace.
    *
@@ -49,6 +50,8 @@ export class StackTrace {
    *   to have no limit.
    */
   constructor(original = null, omitCount, maxCount) {
+    super();
+
     // Deal with the variadic nature of this method.
     if ((typeof original !== 'object') && (typeof original !== 'string')) {
       maxCount = omitCount;
@@ -75,13 +78,9 @@ export class StackTrace {
     return this.#frames;
   }
 
-  /**
-   * Implementation of `codec` custom-encode protocol.
-   *
-   * @returns {Sexp} Encoded form.
-   */
-  [BaseCodec.ENCODE]() {
-    return new Sexp(StackTrace, this.#frames);
+  /** @override */
+  deconstruct() {
+    return [this.constructor, this.#frames];
   }
 
 

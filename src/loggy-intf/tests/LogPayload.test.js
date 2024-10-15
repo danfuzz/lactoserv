@@ -3,9 +3,10 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { BaseCodec, Sexp, StackTrace } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
+import { StackTrace } from '@this/util';
 
 
 const someMoment = new Moment(123123123);

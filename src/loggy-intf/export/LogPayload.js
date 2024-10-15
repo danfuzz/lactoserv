@@ -4,10 +4,11 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { BaseCodec, Sexp, StackTrace } from '@this/codec';
+import { BaseCodec, Sexp } from '@this/codec';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
+import { StackTrace } from '@this/util';
 
 import { LogTag } from '#x/LogTag';
 

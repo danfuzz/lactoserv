@@ -8,5 +8,3 @@ export * from '#x/CodecConfig';
 export * from '#x/Ref';
 export * from '#x/Sexp';
 export * from '#x/SpecialCodecs';
-export * from '#x/StackFrame';
-export * from '#x/StackTrace';
