@@ -41,12 +41,6 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
   }
 
   /** @override */
-  logPayload(payload) {
-    MustBe.instanceOf(payload, LogPayload);
-    this._impl_logPayload(payload);
-  }
-
-  /** @override */
   makeId() {
     return MustBe.string(this._impl_makeId(), /^.{1,20}$/);
   }
