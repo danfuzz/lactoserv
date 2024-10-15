@@ -113,6 +113,44 @@ describe('encode()', () => {
       });
     });
 
+    describe('on instances that define a `deconstruct()` method', () => {
+      test('calls `deconstruct()` exactly once', () => {
+        let calledCount = 0;
+        class Florp {
+          deconstruct() {
+            calledCount++;
+            return [Florp, 123];
+          }
+        }
+
+        const florp = new Florp();
+
+        const conv = new Codec();
+        const data = conv.encode(florp);
+        expect(calledCount).toBe(1);
+        expect(data).toBeInstanceOf(Sexp);
+        expect(data.functor).toBeInstanceOf(Ref);
+        expect(data.functor.value).toBe(Florp);
+        expect(data.args).toStrictEqual([123]);
+      });
+
+      test('converts the value returned from `deconstruct()`', () => {
+        const theData = [1, 2, 3];
+        class Florp {
+          deconstruct() { return [Florp, ...theData]; }
+        }
+        const florp = new Florp();
+
+        const conv = new Codec();
+        const data = conv.encode(florp);
+        expect(data).toBeInstanceOf(Sexp);
+        expect(data.functor).toBeInstanceOf(Ref);
+        expect(data.functor.value).toBe(Florp);
+        expect(data.args).toStrictEqual(theData);
+        expect(data.args).not.toBe(theData);
+      });
+    });
+
     describe('on arrays', () => {
       test('returns a frozen array', () => {
         const conv = new Codec();
