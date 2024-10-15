@@ -7,3 +7,4 @@ export * from '#x/IntfLogger';
 export * from '#x/IntfLoggingEnvironment';
 export * from '#x/LogPayload';
 export * from '#x/LogTag';
+export * from '#x/LoggedValueEncoder';
