@@ -565,6 +565,7 @@ describe('_impl_visitError()', () => {
 });
 
 describe('_prot_nameFromValue()', () => {
+  // These are expected to return their stringified versions.
   test.each`
   value
   ${null}
@@ -579,10 +580,45 @@ describe('_prot_nameFromValue()', () => {
     expect(got).toBe(`${value}`);
   });
 
-  test('returns the expected form for a symbol', () => {
+  // Special cases that don't work with proxies.
+  test.each`
+  label                     | value                 | expected
+  ${'an interned symbol'}   | ${Symbol.for('boop')} | ${'symbol {boop}'}
+  ${'an uninterned symbol'} | ${Symbol('bloop')}    | ${'symbol {bloop}'}
+  ${'an anonymous class'}   | ${class {}}           | ${'class <anonymous>'}
+  ${'a named class'}        | ${class Florp {}}     | ${'class Florp'}
+  `('returns the expected form for $label', ({ value, expected }) => {
     const vv  = new BaseValueVisitor(null);
-    const got = vv._prot_nameFromValue(Symbol('bonk'));
-    expect(got).toBe(`symbol {bonk}`);
+    const got = vv._prot_nameFromValue(value);
+    expect(got).toBe(expected);
+
+  });
+
+  // The rest.
+  describe.each`
+  label            | doProxy
+  ${'a proxy'}     | ${true}
+  ${'a non-proxy'} | ${false}
+  `('$label', ({ doProxy }) => {
+    test.each`
+    label                               | value                           | expected
+    ${'an anonymous plain object'}      | ${{ a: 123 }}                   | ${'object {...}'}
+    ${'a named plain object'}           | ${{ name: 'flomp' }}            | ${'flomp {...}'}
+    ${'an instance of anonymous class'} | ${new (class {})()}             | ${'<anonymous> {...}'}
+    ${'an instance of named class'}     | ${new (class Boop {})()}        | ${'Boop {...}'}
+    ${'an anonymous function'}          | ${() => 123}                    | ${'<anonymous>()'}
+    ${'a named function'}               | ${function bip() { return 1; }} | ${'bip()'}
+    `('derives the expected name from $label', ({ value, expected }) => {
+      const vv = new BaseValueVisitor(null);
+
+      if (doProxy) {
+        value    = new Proxy(value, {});
+        expected = `Proxy {${expected}}`;
+      }
+
+      const got = vv._prot_nameFromValue(value);
+      expect(got).toBe(expected);
+    });
   });
 
   test.each`
