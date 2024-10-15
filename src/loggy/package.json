@@ -21,6 +21,7 @@
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
     "@this/quant": "*",
-    "@this/typey": "*"
+    "@this/typey": "*",
+    "@this/util": "*"
   }
 }

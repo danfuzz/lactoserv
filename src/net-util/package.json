@@ -15,7 +15,6 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/codec": "*",
     "@this/collections": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
