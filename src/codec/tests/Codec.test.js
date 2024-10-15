@@ -80,39 +80,6 @@ describe('encode()', () => {
       expect(data.value).toBe(florp);
     });
 
-    describe('on instances that define an `ENCODE()` method', () => {
-      test('calls `ENCODE()` exactly once', () => {
-        let calledCount = 0;
-        class Florp {
-          [BaseCodec.ENCODE]() {
-            calledCount++;
-            return 123;
-          }
-        }
-
-        const florp = new Florp();
-
-        const conv = new Codec();
-        const data = conv.encode(florp);
-        expect(calledCount).toBe(1);
-        expect(data).toBe(123);
-      });
-
-      test('converts the value returned from `ENCODE()`', () => {
-        const theData = [1, 2, 3];
-        class Florp {
-          [BaseCodec.ENCODE]() { return theData; }
-        }
-        const florp = new Florp();
-
-        const conv = new Codec();
-        const data = conv.encode(florp);
-        expect(data).not.toBe(theData);
-        expect(data).toBeFrozen();
-        expect(data).toStrictEqual(theData);
-      });
-    });
-
     describe('on instances that define a `deconstruct()` method', () => {
       test('calls `deconstruct()` exactly once', () => {
         let calledCount = 0;

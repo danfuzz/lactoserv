@@ -89,16 +89,6 @@ export class CodecConfig extends BaseConfig {
   }
 
   /**
-   * Should instance-defined `ENCODE()` methods be honored?
-   *
-   * @param {boolean} [value] Proposed configuration value. Default `true`.
-   * @returns {boolean} Accepted configuration value.
-   */
-  _config_honorEncodeMethod(value = true) {
-    return MustBe.boolean(value);
-  }
-
-  /**
    * Action to take when asked to encode an instance (object with a class) which
    * is not otherwise covered by other configuration options.
    *
