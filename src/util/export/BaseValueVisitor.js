@@ -263,6 +263,19 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Visits an instance of `Error` or any subclass thereof. This method exists
+   * because it is common to want to treat error objects differently than other
+   * sorts of instances and in a uniform-to-errors way. The base implementation
+   * defers to {@link #_impl_visitInstance}.
+   *
+   * @param {Error} node The node to visit.
+   * @returns {*} Arbitrary result of visiting.
+   */
+  _impl_visitError(node) {
+    return this._impl_visitInstance(node);
+  }
+
+  /**
    * Visits a _callable_ function, that is, a value of type `function` which is
    * not known _only_ to be usable as a constructor (even if it is typically
    * supposed to be used as such). The base implementation returns the given
@@ -283,7 +296,9 @@ export class BaseValueVisitor {
   /**
    * Visits an instance, that is, a non-`null` value of type `object` which has
    * a prototype that indicates that it is an instance of _something_ other than
-   * `Object`. The base implementation returns the given `node` as-is.
+   * `Object` and which wasn't instead visited by one of the other more specific
+   * instance visitors (or where such visitors decided to just pass the work
+   * here). The base implementation returns the given `node` as-is.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -561,6 +576,8 @@ export class BaseValueVisitor {
           return this._impl_visitPlainObject(node);
         } else if (node instanceof VisitRef) {
           return this._impl_visitRef(node);
+        } else if (node instanceof Error) {
+          return this._impl_visitError(node);
         } else {
           return this._impl_visitInstance(node);
         }

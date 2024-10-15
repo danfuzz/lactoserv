@@ -482,6 +482,7 @@ ${'_impl_visitArray'}       | ${true}  | ${true}   | ${[1, 2, 3]}
 ${'_impl_visitBigInt'}      | ${false} | ${true}   | ${99988777n}
 ${'_impl_visitBoolean'}     | ${false} | ${true}   | ${false}
 ${'_impl_visitClass'}       | ${true}  | ${true}   | ${class Florp {}}
+${'_impl_visitError'}       | ${true}  | ${true}   | ${new Error('bonk')}
 ${'_impl_visitFunction'}    | ${true}  | ${true}   | ${() => 'x'}
 ${'_impl_visitInstance'}    | ${true}  | ${true}   | ${new Set(['woo'])}
 ${'_impl_visitNull'}        | ${false} | ${true}   | ${null}
@@ -538,6 +539,29 @@ ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
       }
     });
   }
+});
+
+describe('_impl_visitError()', () => {
+  test('calls through to `_impl_visitInstance()` (when not overridden)', () => {
+    const vv = new BaseValueVisitor(new Error('woo'));
+    vv._impl_visitInstance = () => 'yep';
+
+    expect(vv.visitSync()).toBe('yep');
+  });
+
+  test('gets called on a direct instance of `Error`', () => {
+    const vv = new BaseValueVisitor(new Error('woo'));
+    vv._impl_visitError = (e) => `yes: ${e.message}`;
+
+    expect(vv.visitSync()).toBe('yes: woo');
+  });
+
+  test('gets called on an instance of an subclass of `Error`', () => {
+    const vv = new BaseValueVisitor(new TypeError('eep'));
+    vv._impl_visitError = (e) => `yes: ${e.message}`;
+
+    expect(vv.visitSync()).toBe('yes: eep');
+  });
 });
 
 describe('_impl_visitProxy()', () => {
