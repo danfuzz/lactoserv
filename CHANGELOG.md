@@ -17,8 +17,13 @@ Breaking changes:
     to a classic s-expression (practically speaking, at least).
   * See also `util`.
 * `util`:
-  * Moved stack-trace-related classes from `codec` into this module.
+  * Moved stack-trace-related classes from `codec` into this module, along with
+    the `Error` stack parser.
   * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
+* `loggy-intf`:
+  * Removed `IntfLoggingEnviroment.logPayload()`.
+  * New class `LoggedValueEncoder`, which replaces the log-related stuff in
+    `codec`.
 
 Other notable changes:
 * `webapp-util`:

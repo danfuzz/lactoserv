@@ -26,7 +26,10 @@ export class IntfLoggingEnvironment {
    * Logs a {@link #LogPayload}, which is constructed from the arguments passed
    * to this method along with a timestamp and stack trace as implemented by the
    * concrete implementation, as if by {@link #makePayload}. The so-constructed
-   * payload is then emitted, as if by {@link #logPayload}.
+   * payload is then emitted, in an implementation-dependent manner, which is
+   * _typically_ to emit an event (e.g. a `LinkedEvent`) from an event source of
+   * some sort (which is, to be clear, what the standard concrete implementation
+   * of this class does).
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
@@ -36,19 +39,6 @@ export class IntfLoggingEnvironment {
    */
   log(omitCount, tag, type, ...args) {
     Methods.abstract(omitCount, tag, type, args);
-  }
-
-  /**
-   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up
-   * emitting an event (e.g. a `LinkedEvent`) from an event source of some sort
-   * (which is, for example, what the standard concrete implementation of this
-   * interface does), but it is not _necessarily_ what happens (that is, it
-   * depends on the implementation).
-   *
-   * @param {LogPayload} payload What to log.
-   */
-  logPayload(payload) {
-    Methods.abstract(payload);
   }
 
   /**

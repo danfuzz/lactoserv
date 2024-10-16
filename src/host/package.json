@@ -17,7 +17,6 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
-    "@this/codec": "*",
     "@this/compy": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
