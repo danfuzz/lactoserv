@@ -1,16 +1,15 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Sexp } from '@this/codec';
-import { AskIf } from '@this/typey';
-import { BaseValueVisitor, ErrorUtil } from '@this/util';
+import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/util';
 
 
 /**
  * Standard way to encode values used in logged events, such that they become
- * (as close as possible to) simple immutable data. This is where, e.g., class
- * instances (that aren't special-cased) get converted into non-instance
- * objects.
+ * (as close as is reasonable to) simple immutable data that can be
+ * JSON-encoded. This is where, e.g., class instances (that aren't
+ * special-cased) get converted into non-instance data (along the lines of
+ * inspection).
  *
  * The main intended interface for this class is the static method
  * {@link #encode}, but it can also just be used directly as the concrete
@@ -34,7 +33,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   _impl_shouldRef(value) {
     switch (typeof value) {
       case 'function': {
-        return AskIf.callableFunction(value);
+        return false;
       }
 
       case 'object': {
@@ -53,31 +52,55 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   }
 
   /** @override */
+  _impl_visitBigInt(node) {
+    // Bigints aren't JSON-encodable.
+    return { '@BigInt': `${node}` };
+  }
+
+  /** @override */
   _impl_visitClass(node) {
-    return this._prot_nameFromValue(node);
+    return this._prot_labelFromValue(node);
   }
 
   /** @override */
   _impl_visitError(node) {
-    const decon   = ErrorUtil.deconstructError(node);
-    const visited = this._prot_visitArrayProperties(decon);
+    const [cls, mainProps, otherProps] = ErrorUtil.deconstructError(node);
+    const className  = this._prot_nameFromValue(cls);
+    const loggedBody = {
+      ...mainProps,
+      ...otherProps
+    };
 
-    return new Sexp(...visited);
+    if (loggedBody.name === className) {
+      delete loggedBody.name;
+    }
+
+    if (loggedBody.stack instanceof StackTrace) {
+      // Elide the outer `{ @StackTrace: [...] }` cladding, which is just noise
+      // in this context.
+      loggedBody.stack = loggedBody.stack.frames;
+    }
+
+    const loggedForm = { [`@${className}`]: loggedBody };
+
+    return this._prot_visitObjectProperties(loggedForm);
   }
 
   /** @override */
   _impl_visitFunction(node) {
-    return this._prot_nameFromValue(node);
+    return this._prot_labelFromValue(node);
   }
 
   /** @override */
   _impl_visitInstance(node) {
     if (typeof node.deconstruct === 'function') {
-      const decon   = node.deconstruct();
-      const visited = this._prot_visitArrayProperties(decon);
-      return new Sexp(...visited);
+      const [cls, ...rest] = node.deconstruct();
+      const className  = `@${this._prot_nameFromValue(cls)}`;
+      const loggedForm = { [className]: rest };
+
+      return this._prot_visitObjectProperties(loggedForm);
     } else {
-      return this._prot_nameFromValue(node);
+      return this._prot_labelFromValue(node);
     }
   }
 
@@ -88,9 +111,19 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitProxy(node, isFunction_unused) {
-    return this._prot_nameFromValue(node);
+    return this._prot_labelFromValue(node);
   }
 
+  /** @override */
+  _impl_visitSymbol(node) {
+    return this._prot_labelFromValue(node);
+  }
+
+  /** @override */
+  _impl_visitUndefined(node_unused) {
+    // `undefined` isn't JSON-encodable.
+    return { '@undefined': [] };
+  }
 
   //
   // Static members
