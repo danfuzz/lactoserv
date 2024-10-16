@@ -96,11 +96,26 @@ describe('toPlainObject()', () => {
     const got = payload.toPlainObject();
 
     expect(got).toContainAllKeys(['stack', 'when', 'tag', 'type', 'args']);
-    expect(got.stack).toBe(someStack);
-    expect(got.when).toBe(someMoment);
-    expect(got.tag).toBe(someTag);
+    expect(got.stack).toStrictEqual(someStack.frames);
+    expect(got.when).toStrictEqual(someMoment.toPlainObject());
+    expect(got.tag).toStrictEqual(someTag.allParts);
     expect(got.type).toBe('bonk');
-    expect(got.args).toEqual([123, { a: 10 }, ['x']]);
+    expect(got.args).toStrictEqual([123, { a: 10 }, ['x']]);
+  });
+
+  test('omits `stack` when `stack` is `null`', () => {
+    const payload = new LogPayload(null, someMoment, someTag, 'bonk', 123);
+    const got = payload.toPlainObject();
+
+    expect(got).toContainAllKeys(['when', 'tag', 'type', 'args']);
+  });
+
+  test('includes `args` even when `args.length === 0`', () => {
+    const payload = new LogPayload(someStack, someMoment, someTag, 'bonk');
+    const got = payload.toPlainObject();
+
+    expect(got).toContainAllKeys(['stack', 'when', 'tag', 'type', 'args']);
+    expect(got.args).toStrictEqual([]);
   });
 });
 

@@ -116,15 +116,16 @@ export class LogPayload extends EventPayload {
 
   /**
    * Gets a plain object representing this instance. The result has named
-   * properties for each of the properties available on instances.
+   * properties for each of the properties available on instances, except that
+   * `stack` is omitted if `this.stack` is `null`.
    *
    * @returns {object} The plain object representation of this instance.
    */
   toPlainObject() {
     return {
-      stack: this.#stack,
-      when:  this.#when,
-      tag:   this.#tag,
+      ...(this.#stack ? { stack: this.#stack.frames } : {}),
+      when:  this.#when.toPlainObject(),
+      tag:   this.#tag.allParts,
       type:  this.type,
       args:  this.args
     };
