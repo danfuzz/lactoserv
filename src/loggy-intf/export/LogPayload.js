@@ -117,7 +117,10 @@ export class LogPayload extends EventPayload {
   /**
    * Gets a plain object representing this instance. The result has named
    * properties for each of the properties available on instances, except that
-   * `stack` is omitted if `this.stack` is `null`.
+   * `stack` is omitted if `this.stack` is `null`. Everything except `.args` on
+   * the result is guaranteed to be JSON-encodable, and `.args` will be
+   * JSON-encodable as long as `this.args` is, since they will be the exact
+   * same object.
    *
    * @returns {object} The plain object representation of this instance.
    */
