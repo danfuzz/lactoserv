@@ -110,6 +110,29 @@ describe('.context', () => {
   });
 });
 
+describe('.allParts', () => {
+  test('is the combination of the main tag and contexts', () => {
+    const values = ['yep', 'and', 'also', 'yeah'];
+    expect(new LogTag(...values).allParts).toStrictEqual(values);
+  });
+
+  test('works with just a main tag', () => {
+    const values = ['woo'];
+    expect(new LogTag(...values).allParts).toStrictEqual(values);
+  });
+
+  test('is a frozen array', () => {
+    const got = new LogTag('x', 'y', 'z').allParts;
+    expect(got).toBeFrozen();
+    expect(got).toBeArray();
+  });
+
+  test('is always the same instance', () => {
+    const tag = new LogTag('beep', 'boop');
+    expect(tag.allParts).toBe(tag.allParts);
+  });
+});
+
 describe('.lastContext', () => {
   test('is `null` if there is no context', () => {
     const tag = new LogTag('mainTag');
