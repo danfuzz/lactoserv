@@ -58,8 +58,9 @@ export class BaseValueVisitor {
 
   /**
    * During a visit, the array of all refs created during the visit, in order;
-   * after the first post-visit call to {@link #refFromResultValue}, a map from
-   * result values to corresponding refs.
+   * after the first post-visit call to {@link #hasRefs} or
+   * {@link #refFromResultValue}, a map from result values to corresponding
+   * refs.
    *
    * @type {Array<VisitRef>|Map<*, VisitRef>}
    */
@@ -94,6 +95,35 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Indicates whether or not the visit represented by this instance resulted in
+   * the creation of any refs.
+   *
+   * @returns {?boolean} `true` if the visit caused refs to be created, `false`
+   *   if not, or `null` if the visit is still in-progress.
+   */
+  hasRefs() {
+    const allRefs = this.#allRefs;
+
+    if (this.#allRefs instanceof Map) {
+      return (allRefs.size > 0);
+    } else if (!this.#visitRoot().isFinished()) {
+      // The visit is still in progress.
+      return null;
+    }
+
+    // This is the first post-visit call to this method, so we can (and do) now
+    // initialize `allRefs`.
+
+    const refMap = new Map();
+    for (const ref of allRefs) {
+      refMap.set(ref.value, ref);
+    }
+
+    this.#allRefs = refMap;
+    return (refMap.size > 0);
+  }
+
+  /**
    * Gets the ref corresponding to a particular visit result value (either the
    * root visit result or the result of a sub-visit), if such a ref was created
    * during the visit. This method only produces valid results after a visit has
@@ -104,24 +134,11 @@ export class BaseValueVisitor {
    *   for `value`.
    */
   refFromResultValue(value) {
-    if (Array.isArray(this.#allRefs)) {
-      // Either the visit is still in progress, or this is the first post-visit
-      // call to this method.
-      const entry = this.#visitRoot();
-      if (!entry.isFinished()) {
-        // The visit is still in progress.
-        return null;
-      }
-
-      const refMap = new Map();
-      for (const ref of this.#allRefs) {
-        refMap.set(ref.value, ref);
-      }
-
-      this.#allRefs = refMap;
-    }
-
-    return this.#allRefs.get(value) ?? null;
+    // Note: The first call to `hasRefs()` after a visit finishes will cause
+    // `allRefs` to be converted into a `Map`.
+    return this.hasRefs()
+      ? this.#allRefs.get(value)
+      : null;
   }
 
   /**

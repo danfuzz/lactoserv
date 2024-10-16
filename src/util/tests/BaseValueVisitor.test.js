@@ -126,6 +126,55 @@ describe('.rootValue', () => {
   });
 });
 
+describe('hasRefs()', () => {
+  test('returns `false` after a visit where no refs were created', () => {
+    const vv  = new BaseValueVisitor(123);
+    const got = vv.visitSync();
+
+    expect(got).toBe(123); // Baseline
+
+    // The actual test.
+    expect(vv.hasRefs()).toBeFalse();
+
+    // Also check that a second call returns the same value (which was a
+    // different code path at least at some point).
+    expect(vv.hasRefs()).toBeFalse();
+  });
+
+  test('returns `true` after a visit ends where refs are created', () => {
+    const shared = [123];
+    const value = [shared, shared];
+
+    const vv  = new RefMakingVisitor(value);
+    const got = vv.visitSync();
+
+    // Baseline.
+    expect(got).toBeArrayOfSize(2);
+    const gotRef = got[1];
+    expect(gotRef).toBeInstanceOf(VisitRef);
+
+    // The actual test.
+    expect(vv.hasRefs()).toBeTrue();
+
+    // Also check that a second call returns the same value (which was a
+    // different code path at least at some point).
+    expect(vv.hasRefs()).toBeTrue();
+  });
+
+  test('returns `null` if the visit is still in progress, then works after the visit is done', async () => {
+    const value   = { x: 123 };
+    const vv      = new RefMakingVisitor(value);
+    const gotProm = vv.visit();
+
+    expect(PromiseState.isPending(gotProm)); // Baseline.
+    expect(vv.hasRefs()).toBeNull();
+
+    // Make sure the call didn't mess up the post-visit behavior.
+    await gotProm;
+    expect(vv.hasRefs()).toBeFalse();
+  });
+});
+
 describe('refFromResultValue()', () => {
   test('finds a root result reference', () => {
     // Note: This test can only possibly work if the root value itself
