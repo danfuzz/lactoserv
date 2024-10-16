@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LinkedEvent } from '@this/async';
-import { Codec, CodecConfig } from '@this/codec';
-import { IntfLoggingEnvironment, LogPayload, LogTag } from '@this/loggy-intf';
+import { IntfLoggingEnvironment, LogPayload, LogTag, LoggedValueEncoder }
+  from '@this/loggy-intf';
 import { Moment } from '@this/quant';
 import { Methods, MustBe } from '@this/typey';
 import { StackTrace } from '@this/util';
@@ -20,13 +20,6 @@ import { StackTrace } from '@this/util';
  * @implements {IntfLoggingEnvironment}
  */
 export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
-  /**
-   * Codec to use for encoding payload arguments.
-   *
-   * @type {Codec}
-   */
-  #encoder = new Codec(CodecConfig.makeLoggingInstance());
-
   // @defaultConstructor
 
   /** @override */
@@ -137,7 +130,7 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
    */
   #makePayloadUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
-    const fixedArgs = this.#encoder.encode(args);
+    const fixedArgs = LoggedValueEncoder.encode(args);
 
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);

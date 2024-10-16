@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSink, LinkedEvent } from '@this/async';
-import { Codec, CodecConfig } from '@this/codec';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
 import { Duration } from '@this/quant';
@@ -116,15 +115,6 @@ export class TextFileSink extends EventSink {
   //
 
   /**
-   * Codec to use for encoding payload arguments, specifically for the `json`
-   * format.
-   *
-   * @type {Codec}
-   */
-  static #ENCODER_FOR_JSON =
-    new Codec(CodecConfig.makeLoggingInstance({ freeze: false }));
-
-  /**
    * Map from names to corresponding formatter methods.
    *
    * @type {Map<string, function(LogPayload): Buffer|string>}
@@ -170,21 +160,10 @@ export class TextFileSink extends EventSink {
    * @returns {?string} Converted form, or `null` if nothing is to be written.
    */
   static #formatJson(payload) {
-    if (payload === null) {
-      return null;
-    }
-
-    // What's going on: We assume that the `args` payload is already
-    // sufficiently encoded (because that would have / should have happened
-    // synchronously while logging), but we want to generically encode
-    // everything else. So, we convert the plain-object form except with `args`
-    // set to `null`, and then we thwack back in the presumed-good `args`.
-
-    const plainObj = payload.toPlainObject();
-    const encoded  = this.#ENCODER_FOR_JSON.encode({ ...plainObj, args: null });
-
-    encoded.args = plainObj.args;
-
-    return JSON.stringify(encoded);
+    // Note: We assume here that `payload.args` is JSON-encodable, which should
+    // have been guaranteed by the time we get here.
+    return (payload === null)
+      ? null
+      : JSON.stringify(payload.toPlainObject());
   }
 }

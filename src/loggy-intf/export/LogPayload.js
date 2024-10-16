@@ -116,15 +116,19 @@ export class LogPayload extends EventPayload {
 
   /**
    * Gets a plain object representing this instance. The result has named
-   * properties for each of the properties available on instances.
+   * properties for each of the properties available on instances, except that
+   * `stack` is omitted if `this.stack` is `null`. Everything except `.args` on
+   * the result is guaranteed to be JSON-encodable, and `.args` will be
+   * JSON-encodable as long as `this.args` is, since they will be the exact
+   * same object.
    *
    * @returns {object} The plain object representation of this instance.
    */
   toPlainObject() {
     return {
-      stack: this.#stack,
-      when:  this.#when,
-      tag:   this.#tag,
+      ...(this.#stack ? { stack: this.#stack.frames } : {}),
+      when:  this.#when.toPlainObject(),
+      tag:   this.#tag.allParts,
       type:  this.type,
       args:  this.args
     };
@@ -150,18 +154,7 @@ export class LogPayload extends EventPayload {
     const opener = `${this.type}(`;
 
     parts.push(colorize ? chalk.bold(opener) : opener);
-
-    let first = true;
-    for (const a of args) {
-      if (first) {
-        first = false;
-      } else {
-        parts.push(', ');
-      }
-
-      // TODO: Evaluate whether `util.inspect()` is sufficient.
-      parts.push(util.inspect(a, LogPayload.#HUMAN_INSPECT_OPTIONS));
-    }
+    LogPayload.#appendHumanValue(parts, args, true);
 
     parts.push(colorize ? chalk.bold(')') : ')');
   }
@@ -170,18 +163,6 @@ export class LogPayload extends EventPayload {
   //
   // Static members
   //
-
-  /**
-   * Inspection options for {@link #toHumanPayload}.
-   *
-   * @type {object}
-   */
-  static #HUMAN_INSPECT_OPTIONS = Object.freeze({
-    depth:       10,
-    breakLength: 120,
-    compact:     2,
-    getters:     true
-  });
 
   /**
    * Moment to use for "kickoff" instances.
@@ -219,5 +200,85 @@ export class LogPayload extends EventPayload {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
     return new LogPayload(null, this.#KICKOFF_MOMENT, tag, type);
+  }
+
+  /**
+   * Helper for {@link #appendHumanValue}, which deals with objects and arrays.
+   *
+   * TODO: Figure out when doing a multi-line rendering would be more ergonomic.
+   *
+   * @param {Array<string>} parts Parts array to append to.
+   * @param {*} value Value to represent.
+   * @param {boolean} skipBrackets Skip brackets at this level?
+   */
+  static #appendHumanAggregate(parts, value, skipBrackets) {
+    const entries  = Object.entries(value);
+    const isArray  = Array.isArray(value);
+    const brackets = (() => {
+      if (skipBrackets) return { open: '',   close: '',   empty: ''   };
+      else if (isArray) return { open: '[',  close: ']',  empty: '[]' };
+      else              return { open: '{ ', close: ' }', empty: '{}' };
+    })();
+
+    if (entries.length === 0) {
+      parts.push(brackets.empty);
+      return;
+    }
+
+    parts.push(brackets.open);
+
+    let first   = true;
+    let inProps = !isArray;
+
+    for (const [k, v] of entries) {
+      if ((k === 'length') && !inProps) {
+        inProps = true;
+        continue;
+      }
+
+      if (first) {
+        first = false;
+      } else {
+        parts.push(', ');
+      }
+
+      if (inProps) {
+        parts.push(k, ': ');
+      }
+
+      this.#appendHumanValue(parts, v);
+    }
+
+    parts.push(brackets.close);
+  }
+
+  /**
+   * Appends strings to an array of parts to represent the given value in
+   * "human" form. This is akin to `util.inspect()`, though by no means
+   * identical.
+   *
+   * TODO: Deal with shared refs.
+   *
+   * @param {Array<string>} parts Parts array to append to.
+   * @param {*} value Value to represent.
+   * @param {boolean} [skipBrackets] Skip brackets at this level? This is
+   *   passed as `true` for the very top-level call to this method.
+   */
+  static #appendHumanValue(parts, value, skipBrackets = false) {
+    switch (typeof value) {
+      case 'object': {
+        if (value === null) {
+          parts.push('null');
+        } else {
+          this.#appendHumanAggregate(parts, value, skipBrackets);
+        }
+        break;
+      }
+
+      default: {
+        // TODO: Evaluate whether `util.inspect()` is sufficient.
+        parts.push(util.inspect(value));
+      }
+    }
   }
 }

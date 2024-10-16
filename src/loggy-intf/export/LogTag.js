@@ -36,6 +36,13 @@ export class LogTag extends IntfDeconstructable {
   #context;
 
   /**
+   * Precomputed value for {@link #allParts}, if available.
+   *
+   * @type {?Array<string>}
+   */
+  #allParts = null;
+
+  /**
    * Precomputed "human form" strings, if available.
    *
    * @type {object}
@@ -60,6 +67,18 @@ export class LogTag extends IntfDeconstructable {
     }
 
     this.#context = Object.freeze(context);
+  }
+
+  /**
+   * @returns {Array<string>} The combination of the main tag and context.
+   * Always a frozen array.
+   */
+  get allParts() {
+    if (!this.#allParts) {
+      this.#allParts = Object.freeze([this.#main, ...this.#context]);
+    }
+
+    return this.#allParts;
   }
 
   /** @returns {Array<string>} Context strings. Always a frozen array. */
