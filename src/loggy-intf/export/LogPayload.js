@@ -257,6 +257,8 @@ export class LogPayload extends EventPayload {
    * "human" form. This is akin to `util.inspect()`, though by no means
    * identical.
    *
+   * TODO: Deal with shared refs.
+   *
    * @param {Array<string>} parts Parts array to append to.
    * @param {*} value Value to represent.
    * @param {boolean} [skipBrackets] Skip brackets at this level? This is
