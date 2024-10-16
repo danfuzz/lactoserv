@@ -203,13 +203,63 @@ export class LogPayload extends EventPayload {
   }
 
   /**
+   * Helper for {@link #appendHumanValue}, which deals with objects and arrays.
+   *
+   * TODO: Figure out when doing a multi-line rendering would be more ergonomic.
+   *
+   * @param {Array<string>} parts Parts array to append to.
+   * @param {*} value Value to represent.
+   * @param {boolean} skipBrackets Skip brackets at this level?
+   */
+  static #appendHumanAggregate(parts, value, skipBrackets) {
+    const entries  = Object.entries(value);
+    const isArray  = Array.isArray(value);
+    const brackets = (() => {
+      if (skipBrackets) return { open: '',   close: '',   empty: ''   };
+      else if (isArray) return { open: '[',  close: ']',  empty: '[]' };
+      else              return { open: '{ ', close: ' }', empty: '{}' };
+    })();
+
+    if (entries.length === 0) {
+      parts.push(brackets.empty);
+      return;
+    }
+
+    parts.push(brackets.open);
+
+    let first   = true;
+    let inProps = !isArray;
+
+    for (const [k, v] of entries) {
+      if ((k === 'length') && !inProps) {
+        inProps = true;
+        continue;
+      }
+
+      if (first) {
+        first = false;
+      } else {
+        parts.push(', ');
+      }
+
+      if (inProps) {
+        parts.push(k, ': ');
+      }
+
+      this.#appendHumanValue(parts, v);
+    }
+
+    parts.push(brackets.close);
+  }
+
+  /**
    * Appends strings to an array of parts to represent the given value in
    * "human" form. This is akin to `util.inspect()`, though by no means
    * identical.
    *
    * @param {Array<string>} parts Parts array to append to.
    * @param {*} value Value to represent.
-   * @param {boolean} [skipBrackets] Skip array brackets at this level? This is
+   * @param {boolean} [skipBrackets] Skip brackets at this level? This is
    *   passed as `true` for the very top-level call to this method.
    */
   static #appendHumanValue(parts, value, skipBrackets = false) {
@@ -217,60 +267,8 @@ export class LogPayload extends EventPayload {
       case 'object': {
         if (value === null) {
           parts.push('null');
-        } else if (Array.isArray(value)) {
-          const entries = Object.entries(value);
-          if (entries.length === 0) {
-            if (!skipBrackets) {
-              parts.push('[]');
-            }
-          } else {
-            if (!skipBrackets) {
-              parts.push('[');
-            }
-
-            let first    = true;
-            let inExtras = false;
-            for (const [k, v] of entries) {
-              if (k === 'length') {
-                inExtras = true;
-                continue;
-              }
-
-              if (first) {
-                first = false;
-              } else {
-                parts.push(', ');
-              }
-
-              if (inExtras) {
-                parts.push(k, ': ');
-              }
-
-              this.#appendHumanValue(parts, v);
-            }
-
-            if (!skipBrackets) {
-              parts.push(']');
-            }
-          }
         } else {
-          const entries = Object.entries(value);
-          if (entries.length === 0) {
-            parts.push('{}');
-          } else {
-            parts.push('{ ');
-            let first = true;
-            for (const [k, v] of entries) {
-              if (first) {
-                first = false;
-              } else {
-                parts.push(', ');
-              }
-              parts.push(k, ': ');
-              this.#appendHumanValue(parts, v);
-            }
-            parts.push(' }');
-          }
+          this.#appendHumanAggregate(parts, value, skipBrackets);
         }
         break;
       }
