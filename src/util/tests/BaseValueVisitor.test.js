@@ -607,6 +607,10 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
     }
   }
 
+  // An instance with a `.constructor` that isn't actually a function.
+  const nonFuncConstructor = new Map();
+  nonFuncConstructor.constructor = 'florp';
+
   // The rest.
   describe.each`
   label            | doProxy
@@ -614,14 +618,15 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   ${'a non-proxy'} | ${false}
   `('$label', ({ doProxy }) => {
     test.each`
-    label                               | value                           | expectedName     | expectedLabel
-    ${'an anonymous plain object'}      | ${{ a: 123 }}                   | ${'<anonymous>'} | ${'object {...}'}
-    ${'a named plain object'}           | ${{ name: 'flomp' }}            | ${'flomp'}       | ${'flomp {...}'}
-    ${'an instance of anonymous class'} | ${new (class {})()}             | ${'<anonymous>'} | ${'<anonymous> {...}'}
-    ${'an instance of named class'}     | ${new (class Boop {})()}        | ${'<anonymous>'} | ${'Boop {...}'}
-    ${'an instance with a `.name`'}     | ${new AvecName()}               | ${'a-name'}      | ${'AvecName a-name {...}'}
-    ${'an anonymous function'}          | ${() => 123}                    | ${'<anonymous>'} | ${'<anonymous>()'}
-    ${'a named function'}               | ${function bip() { return 1; }} | ${'bip'}         | ${'bip()'}
+    label                                           | value                           | expectedName     | expectedLabel
+    ${'an anonymous plain object'}                  | ${{ a: 123 }}                   | ${'<anonymous>'} | ${'object {...}'}
+    ${'a named plain object'}                       | ${{ name: 'flomp' }}            | ${'flomp'}       | ${'flomp {...}'}
+    ${'an instance of anonymous class'}             | ${new (class {})()}             | ${'<anonymous>'} | ${'<anonymous> {...}'}
+    ${'an instance of named class'}                 | ${new (class Boop {})()}        | ${'<anonymous>'} | ${'Boop {...}'}
+    ${'an instance with a `.name`'}                 | ${new AvecName()}               | ${'a-name'}      | ${'AvecName a-name {...}'}
+    ${'an instance with a non-func `.constructor`'} | ${nonFuncConstructor}           | ${'<anonymous>'} | ${'<anonymous> {...}'}
+    ${'an anonymous function'}                      | ${() => 123}                    | ${'<anonymous>'} | ${'<anonymous>()'}
+    ${'a named function'}                           | ${function bip() { return 1; }} | ${'bip'}         | ${'bip()'}
     `('derives the expected name from $label', ({ value, ...expected }) => {
       const vv = new BaseValueVisitor(null);
 
