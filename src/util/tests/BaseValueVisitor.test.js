@@ -777,6 +777,15 @@ describe('_prot_visitArrayProperties()', () => {
 });
 
 describe('_prot_visitObjectProperties()', () => {
+  test('produces a `null`-prototype result', () => {
+    const orig = { x: 'foomp' };
+    const vv   = new RecursiveVisitor(orig);
+    const got  = vv.visitSync();
+
+    expect(got).toEqual(orig);
+    expect(Object.getPrototypeOf(got)).toBeNull();
+  });
+
   test('operates synchronously when possible', () => {
     const orig = { a: 10, b: 20 };
     const vv   = new RecursiveVisitor(orig);
