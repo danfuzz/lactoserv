@@ -20,7 +20,7 @@ Breaking changes:
   * Moved stack-trace-related classes from `codec` into this module, along with
     the `Error` stack parser.
   * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
-* `loggy-intf`:
+* `loggy-intf` / `loggy`:
   * Removed `IntfLoggingEnviroment.logPayload()`.
   * New class `LoggedValueEncoder`, which replaces the log-related stuff in
     `codec`.
