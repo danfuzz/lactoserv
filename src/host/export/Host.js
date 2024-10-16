@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Codec, CodecConfig, Sexp } from '@this/codec';
+import { LoggedValueEncoder } from '@this/loggy-intf';
 
 import { CallbackList } from '#x/CallbackList';
 import { LoggingManager } from '#p/LoggingManager';
@@ -126,70 +126,16 @@ export class Host {
 
     const problems = TopErrorHandler.problems;
     if (problems.length !== 0) {
-      // Convert `Error` objects to a friendly JSON-encodable form.
-      const encoder = new Codec(CodecConfig.makeLoggingInstance());
-
+      // Convert `Error` objects to a human-friendly JSON-encodable form.
       for (const p of problems) {
-        p.problem = this.#fixProblem(p.problem, encoder);
+        if (p.problem instanceof Error) {
+          p.problem = LoggedValueEncoder.encode(p.problem);
+        }
       }
 
       result.problems = problems;
     }
 
     return result;
-  }
-
-  /**
-   * Helper for {@link #fixProblem}, which simplifies the structure of a single
-   * encoded `Error` instance.
-   *
-   * @param {*} encoded The encoded error.
-   * @returns {*} The fixed (maximally human-friendly) form.
-   */
-  static #fixEncodedError(encoded) {
-    if (!(encoded instanceof Sexp)) {
-      // Something weird happened; just leave it, which will hopefully get at
-      // least _some_ info out the door.
-      return encoded;
-    }
-
-    const fixed = {
-      class: encoded.functor,
-      ...encoded.args[0],
-      ...(encoded.args[1] ?? {})
-    };
-
-    if (fixed.name === fixed.functor) {
-      delete fixed.name;
-    }
-
-    if (   (fixed.stack instanceof Sexp)
-        && (fixed.stack.functor === 'StackTrace')) {
-      fixed.stack = fixed.stack.args[0];
-    }
-
-    if (fixed.cause) {
-      fixed.cause = this.#fixEncodedError(fixed.cause);
-    }
-
-    return fixed;
-  }
-
-  /**
-   * Helper for {@link #shutdownDisposition}, which converts a single `problem`
-   * binding. This relies on assumed details of how `Error` instances get
-   * encoded by the `codec` module.
-   *
-   * @param {*} problem The problem, typically an `Error`.
-   * @param {Codec} encoder Codec instance to use for encoding.
-   * @returns {*} The fixed (maximally human-friendly) form.
-   */
-  static #fixProblem(problem, encoder) {
-    if (!(problem instanceof Error)) {
-      return problem;
-    }
-
-    const encoded = encoder.encode(problem);
-    return this.#fixEncodedError(encoded);
   }
 }
