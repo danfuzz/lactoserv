@@ -154,18 +154,7 @@ export class LogPayload extends EventPayload {
     const opener = `${this.type}(`;
 
     parts.push(colorize ? chalk.bold(opener) : opener);
-
-    let first = true;
-    for (const a of args) {
-      if (first) {
-        first = false;
-      } else {
-        parts.push(', ');
-      }
-
-      // TODO: Evaluate whether `util.inspect()` is sufficient.
-      parts.push(util.inspect(a, LogPayload.#HUMAN_INSPECT_OPTIONS));
-    }
+    LogPayload.#appendHumanValue(parts, args, true);
 
     parts.push(colorize ? chalk.bold(')') : ')');
   }
@@ -174,18 +163,6 @@ export class LogPayload extends EventPayload {
   //
   // Static members
   //
-
-  /**
-   * Inspection options for {@link #toHumanPayload}.
-   *
-   * @type {object}
-   */
-  static #HUMAN_INSPECT_OPTIONS = Object.freeze({
-    depth:       10,
-    breakLength: 120,
-    compact:     2,
-    getters:     true
-  });
 
   /**
    * Moment to use for "kickoff" instances.
@@ -223,5 +200,85 @@ export class LogPayload extends EventPayload {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
     return new LogPayload(null, this.#KICKOFF_MOMENT, tag, type);
+  }
+
+  /**
+   * Appends strings to an array of parts to represent the given value in
+   * "human" form. This is akin to `util.inspect()`, though by no means
+   * identical.
+   *
+   * @param {Array<string>} parts Parts array to append to.
+   * @param {*} value Value to represent.
+   * @param {boolean} [skipBrackets] Skip array brackets at this level? This is
+   *   passed as `true` for the very top-level call to this method.
+   */
+  static #appendHumanValue(parts, value, skipBrackets = false) {
+    switch (typeof value) {
+      case 'object': {
+        if (value === null) {
+          parts.push('null');
+        } else if (Array.isArray(value)) {
+          const entries = Object.entries(value);
+          if (entries.length === 0) {
+            if (!skipBrackets) {
+              parts.push('[]');
+            }
+          } else {
+            if (!skipBrackets) {
+              parts.push('[');
+            }
+
+            let first    = true;
+            let inExtras = false;
+            for (const [k, v] of entries) {
+              if (k === 'length') {
+                inExtras = true;
+                continue;
+              }
+
+              if (first) {
+                first = false;
+              } else {
+                parts.push(', ');
+              }
+
+              if (inExtras) {
+                parts.push(k, ': ');
+              }
+
+              this.#appendHumanValue(parts, v);
+            }
+
+            if (!skipBrackets) {
+              parts.push(']');
+            }
+          }
+        } else {
+          const entries = Object.entries(value);
+          if (entries.length === 0) {
+            parts.push('{}');
+          } else {
+            parts.push('{ ');
+            let first = true;
+            for (const [k, v] of entries) {
+              if (first) {
+                first = false;
+              } else {
+                parts.push(', ');
+              }
+              parts.push(k, ': ');
+              this.#appendHumanValue(parts, v);
+            }
+            parts.push(' }');
+          }
+        }
+        break;
+      }
+
+      default: {
+        // TODO: Evaluate whether `util.inspect()` is sufficient.
+        parts.push(util.inspect(value));
+      }
+    }
   }
 }
