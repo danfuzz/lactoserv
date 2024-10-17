@@ -67,7 +67,10 @@ export class ErrorUtil {
    */
   static deconstructError(error) {
     if (!(error instanceof Error)) {
-      return [Error, `${error}`];
+      return [Error, {
+        name:    'Error',
+        message: `${error}`
+      }];
     }
 
     const { cause, code, errors, message, name } = error;
@@ -137,8 +140,10 @@ export class ErrorUtil {
    * @returns {*} The value to use in the result for {@link #deconstructError}.
    */
   static #deconstructStack(error) {
-    return (typeof error?.stack === 'string')
-      ? new StackTrace(error)
-      : error.stack;
+    if ((typeof error === 'object') && (typeof error.stack === 'string')) {
+      return new StackTrace(error);
+    } else {
+      return null;
+    }
   }
 }
