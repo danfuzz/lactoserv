@@ -57,10 +57,10 @@ export class BaseValueVisitor {
   #visits = new Map();
 
   /**
-   * During a visit, the array of all refs created during the visit, in order;
-   * after the first post-visit call to {@link #hasRefs} or
-   * {@link #refFromResultValue}, a map from result values to corresponding
-   * refs.
+   * During a visit, an array of all refs created during the visit, in order of
+   * creation; after the first post-visit call to {@link #hasRefs} or
+   * {@link #refFromResultValue}, a map from each result value with a ref to its
+   * corresponding ref.
    *
    * @type {Array<VisitRef>|Map<*, VisitRef>}
    */
