@@ -171,7 +171,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    return this.#visitRoot().extractSync(true);
+    return this.#visitRoot().extractSync();
   }
 
   /**
@@ -929,29 +929,20 @@ export class BaseValueVisitor {
     /**
      * Synchronously extracts the result or error of a visit.
      *
-     * @param {boolean} [possiblyUnfinished] Should it be an _expected_
-     *   possibility that the visit has been started but not finished?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or an
      *   error indicating that the visit is still in progress.
      */
-    extractSync(possiblyUnfinished = false) {
+    extractSync() {
       if (this.isFinished()) {
         if (this.#ok) {
           return this.#value;
         } else {
           throw this.#error;
         }
-      } else if (possiblyUnfinished) {
-        throw new Error('Visit did not finish synchronously.');
-        /* c8 ignore start */
       } else {
-        // This is indicative of a bug in this class: If the caller thinks it's
-        // possible that the visit hasn't finished, it should have passed `true`
-        // to this method.
-        throw new Error('Shouldn\'t happen: Visit not yet finished.');
-        /* c8 ignore end */
+        throw new Error('Visit did not finish synchronously.');
       }
     }
 
