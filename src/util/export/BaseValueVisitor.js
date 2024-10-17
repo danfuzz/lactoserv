@@ -875,24 +875,21 @@ export class BaseValueVisitor {
 
     /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
-     * has been finished (whether or not successful). It is only valid to use
-     * this getter after {@link #startVisit} has been called, and in the case
-     * where this gets called _after_ a call to {@link #startVisit} but _before_
-     * it synchronously returns, this will throw an error indicating that the
-     * visit contains a (synchronously detected) circular reference.
+     * has been finished (whether or not successful).
      */
     get promise() {
-      if (this.#promise) {
-        return this.#promise;
+      /* c8 ignore start */
+      if (!this.#promise) {
+        // This is indicative of a bug in this class: This means that the IIFE
+        // call inside `startVisit()` on this instance hasn't yet finished, which
+        // is indicative of a reference cycle. However, that case _should_ have
+        // been handled by the `visitSet`-related work in `visitNode()`, before
+        // anything got to the point of asking for this promise.
+        throw new Error('Shouldn\'t happen: Cannot get promise yet.');
       }
+      /* c8 ignore end */
 
-      // This is the case when a visited value has a synchronously-discovered
-      // circular reference, that is, when the synchronous portion of visiting
-      // the value causes a (non-ref) request to visit itself. More or less by
-      // definition, there is no possible way for this situation to result in a
-      // successful visit. Instead, in order to visit values with circular
-      // references, all circles must be broken by replacing them with refs.
-      throw new Error('Visit is deadlocked due to circular reference.');
+      return this.#promise;
     }
 
     /**
@@ -983,8 +980,11 @@ export class BaseValueVisitor {
      */
     setRef(index) {
       if (this.#ref) {
-        throw new Error('Ref already set.');
+        /* c8 ignore start */
+        // This is indicative of a bug in this class.
+        throw new Error('Shouldn\'t happen: Ref already set.');
       }
+      /* c8 ignore stop */
 
       this.#ref = new VisitRef(this, index);
       return this.#ref;
