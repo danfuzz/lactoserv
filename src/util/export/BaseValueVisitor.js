@@ -67,13 +67,12 @@ export class BaseValueVisitor {
   #allRefs = [];
 
   /**
-   * The set of visit entries that are currently part of an `await` chain. This
-   * is used to detect attempts to visit a value with a circular reference,
-   * where the circular nature only becomes apparent asynchronously.
+   * The set of visit entries that are actively being visited. This is used to
+   * detect attempts to visit a value containing a circular reference.
    *
    * @type {Set<BaseValueVisitor#VisitEntry>}
    */
-  #waitSet = new Set();
+  #visitSet = new Set();
 
   /**
    * Constructs an instance whose purpose in life is to visit the indicated
@@ -624,6 +623,13 @@ export class BaseValueVisitor {
         const newRef = already.setRef(this.#allRefs.length);
         this.#allRefs.push(newRef);
         return this.#visitNode(newRef);
+      } else if (this.#visitSet.has(already)) {
+        // Note that this method isn't ever supposed to throw. What we do here
+        // is mark the entry as being part of a reference cycle, which
+        // ultimately propagates the appropriate error back to the first node
+        // involved in the cycle.
+        already.becomeCircular();
+        return already;
       } else {
         return already;
       }
@@ -717,51 +723,53 @@ export class BaseValueVisitor {
    *   synchronously, or a promise for `result` if not.
    */
   #visitProperties(node, result) {
-    const isArray   = Array.isArray(result);
-    const promNames = [];
+    const isArray    = Array.isArray(result);
+    const propArrays = [
+      Object.getOwnPropertyNames(node),
+      Object.getOwnPropertySymbols(node)
+    ];
 
-    const addResults = (iter) => {
-      for (const name of iter) {
-        if (!(isArray && (name === 'length'))) {
+    // We do this in an async IIFE, so that in the case of actually-synchronous
+    // completion, we can return or throw the non-Promise result.
+    let isAsync = false;
+    let error   = null;
+    const resultProm = (async () => {
+      for (const propArray of propArrays) {
+        for (const name of propArray) {
+          if (isArray && (name === 'length')) {
+            continue;
+          }
+
           const entry = this.#visitNode(node[name]);
-          // Note: `isFinished()` detects synchronous reference cycles.
           if (entry.isFinished()) {
-            result[name] = entry.extractSync();
+            try {
+              result[name] = entry.extractSync();
+            } catch (e) {
+              if (isAsync) {
+                // Propagate the error to `resultProm`.
+                throw e;
+              } else {
+                // Arrange for the synchronous call to throw this error.
+                error = e;
+                break;
+              }
+            }
           } else {
-            promNames.push(name);
-            result[name] = entry;
+            isAsync = true;
+            result[name] = (await entry.promise).extractSync();
           }
         }
       }
-    };
 
-    addResults(Object.getOwnPropertyNames(node));
-    addResults(Object.getOwnPropertySymbols(node));
-
-    if (promNames.length === 0) {
       return result;
+    })();
+
+    if (isAsync) {
+      return resultProm;
+    } else if (error) {
+      throw error;
     } else {
-      // At least one property's visit didn't finish synchronously.
-      return (async () => {
-        for (const name of promNames) {
-          const entry = result[name];
-
-          if (this.#waitSet.has(entry)) {
-            throw new Error('Visit is deadlocked due to circular reference.');
-          }
-
-          try {
-            this.#waitSet.add(entry);
-            await entry.promise;
-          } finally {
-            this.#waitSet.delete(entry);
-          }
-
-          result[name] = entry.extractSync();
-        }
-
-        return result;
-      })();
+      return result;
     }
   }
 
@@ -879,6 +887,15 @@ export class BaseValueVisitor {
     }
 
     /**
+     * Indicates that this instance represents the initial node detected in a
+     * reference cycle.
+     */
+    becomeCircular() {
+      this.#finishWithError(
+        new Error('Visit is deadlocked due to circular reference.'));
+    }
+
+    /**
      * Extracts the result or error of a visit, always first waiting until after
      * the visit is finished.
      *
@@ -939,24 +956,13 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Returns an indication of whether the visit has finished, also detecting
-     * the case of a synchronously-detected reference cycle.
+     * Returns an indication of whether the visit has finished.
      *
      * @returns {boolean} `false` if the visit is in progress, or `true` if it
      *   is finished.
-     * @throws {Error} Thrown if this method is called before a call to
-     *   {@link #startVisit} on this instance returns (including being called
-     *   before any call to {@link #startVisit}), which indicates that the value
-     *   being visited is involved in a circular reference.
      */
     isFinished() {
-      if (this.#ok === null) {
-        // Force a "circular reference" error when warranted (see above).
-        this.promise;
-        return false;
-      } else {
-        return true;
-      }
+      return (this.#ok !== null);
     }
 
     /**
@@ -988,6 +994,8 @@ export class BaseValueVisitor {
       // Note: See the implementation of `.promise` for an important detail
       // about circular references.
       this.#promise = (async () => {
+        outerThis.#visitSet.add(this);
+
         try {
           let result = outerThis.#visitNode0(this.#node);
 
@@ -1005,6 +1013,8 @@ export class BaseValueVisitor {
         } catch (e) {
           this.#finishWithError(e);
         }
+
+        outerThis.#visitSet.delete(this);
 
         return this;
       })();

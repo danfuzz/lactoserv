@@ -288,7 +288,23 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
   });
 
-  test('handles non-circular synchronously-visited duplicate references correctly', async () => {
+  test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    const inner = [1];
+    const outer = [inner, inner];
+
+    await doTest(outer, {
+      cls: RecursiveVisitor,
+      check: (got) => {
+        expect(got).toBeArrayOfSize(2);
+        expect(got[0]).toBe(got[1]);
+        const gotInner = got[0];
+        expect(gotInner).toBeArrayOfSize(1);
+        expect(gotInner[0]).toBe('1');
+      }
+    });
+  });
+
+  test('handles non-circular synchronously-visited duplicate references correctly (two refs)', async () => {
     const inner  = [1];
     const middle = [inner, inner, inner, 2];
     const outer  = [middle, inner, middle, 3];
