@@ -224,15 +224,28 @@ export class BaseValueVisitor {
    * Indicates whether the given value, which has already been determined to be
    * referenced more than once in the graph of values being visited, should be
    * converted into a ref object for all but the first visit. The various
-   * `visit*()` methods will call this any time they encounter a value (of any
-   * type) which has been visited before (or is currently being visited),
-   * _except_ a ref instance (instance of {@link VisitRef}) will never be
-   * subject to potential "re-reffing."
+   * `visit*()` methods will call this any time they encounter a value (of an
+   * appropriate type) which has been visited before (or is currently being
+   * visited).
+   *
+   * The values for which this are called are those whose type admits the
+   * possibility of identity (that is, for which `===` can distinguish between
+   * seemingly-identical values), and those whose types do not limit the amount
+   * of storage used. This includes the following types:
+   *
+   * * `bigint`
+   * * `object`, except:
+   *   * not the value `null`
+   *   * not any instance of {@link #VisitRef}
+   * * `function`
+   * * `string`
+   * * `symbol`
    *
    * Note that, for values that are visited recursively and have at least one
    * self-reference (that is, a circular reference), returning `false` will
    * cause the visit to _not_ be able to finish, in that the construction of a
-   * visit result will require itself to be known before its own construction.
+   * visit result will require the result itself to be known before its own
+   * construction.
    *
    * The base implementation of this method always returns `false`. A common
    * choice for a subclass is to return `true` for objects and functions and
@@ -606,15 +619,31 @@ export class BaseValueVisitor {
   /**
    * Assuming this is its second-or-later (recursive or sibling) visit, should
    * the given value be turned into a ref? This just defers to
-   * {@link #_impl_shouldRef}, except that refs themselves are never considered
-   * for re-(re-...)reffing.
+   * {@link #_impl_shouldRef}, after filtering out anything which should never
+   * be considered for reffing.
    *
    * @param {*} value Value to check.
    * @returns {boolean} `true` iff `value` should be turned into a ref.
    */
   #shouldRef(value) {
-    return !(value instanceof VisitRef)
-      && this._impl_shouldRef(value);
+    switch (typeof value) {
+      case 'bigint':
+      case 'function':
+      case 'string':
+      case 'symbol': {
+        return this._impl_shouldRef(value);
+      }
+
+      case 'object': {
+        return ((value === null) || (value instanceof VisitRef))
+          ? false
+          : this._impl_shouldRef(value);
+      }
+
+      default: {
+        return false;
+      }
+    }
   }
 
   /**
@@ -881,10 +910,10 @@ export class BaseValueVisitor {
       /* c8 ignore start */
       if (!this.#promise) {
         // This is indicative of a bug in this class: This means that the IIFE
-        // call inside `startVisit()` on this instance hasn't yet finished, which
-        // is indicative of a reference cycle. However, that case _should_ have
-        // been handled by the `visitSet`-related work in `visitNode()`, before
-        // anything got to the point of asking for this promise.
+        // call inside `startVisit()` on this instance hasn't yet finished,
+        // which is indicative of a reference cycle. However, that case _should_
+        // have been handled by the `visitSet`-related work in `visitNode()`,
+        // before anything got to the point of asking for this promise.
         throw new Error('Shouldn\'t happen: Cannot get promise yet.');
       }
       /* c8 ignore end */

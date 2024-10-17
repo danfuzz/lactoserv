@@ -104,7 +104,7 @@ class RefMakingVisitor extends BaseValueVisitor {
   }
 
   _impl_shouldRef(value) {
-    return (value && (typeof value === 'object'));
+    return (typeof value === 'object');
   }
 
   _impl_visitArray(node) {
@@ -480,6 +480,61 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     });
   });
 
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${true}
+  ${123}
+  `('does not call `_impl_shouldRef()` on $value', async ({ value }) => {
+    class ShouldRefThrowsVisitor extends BaseValueVisitor {
+      _impl_shouldRef() {
+        throw new Error('Oopsie');
+      }
+
+      _impl_visitArray(node) {
+        return this._prot_visitArrayProperties(node);
+      }
+    }
+
+    await doTest([value, value], {
+      cls: ShouldRefThrowsVisitor,
+      check: () => null
+    });
+  });
+
+  test.each`
+  label                     | value
+  ${'a string'}             | ${'xyz'}
+  ${'an uninterned symbol'} | ${Symbol('blort')}
+  ${'an interned symbol'}   | ${Symbol.for('blork')}
+  ${'a bigint'}             | ${123456789n}
+  ${'a plain object'}       | ${{ x: 123 }}
+  ${'an array'}             | ${[1, 2, 3]}
+  ${'an instance'}          | ${new Map()}
+  ${'a function'}           | ${() => null}
+  `('calls `_impl_shouldRef()` on $label', async ({ value }) => {
+    class ShouldRefCheckVisitor extends BaseValueVisitor {
+      calledOn = [];
+
+      _impl_shouldRef(node) {
+        this.calledOn.push(node);
+        return false;
+      }
+
+      _impl_visitArray(node) {
+        return this._prot_visitArrayProperties(node);
+      }
+    }
+
+    await doTest([value, value], {
+      cls: ShouldRefCheckVisitor,
+      check: (got_unused, visitor) => {
+        expect(visitor.calledOn).toStrictEqual([value]);
+      }
+    });
+  });
+
   describe('when `_impl_shouldRef()` can return `true`', () => {
     test('makes a ref for a non-circular duplicate value', async () => {
       const inner = ['bonk'];
@@ -587,6 +642,13 @@ describe('_impl_newRef()', () => {
   test('succeeds trivially (base no-op implementation)', () => {
     const vv = new BaseValueVisitor(null);
     expect(vv._impl_newRef(null)).toBeUndefined();
+  });
+});
+
+describe('_impl_shouldRef()', () => {
+  test('returns `false` (base implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._impl_shouldRef([])).toBeFalse();
   });
 });
 
