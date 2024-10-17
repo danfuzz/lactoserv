@@ -140,10 +140,8 @@ export class ErrorUtil {
    * @returns {*} The value to use in the result for {@link #deconstructError}.
    */
   static #deconstructStack(error) {
-    if ((typeof error === 'object') && (typeof error.stack === 'string')) {
-      return new StackTrace(error);
-    } else {
-      return null;
-    }
+    return (typeof error.stack === 'string')
+      ? new StackTrace(error)
+      : null;
   }
 }

@@ -140,6 +140,34 @@ describe('deconstructError()', () => {
     expect(props.stack).toBeInstanceOf(StackTrace);
   });
 
+  test('does not include a `.stack` if the error does not have a `.stack`', () => {
+    const err = new Error('Eep!');
+
+    delete err.stack;
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).not.toContainKey('stack');
+  });
+
+  test('does not include a `.stack` if the error has a non-string `.stack`', () => {
+    const err = new Error('Eep!');
+
+    err.stack = 123;
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).not.toContainKey('stack');
+  });
+
   test('includes `.code` when the error has one', () => {
     const err = new Error('Eep!');
 
