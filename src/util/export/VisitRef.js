@@ -73,10 +73,22 @@ export class VisitRef {
   }
 
   /**
-   * @returns {*} The result value of the visit. This will throw an error if
-   * the visit was unsuccessful.
+   * @returns {*} The result value of the visit.
+   * @throws {Error} Thrown if the visit was unsuccessful or is still
+   *   in progress.
    */
   get value() {
     return this.#entry.extractSync();
+  }
+
+  /**
+   * Indicates whether or not the visit of the referenced value is finished and
+   * has a result value or error.
+   *
+   * @returns {boolean} `true` if the visit of the referenced value is finished,
+   *   or `false` if it is still in-progress.
+   */
+  isFinished() {
+    return this.#entry.isFinished();
   }
 }

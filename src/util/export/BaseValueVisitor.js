@@ -205,6 +205,22 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Indicates that a new ref has been created. This is called while a visit is
+   * in-progress. In the case of a ref to a value which circularly refers to
+   * itself, this method is called _before_ the (sub-)visit of the value is
+   * complete. In the case of a ref to a value which is not self-referential,
+   * this method is called _after_ the (sub-)visit of the value is complete;
+   * more specifically it is called just after it is discovered to be shared.
+   *
+   * The base implementation of this method does nothing.
+   *
+   * @param {VisitRef} ref The ref that was created.
+   */
+  _impl_newRef(ref) { // eslint-disable-line no-unused-vars
+    // @emptyBlock
+  }
+
+  /**
    * Indicates whether the given value, which has already been determined to be
    * referenced more than once in the graph of values being visited, should be
    * converted into a ref object for all but the first visit. The various
@@ -622,6 +638,7 @@ export class BaseValueVisitor {
       } else if (this.#shouldRef(node)) {
         const newRef = already.setRef(this.#allRefs.length);
         this.#allRefs.push(newRef);
+        this._impl_newRef(newRef);
         return this.#visitNode(newRef);
       } else if (this.#visitSet.has(already)) {
         // Note that this method isn't ever supposed to throw. What we do here
@@ -949,8 +966,8 @@ export class BaseValueVisitor {
     /**
      * Returns an indication of whether the visit has finished.
      *
-     * @returns {boolean} `false` if the visit is in progress, or `true` if it
-     *   is finished.
+     * @returns {boolean} `true` if the visit of the referenced value is
+     *   finished, or `false` if it is still in-progress.
      */
     isFinished() {
       return (this.#ok !== null);
