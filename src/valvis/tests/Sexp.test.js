@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Sexp } from '@this/codec';
+import { Sexp } from '@this/valvis';
 
 
 describe('constructor()', () => {
@@ -95,52 +95,5 @@ describe('.args =', () => {
     expect(sexp.args).toStrictEqual(newArgs);
     expect(sexp.args).not.toBe(newArgs);
     expect(sexp.args).toBeFrozen();
-  });
-});
-
-describe('.toJSON()', () => {
-  describe('with an at-string for `functor`', () => {
-    test('does not include `args` when it is empty', () => {
-      const sexp     = new Sexp('@x');
-      const expected = { '@x': [] };
-
-      expect(sexp.toJSON()).toEqual(expected);
-    });
-
-    test('includes non-empty `args`', () => {
-      const sexp     = new Sexp('@x', 'a', 'b', 123);
-      const expected = { '@x': ['a', 'b', 123] };
-
-      expect(sexp.toJSON()).toEqual(expected);
-    });
-  });
-
-  describe('with an arbitrary value (not otherwise covered) for `functor`', () => {
-    test('includes just `functor` when `args` is empty', () => {
-      const functor  = ['non', 'string', 'functor'];
-      const sexp     = new Sexp(functor);
-      const expected = { '@sexp': { functor } };
-
-      expect(sexp.toJSON()).toEqual(expected);
-    });
-
-    test('includes `functor` and non-empty `args`', () => {
-      const functor  = 12345;
-      const sexp     = new Sexp(functor, 'a', 'b', 123);
-      const expected = { '@sexp': { functor, args: ['a', 'b', 123] } };
-
-      expect(sexp.toJSON()).toEqual(expected);
-    });
-  });
-
-  test('prefixes a string functor with an at-sign if it doesn\'t already have one', () => {
-    expect(new Sexp('florp').toJSON()).toEqual({ '@florp': [] });
-  });
-
-  test('converts a function functor (including a class) to its name with an at-prefix', () => {
-    function florp() { return null; }
-
-    expect(new Sexp(Map).toJSON()).toEqual({ '@Map': [] });
-    expect(new Sexp(florp).toJSON()).toEqual({ '@florp': [] });
   });
 });

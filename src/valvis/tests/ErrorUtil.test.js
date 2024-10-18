@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ErrorUtil, StackTrace } from '@this/util';
+import { ErrorUtil, StackTrace } from '@this/valvis';
 
 
 describe('collateErrors()', () => {

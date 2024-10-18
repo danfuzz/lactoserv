@@ -18,6 +18,6 @@
     "@this/quant": "*",
     "@this/text": "*",
     "@this/typey": "*",
-    "@this/util": "*"
+    "@this/valvis": "*"
   }
 }

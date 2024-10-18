@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable } from '@this/util';
+import { IntfDeconstructable } from '@this/valvis';
 
 import { TreeMap } from '#x/TreeMap';
 

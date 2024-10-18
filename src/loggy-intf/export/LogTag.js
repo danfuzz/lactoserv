@@ -3,7 +3,7 @@
 
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable } from '@this/util';
+import { IntfDeconstructable } from '@this/valvis';
 
 
 /**

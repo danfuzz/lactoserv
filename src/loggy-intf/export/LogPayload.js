@@ -8,7 +8,7 @@ import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 import { BaseDefRef, IntfDeconstructable, StackTrace, VisitDef }
-  from '@this/util';
+  from '@this/valvis';
 
 import { LogTag } from '#x/LogTag';
 

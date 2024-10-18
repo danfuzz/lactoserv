@@ -3,6 +3,7 @@
 
 import { BaseDefRef } from '#x/BaseDefRef';
 
+
 /**
  * Forward declaration of this class, because `import`ing it would cause a
  * circular dependency while loading.
@@ -12,15 +13,20 @@ import { BaseDefRef } from '#x/BaseDefRef';
  */
 
 /**
- * Companion class of {@link BaseValueVisitor}, which represents the defining
- * occurrence of a result of a (sub-)visit which appears more than once in an
- * overall visit result.
+ * Companion class of {@link BaseValueVisitor}, which represents the result of a
+ * visit of a value that had been visited elsewhere during a visit.
+ *
+ * Along with just having a record of the shared nature of the structure,
+ * instances of this class are also instrucmental in "breaking" circular
+ * references during visits, making it possible to fully visit values that have
+ * such circular references. See {@link BaseValueVisitor#_impl_shouldRef} for
+ * more details.
  */
-export class VisitDef extends BaseDefRef {
+export class VisitRef extends BaseDefRef {
   // @defaultConstructor
 
   /** @override */
-  get def() {
+  get ref() {
     return this;
   }
 
@@ -32,6 +38,6 @@ export class VisitDef extends BaseDefRef {
    * @returns {string} The string form.
    */
   toJSON(key_unused) {
-    return { '@def': [this.index, this.value] };
+    return { '@ref': this.index };
   }
 }

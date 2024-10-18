@@ -6,7 +6,7 @@ import { IntfLoggingEnvironment, LogPayload, LogTag, LoggedValueEncoder }
   from '@this/loggy-intf';
 import { Moment } from '@this/quant';
 import { Methods, MustBe } from '@this/typey';
-import { StackTrace } from '@this/util';
+import { StackTrace } from '@this/valvis';
 
 
 /**

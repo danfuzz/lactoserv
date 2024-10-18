@@ -3,7 +3,7 @@
 
 import { Moment } from '@this/quant';
 import { Methods } from '@this/typey';
-import { StackTrace } from '@this/util';
+import { StackTrace } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
 import { LogTag } from '#x/LogTag';
