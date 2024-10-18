@@ -86,6 +86,30 @@ export class Sexp {
   }
 
   /**
+   * Standard iteration protocol. For this class, it iterates over (what would
+   * be) the result of a call to {@link #toArray} at the moment this method was
+   * called.
+   *
+   * @yields {*} The functor, followed by any arguments.
+   */
+  *[Symbol.iterator]() {
+    const args = this.#args; // Snapshot, per documented contract.
+
+    yield this.#functor;
+    yield* args;
+  }
+
+  /**
+   * Gets an array form of this instance, of the {@link #functor} followed by
+   * any {@link args}.
+   *
+   * @returns {Array} The array form.
+   */
+  toArray() {
+    return [this.#functor, ...this.#args];
+  }
+
+  /**
    * Custom inspector for instances of this class.
    *
    * @param {number} depth Maximum depth to inspect to.

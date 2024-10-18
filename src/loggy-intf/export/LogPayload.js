@@ -4,11 +4,11 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
+import { IntfDeconstructable } from '@this/decon';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { BaseDefRef, IntfDeconstructable, StackTrace, VisitDef }
-  from '@this/valvis';
+import { BaseDefRef, StackTrace, VisitDef } from '@this/valvis';
 
 import { LogTag } from '#x/LogTag';
 
