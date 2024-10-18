@@ -5,8 +5,6 @@ import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
 
-import { BaseDataClass } from '#x/BaseDataClass';
-
 
 /**
  * Data value that represents a free-form would-be method call (or
@@ -18,7 +16,7 @@ import { BaseDataClass } from '#x/BaseDataClass';
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
  */
-export class Sexp extends BaseDataClass {
+export class Sexp {
   /**
    * Value representing the thing-to-be-called when "applying" this instance.
    *
@@ -40,8 +38,6 @@ export class Sexp extends BaseDataClass {
    * @param {...*} args Positional "arguments" of the structure.
    */
   constructor(functor, ...args) {
-    super();
-
     this.#functor = functor;
     this.#args    = Object.freeze(args);
   }
@@ -89,51 +85,6 @@ export class Sexp extends BaseDataClass {
     this.#functor = functor;
   }
 
-  /** @override */
-  toEncodableValue() {
-    return [this.#functor, ...this.#args];
-  }
-
-  /**
-   * Gets a replacement value for this instance, which is suitable for JSON
-   * serialization.
-   *
-   * The result of this specific method is meant more for human convenience than
-   * machine re-interpretation, especially in that there is some ambiguity in
-   * the representation (it's not reversible). If you find yourself wanting to
-   * write code to parse the output from this, consider figuring out how to get
-   * the object(s) in question to be "properly" encoded by this module instead.
-   * That said, as of this writing, this method is in fact used to produce the
-   * `json` format of system logs; this is _not_ intended to be the long-term
-   * solution for that format.
-   *
-   * **Note:** This method is named as such (as opposed to `toJson`, which would
-   * be more usual for this project), because the standard JavaScript method
-   * `JSON.stringify()` looks for methods of this specific name to provide
-   * custom JSON serialization behavior.
-   *
-   * @returns {object} The JSON-serializable form.
-   */
-  toJSON() {
-    const args    = this.#args;
-    const functor = this.#jsonFunctor();
-
-    const hasStringFunc = (typeof functor === 'string');
-
-    if (hasStringFunc) {
-      return { [functor]: args };
-    } else {
-      return (args.length === 0)
-        ? { '@sexp': { functor } }
-        : { '@sexp': { functor, args } };
-    }
-  }
-
-  /** @override */
-  withEncodedValue(innerValue) {
-    return new Sexp(...innerValue);
-  }
-
   /**
    * Custom inspector for instances of this class.
    *
@@ -179,24 +130,6 @@ export class Sexp extends BaseDataClass {
   #frozenCheck() {
     if (Object.isFrozen(this)) {
       throw new Error('Cannot modify frozen instance.');
-    }
-  }
-
-  /**
-   * Helper for {@link #toJSON}, which converts {@link #functor} to something
-   * better, if possible, for conversion to JSON.
-   *
-   * @returns {*} The JSON-encodable functor value.
-   */
-  #jsonFunctor() {
-    const functor = this.#functor;
-
-    if (typeof functor === 'string') {
-      return functor.startsWith('@') ? functor : `@${functor}`;
-    } else if (typeof functor === 'function') {
-      return `@${functor?.name ?? 'anonymous'}`;
-    } else {
-      return functor;
     }
   }
 }

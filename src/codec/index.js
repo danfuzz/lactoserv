@@ -6,5 +6,4 @@ export * from '#x/BaseDataClass';
 export * from '#x/Codec';
 export * from '#x/CodecConfig';
 export * from '#x/Ref';
-export * from '#x/Sexp';
 export * from '#x/SpecialCodecs';
