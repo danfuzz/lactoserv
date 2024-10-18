@@ -128,10 +128,10 @@ export class LogPayload extends EventPayload {
   toPlainObject() {
     return {
       ...(this.#stack ? { stack: this.#stack.frames } : {}),
-      when:  this.#when.toPlainObject(),
-      tag:   this.#tag.allParts,
-      type:  this.type,
-      args:  this.args
+      when: this.#when.toPlainObject(),
+      tag:  this.#tag.allParts,
+      type: this.type,
+      args: this.args
     };
   }
 
