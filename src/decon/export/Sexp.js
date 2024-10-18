@@ -86,6 +86,38 @@ export class Sexp {
   }
 
   /**
+   * @returns {string} A reasonably-suggestive "name" for {@link #functor}. If
+   * {@link #functor} is a string, then this is that string. Otherwise, if it is
+   * a function or object with a string `.name` property, it is that property
+   * name. Otherwise, it is `<anonymous>`.
+   */
+  get functorName() {
+    const functor = this.#functor;
+
+    switch (typeof functor) {
+      case 'function':
+      case 'object': {
+        if ((functor === null) || (functor === '')) {
+          break;
+        }
+
+        const name = functor.name;
+        if (typeof name === 'string') {
+          return name;
+        }
+
+        break;
+      }
+
+      case 'string': {
+        return functor;
+      }
+    }
+
+    return '<anonymous>';
+  }
+
+  /**
    * Standard iteration protocol. For this class, it iterates over (what would
    * be) the result of a call to {@link #toArray} at the moment this method was
    * called.

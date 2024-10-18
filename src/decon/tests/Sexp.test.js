@@ -44,6 +44,43 @@ describe('.functor =', () => {
   });
 });
 
+describe('.functorName', () => {
+  test('is `.functor` if it is a string', () => {
+    const expected = 'bloop';
+    expect(new Sexp(expected, 1, 2, 3).functorName).toBe(expected);
+  });
+
+  test('is `.functor.name` if it is a string', () => {
+    const expected = 'bloop';
+    expect(new Sexp({ name: expected }, 1, 2, 3).functorName).toBe(expected);
+  });
+
+  test('is the function name if `.functor` is a function', () => {
+    function florp() { return null; }
+    expect(new Sexp(florp, 1, 2, 3).functorName).toBe('florp');
+  });
+
+  test('is the class name if `.functor` is a class', () => {
+    class Zonk { /*empty*/ }
+    expect(new Sexp(Zonk, 1, 2, 3).functorName).toBe('Zonk');
+  });
+
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${123n}
+  ${Symbol('boop')}
+  ${{ a: 123 }}
+  ${['beep', 'boop']}
+  ${new Set('x')}
+  `('is `<anonymous>` given `$value`', ({ value }) => {
+    expect(new Sexp(value, 'boop').functorName).toBe('<anonymous>');
+  });
+});
+
 describe('.args', () => {
   test('is an array', () => {
     expect(new Sexp('x').args).toBeArray();
