@@ -281,6 +281,10 @@ export class LogPayload extends EventPayload {
             parts.push(' = ');
             this.#appendHumanValue(parts, value.value);
           }
+        } else if (value instanceof Sexp) {
+          parts.push('@', value.functorName, '(');
+          this.#appendHumanAggregate(parts, value.args, true);
+          parts.push(')');
         } else {
           this.#appendHumanAggregate(parts, value, skipBrackets);
         }

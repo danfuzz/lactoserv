@@ -142,6 +142,26 @@ export class Sexp {
   }
 
   /**
+   * Implementation of the standard `JSON.stringify()` replacement interface.
+   *
+   * **Note:** This is not intended for high-fidelity data encoding, in that the
+   * result is ambiguous with plain objects that happen to have the same shape
+   * as this method's results, and in that the conversion of the {@link
+   * #functor} is lossy unless it is a string per se. The main intended use
+   * case for this is logging.
+   *
+   * @param {?string} key_unused The property name / stringified index where the
+   *   instance was fetched from.
+   * @returns {*} The replacement form to encode.
+   */
+  toJSON(key_unused) {
+    const name      = this.functorName;
+    const finalName = (name === '<anonymous>') ? '@' : `@${name}`;
+
+    return { [finalName]: this.#args };
+  }
+
+  /**
    * Custom inspector for instances of this class.
    *
    * @param {number} depth Maximum depth to inspect to.
