@@ -3,6 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
+import { Sexp } from '@this/decon';
 import { LogTag } from '@this/loggy-intf';
 
 
@@ -266,8 +267,8 @@ describe('deconstruct()', () => {
     const tag    = new LogTag(...expected);
     const result = tag.deconstruct();
 
-    expect(result).toBeArray();
-    expect(result).toStrictEqual([LogTag, ...expected]);
+    expect(result).toBeInstanceOf(Sexp);
+    expect(result.toArray()).toStrictEqual([LogTag, ...expected]);
   };
 
   test('works with just a main tag (no context strings)', () => {

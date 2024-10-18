@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
@@ -89,8 +89,8 @@ export class LogPayload extends EventPayload {
 
   /** @override */
   deconstruct() {
-    return [LogPayload,
-      this.#stack, this.#when, this.#tag, this.type, ...this.args];
+    return new Sexp(LogPayload,
+      this.#stack, this.#when, this.#tag, this.type, ...this.args);
   }
 
   /**
@@ -268,7 +268,8 @@ export class LogPayload extends EventPayload {
    * @param {Array<string>} parts Parts array to append to.
    * @param {*} value Value to represent.
    * @param {boolean} [skipBrackets] Skip brackets at this level? This is
-   *   passed as `true` for the very top-level call to this method.
+   *   passed as `true` for the very top-level call to this method and when
+   *   processing `Sexp`s.
    */
   static #appendHumanValue(parts, value, skipBrackets = false) {
     switch (typeof value) {
@@ -281,6 +282,10 @@ export class LogPayload extends EventPayload {
             parts.push(' = ');
             this.#appendHumanValue(parts, value.value);
           }
+        } else if (value instanceof Sexp) {
+          parts.push('@', value.functorName, '(');
+          this.#appendHumanAggregate(parts, value.args, true);
+          parts.push(')');
         } else {
           this.#appendHumanAggregate(parts, value, skipBrackets);
         }

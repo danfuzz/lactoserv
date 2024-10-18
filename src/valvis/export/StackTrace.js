@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { AskIf, MustBe } from '@this/typey';
 
 import { StackFrame } from '#x/StackFrame';
@@ -80,7 +80,7 @@ export class StackTrace extends IntfDeconstructable {
 
   /** @override */
   deconstruct() {
-    return [this.constructor, this.#frames];
+    return new Sexp(this.constructor, this.#frames);
   }
 
 

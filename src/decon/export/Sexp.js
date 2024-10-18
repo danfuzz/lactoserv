@@ -86,6 +86,42 @@ export class Sexp {
   }
 
   /**
+   * @returns {string} A reasonably-suggestive "name" for {@link #functor}. If
+   * {@link #functor} is a string, then this is that string. Otherwise, if it is
+   * a function or object with a string `.name` property, it is that property
+   * name. Otherwise, it is `<anonymous>`.
+   */
+  get functorName() {
+    const functor = this.#functor;
+
+    switch (typeof functor) {
+      case 'function':
+      case 'object': {
+        if ((functor === null) || (functor === '')) {
+          break;
+        }
+
+        const name = functor.name;
+        if (typeof name === 'string') {
+          return name;
+        }
+
+        break;
+      }
+
+      case 'string': {
+        if (functor !== '') {
+          return functor;
+        }
+
+        break;
+      }
+    }
+
+    return '<anonymous>';
+  }
+
+  /**
    * Standard iteration protocol. For this class, it iterates over (what would
    * be) the result of a call to {@link #toArray} at the moment this method was
    * called.
@@ -107,6 +143,26 @@ export class Sexp {
    */
   toArray() {
     return [this.#functor, ...this.#args];
+  }
+
+  /**
+   * Implementation of the standard `JSON.stringify()` replacement interface.
+   *
+   * **Note:** This is not intended for high-fidelity data encoding, in that the
+   * result is ambiguous with plain objects that happen to have the same shape
+   * as this method's results, and in that the conversion of the {@link
+   * #functor} is lossy unless it is a string per se. The main intended use
+   * case for this is logging.
+   *
+   * @param {?string} key_unused The property name / stringified index where the
+   *   instance was fetched from.
+   * @returns {*} The replacement form to encode.
+   */
+  toJSON(key_unused) {
+    const name      = this.functorName;
+    const finalName = (name === '<anonymous>') ? '@' : `@${name}`;
+
+    return { [finalName]: this.#args };
   }
 
   /**

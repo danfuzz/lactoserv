@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
@@ -62,7 +62,7 @@ export class DispatchInfo extends IntfDeconstructable {
 
   /** @override */
   deconstruct() {
-    return [DispatchInfo, this.#base, this.#extra];
+    return new Sexp(DispatchInfo, this.#base, this.#extra);
   }
 
   /**

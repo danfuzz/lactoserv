@@ -33,9 +33,13 @@ export class VisitRef extends BaseDefRef {
   /**
    * Implementation of the standard `JSON.stringify()` replacement interface.
    *
+   * **Note:** This is not intended for high-fidelity data encoding, in that the
+   * result is ambiguous with plain objects that happen to have the same shape
+   * as this method's results. The main intended use case for this is logging.
+   *
    * @param {?string} key_unused The property name / stringified index where the
    *   instance was fetched from.
-   * @returns {string} The string form.
+   * @returns {*} The replacement form to encode.
    */
   toJSON(key_unused) {
     return { '@ref': this.index };

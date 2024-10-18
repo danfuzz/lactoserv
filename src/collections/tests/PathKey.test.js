@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
+import { Sexp } from '@this/decon';
 
 
 describe('constructor()', () => {
@@ -177,13 +178,13 @@ describe('.EMPTY', () => {
 });
 
 describe('deconstruct()', () => {
-  test('produces an array of the constructor class and arguments', () => {
+  test('produces an appropriate `Sexp`', () => {
     const args = [['beep', 'boop'], true];
     const key = new PathKey(...args);
     const got = key.deconstruct();
 
-    expect(got).toBeArray();
-    expect(got).toStrictEqual([PathKey, ...args]);
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.toArray()).toStrictEqual([PathKey, ...args]);
   });
 });
 

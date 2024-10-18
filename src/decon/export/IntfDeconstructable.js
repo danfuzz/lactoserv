@@ -3,6 +3,8 @@
 
 import { Methods } from '@this/typey';
 
+import { Sexp } from '#x/Sexp';
+
 
 /**
  * Interface which indicates that an instance can be "deconstructed" into a
@@ -25,7 +27,7 @@ export class IntfDeconstructable {
    * ```
    *
    * @abstract
-   * @returns {Array} Reconstruction class and arguments.
+   * @returns {Sexp} Reconstruction class and arguments.
    */
   deconstruct() {
     throw Methods.abstract();

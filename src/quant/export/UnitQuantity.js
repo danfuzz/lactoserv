@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { MustBe } from '@this/typey';
 
 
@@ -113,8 +113,8 @@ export class UnitQuantity extends IntfDeconstructable {
 
   /** @override */
   deconstruct() {
-    return [this.constructor,
-      this.#value, this.#numeratorUnit, this.#denominatorUnit];
+    return new Sexp(this.constructor,
+      this.#value, this.#numeratorUnit, this.#denominatorUnit);
   }
 
   /**
