@@ -15,11 +15,17 @@ Breaking changes:
   * Renamed several classes to match the (relatively) new module name.
   * Dropped the `options` property from `Sexp`, making it now equivalent
     to a classic s-expression (practically speaking, at least).
-  * See also `util`.
-* `util`:
-  * Moved stack-trace-related classes from `codec` into this module, along with
-    the `Error` stack parser.
+  * See also `valvis`.
+* `valvis` (also `util` and `codec`):
+  * Renamed module `util` to `valvis` ("VALue VISitor"), because that's what
+    it's about at this point.
+  * New class `BaseValueVisitor`, along with a couple helper classes. This is
+    an implementation of the "visitor" pattern to iterate over arbitrary
+    JavaScript object graphs.
   * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
+  * Moved stack-trace classes and `Sexp` from `codec` into `valvis`, with a bit
+    of tweakage to make them more generic.
+  * Deleted the remainder of `codec`. Farewell!
 * `loggy-intf` / `loggy`:
   * Removed `IntfLoggingEnviroment.logPayload()`.
   * New class `LoggedValueEncoder`, which replaces the log-related stuff in
@@ -28,10 +34,6 @@ Breaking changes:
 Other notable changes:
 * `webapp-util`:
   * Fixed `Rotator` and `Saver` to not bother "preserving" empty files.
-* `util`:
-  * New class `BaseValueVisitor`, along with a couple helper classes. This is
-    an implementation of the "visitor" pattern to iterate over arbitrary
-    JavaScript object graphs.
 
 ### v0.8.1 -- 2024-09-26
 
