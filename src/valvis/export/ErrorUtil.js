@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable } from '#x/IntfDeconstructable';
+import { IntfDeconstructable } from '@this/decon';
+
 import { StackTrace } from '#x/StackTrace';
 
 

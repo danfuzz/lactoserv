@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Sexp } from '@this/valvis';
+import { Sexp } from '@this/decon';
 
 
 describe('constructor()', () => {

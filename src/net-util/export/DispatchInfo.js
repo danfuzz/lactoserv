@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
+import { IntfDeconstructable } from '@this/decon';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable } from '@this/valvis';
 
 import { IncomingRequest } from '#x/IncomingRequest';
 import { UriUtil } from '#x/UriUtil';

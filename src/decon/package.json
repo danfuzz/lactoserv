@@ -1,5 +1,5 @@
 {
-  "name": "@this/collections",
+  "name": "@this/decon",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -10,12 +10,10 @@
   },
   "imports": {
     "#x/*": "./export/*.js",
-    "#p/*": "./private/*.js",
     "#tests/*": "./tests/*.js"
   },
 
   "dependencies": {
-    "@this/decon": "*",
     "@this/typey": "*"
   }
 }
