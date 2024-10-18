@@ -86,6 +86,16 @@ export class Sexp {
   }
 
   /**
+   * Gets an array form of this instance, of the {@link #functor} followed by
+   * any {@link args}.
+   *
+   * @returns {Array} The array form.
+   */
+  toArray() {
+    return [this.#functor, ...this.#args];
+  }
+
+  /**
    * Custom inspector for instances of this class.
    *
    * @param {number} depth Maximum depth to inspect to.
