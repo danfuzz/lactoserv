@@ -60,7 +60,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitClass(node) {
-    return this._prot_labelFromValue(node);
+    return this._prot_nameFromValue(node);
   }
 
   /** @override */
@@ -89,7 +89,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitFunction(node) {
-    return this._prot_labelFromValue(node);
+    return this._prot_nameFromValue(node);
   }
 
   /** @override */
