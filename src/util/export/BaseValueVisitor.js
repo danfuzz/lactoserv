@@ -5,6 +5,7 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { VisitDef } from '#x/VisitDef';
 import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
 
@@ -665,7 +666,8 @@ export class BaseValueVisitor {
       if (ref) {
         return this.#visitNode(ref);
       } else if (this.#shouldRef(node)) {
-        const newRef = already.setRef(this.#allRefs.length);
+        already.setDefRef(this.#allRefs.length);
+        const newRef = already.ref;
         this.#allRefs.push(newRef);
         this._impl_newRef(newRef);
         return this.#visitNode(newRef);
@@ -879,6 +881,13 @@ export class BaseValueVisitor {
     #value = null;
 
     /**
+     * Def which corresponds to this instance, or `null` if there is none.
+     *
+     * @type {?VisitDef}
+     */
+    #def = null;
+
+    /**
      * Ref which corresponds to this instance, or `null` if there is none.
      *
      * @type {?VisitRef}
@@ -919,6 +928,14 @@ export class BaseValueVisitor {
       /* c8 ignore end */
 
       return this.#promise;
+    }
+
+    /**
+     * @returns {?VisitDef} Def which corresponds to this instance, or `null` if
+     * there is none.
+     */
+    get def() {
+      return this.#def;
     }
 
     /**
@@ -1000,23 +1017,22 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Creates and stores a ref which is to correspond to this instance,
-     * assigning it the indicated index. It is only valid to ever call this
-     * method once on any given instance.
+     * Creates and stores a def and ref which are to correspond to this
+     * instance, assigning them the indicated index. It is only valid to ever
+     * call this method once on any given instance.
      *
      * @param {number} index The index for the ref.
-     * @returns {VisitRef} The newly-constructed ref.
      */
-    setRef(index) {
-      if (this.#ref) {
+    setDefRef(index) {
+      if (this.#def) {
         /* c8 ignore start */
         // This is indicative of a bug in this class.
-        throw new Error('Shouldn\'t happen: Ref already set.');
+        throw new Error('Shouldn\'t happen: Def and ref already set.');
       }
       /* c8 ignore stop */
 
+      this.#def = new VisitDef(this, index);
       this.#ref = new VisitRef(this, index);
-      return this.#ref;
     }
 
     /**
