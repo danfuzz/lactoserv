@@ -11,11 +11,6 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `codec`:
-  * Renamed several classes to match the (relatively) new module name.
-  * Dropped the `options` property from `Sexp`, making it now equivalent
-    to a classic s-expression (practically speaking, at least).
-  * See also `valvis`.
 * `valvis` (also `util` and `codec`):
   * Renamed module `util` to `valvis` ("VALue VISitor"), because that's what
     it's about at this point.
