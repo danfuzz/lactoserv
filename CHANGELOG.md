@@ -11,15 +11,18 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `valvis` (also `util` and `codec`):
-  * New module `valvis` ("VALue VISitor"), which merges `codec` and `util`.
-  * New class `BaseValueVisitor`, along with a couple helper classes. This is
-    an implementation of the "visitor" pattern to iterate over arbitrary
-    JavaScript object graphs. It was extracted from the `codec` encoding code,
-    and made more general.
-  * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
-  * Tweaked `StackTrace` and `Sexp`, to make them not rely on the `codec`
-    interfaces / base classes.
+* `valvis`, `decon`, `util`, and `codec`:
+  * New module `valvis` ("VALue VISitor"), derived from `codec`:
+    * New class `BaseValueVisitor`, along with a couple helper classes. This is
+      an implementation of the "visitor" pattern to iterate over arbitrary
+      JavaScript object graphs. It was extracted from the `codec` encoding code,
+      and made more general.
+    * Merged in the contents of `util` (one class).
+    * Tweaked `StackTrace`, to make it not rely on the `codec` interfaces / base
+      classes.
+  * New module `decon`, derived from `codec`:
+    * New class `IntfDeconstructable` which replaces `codec.BaseCodec.ENCODE`.
+    * Pulled in `Sexp` from `codec`, with tweakage.
   * Deleted the remainder of `codec`. Farewell!
 * `loggy-intf` / `loggy`:
   * Removed `IntfLoggingEnviroment.logPayload()`.
