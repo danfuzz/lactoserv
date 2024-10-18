@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MustBe } from '@this/typey';
-import { StackTrace } from '@this/util';
+import { StackTrace } from '@this/valvis';
 
 import { BaseCodec } from '#x/BaseCodec';
 import { Sexp } from '#x/Sexp';

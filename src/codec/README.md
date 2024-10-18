@@ -32,7 +32,7 @@ conversion to and from `Sexp` instances.
 
 Beyond the built-in special cases, and similar to how `JSON.stringify()`
 knows to look for a `.toJSON()` method, this class understands the interface
-`@this/util.IntfDeconstructable`, that is, the method `deconstruct()`, as
+`@this/valvis.IntfDeconstructable`, that is, the method `deconstruct()`, as
 defining an instance-specific value-encoding behavior. The (array) return value
 from these methods gets wrapped in a `Sexp`.
 

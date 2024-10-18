@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AskIf } from '@this/typey';
-import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/util';
+import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/valvis';
 
 
 /**

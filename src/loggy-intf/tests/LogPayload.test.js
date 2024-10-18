@@ -5,7 +5,7 @@ import stripAnsi from 'strip-ansi';
 
 import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
-import { StackTrace } from '@this/util';
+import { StackTrace } from '@this/valvis';
 
 
 const someMoment = new Moment(123123123);

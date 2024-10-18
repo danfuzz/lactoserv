@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable } from '@this/util';
+import { IntfDeconstructable } from '@this/valvis';
 
 import { Duration } from '#x/Duration';
 

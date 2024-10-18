@@ -16,6 +16,6 @@
 
   "dependencies": {
     "@this/typey": "*",
-    "@this/util": "*"
+    "@this/valvis": "*"
   }
 }

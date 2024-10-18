@@ -10,7 +10,7 @@ import { ManualPromise } from '@this/async';
 import { Paths, StatsBase } from '@this/fs-util';
 import { Moment } from '@this/quant';
 import { MustBe } from '@this/typey';
-import { ErrorUtil } from '@this/util';
+import { ErrorUtil } from '@this/valvis';
 
 import { BaseResponse } from '#x/BaseResponse';
 import { HttpConditional } from '#x/HttpConditional';

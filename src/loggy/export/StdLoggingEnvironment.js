@@ -5,7 +5,7 @@ import { EventSource } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IdGenerator } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
-import { StackTrace } from '@this/util';
+import { StackTrace } from '@this/valvis';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 

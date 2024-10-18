@@ -21,6 +21,6 @@
     "@this/metacomp": "*",
     "@this/quant": "*",
     "@this/typey": "*",
-    "@this/util": "*"
+    "@this/valvis": "*"
   }
 }

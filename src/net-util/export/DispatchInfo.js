@@ -4,7 +4,7 @@
 import { PathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable } from '@this/util';
+import { IntfDeconstructable } from '@this/valvis';
 
 import { IncomingRequest } from '#x/IncomingRequest';
 import { UriUtil } from '#x/UriUtil';
