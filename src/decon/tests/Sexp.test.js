@@ -98,6 +98,37 @@ describe('.args =', () => {
   });
 });
 
+describe('[Symbol.iterator]()', () => {
+  test.each`
+  label                   | expected
+  ${'a no-arg instance'}  | ${['blorp']}
+  ${'a one-arg instance'} | ${['bonk', 5]}
+  ${'a two-arg instance'} | ${[Set, 123n, false]}
+  `('works with $label', ({ expected }) => {
+    const sexp = new Sexp(...expected);
+    let   at   = 0;
+
+    for (const got of sexp) {
+      expect(got).toStrictEqual(expected[at]);
+      at++;
+    }
+
+    expect(at).toBe(expected.length);
+  });
+
+  test('uses the `args` from the moment of iteration', () => {
+    const expected = ['blorp', 5, 4, 3, 2, 1];
+    const sexp     = new Sexp(...expected);
+    const got      = sexp[Symbol.iterator]();
+
+    expect(got.next()).toStrictEqual({ done: false, value: expected[0] });
+
+    sexp.args = ['eep', 'oop'];
+
+    expect([...got]).toStrictEqual(expected.slice(1));
+  });
+});
+
 describe('.toArray()', () => {
   test.each`
   label                   | expected
