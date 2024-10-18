@@ -28,4 +28,15 @@ export class VisitRef extends BaseDefRef {
   get ref() {
     return this;
   }
+
+  /**
+   * Implementation of the standard `JSON.stringify()` replacement interface.
+   *
+   * @param {?string} key_unused The property name / stringified index where the
+   *   instance was fetched from.
+   * @returns {string} The string form.
+   */
+  toJSON(key_unused) {
+    return { '@ref': this.index };
+  }
 }
