@@ -110,7 +110,11 @@ export class Sexp {
       }
 
       case 'string': {
-        return functor;
+        if (functor !== '') {
+          return functor;
+        }
+
+        break;
       }
     }
 

@@ -50,7 +50,7 @@ describe('.functorName', () => {
     expect(new Sexp(expected, 1, 2, 3).functorName).toBe(expected);
   });
 
-  test('is `.functor.name` if it is a string', () => {
+  test('is `.functor.name` if it is a non-empty string', () => {
     const expected = 'bloop';
     expect(new Sexp({ name: expected }, 1, 2, 3).functorName).toBe(expected);
   });
@@ -65,6 +65,10 @@ describe('.functorName', () => {
     expect(new Sexp(Zonk, 1, 2, 3).functorName).toBe('Zonk');
   });
 
+  test('is `<anonymous>` given the empty string for `.functor`', () => {
+    expect(new Sexp('', []).functorName).toBe('<anonymous>');
+  });
+
   test.each`
   value
   ${undefined}
@@ -76,7 +80,7 @@ describe('.functorName', () => {
   ${{ a: 123 }}
   ${['beep', 'boop']}
   ${new Set('x')}
-  `('is `<anonymous>` given `$value`', ({ value }) => {
+  `('is `<anonymous>` given `$value` for `.functor`', ({ value }) => {
     expect(new Sexp(value, 'boop').functorName).toBe('<anonymous>');
   });
 });
