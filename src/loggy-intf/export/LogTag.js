@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
@@ -187,7 +187,7 @@ export class LogTag extends IntfDeconstructable {
 
   /** @override */
   deconstruct() {
-    return [LogTag, this.#main, ...this.#context];
+    return new Sexp(LogTag, this.#main, ...this.#context);
   }
 
 

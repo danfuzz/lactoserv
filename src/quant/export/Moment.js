@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/decon';
 import { MustBe } from '@this/typey';
 
 import { Duration } from '#x/Duration';
@@ -227,7 +227,7 @@ export class Moment extends IntfDeconstructable {
     // an instance.
     const str = this.toString({ decimals: 6 });
 
-    return [Moment, this.#atSec, str];
+    return new Sexp(Moment, this.#atSec, str);
   }
 
 

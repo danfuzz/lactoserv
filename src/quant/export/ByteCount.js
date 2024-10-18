@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/decon';
+
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -47,7 +49,7 @@ export class ByteCount extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return [ByteCount, this.byte, str];
+    return new Sexp(ByteCount, this.byte, str);
   }
 
 

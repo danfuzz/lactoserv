@@ -3,6 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
+import { Sexp } from '@this/decon';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
 import { StackTrace } from '@this/valvis';
@@ -32,8 +33,8 @@ describe('deconstruct()', () => {
     const payload = new LogPayload(...args);
     const got     = payload.deconstruct();
 
-    expect(got).toBeArray();
-    expect(got).toStrictEqual([LogPayload, ...args]);
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.toArray()).toStrictEqual([LogPayload, ...args]);
   });
 });
 

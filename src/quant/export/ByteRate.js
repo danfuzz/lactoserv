@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/decon';
+
 import { ByteCount } from '#x/ByteCount';
 import { Frequency } from '#x/Frequency';
 import { UnitQuantity } from '#x/UnitQuantity';
@@ -48,7 +50,7 @@ export class ByteRate extends UnitQuantity {
     // an instance.
     const str = this.toString();
 
-    return [ByteRate, this.bytePerSec, str];
+    return new Sexp(ByteRate, this.bytePerSec, str);
   }
 
 

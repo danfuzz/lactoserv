@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/decon';
+
 import { Frequency } from '#x/Frequency';
 import { UnitQuantity } from '#x/UnitQuantity';
 
@@ -69,7 +71,7 @@ export class Duration extends UnitQuantity {
     // an instance.
     const str = Duration.stringFromSec(this.sec);
 
-    return [Duration, this.sec, str];
+    return new Sexp(Duration, this.sec, str);
   }
 
 

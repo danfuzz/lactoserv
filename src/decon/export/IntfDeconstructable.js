@@ -25,7 +25,7 @@ export class IntfDeconstructable {
    * ```
    *
    * @abstract
-   * @returns {Array} Reconstruction class and arguments.
+   * @returns {Sexp} Reconstruction class and arguments.
    */
   deconstruct() {
     throw Methods.abstract();
