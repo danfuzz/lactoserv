@@ -29,8 +29,9 @@ Other notable changes:
 * `webapp-util`:
   * Fixed `Rotator` and `Saver` to not bother "preserving" empty files.
 * `util`:
-  * New class `BaseValueVisitor` which implements the "visitor" pattern to
-    iterate over object graphs.
+  * New class `BaseValueVisitor`, along with a couple helper classes. This is
+    an implementation of the "visitor" pattern to iterate over arbitrary
+    JavaScript object graphs.
 
 ### v0.8.1 -- 2024-09-26
 

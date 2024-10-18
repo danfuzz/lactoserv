@@ -7,7 +7,8 @@ import { EventPayload, EventSource } from '@this/async';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable, StackTrace } from '@this/util';
+import { BaseDefRef, IntfDeconstructable, StackTrace, VisitDef }
+  from '@this/util';
 
 import { LogTag } from '#x/LogTag';
 
@@ -243,7 +244,12 @@ export class LogPayload extends EventPayload {
       }
 
       if (inProps) {
-        parts.push(k, ': ');
+        if ((typeof k === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(k)) {
+          parts.push(k);
+        } else {
+          parts.push(util.inspect(k)); // So it's quoted.
+        }
+        parts.push(': ');
       }
 
       this.#appendHumanValue(parts, v);
@@ -269,6 +275,12 @@ export class LogPayload extends EventPayload {
       case 'object': {
         if (value === null) {
           parts.push('null');
+        } else if (value instanceof BaseDefRef) {
+          parts.push(`#${value.index}`);
+          if (value instanceof VisitDef) {
+            parts.push(' = ');
+            this.#appendHumanValue(parts, value.value);
+          }
         } else {
           this.#appendHumanAggregate(parts, value, skipBrackets);
         }

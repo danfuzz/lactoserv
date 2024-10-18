@@ -97,8 +97,14 @@ class ProxyAwareVisitor extends BaseValueVisitor {
  * Visitor subclass, which is set up to use refs for duplicate objects.
  */
 class RefMakingVisitor extends BaseValueVisitor {
+  refs = [];
+
+  _impl_newRef(ref) {
+    this.refs.push({ ref, wasFinished: ref.isFinished() });
+  }
+
   _impl_shouldRef(value) {
-    return (value && (typeof value === 'object'));
+    return (typeof value === 'object');
   }
 
   _impl_visitArray(node) {
@@ -253,8 +259,8 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
   async function doTest(value, options = {}) {
     const {
-      cls = BaseValueVisitor,
-      check = (got) => { expect(got).toBe(value); }
+      cls   = BaseValueVisitor,
+      check = (got, visitor_unused) => { expect(got).toBe(value); }
     } = options;
 
     const visitor = new cls(value);
@@ -265,12 +271,12 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       if (wraps) {
         const wrapper = await got;
         expect(wrapper).toBeInstanceOf(VisitResult);
-        check(wrapper.value);
+        check(wrapper.value, visitor);
       } else {
-        check(await got);
+        check(await got, visitor);
       }
     } else {
-      check(visitor[methodName]());
+      check(visitor[methodName](), visitor);
     }
   }
 
@@ -288,7 +294,23 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
   });
 
-  test('handles non-circular synchronously-visited duplicate references correctly', async () => {
+  test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    const inner = [1];
+    const outer = [inner, inner];
+
+    await doTest(outer, {
+      cls: RecursiveVisitor,
+      check: (got) => {
+        expect(got).toBeArrayOfSize(2);
+        expect(got[0]).toBe(got[1]);
+        const gotInner = got[0];
+        expect(gotInner).toBeArrayOfSize(1);
+        expect(gotInner[0]).toBe('1');
+      }
+    });
+  });
+
+  test('handles non-circular synchronously-visited duplicate references correctly (two refs)', async () => {
     const inner  = [1];
     const middle = [inner, inner, inner, 2];
     const outer  = [middle, inner, middle, 3];
@@ -403,6 +425,43 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('Nope!');
   });
 
+  test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
+    const shared = [9, 99, 999];
+    const value  = [1, [2, shared], shared];
+
+    await doTest(value, {
+      cls: RefMakingVisitor,
+      check: (got, visitor) => {
+        expect(visitor.refs).toBeArrayOfSize(1);
+        const { ref, wasFinished } = visitor.refs[0];
+        expect(ref).toBe(got[2]);
+        expect(ref.originalValue).toBe(shared);
+        expect(ref.value).toBe(got[1][1]);
+        expect(wasFinished).toBeTrue();
+      }
+    });
+  });
+
+  test('calls `_impl_newRef()` when a circular reference is detected', async () => {
+    const selfRef = [9, 99];
+    const value   = [1, [2, selfRef], selfRef];
+
+    selfRef.push(selfRef);
+
+    await doTest(value, {
+      cls: RefMakingVisitor,
+      check: (got, visitor) => {
+        expect(visitor.refs).toBeArrayOfSize(1);
+        const { ref, wasFinished } = visitor.refs[0];
+        expect(ref).toBe(got[2]);
+        expect(ref.originalValue).toBe(selfRef);
+        expect(ref.value).toBe(got[1][1]);
+        expect(ref).toBe(ref.value[2]);
+        expect(wasFinished).toBeFalse();
+      }
+    });
+  });
+
   describe('when `_impl_proxyAware() === false`', () => {
     test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
       await doTest(value);
@@ -418,6 +477,61 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
           expect(got.proxy).toBe(value);
         }
       });
+    });
+  });
+
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${true}
+  ${123}
+  `('does not call `_impl_shouldRef()` on $value', async ({ value }) => {
+    class ShouldRefThrowsVisitor extends BaseValueVisitor {
+      _impl_shouldRef() {
+        throw new Error('Oopsie');
+      }
+
+      _impl_visitArray(node) {
+        return this._prot_visitArrayProperties(node);
+      }
+    }
+
+    await doTest([value, value], {
+      cls: ShouldRefThrowsVisitor,
+      check: () => null
+    });
+  });
+
+  test.each`
+  label                     | value
+  ${'a string'}             | ${'xyz'}
+  ${'an uninterned symbol'} | ${Symbol('blort')}
+  ${'an interned symbol'}   | ${Symbol.for('blork')}
+  ${'a bigint'}             | ${123456789n}
+  ${'a plain object'}       | ${{ x: 123 }}
+  ${'an array'}             | ${[1, 2, 3]}
+  ${'an instance'}          | ${new Map()}
+  ${'a function'}           | ${() => null}
+  `('calls `_impl_shouldRef()` on $label', async ({ value }) => {
+    class ShouldRefCheckVisitor extends BaseValueVisitor {
+      calledOn = [];
+
+      _impl_shouldRef(node) {
+        this.calledOn.push(node);
+        return false;
+      }
+
+      _impl_visitArray(node) {
+        return this._prot_visitArrayProperties(node);
+      }
+    }
+
+    await doTest([value, value], {
+      cls: ShouldRefCheckVisitor,
+      check: (got_unused, visitor) => {
+        expect(visitor.calledOn).toStrictEqual([value]);
+      }
     });
   });
 
@@ -521,6 +635,20 @@ describe('visit()', () => {
     await setImmediate();
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect(await got).toBe('zonk');
+  });
+});
+
+describe('_impl_newRef()', () => {
+  test('succeeds trivially (base no-op implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._impl_newRef(null)).toBeUndefined();
+  });
+});
+
+describe('_impl_shouldRef()', () => {
+  test('returns `false` (base implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._impl_shouldRef([])).toBeFalse();
   });
 });
 

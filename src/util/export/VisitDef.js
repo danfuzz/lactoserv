@@ -12,20 +12,15 @@ import { BaseDefRef } from '#x/BaseDefRef';
  */
 
 /**
- * Companion class of {@link BaseValueVisitor}, which represents the result of a
- * visit of a value that had been visited elsewhere during a visit.
- *
- * Along with just having a record of the shared nature of the structure,
- * instances of this class are also instrucmental in "breaking" circular
- * references during visits, making it possible to fully visit values that have
- * such circular references. See {@link BaseValueVisitor#_impl_shouldRef} for
- * more details.
+ * Companion class of {@link BaseValueVisitor}, which represents the defining
+ * occurrence of a result of a (sub-)visit which appears more than once in an
+ * overall visit result.
  */
-export class VisitRef extends BaseDefRef {
+export class VisitDef extends BaseDefRef {
   // @defaultConstructor
 
   /** @override */
-  get ref() {
+  get def() {
     return this;
   }
 
@@ -37,6 +32,6 @@ export class VisitRef extends BaseDefRef {
    * @returns {string} The string form.
    */
   toJSON(key_unused) {
-    return { '@ref': this.index };
+    return { '@def': [this.index, this.value] };
   }
 }

@@ -5,6 +5,7 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { VisitDef } from '#x/VisitDef';
 import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
 
@@ -57,23 +58,22 @@ export class BaseValueVisitor {
   #visits = new Map();
 
   /**
-   * During a visit, the array of all refs created during the visit, in order;
-   * after the first post-visit call to {@link #hasRefs} or
-   * {@link #refFromResultValue}, a map from result values to corresponding
-   * refs.
+   * During a visit, an array of all refs created during the visit, in order of
+   * creation; after the first post-visit call to {@link #hasRefs} or
+   * {@link #refFromResultValue}, a map from each result value with a ref to its
+   * corresponding ref.
    *
    * @type {Array<VisitRef>|Map<*, VisitRef>}
    */
   #allRefs = [];
 
   /**
-   * The set of visit entries that are currently part of an `await` chain. This
-   * is used to detect attempts to visit a value with a circular reference,
-   * where the circular nature only becomes apparent asynchronously.
+   * The set of visit entries that are actively being visited. This is used to
+   * detect attempts to visit a value containing a circular reference.
    *
    * @type {Set<BaseValueVisitor#VisitEntry>}
    */
-  #waitSet = new Set();
+  #visitSet = new Set();
 
   /**
    * Constructs an instance whose purpose in life is to visit the indicated
@@ -172,7 +172,7 @@ export class BaseValueVisitor {
    * processed the original `value`.
    */
   visitSync() {
-    return this.#visitRoot().extractSync(true);
+    return this.#visitRoot().extractSync();
   }
 
   /**
@@ -206,18 +206,47 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Indicates that a new ref has been created. This is called while a visit is
+   * in-progress. In the case of a ref to a value which circularly refers to
+   * itself, this method is called _before_ the (sub-)visit of the value is
+   * complete. In the case of a ref to a value which is not self-referential,
+   * this method is called _after_ the (sub-)visit of the value is complete;
+   * more specifically it is called just after it is discovered to be shared.
+   *
+   * The base implementation of this method does nothing.
+   *
+   * @param {VisitRef} ref The ref that was created.
+   */
+  _impl_newRef(ref) { // eslint-disable-line no-unused-vars
+    // @emptyBlock
+  }
+
+  /**
    * Indicates whether the given value, which has already been determined to be
    * referenced more than once in the graph of values being visited, should be
    * converted into a ref object for all but the first visit. The various
-   * `visit*()` methods will call this any time they encounter a value (of any
-   * type) which has been visited before (or is currently being visited),
-   * _except_ a ref instance (instance of {@link VisitRef}) will never be
-   * subject to potential "re-reffing."
+   * `visit*()` methods will call this any time they encounter a value (of an
+   * appropriate type) which has been visited before (or is currently being
+   * visited).
+   *
+   * The values for which this are called are those whose type admits the
+   * possibility of identity (that is, for which `===` can distinguish between
+   * seemingly-identical values), and those whose types do not limit the amount
+   * of storage used. This includes the following types:
+   *
+   * * `bigint`
+   * * `object`, except:
+   *   * not the value `null`
+   *   * not any instance of {@link #VisitRef}
+   * * `function`
+   * * `string`
+   * * `symbol`
    *
    * Note that, for values that are visited recursively and have at least one
    * self-reference (that is, a circular reference), returning `false` will
    * cause the visit to _not_ be able to finish, in that the construction of a
-   * visit result will require itself to be known before its own construction.
+   * visit result will require the result itself to be known before its own
+   * construction.
    *
    * The base implementation of this method always returns `false`. A common
    * choice for a subclass is to return `true` for objects and functions and
@@ -591,15 +620,31 @@ export class BaseValueVisitor {
   /**
    * Assuming this is its second-or-later (recursive or sibling) visit, should
    * the given value be turned into a ref? This just defers to
-   * {@link #_impl_shouldRef}, except that refs themselves are never considered
-   * for re-(re-...)reffing.
+   * {@link #_impl_shouldRef}, after filtering out anything which should never
+   * be considered for reffing.
    *
    * @param {*} value Value to check.
    * @returns {boolean} `true` iff `value` should be turned into a ref.
    */
   #shouldRef(value) {
-    return !(value instanceof VisitRef)
-      && this._impl_shouldRef(value);
+    switch (typeof value) {
+      case 'bigint':
+      case 'function':
+      case 'string':
+      case 'symbol': {
+        return this._impl_shouldRef(value);
+      }
+
+      case 'object': {
+        return ((value === null) || (value instanceof VisitRef))
+          ? false
+          : this._impl_shouldRef(value);
+      }
+
+      default: {
+        return false;
+      }
+    }
   }
 
   /**
@@ -621,9 +666,18 @@ export class BaseValueVisitor {
       if (ref) {
         return this.#visitNode(ref);
       } else if (this.#shouldRef(node)) {
-        const newRef = already.setRef(this.#allRefs.length);
+        already.setDefRef(this.#allRefs.length);
+        const newRef = already.ref;
         this.#allRefs.push(newRef);
+        this._impl_newRef(newRef);
         return this.#visitNode(newRef);
+      } else if (this.#visitSet.has(already)) {
+        // Note that this method isn't ever supposed to throw. What we do here
+        // is mark the entry as being part of a reference cycle, which
+        // ultimately propagates the appropriate error back to the first node
+        // involved in the cycle.
+        already.becomeCircular();
+        return already;
       } else {
         return already;
       }
@@ -717,51 +771,53 @@ export class BaseValueVisitor {
    *   synchronously, or a promise for `result` if not.
    */
   #visitProperties(node, result) {
-    const isArray   = Array.isArray(result);
-    const promNames = [];
+    const isArray    = Array.isArray(result);
+    const propArrays = [
+      Object.getOwnPropertyNames(node),
+      Object.getOwnPropertySymbols(node)
+    ];
 
-    const addResults = (iter) => {
-      for (const name of iter) {
-        if (!(isArray && (name === 'length'))) {
+    // We do this in an async IIFE, so that in the case of actually-synchronous
+    // completion, we can return or throw the non-Promise result.
+    let isAsync = false;
+    let error   = null;
+    const resultProm = (async () => {
+      for (const propArray of propArrays) {
+        for (const name of propArray) {
+          if (isArray && (name === 'length')) {
+            continue;
+          }
+
           const entry = this.#visitNode(node[name]);
-          // Note: `isFinished()` detects synchronous reference cycles.
           if (entry.isFinished()) {
-            result[name] = entry.extractSync();
+            try {
+              result[name] = entry.extractSync();
+            } catch (e) {
+              if (isAsync) {
+                // Propagate the error to `resultProm`.
+                throw e;
+              } else {
+                // Arrange for the synchronous call to throw this error.
+                error = e;
+                break;
+              }
+            }
           } else {
-            promNames.push(name);
-            result[name] = entry;
+            isAsync = true;
+            result[name] = (await entry.promise).extractSync();
           }
         }
       }
-    };
 
-    addResults(Object.getOwnPropertyNames(node));
-    addResults(Object.getOwnPropertySymbols(node));
-
-    if (promNames.length === 0) {
       return result;
+    })();
+
+    if (isAsync) {
+      return resultProm;
+    } else if (error) {
+      throw error;
     } else {
-      // At least one property's visit didn't finish synchronously.
-      return (async () => {
-        for (const name of promNames) {
-          const entry = result[name];
-
-          if (this.#waitSet.has(entry)) {
-            throw new Error('Visit is deadlocked due to circular reference.');
-          }
-
-          try {
-            this.#waitSet.add(entry);
-            await entry.promise;
-          } finally {
-            this.#waitSet.delete(entry);
-          }
-
-          result[name] = entry.extractSync();
-        }
-
-        return result;
-      })();
+      return result;
     }
   }
 
@@ -825,6 +881,13 @@ export class BaseValueVisitor {
     #value = null;
 
     /**
+     * Def which corresponds to this instance, or `null` if there is none.
+     *
+     * @type {?VisitDef}
+     */
+    #def = null;
+
+    /**
      * Ref which corresponds to this instance, or `null` if there is none.
      *
      * @type {?VisitRef}
@@ -850,24 +913,29 @@ export class BaseValueVisitor {
 
     /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
-     * has been finished (whether or not successful). It is only valid to use
-     * this getter after {@link #startVisit} has been called, and in the case
-     * where this gets called _after_ a call to {@link #startVisit} but _before_
-     * it synchronously returns, this will throw an error indicating that the
-     * visit contains a (synchronously detected) circular reference.
+     * has been finished (whether or not successful).
      */
     get promise() {
-      if (this.#promise) {
-        return this.#promise;
+      /* c8 ignore start */
+      if (!this.#promise) {
+        // This is indicative of a bug in this class: This means that the IIFE
+        // call inside `startVisit()` on this instance hasn't yet finished,
+        // which is indicative of a reference cycle. However, that case _should_
+        // have been handled by the `visitSet`-related work in `visitNode()`,
+        // before anything got to the point of asking for this promise.
+        throw new Error('Shouldn\'t happen: Cannot get promise yet.');
       }
+      /* c8 ignore end */
 
-      // This is the case when a visited value has a synchronously-discovered
-      // circular reference, that is, when the synchronous portion of visiting
-      // the value causes a (non-ref) request to visit itself. More or less by
-      // definition, there is no possible way for this situation to result in a
-      // successful visit. Instead, in order to visit values with circular
-      // references, all circles must be broken by replacing them with refs.
-      throw new Error('Visit is deadlocked due to circular reference.');
+      return this.#promise;
+    }
+
+    /**
+     * @returns {?VisitDef} Def which corresponds to this instance, or `null` if
+     * there is none.
+     */
+    get def() {
+      return this.#def;
     }
 
     /**
@@ -876,6 +944,15 @@ export class BaseValueVisitor {
      */
     get ref() {
       return this.#ref;
+    }
+
+    /**
+     * Indicates that this instance represents the initial node detected in a
+     * reference cycle.
+     */
+    becomeCircular() {
+      this.#finishWithError(
+        new Error('Visit is deadlocked due to circular reference.'));
     }
 
     /**
@@ -912,68 +989,50 @@ export class BaseValueVisitor {
     /**
      * Synchronously extracts the result or error of a visit.
      *
-     * @param {boolean} [possiblyUnfinished] Should it be an _expected_
-     *   possibility that the visit has been started but not finished?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or an
      *   error indicating that the visit is still in progress.
      */
-    extractSync(possiblyUnfinished = false) {
+    extractSync() {
       if (this.isFinished()) {
         if (this.#ok) {
           return this.#value;
         } else {
           throw this.#error;
         }
-      } else if (possiblyUnfinished) {
-        throw new Error('Visit did not finish synchronously.');
-        /* c8 ignore start */
       } else {
-        // This is indicative of a bug in this class: If the caller thinks it's
-        // possible that the visit hasn't finished, it should have passed `true`
-        // to this method.
-        throw new Error('Shouldn\'t happen: Visit not yet finished.');
-        /* c8 ignore end */
+        throw new Error('Visit did not finish synchronously.');
       }
     }
 
     /**
-     * Returns an indication of whether the visit has finished, also detecting
-     * the case of a synchronously-detected reference cycle.
+     * Returns an indication of whether the visit has finished.
      *
-     * @returns {boolean} `false` if the visit is in progress, or `true` if it
-     *   is finished.
-     * @throws {Error} Thrown if this method is called before a call to
-     *   {@link #startVisit} on this instance returns (including being called
-     *   before any call to {@link #startVisit}), which indicates that the value
-     *   being visited is involved in a circular reference.
+     * @returns {boolean} `true` if the visit of the referenced value is
+     *   finished, or `false` if it is still in-progress.
      */
     isFinished() {
-      if (this.#ok === null) {
-        // Force a "circular reference" error when warranted (see above).
-        this.promise;
-        return false;
-      } else {
-        return true;
-      }
+      return (this.#ok !== null);
     }
 
     /**
-     * Creates and stores a ref which is to correspond to this instance,
-     * assigning it the indicated index. It is only valid to ever call this
-     * method once on any given instance.
+     * Creates and stores a def and ref which are to correspond to this
+     * instance, assigning them the indicated index. It is only valid to ever
+     * call this method once on any given instance.
      *
      * @param {number} index The index for the ref.
-     * @returns {VisitRef} The newly-constructed ref.
      */
-    setRef(index) {
-      if (this.#ref) {
-        throw new Error('Ref already set.');
+    setDefRef(index) {
+      if (this.#def) {
+        /* c8 ignore start */
+        // This is indicative of a bug in this class.
+        throw new Error('Shouldn\'t happen: Def and ref already set.');
       }
+      /* c8 ignore stop */
 
+      this.#def = new VisitDef(this, index);
       this.#ref = new VisitRef(this, index);
-      return this.#ref;
     }
 
     /**
@@ -988,6 +1047,8 @@ export class BaseValueVisitor {
       // Note: See the implementation of `.promise` for an important detail
       // about circular references.
       this.#promise = (async () => {
+        outerThis.#visitSet.add(this);
+
         try {
           let result = outerThis.#visitNode0(this.#node);
 
@@ -1005,6 +1066,8 @@ export class BaseValueVisitor {
         } catch (e) {
           this.#finishWithError(e);
         }
+
+        outerThis.#visitSet.delete(this);
 
         return this;
       })();

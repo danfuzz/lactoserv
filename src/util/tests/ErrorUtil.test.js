@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ErrorUtil } from '@this/util';
+import { ErrorUtil, StackTrace } from '@this/util';
 
 
 describe('collateErrors()', () => {
@@ -114,6 +114,119 @@ describe('collateErrors()', () => {
       errors:     { err1, err2, err3, err4, err5 },
       ok:         false
     });
+  });
+});
+
+describe('deconstructError()', () => {
+  test('returns a degenerate result given a non-`Error`', () => {
+    const err = [1, 2, 3];
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toStrictEqual([Error, { name: 'Error', message: '1,2,3' }]);
+  });
+
+  test('deconstructs a plain error as expected', () => {
+    const err = new Error('Eep!');
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toBe(err.constructor);
+
+    const props = got[1];
+
+    expect(props).toContainAllKeys(['name', 'message', 'stack']);
+    expect(props.name).toBe('Error');
+    expect(props.message).toBe(err.message);
+    expect(props.stack).toBeInstanceOf(StackTrace);
+  });
+
+  test('does not include a `.stack` if the error does not have a `.stack`', () => {
+    const err = new Error('Eep!');
+
+    delete err.stack;
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).not.toContainKey('stack');
+  });
+
+  test('does not include a `.stack` if the error has a non-string `.stack`', () => {
+    const err = new Error('Eep!');
+
+    err.stack = 123;
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).not.toContainKey('stack');
+  });
+
+  test('includes `.code` when the error has one', () => {
+    const err = new Error('Eep!');
+
+    err.code = 'CODEY-123';
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).toContainKey('code');
+    expect(props.code).toBe(err.code);
+  });
+
+  test('includes `.cause` when the error has one', () => {
+    const err = new Error('Eep!');
+
+    err.cause = new ReferenceError('sub-error');
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).toContainKey('cause');
+    expect(props.cause).toBe(err.cause);
+  });
+
+  test('includes `.errors` when the error has one', () => {
+    const err = new Error('Eep!');
+
+    err.errors = [new ReferenceError('sub-error'), new TypeError('eep-type')];
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(2);
+
+    const props = got[1];
+
+    expect(props).toContainKey('errors');
+    expect(props.errors).toBe(err.errors);
+  });
+
+  test('includes a second object argument when the error has extra properties', () => {
+    const err = new Error('Eep!');
+
+    err.beep  = 'Beep!';
+    err.blorp = 'Blorp!';
+    err.zonk  = 25;
+
+    const got = ErrorUtil.deconstructError(err);
+
+    expect(got).toBeArrayOfSize(3);
+
+    const props = got[2];
+
+    expect(props).toStrictEqual({ beep: 'Beep!', blorp: 'Blorp!', zonk: 25 });
   });
 });
 
