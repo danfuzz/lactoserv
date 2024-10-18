@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { AskIf } from '@this/typey';
 import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/util';
 
 
@@ -13,7 +14,8 @@ import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/util';
  *
  * The main intended interface for this class is the static method
  * {@link #encode}, but it can also just be used directly as the concrete
- * visitor class that it is.
+ * visitor class that it is, if {@link #encode}'s extra functionality isn't
+ * needed.
  *
  * **Note:** This class implements a one-way encoding. It is not possible to
  * recover the original active objects that were encoded (or even copies
@@ -31,18 +33,16 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_shouldRef(value) {
-    switch (typeof value) {
-      case 'function': {
-        return false;
-      }
-
-      case 'object': {
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return (value.length > 10);
+      } else if (AskIf.plainObject(value)) {
+        return (Object.entries(value).length > 10);
+      } else {
         return true;
       }
-
-      default: {
-        return false;
-      }
+    } else {
+      return false;
     }
   }
 
@@ -116,6 +116,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitSymbol(node) {
+    // Symbols aren't JSON-encodable.
     return this._prot_labelFromValue(node);
   }
 
@@ -136,7 +137,66 @@ export class LoggedValueEncoder extends BaseValueVisitor {
    * @returns {*} The encoded form.
    */
   static encode(value) {
-    const visitor = new LoggedValueEncoder(value);
-    return visitor.visitSync();
+    const encoder   = new LoggedValueEncoder(value);
+    const firstPass = encoder.visitSync();
+
+    if (encoder.hasRefs()) {
+      const rewriter = new this.#DefRewriter(firstPass, encoder);
+      const result = rewriter.visitSync();
+      return result;
+    } else {
+      return firstPass;
+    }
   }
+
+  /**
+   * Visitor class that replaces the defining point of each reffed object with a
+   * "def" object.
+   */
+  static #DefRewriter = class DefRewriter extends BaseValueVisitor {
+    /**
+     * The (outer) instance which produced the result to be tweaked.
+     *
+     * @type {LoggedValueEncoder}
+     */
+    #encoder;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {*} value The first pass result of encoding the original value.
+     * @param {LoggedValueEncoder} encoder The instance which did the encoding.
+     */
+    constructor(value, encoder) {
+      super(value);
+      this.#encoder = encoder;
+    }
+
+    /** @override */
+    _impl_visitArray(node) {
+      const result = this._prot_visitArrayProperties(node);
+      return this.#makeDefIfAppropriate(node, result);
+    }
+
+    /** @override */
+    _impl_visitPlainObject(node) {
+      const result = this._prot_visitObjectProperties(node);
+      return this.#makeDefIfAppropriate(node, result);
+    }
+
+    /**
+     * Wraps a result in a "def" if it is in fact a defining value occurrence.
+     *
+     * @param {*} node First-pass encoding result value which _might_ be a
+     *   defining value.
+     * @param {*} result Second-pass encoding of `result`.
+     * @returns {*} a "def" wrapper of `result` if `node` is a defining
+     *   occurrence, or just `result` if not.
+     */
+    #makeDefIfAppropriate(node, result) {
+      const ref = this.#encoder.refFromResultValue(node);
+
+      return ref ? ref.def : result;
+    }
+  };
 }

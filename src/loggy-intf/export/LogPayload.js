@@ -7,7 +7,8 @@ import { EventPayload, EventSource } from '@this/async';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { IntfDeconstructable, StackTrace, VisitRef } from '@this/util';
+import { BaseDefRef, IntfDeconstructable, StackTrace, VisitDef }
+  from '@this/util';
 
 import { LogTag } from '#x/LogTag';
 
@@ -274,8 +275,12 @@ export class LogPayload extends EventPayload {
       case 'object': {
         if (value === null) {
           parts.push('null');
-        } else if (value instanceof VisitRef) {
-          parts.push(`ref #${value.index}`);
+        } else if (value instanceof BaseDefRef) {
+          parts.push(`#${value.index}`);
+          if (value instanceof VisitDef) {
+            parts.push(' = ');
+            this.#appendHumanValue(parts, value.value);
+          }
         } else {
           this.#appendHumanAggregate(parts, value, skipBrackets);
         }
