@@ -1037,16 +1037,6 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Returns an indication of whether the visit has finished.
-     *
-     * @returns {boolean} `true` if the visit of the referenced value is
-     *   finished, or `false` if it is still in-progress.
-     */
-    isFinished() {
-      return (this.#ok !== null);
-    }
-
-    /**
      * Is this instance associated with the given visitor?
      *
      * @param {BaseValueVisitor} visitor
@@ -1055,6 +1045,16 @@ export class BaseValueVisitor {
      */
     isAssociatedWith(visitor) {
       return this.#visitor === visitor;
+    }
+
+    /**
+     * Returns an indication of whether the visit has finished.
+     *
+     * @returns {boolean} `true` if the visit of the referenced value is
+     *   finished, or `false` if it is still in-progress.
+     */
+    isFinished() {
+      return (this.#ok !== null);
     }
 
     /**
