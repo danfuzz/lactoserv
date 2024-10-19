@@ -102,6 +102,10 @@ export class BaseValueVisitor {
    *   if not, or `null` if the visit is still in-progress.
    */
   hasRefs() {
+    if (!this.isFinished()) {
+      return null;
+    }
+
     const allRefs = this.#allRefs;
 
     if (this.#allRefs instanceof Map) {
@@ -121,6 +125,22 @@ export class BaseValueVisitor {
 
     this.#allRefs = refMap;
     return (refMap.size > 0);
+  }
+
+  /**
+   * Is the visit of the top-level {@link #value} finished? This returns `false`
+   * until the visit is complete. This includes returning `false` before the
+   * initial call to a `visit*()` method.
+   *
+   * @returns {boolean} `true` if the visit is finsihed, or `false` if it is
+   *   either in-progress or hasn't yet started.
+   */
+  isFinished() {
+    const entry = this.#visits.get(this.#rootValue);
+
+    return entry
+      ? entry.isFinished()
+      : false;
   }
 
   /**
