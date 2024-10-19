@@ -703,7 +703,7 @@ export class BaseValueVisitor {
       }
     }
 
-    const visitEntry = new BaseValueVisitor.#VisitEntry(node);
+    const visitEntry = new BaseValueVisitor.#VisitEntry(this, node);
     this.#visits.set(node, visitEntry);
 
     // This call synchronously calls back to `visitNode0()`.
@@ -863,6 +863,13 @@ export class BaseValueVisitor {
    */
   static #VisitEntry = class VisitEntry {
     /**
+     * The associated visitor ("outer `this`").
+     *
+     * @type {BaseValueVisitor}
+     */
+    #visitor;
+
+    /**
      * The value whose visit this entry represents.
      *
      * @type {*}
@@ -917,10 +924,13 @@ export class BaseValueVisitor {
     /**
      * Constructs an instance.
      *
+     * @param {BaseValueVisitor} visitor The visitor instance ("outer `this`")
+     *   which is creating this instance.
      * @param {*} node The value whose visit is being represented.
      */
-    constructor(node) {
-      this.#node = node;
+    constructor(visitor, node) {
+      this.#visitor = visitor;
+      this.#node    = node;
     }
 
     /**
@@ -1034,6 +1044,17 @@ export class BaseValueVisitor {
      */
     isFinished() {
       return (this.#ok !== null);
+    }
+
+    /**
+     * Is this instance associated with the given visitor?
+     *
+     * @param {BaseValueVisitor} visitor
+     * @returns {boolean} `true` if this instance's associated visitor is in
+     *   fact `visitor`.
+     */
+    isAssociatedWith(visitor) {
+      return this.#visitor === visitor;
     }
 
     /**
