@@ -707,7 +707,7 @@ export class BaseValueVisitor {
     this.#visits.set(node, visitEntry);
 
     // This call synchronously calls back to `visitNode0()`.
-    visitEntry.startVisit(this);
+    visitEntry.startVisit();
 
     return visitEntry;
   }
@@ -1080,18 +1080,16 @@ export class BaseValueVisitor {
      * Starts the visit for this instance. If the visit could be synchronously
      * finished, the instance state will reflect that fact upon return. If not,
      * the visit will continue asynchronously, after this method returns.
-     *
-     * @param {BaseValueVisitor} outerThis The outer instance associated with
-     *   this instance.
      */
-    startVisit(outerThis) {
+    startVisit() {
       // Note: See the implementation of `.promise` for an important detail
       // about circular references.
       this.#promise = (async () => {
-        outerThis.#visitSet.add(this);
+        const visitor = this.#visitor;
+        visitor.#visitSet.add(this);
 
         try {
-          let result = outerThis.#visitNode0(this.#node);
+          let result = visitor.#visitNode0(this.#node);
 
           if (result instanceof Promise) {
             // This is the moment that this visit becomes "not synchronously
@@ -1108,7 +1106,7 @@ export class BaseValueVisitor {
           this.#finishWithError(e);
         }
 
-        outerThis.#visitSet.delete(this);
+        visitor.#visitSet.delete(this);
 
         return this;
       })();
