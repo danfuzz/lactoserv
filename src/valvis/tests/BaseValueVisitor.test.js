@@ -4,7 +4,7 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
-import { BaseValueVisitor, VisitRef, VisitResult } from '@this/valvis';
+import { BaseValueVisitor, VisitDef, VisitRef, VisitResult } from '@this/valvis';
 
 
 const EXAMPLES = [
@@ -666,7 +666,6 @@ ${'_impl_visitNull'}        | ${false} | ${true}   | ${null}
 ${'_impl_visitNumber'}      | ${false} | ${true}   | ${54.321}
 ${'_impl_visitPlainObject'} | ${true}  | ${true}   | ${{ x: 'bonk' }}
 ${'_impl_visitProxy'}       | ${true}  | ${false}  | ${new Proxy({}, {})}
-${'_impl_visitRef'}         | ${false} | ${true}   | ${new VisitRef(null, 5)}
 ${'_impl_visitString'}      | ${false} | ${true}   | ${'florp'}
 ${'_impl_visitSymbol'}      | ${false} | ${true}   | ${Symbol('woo')}
 ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
@@ -738,6 +737,106 @@ describe('_impl_visitError()', () => {
     vv._impl_visitError = (e) => `yes: ${e.message}`;
 
     expect(vv.visitSync()).toBe('yes: eep');
+  });
+});
+
+// Extra tests beyond the baseline above.
+describe('_impl_visitInstance()', () => {
+  class VisitInstanceCheckVisitor extends BaseValueVisitor {
+    gotNodes = [];
+
+    _impl_visitArray(node) {
+      return this._prot_visitArrayProperties(node);
+    }
+
+    _impl_visitInstance(node) {
+      this.gotNodes.push(node);
+      return 'yes-sir';
+    }
+  }
+
+  test('gets called on an instance of `VisitRef` that was not created by the visitor-in-progress', () => {
+    const ref = new VisitRef(null, 10);
+    const vv  = new VisitInstanceCheckVisitor([ref]);
+
+    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
+    expect(vv.gotNodes).toStrictEqual([ref]);
+  });
+
+  test('gets called on an instance of `VisitDef` that was not created by the visitor-in-progress', () => {
+    const def = new VisitDef(null, 4321);
+    const vv  = new VisitInstanceCheckVisitor([def]);
+
+    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
+    expect(vv.gotNodes).toStrictEqual([def]);
+  });
+});
+
+describe('_impl_revisit()', () => {
+  class RevisitCheckVisitor extends BaseValueVisitor {
+    calledArgs = [];
+
+    _impl_shouldRef(node) {
+      return (typeof node === 'object');
+    }
+
+    _impl_visitArray(node) {
+      return this._prot_visitArrayProperties(node);
+    }
+
+    _impl_revisit(node, result, isCycleHead, ref) {
+      this.calledArgs.push({ node, result, isCycleHead, ref });
+    }
+  }
+
+  test('just returns `undefined` (default implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._impl_revisit('florp', 'florp', false, null)).toBeUndefined();
+  });
+
+  test('is called once on a non-circular ref that was created during the visit, when the original `value` has two references to the shared value', () => {
+    const shared = ['shared'];
+    const vv     = new RevisitCheckVisitor([shared, shared]);
+
+    expect(vv.visitSync()).toBeArrayOfSize(2);
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+
+    expect(vv.calledArgs[0].node).toBe(shared);
+    expect(vv.calledArgs[0].result).toStrictEqual(shared);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+  });
+
+  test('is called twice on a non-circular ref that was created during the visit, when the original `value` has three references to the shared value', () => {
+    const shared = ['shared'];
+    const vv     = new RevisitCheckVisitor([shared, shared, shared]);
+
+    expect(vv.visitSync()).toBeArrayOfSize(3);
+    expect(vv.calledArgs).toBeArrayOfSize(2);
+
+    expect(vv.calledArgs[0].node).toBe(shared);
+    expect(vv.calledArgs[0].result).toStrictEqual(shared);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+    expect(vv.calledArgs[1]).toStrictEqual(vv.calledArgs[0]);
+  });
+
+  test('is called once on a circular ref that was created during the visit, when the original `value` has one circular reference to the value', () => {
+    const circular = ['circle'];
+    circular.push(circular);
+
+    const vv  = new RevisitCheckVisitor([circular]);
+    const got = vv.visitSync();
+
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+
+    expect(vv.calledArgs[0].node).toBe(circular);
+    expect(vv.calledArgs[0].result).toBeNull();
+    expect(vv.calledArgs[0].isCycleHead).toBeTrue();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+
+    expect(got).toBeArrayOfSize(1);
+    expect(got[0]).toStrictEqual(['circle', vv.calledArgs[0].ref]);
   });
 });
 
