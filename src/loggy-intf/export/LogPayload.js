@@ -356,6 +356,21 @@ export class LogPayload extends EventPayload {
     }
 
     /**
+     * Renders an object key, quoting and colorizing as appropriate.
+     *
+     * @param {*} key The key.
+     * @returns {string} The rendered form.
+     */
+    #renderKey(key) {
+      if ((typeof key === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(key)) {
+        // It doesn't have to be quoted.
+        return key;
+      } else {
+        return this._impl_visitString(key);
+      }
+    }
+
+    /**
      * Constructs a "shouldn't happen" error. This is used in the implementation
      * of all the `_impl_visit*()` methods corresponding to types that aren't
      * supposed to show up in a payload.
@@ -398,8 +413,7 @@ export class LogPayload extends EventPayload {
         }
 
         if (inProps) {
-          // `inspect()` to get good quoting, etc.
-          result.push(util.inspect(k), ': ');
+          result.push(this.#renderKey(k), ': ');
         }
 
         result.push(v);
