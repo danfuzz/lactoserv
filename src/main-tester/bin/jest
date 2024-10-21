@@ -9,10 +9,30 @@ cmdDir="${cmdName%/*}"
 cmdName="${cmdName##*/}"
 baseDir="${cmdDir%/*}"
 
+# Figure out the options to pass to Node vs. Jest. In particular, if the passed
+# options has `--inspect-brk`, pass that as a Node option, not a Jest option. As
+# for the default options: `--experimental-vm-modules` is needed by the Jest
+# runner, and `--no-warnings` is because we use our own warning printer (and
+# suppress the warning from using `--experimental-vm-modules`).
+
+NODE_OPTIONS='--experimental-vm-modules --no-warnings'
+jestArgs=()
+
+local afterOpts=0
+for arg in "$@"; do
+    if (( !afterOpts )); then
+        if [[ ${arg} == '--inspect-brk' ]]; then
+            NODE_OPTIONS+=" ${arg}"
+            continue
+        elif [[ !(${arg} =~ ^-) ]]; then
+            afterOpts=1
+        fi
+    fi
+
+    jestArgs+=("${arg}")
+done
+
 # Call through to the `jest` that got built by the main Jest dependency.
-# `--experimental-vm-modules` is needed by the Jest runner, and `--no-warnings`
-# is because we use our own warning printer (and suppress the warning from
-# using `--experimental-vm-modules`).
-NODE_OPTIONS='--experimental-vm-modules --no-warnings'  \
-    exec "${baseDir}/lib/node_modules/.bin/jest" \
-        "$@"
+
+NODE_OPTIONS="${NODE_OPTIONS}" \
+    exec "${baseDir}/lib/node_modules/.bin/jest" "${jestArgs[@]}"
