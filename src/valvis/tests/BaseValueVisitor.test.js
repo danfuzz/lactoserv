@@ -774,10 +774,16 @@ describe('_impl_visitInstance()', () => {
 
 describe('_impl_revisit()', () => {
   class RevisitCheckVisitor extends BaseValueVisitor {
+    #doRefs;
     calledArgs = [];
 
+    constructor(value, doRefs = true) {
+      super(value);
+      this.#doRefs = doRefs;
+    }
+
     _impl_shouldRef(node) {
-      return (typeof node === 'object');
+      return this.#doRefs && (typeof node === 'object');
     }
 
     _impl_visitArray(node) {
@@ -837,6 +843,30 @@ describe('_impl_revisit()', () => {
 
     expect(got).toBeArrayOfSize(1);
     expect(got[0]).toStrictEqual(['circle', vv.calledArgs[0].ref]);
+  });
+
+  test.each`
+  label               | value
+  ${'null'}           | ${null}
+  ${'undefined'}      | ${undefined}
+  ${'a boolean'}      | ${true}
+  ${'a number'}       | ${12345}
+  ${'a bigint'}       | ${123987n}
+  ${'a string'}       | ${'stringy-string'}
+  ${'a symbol'}       | ${Symbol('blort')}
+  ${'an array'}       | ${[4, 5, 9]}
+  ${'a plain object'} | ${{ x: 'boop' }}
+  ${'an instance'}    | ${new Set('foo', 'bar')}
+  `('can get called for $label', ({ value }) => {
+    const vv  = new RevisitCheckVisitor([value, value], false);
+    const got = vv.visitSync();
+
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+
+    expect(vv.calledArgs[0].node).toBe(value);
+    expect(vv.calledArgs[0].result).toEqual(value);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeNull();
   });
 });
 
