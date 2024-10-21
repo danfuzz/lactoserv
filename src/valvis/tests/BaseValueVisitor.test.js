@@ -861,10 +861,13 @@ describe('_impl_revisit()', () => {
     const vv  = new RevisitCheckVisitor([value, value], false);
     const got = vv.visitSync();
 
-    expect(vv.calledArgs).toBeArrayOfSize(1);
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toBe(got[1]);
 
+    expect(vv.calledArgs).toBeArrayOfSize(1);
     expect(vv.calledArgs[0].node).toBe(value);
     expect(vv.calledArgs[0].result).toEqual(value);
+    expect(vv.calledArgs[0].result).toBe(got[0]);
     expect(vv.calledArgs[0].isCycleHead).toBeFalse();
     expect(vv.calledArgs[0].ref).toBeNull();
   });
