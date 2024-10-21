@@ -5,6 +5,7 @@ import { types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { BaseDefRef } from '#x/BaseDefRef';
 import { VisitDef } from '#x/VisitDef';
 import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
@@ -102,6 +103,10 @@ export class BaseValueVisitor {
    *   if not, or `null` if the visit is still in-progress.
    */
   hasRefs() {
+    if (!this.isFinished()) {
+      return null;
+    }
+
     const allRefs = this.#allRefs;
 
     if (this.#allRefs instanceof Map) {
@@ -121,6 +126,22 @@ export class BaseValueVisitor {
 
     this.#allRefs = refMap;
     return (refMap.size > 0);
+  }
+
+  /**
+   * Is the visit of the top-level {@link #value} finished? This returns `false`
+   * until the visit is complete. This includes returning `false` before the
+   * initial call to a `visit*()` method.
+   *
+   * @returns {boolean} `true` if the visit is finsihed, or `false` if it is
+   *   either in-progress or hasn't yet started.
+   */
+  isFinished() {
+    const entry = this.#visits.get(this.#rootValue);
+
+    return entry
+      ? entry.isFinished()
+      : false;
   }
 
   /**
@@ -218,6 +239,35 @@ export class BaseValueVisitor {
    * @param {VisitRef} ref The ref that was created.
    */
   _impl_newRef(ref) { // eslint-disable-line no-unused-vars
+    // @emptyBlock
+  }
+
+  /**
+   * "Revisits" a value that has been encountered before during the visit. This
+   * is called during a visit on the second and subsequent times a particular
+   * value has been encountered, including when encountered as part of a
+   * reference cycle.
+   *
+   * The return value of this method is not used to construct the ultimate visit
+   * result. Instead, this method's purpose is to enable concrete visitor
+   * classes to cause side effects in reaction to revisits. As such, the base
+   * implementation of this method does nothing.
+   *
+   * @param {*} node The original value which has now been encountered at least
+   *   twice.
+   * @param {*} resultValue The result value from the completed original visit
+   *   to node. This will be `null` if the call to this method is taking place
+   *   at the moment of reference cycle detection.
+   * @param {boolean} isCycleHead `true` if `node` has been detected as the
+   *   "head" (first-encountered value) of a reference cycle, or `false` if not.
+   *   When `false`, the `node` _might_ still be part of a cycle, but it wasn't
+   *   specifically the detected head of the cycle.
+   * @param {?VisitRef} ref The ref instance which represents `node`, if any.
+   *   This is non-`null` when {@link #_impl_shouldRef} returned `true` for
+   *   `node` _and_ this call wasn't made at the moment of reference cycle
+   *   detection.
+   */
+  _impl_revisit(node, resultValue, isCycleHead, ref) { // eslint-disable-line no-unused-vars
     // @emptyBlock
   }
 
@@ -399,20 +449,6 @@ export class BaseValueVisitor {
    */
   _impl_visitProxy(node, isFunction) { // eslint-disable-line no-unused-vars
     return this._prot_wrapResult(node);
-  }
-
-  /**
-   * Visits a reference to a visit result from the visit currently in progress.
-   * When {@link #_impl_shouldRef} indicates that an already-seen value should
-   * become a "ref," then this is the method that ultimately gets called in
-   * order to visit that ref. The base implementation returns the given node
-   * as-is.
-   *
-   * @param {VisitRef} node The node to visit.
-   * @returns {*} Arbitrary result of visiting.
-   */
-  _impl_visitRef(node) {
-    return node;
   }
 
   /**
@@ -618,36 +654,6 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Assuming this is its second-or-later (recursive or sibling) visit, should
-   * the given value be turned into a ref? This just defers to
-   * {@link #_impl_shouldRef}, after filtering out anything which should never
-   * be considered for reffing.
-   *
-   * @param {*} value Value to check.
-   * @returns {boolean} `true` iff `value` should be turned into a ref.
-   */
-  #shouldRef(value) {
-    switch (typeof value) {
-      case 'bigint':
-      case 'function':
-      case 'string':
-      case 'symbol': {
-        return this._impl_shouldRef(value);
-      }
-
-      case 'object': {
-        return ((value === null) || (value instanceof VisitRef))
-          ? false
-          : this._impl_shouldRef(value);
-      }
-
-      default: {
-        return false;
-      }
-    }
-  }
-
-  /**
    * Visitor for a "node" (referenced value, including possibly the root) of the
    * graph of values being visited. If there is already an entry in
    * {@link #visits} for the node, it is returned. Otherwise, a new entry is
@@ -662,32 +668,51 @@ export class BaseValueVisitor {
     const already = this.#visits.get(node);
 
     if (already) {
-      const ref = already.ref;
-      if (ref) {
+      let ref = already.ref;
+
+      if (ref || already.shouldRef()) {
+        // We either already have a ref, or we are supposed to make a ref.
+
+        const isCycleHead = !already.isFinished();
+        const result      = isCycleHead ? null : already.extractSync();
+
+        if (!ref) {
+          already.setDefRef(this.#allRefs.length);
+          ref = already.ref;
+          this.#allRefs.push(ref);
+          this._impl_newRef(ref);
+        }
+
+        this._impl_revisit(node, result, isCycleHead, ref);
         return this.#visitNode(ref);
-      } else if (this.#shouldRef(node)) {
-        already.setDefRef(this.#allRefs.length);
-        const newRef = already.ref;
-        this.#allRefs.push(newRef);
-        this._impl_newRef(newRef);
-        return this.#visitNode(newRef);
       } else if (this.#visitSet.has(already)) {
-        // Note that this method isn't ever supposed to throw. What we do here
-        // is mark the entry as being part of a reference cycle, which
-        // ultimately propagates the appropriate error back to the first node
-        // involved in the cycle.
+        // We have encountered the head of a reference cycle that was _not_
+        // handled by making a "ref" object for the back-reference.
+
+        // We mark the entry as circular, which ultimately propagates the
+        // appropriate error back to the first node involved in the cycle. Note
+        // that this method isn't ever supposed to throw, which is why we don't
+        // just `throw` directly here.
         already.becomeCircular();
         return already;
       } else {
+        // This is a revisit of a value for which `_impl_shouldRef()` returned
+        // `false`.
+        if (!((node instanceof BaseDefRef) && node.isAssociatedWith(this))) {
+          // Only call `revisit()` if it's not a self-associated ref/def.
+          this._impl_revisit(node, already.extractSync(), false, null);
+        }
         return already;
       }
     }
 
-    const visitEntry = new BaseValueVisitor.#VisitEntry(node);
+    // We have not previously encountered `node` during this visit.
+
+    const visitEntry = new BaseValueVisitor.#VisitEntry(this, node);
     this.#visits.set(node, visitEntry);
 
     // This call synchronously calls back to `visitNode0()`.
-    visitEntry.startVisit(this);
+    visitEntry.startVisit();
 
     return visitEntry;
   }
@@ -743,8 +768,12 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
-        } else if (node instanceof VisitRef) {
-          return this._impl_visitRef(node);
+        } else if ((node instanceof BaseDefRef) && node.isAssociatedWith(this)) {
+          // Any defs or refs that are from this visit are just returned as-is.
+          // (But if they're associated with a different visitor, they're
+          // treated as regular instances, due to the `isAssociatedWith()` check
+          // above.)
+          return node;
         } else if (node instanceof Error) {
           return this._impl_visitError(node);
         } else {
@@ -843,6 +872,13 @@ export class BaseValueVisitor {
    */
   static #VisitEntry = class VisitEntry {
     /**
+     * The associated visitor ("outer `this`").
+     *
+     * @type {BaseValueVisitor}
+     */
+    #visitor;
+
+    /**
      * The value whose visit this entry represents.
      *
      * @type {*}
@@ -881,6 +917,14 @@ export class BaseValueVisitor {
     #value = null;
 
     /**
+     * Should repeat visits to this entry's value result in refs? `null` if not
+     * yet determined.
+     *
+     * @type {?boolean}
+     */
+    #shouldRef = null;
+
+    /**
      * Def which corresponds to this instance, or `null` if there is none.
      *
      * @type {?VisitDef}
@@ -897,10 +941,13 @@ export class BaseValueVisitor {
     /**
      * Constructs an instance.
      *
+     * @param {BaseValueVisitor} visitor The visitor instance ("outer `this`")
+     *   which is creating this instance.
      * @param {*} node The value whose visit is being represented.
      */
-    constructor(node) {
-      this.#node = node;
+    constructor(visitor, node) {
+      this.#visitor = visitor;
+      this.#node    = node;
     }
 
     /**
@@ -1007,6 +1054,17 @@ export class BaseValueVisitor {
     }
 
     /**
+     * Is this instance associated with the given visitor?
+     *
+     * @param {BaseValueVisitor} visitor The visitor in question.
+     * @returns {boolean} `true` if this instance's associated visitor is in
+     *   fact `visitor`.
+     */
+    isAssociatedWith(visitor) {
+      return this.#visitor === visitor;
+    }
+
+    /**
      * Returns an indication of whether the visit has finished.
      *
      * @returns {boolean} `true` if the visit of the referenced value is
@@ -1036,21 +1094,60 @@ export class BaseValueVisitor {
     }
 
     /**
+     * Assuming this is its second-or-later (recursive or sibling) visit, should
+     * the value associated with this instance be turned into a ref? This just
+     * defers to {@link #_impl_shouldRef}, after filtering out anything which
+     * should never be considered for reffing, and caches the result so that
+     * {@link #_impl_shouldRef} is never called more than once per original
+     * value.
+     *
+     * @returns {boolean} `true` iff repeat visits to this instance should
+     *   result in a ref to this instance's result.
+     */
+    shouldRef() {
+      if (this.#shouldRef === null) {
+        const node   = this.#node;
+        let   result = false;
+
+        switch (typeof node) {
+          case 'bigint':
+          case 'function':
+          case 'string':
+          case 'symbol': {
+            result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+
+            break;
+          }
+
+          case 'object': {
+            if (   (node !== null)
+                && !((node instanceof VisitRef) && (node.isAssociatedWith(this.#visitor)))) {
+              result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            }
+            break;
+          }
+        }
+
+        this.#shouldRef = result;
+      }
+
+      return this.#shouldRef;
+    }
+
+    /**
      * Starts the visit for this instance. If the visit could be synchronously
      * finished, the instance state will reflect that fact upon return. If not,
      * the visit will continue asynchronously, after this method returns.
-     *
-     * @param {BaseValueVisitor} outerThis The outer instance associated with
-     *   this instance.
      */
-    startVisit(outerThis) {
+    startVisit() {
       // Note: See the implementation of `.promise` for an important detail
       // about circular references.
       this.#promise = (async () => {
-        outerThis.#visitSet.add(this);
+        const visitor = this.#visitor;
+        visitor.#visitSet.add(this);
 
         try {
-          let result = outerThis.#visitNode0(this.#node);
+          let result = visitor.#visitNode0(this.#node);
 
           if (result instanceof Promise) {
             // This is the moment that this visit becomes "not synchronously
@@ -1067,7 +1164,7 @@ export class BaseValueVisitor {
           this.#finishWithError(e);
         }
 
-        outerThis.#visitSet.delete(this);
+        visitor.#visitSet.delete(this);
 
         return this;
       })();

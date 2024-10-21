@@ -58,8 +58,9 @@ export class BaseDefRef {
    * private inner class of {@link BaseValueVisitor}, and as such, this
    * constructor isn't usable publicly.
    *
-   * @param {VisitEntry} entry The visit-in-progress entry representing the
-   *   original visit.
+   * @param {?VisitEntry} entry The visit-in-progress entry representing the
+   *   original visit, or `null` if there is no associated entry. (The latter
+   *   case is mostly intended for testing scenarios.)
    * @param {number} index The reference index number.
    */
   constructor(entry, index) {
@@ -68,19 +69,25 @@ export class BaseDefRef {
   }
 
   /**
-   * @returns {VisitDef} The def corresponding to this instance. This is `this`
+   * @returns {?VisitDef} The def corresponding to this instance. This is `this`
    * if this instance is in fact a def.
+   *
+   * **Note:** This is only ever `null` when the instance was constructed with
+   * `entry === null`.
    */
   get def() {
-    return this.#entry.def;
+    return this.#entry?.def ?? null;
   }
 
   /**
-   * @returns {VisitRef} The ref corresponding to this instance. This is `this`
+   * @returns {?VisitRef} The ref corresponding to this instance. This is `this`
    * if this instance is in fact a ref.
+   *
+   * **Note:** This is only ever `null` when the instance was constructed with
+   * `entry === null`.
    */
   get ref() {
-    return this.#entry.ref;
+    return this.#entry?.ref ?? null;
   }
 
   /**
@@ -96,7 +103,7 @@ export class BaseDefRef {
    * instance is a reference to.
    */
   get originalValue() {
-    return this.#entry.originalValue;
+    return this.#entry?.originalValue ?? null;
   }
 
   /**
@@ -105,7 +112,18 @@ export class BaseDefRef {
    *   in progress.
    */
   get value() {
-    return this.#entry.extractSync();
+    return this.#entry?.extractSync() ?? null;
+  }
+
+  /**
+   * Is this instance associated with the given visitor?
+   *
+   * @param {BaseValueVisitor} visitor The visitor in question.
+   * @returns {boolean} `true` if this instance's associated visitor is in
+   *   fact `visitor`.
+   */
+  isAssociatedWith(visitor) {
+    return this.#entry?.isAssociatedWith(visitor) ?? false;
   }
 
   /**
@@ -116,6 +134,6 @@ export class BaseDefRef {
    *   or `false` if it is still in-progress.
    */
   isFinished() {
-    return this.#entry.isFinished();
+    return this.#entry?.isFinished() ?? false;
   }
 }

@@ -19,7 +19,7 @@ define-usage --with-help $'
       `build` -- Always build, even if there is something already built.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing yet built. This is the default.
-    --type=<type> :: `integration` `unit` `unit-coverage`
+    --type=<type> :: `integration` `unit` `unit-coverage` `unit-debug`
       Test type to run. By default, runs unit tests (without coverage reporting).
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
@@ -30,7 +30,7 @@ define-usage --with-help $'
 opt-value --var=action --default=run --enum[]='build clean run' do
 
 # Test type.
-opt-value --var=testType --default=unit --enum[]='integration unit unit-coverage' type
+opt-value --var=testType --default=unit --enum[]='integration unit unit-coverage unit-debug' type
 
 # Built output directory.
 opt-value --var=outDir out
@@ -159,6 +159,9 @@ case "${testType}" in
         ;;
     unit-coverage)
         run-unit-tests --coverage
+        ;;
+    unit-debug)
+        run-unit-tests --inspect-brk --runInBand
         ;;
     *)
         # Shouldn't happen. Bug in this script.
