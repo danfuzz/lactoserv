@@ -116,13 +116,13 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitSymbol(node) {
     // Symbols aren't JSON-encodable.
-    return this._prot_labelFromValue(node);
+    return new Sexp('Symbol', node.description);
   }
 
   /** @override */
   _impl_visitUndefined(node_unused) {
     // `undefined` isn't JSON-encodable.
-    return { '@undefined': [] };
+    return new Sexp('Undefined');
   }
 
   //
