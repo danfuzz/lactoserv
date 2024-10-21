@@ -638,36 +638,6 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Assuming this is its second-or-later (recursive or sibling) visit, should
-   * the given value be turned into a ref? This just defers to
-   * {@link #_impl_shouldRef}, after filtering out anything which should never
-   * be considered for reffing.
-   *
-   * @param {*} value Value to check.
-   * @returns {boolean} `true` iff `value` should be turned into a ref.
-   */
-  #shouldRef(value) {
-    switch (typeof value) {
-      case 'bigint':
-      case 'function':
-      case 'string':
-      case 'symbol': {
-        return this._impl_shouldRef(value);
-      }
-
-      case 'object': {
-        return ((value === null) || (value instanceof VisitRef))
-          ? false
-          : this._impl_shouldRef(value);
-      }
-
-      default: {
-        return false;
-      }
-    }
-  }
-
-  /**
    * Visitor for a "node" (referenced value, including possibly the root) of the
    * graph of values being visited. If there is already an entry in
    * {@link #visits} for the node, it is returned. Otherwise, a new entry is
@@ -685,7 +655,7 @@ export class BaseValueVisitor {
       const ref = already.ref;
       if (ref) {
         return this.#visitNode(ref);
-      } else if (this.#shouldRef(node)) {
+      } else if (already.shouldRef()) {
         already.setDefRef(this.#allRefs.length);
         const newRef = already.ref;
         this.#allRefs.push(newRef);
@@ -908,6 +878,14 @@ export class BaseValueVisitor {
     #value = null;
 
     /**
+     * Should repeat visits to this entry's value result in refs? `null` if not
+     * yet determined.
+     *
+     * @type {?boolean}
+     */
+    #shouldRef = null;
+
+    /**
      * Def which corresponds to this instance, or `null` if there is none.
      *
      * @type {?VisitDef}
@@ -1039,7 +1017,7 @@ export class BaseValueVisitor {
     /**
      * Is this instance associated with the given visitor?
      *
-     * @param {BaseValueVisitor} visitor
+     * @param {BaseValueVisitor} visitor The visitor in question.
      * @returns {boolean} `true` if this instance's associated visitor is in
      *   fact `visitor`.
      */
@@ -1074,6 +1052,47 @@ export class BaseValueVisitor {
 
       this.#def = new VisitDef(this, index);
       this.#ref = new VisitRef(this, index);
+    }
+
+    /**
+     * Assuming this is its second-or-later (recursive or sibling) visit, should
+     * the value associated with this instance be turned into a ref? This just
+     * defers to {@link #_impl_shouldRef}, after filtering out anything which
+     * should never be considered for reffing, and caches the result so that
+     * {@link #_impl_shouldRef} is never called more than once per original
+     * value.
+     *
+     * @returns {boolean} `true` iff repeat visits to this instance should
+     *   result in a ref to this instance's result.
+     */
+    shouldRef() {
+      if (this.#shouldRef === null) {
+        const node   = this.#node;
+        let   result = false;
+
+        switch (typeof node) {
+          case 'bigint':
+          case 'function':
+          case 'string':
+          case 'symbol': {
+            result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+
+            break;
+          }
+
+          case 'object': {
+            if (   (node !== null)
+                && !((node instanceof VisitRef) && (node.isAssociatedWith(this.#visitor)))) {
+              result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            }
+            break;
+          }
+        }
+
+        this.#shouldRef = result;
+      }
+
+      return this.#shouldRef;
     }
 
     /**
