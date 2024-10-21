@@ -243,10 +243,10 @@ export class BaseValueVisitor {
   }
 
   /**
-   * "Revisits" a value that has been encountered before during the visit _and_
-   * which is subject to reffing (see {@link #_impl_shouldRef}). This is called
-   * during a visit on the second and subsequent times a particular value has
-   * been encountered, including when encountered as part of a reference cycle.
+   * "Revisits" a value that has been encountered before during the visit. This
+   * is called during a visit on the second and subsequent times a particular
+   * value has been encountered, including when encountered as part of a
+   * reference cycle.
    *
    * The return value of this method is not used to construct the ultimate visit
    * result. Instead, this method's purpose is to enable concrete visitor
