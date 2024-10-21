@@ -201,8 +201,8 @@ export class LogTag extends IntfDeconstructable {
    */
   static #COLOR_CONTEXT = [
     chalk.bold.dim,
-    chalk.bold.green,
-    chalk.green,
+    chalk.bold.ansi256(54),
+    chalk.ansi256(54),
     chalk.blue
   ];
 
