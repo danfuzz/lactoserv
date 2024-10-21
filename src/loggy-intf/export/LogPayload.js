@@ -154,6 +154,27 @@ export class LogPayload extends EventPayload {
   //
 
   /**
+   * Colorizer function to use for defs and refs.
+   *
+   * @type {Function}
+   */
+  static #COLOR_DEF_REF = chalk.magenta.bold;
+
+  /**
+   * Colorizer function to use for top-level payload type and cladding.
+   *
+   * @type {Function}
+   */
+  static #COLOR_PAYLOAD = chalk.bold;
+
+  /**
+   * Colorizer function to use for {@link Sexp} type and cladding.
+   *
+   * @type {Function}
+   */
+  static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
+
+  /**
    * Moment to use for "kickoff" instances.
    *
    * @type {Moment}
@@ -249,7 +270,7 @@ export class LogPayload extends EventPayload {
     /** @override */
     _impl_visitInstance(node) {
       if (node instanceof LogPayload) {
-        const color          = chalk.bold;
+        const color          = LogPayload.#COLOR_PAYLOAD;
         const { type, args } = node;
         if (args.length === 0) {
           // Avoid extra work in the easy zero-args case.
@@ -261,7 +282,7 @@ export class LogPayload extends EventPayload {
           return this.#visitAggregate(args, open, close, null);
         }
       } else if (node instanceof BaseDefRef) {
-        const color  = chalk.magenta.bold;
+        const color  = LogPayload.#COLOR_DEF_REF;
         const result = [this.#maybeColorize(`#${node.index}`, color)];
         if (node instanceof VisitDef) {
           result.push(
@@ -270,8 +291,17 @@ export class LogPayload extends EventPayload {
         }
         return result;
       } else if (node instanceof Sexp) {
-        const result = this.#visitAggregate(node.args, '(', ')', '()');
-        return ['@', node.functorName, ...result];
+        const color                 = LogPayload.#COLOR_SEXP;
+        const { functorName, args } = node;
+        if (args.length === 0) {
+          // Avoid extra work in the easy zero-args case.
+          const text = `@${functorName}()`;
+          return [this.#maybeColorize(text, color)];
+        } else {
+          const open  = this.#maybeColorize(`@${functorName}(`, color);
+          const close = this.#maybeColorize(')', color);
+          return this.#visitAggregate(args, open, close, null);
+        }
       } else {
         throw this.#shouldntHappen();
       }
