@@ -595,7 +595,7 @@ export class BaseValueVisitor {
 
     return entry.isFinished()
       ? new VisitResult(entry.extractSync())
-      : entry.promise
+      : entry.promise;
   }
 
   /**
