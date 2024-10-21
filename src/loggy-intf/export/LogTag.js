@@ -148,24 +148,16 @@ export class LogTag extends IntfDeconstructable {
 
     if (!this.#humanStrings[objKey]) {
       const parts = [
-        colorize ? chalk.dim(this.#main) : this.#main
+        colorize ? LogTag.#COLOR_MAIN(this.#main) : this.#main
       ];
 
       const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        parts.push('.');
+        const color = colorize
+          ? LogTag.#COLOR_CONTEXT[n]
+          : null;
 
-        let color = null;
-        if (colorize) {
-          switch (n) {
-            case 0: color = chalk.bold.dim;   break;
-            case 1: color = chalk.bold.green; break;
-            case 2: color = chalk.green;      break;
-            case 3: color = chalk.blue;       break;
-          }
-        }
-
-        parts.push(color ? color(ctx[n]) : ctx[n]);
+        parts.push('.', color ? color(ctx[n]) : ctx[n]);
       }
 
       this.#humanStrings[objKey] = parts.join('');
@@ -194,6 +186,25 @@ export class LogTag extends IntfDeconstructable {
   //
   // Static members
   //
+
+  /**
+   * Color function for the main tag.
+   *
+   * @type {Function}
+   */
+  static #COLOR_MAIN = chalk.dim;
+
+  /**
+   * Color functions for context tags at the corresponding indexes.
+   *
+   * @type {Array<Function>}
+   */
+  static #COLOR_CONTEXT = [
+    chalk.bold.dim,
+    chalk.bold.green,
+    chalk.green,
+    chalk.blue
+  ];
 
   /**
    * Validates a context string.
