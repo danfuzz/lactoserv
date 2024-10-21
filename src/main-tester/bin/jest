@@ -18,7 +18,7 @@ baseDir="${cmdDir%/*}"
 NODE_OPTIONS='--experimental-vm-modules --no-warnings'
 jestArgs=()
 
-local afterOpts=0
+afterOpts=0
 for arg in "$@"; do
     if (( !afterOpts )); then
         if [[ ${arg} == '--inspect-brk' ]]; then

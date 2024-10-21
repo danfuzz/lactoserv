@@ -582,6 +582,23 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Visits the given value as a "sub-visit" of the main visit. This can be
+   * used in concrete subclasses, for example, to visit the various pieces of
+   * instances, where a simple object property visit wouldn't suffice.
+   *
+   * @param {*} node Value to visit.
+   * @returns {VisitResult|Promise<VisitResult>} The visit result if
+   * synchronously available, or a promise for the result if not.
+   */
+  _prot_visit(node) {
+    const entry = this.#visitNode(node);
+
+    return entry.isFinished()
+      ? new VisitResult(entry.extractSync())
+      : entry.promise;
+  }
+
+  /**
    * Visits the indexed values and any other "own" property values of an array,
    * _excluding_ `length`. Returns an array consisting of all the visited
    * values, with indices / property names corresponding to the original. If the
@@ -1012,39 +1029,36 @@ export class BaseValueVisitor {
      * that promise and not the result promise per se. This is the crux of the
      * difference between {link #visit} and {@link #visitWrap} (see which).
      *
-     * @param {boolean} wrapResult Should a successful result be wrapped?
+     * @param {boolean} [wrapResult] Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed.
      */
-    async extractAsync(wrapResult) {
+    async extractAsync(wrapResult = false) {
       if (!this.isFinished()) {
         // Wait for the visit to finish, either successfully or not. This should
         // never throw.
         await this.#promise;
       }
 
-      if (this.#ok) {
-        return wrapResult
-          ? new VisitResult(this.#value)
-          : this.#value;
-      } else {
-        throw this.#error;
-      }
+      return this.extractSync(wrapResult);
     }
 
     /**
      * Synchronously extracts the result or error of a visit.
      *
+     * @param {boolean} [wrapResult] Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or an
      *   error indicating that the visit is still in progress.
      */
-    extractSync() {
+    extractSync(wrapResult = false) {
       if (this.isFinished()) {
         if (this.#ok) {
-          return this.#value;
+          return wrapResult
+            ? new VisitResult(this.#value)
+            : this.#value;
         } else {
           throw this.#error;
         }

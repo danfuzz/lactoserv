@@ -8,7 +8,8 @@ import { IntfDeconstructable, Sexp } from '@this/decon';
 import { Moment } from '@this/quant';
 import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
-import { BaseDefRef, StackTrace, VisitDef } from '@this/valvis';
+import { BaseDefRef, BaseValueVisitor, StackTrace, VisitDef }
+  from '@this/valvis';
 
 import { LogTag } from '#x/LogTag';
 
@@ -143,27 +144,35 @@ export class LogPayload extends EventPayload {
    * @param {boolean} colorize Colorize the result?
    */
   #appendHumanPayload(parts, colorize) {
-    const args = this.args;
-
-    if (args.length === 0) {
-      // Avoid extra work in the easy zero-args case.
-      const text = `${this.type}()`;
-      parts.push(colorize ? chalk.bold(text) : text);
-      return;
-    }
-
-    const opener = `${this.type}(`;
-
-    parts.push(colorize ? chalk.bold(opener) : opener);
-    LogPayload.#appendHumanValue(parts, args, true);
-
-    parts.push(colorize ? chalk.bold(')') : ')');
+    const human = new LogPayload.#HumanVisitor(this, colorize).visitSync();
+    parts.push(...human.flat(Number.POSITIVE_INFINITY));
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * Colorizer function to use for defs and refs.
+   *
+   * @type {Function}
+   */
+  static #COLOR_DEF_REF = chalk.magenta.bold;
+
+  /**
+   * Colorizer function to use for top-level payload type and cladding.
+   *
+   * @type {Function}
+   */
+  static #COLOR_PAYLOAD = chalk.bold;
+
+  /**
+   * Colorizer function to use for {@link Sexp} type and cladding.
+   *
+   * @type {Function}
+   */
+  static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
 
   /**
    * Moment to use for "kickoff" instances.
@@ -204,98 +213,218 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Helper for {@link #appendHumanValue}, which deals with objects and arrays.
-   *
-   * TODO: Figure out when doing a multi-line rendering would be more ergonomic.
-   *
-   * @param {Array<string>} parts Parts array to append to.
-   * @param {*} value Value to represent.
-   * @param {boolean} skipBrackets Skip brackets at this level?
+   * Visitor class which stringifies instances of this (outer) class and all its
+   * components. This produces an array whose elements are either strings or
+   * arrays (of strings or arrays of...), with the array nesting representing
+   * the hierarchical structure of instance.
    */
-  static #appendHumanAggregate(parts, value, skipBrackets) {
-    const entries  = Object.entries(value);
-    const isArray  = Array.isArray(value);
-    const brackets = (() => {
-      if (skipBrackets) return { open: '',   close: '',   empty: ''   };
-      else if (isArray) return { open: '[',  close: ']',  empty: '[]' };
-      else              return { open: '{ ', close: ' }', empty: '{}' };
-    })();
+  static #HumanVisitor = class HumanVisitor extends BaseValueVisitor {
+    /**
+     * Should the output be colorized?
+     *
+     * @type {boolean}
+     */
+    #colorize;
 
-    if (entries.length === 0) {
-      parts.push(brackets.empty);
-      return;
+    /**
+     * Constructs an instance.
+     *
+     * @param {*} value The value to visit.
+     * @param {boolean} colorize Colorize the output?
+     */
+    constructor(value, colorize) {
+      super(value);
+      this.#colorize = colorize;
     }
 
-    parts.push(brackets.open);
+    /** @override */
+    _impl_visitArray(node) {
+      return this.#visitAggregate(node, '[', ']', '[]');
+    }
 
-    let first   = true;
-    let inProps = !isArray;
+    /** @override */
+    _impl_visitBigInt(node_unused) {
+      throw this.#shouldntHappen();
+    }
 
-    for (const [k, v] of entries) {
-      if ((k === 'length') && !inProps) {
-        inProps = true;
-        continue;
-      }
+    /** @override */
+    _impl_visitBoolean(node) {
+      return `${node}`;
+    }
 
-      if (first) {
-        first = false;
+    /** @override */
+    _impl_visitClass(node_unused) {
+      throw this.#shouldntHappen();
+    }
+
+    /** @override */
+    _impl_visitError(node_unused) {
+      throw this.#shouldntHappen();
+    }
+
+    /** @override */
+    _impl_visitFunction(node_unused) {
+      throw this.#shouldntHappen();
+    }
+
+    /** @override */
+    _impl_visitInstance(node) {
+      if (node instanceof LogPayload) {
+        const color          = LogPayload.#COLOR_PAYLOAD;
+        const { type, args } = node;
+        if (args.length === 0) {
+          // Avoid extra work in the easy zero-args case.
+          const text = `${type}()`;
+          return [this.#maybeColorize(text, color)];
+        } else {
+          const open  = this.#maybeColorize(`${type}(`, color);
+          const close = this.#maybeColorize(')', color);
+          return this.#visitAggregate(args, open, close, null);
+        }
+      } else if (node instanceof BaseDefRef) {
+        const color  = LogPayload.#COLOR_DEF_REF;
+        const result = [this.#maybeColorize(`#${node.index}`, color)];
+        if (node instanceof VisitDef) {
+          result.push(
+            this.#maybeColorize(' = ', color),
+            this._prot_visit(node.value).value);
+        }
+        return result;
+      } else if (node instanceof Sexp) {
+        const color                 = LogPayload.#COLOR_SEXP;
+        const { functorName, args } = node;
+        if (args.length === 0) {
+          // Avoid extra work in the easy zero-args case.
+          const text = `@${functorName}()`;
+          return [this.#maybeColorize(text, color)];
+        } else {
+          const open  = this.#maybeColorize(`@${functorName}(`, color);
+          const close = this.#maybeColorize(')', color);
+          return this.#visitAggregate(args, open, close, null);
+        }
       } else {
-        parts.push(', ');
-      }
-
-      if (inProps) {
-        if ((typeof k === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(k)) {
-          parts.push(k);
-        } else {
-          parts.push(util.inspect(k)); // So it's quoted.
-        }
-        parts.push(': ');
-      }
-
-      this.#appendHumanValue(parts, v);
-    }
-
-    parts.push(brackets.close);
-  }
-
-  /**
-   * Appends strings to an array of parts to represent the given value in
-   * "human" form. This is akin to `util.inspect()`, though by no means
-   * identical.
-   *
-   * TODO: Deal with shared refs.
-   *
-   * @param {Array<string>} parts Parts array to append to.
-   * @param {*} value Value to represent.
-   * @param {boolean} [skipBrackets] Skip brackets at this level? This is
-   *   passed as `true` for the very top-level call to this method and when
-   *   processing `Sexp`s.
-   */
-  static #appendHumanValue(parts, value, skipBrackets = false) {
-    switch (typeof value) {
-      case 'object': {
-        if (value === null) {
-          parts.push('null');
-        } else if (value instanceof BaseDefRef) {
-          parts.push(`#${value.index}`);
-          if (value instanceof VisitDef) {
-            parts.push(' = ');
-            this.#appendHumanValue(parts, value.value);
-          }
-        } else if (value instanceof Sexp) {
-          parts.push('@', value.functorName, '(');
-          this.#appendHumanAggregate(parts, value.args, true);
-          parts.push(')');
-        } else {
-          this.#appendHumanAggregate(parts, value, skipBrackets);
-        }
-        break;
-      }
-
-      default: {
-        // TODO: Evaluate whether `util.inspect()` is sufficient.
-        parts.push(util.inspect(value));
+        throw this.#shouldntHappen();
       }
     }
-  }
+
+    /** @override */
+    _impl_visitNull() {
+      return 'null';
+    }
+
+    /** @override */
+    _impl_visitNumber(node) {
+      return this.#maybeColorize(`${node}`, chalk.yellow);
+    }
+
+    /** @override */
+    _impl_visitPlainObject(node) {
+      return this.#visitAggregate(node, '{ ', ' }', '{}');
+    }
+
+    /** @override */
+    _impl_visitProxy(node_unused, isFunction_unused) {
+      throw this.#shouldntHappen();
+    }
+
+    /** @override */
+    _impl_visitString(node) {
+      // `inspect()` to get good quoting, etc.
+      return this.#maybeColorize(util.inspect(node), chalk.green);
+    }
+
+    /** @override */
+    _impl_visitSymbol(node_unused) {
+      throw this.#shouldntHappen();
+    }
+
+    /** @override */
+    _impl_visitUndefined() {
+      throw this.#shouldntHappen();
+    }
+
+    /**
+     * Colorizes the given text, but only if this instance has been told to
+     * colorize.
+     *
+     * @param {string} text The text in question.
+     * @param {Function} func The colorizer function.
+     * @returns {string} The colorized-or-not result.
+     */
+    #maybeColorize(text, func) {
+      return this.#colorize ? func(text) : text;
+    }
+
+    /**
+     * Renders an object key, quoting and colorizing as appropriate.
+     *
+     * @param {*} key The key.
+     * @returns {string} The rendered form.
+     */
+    #renderKey(key) {
+      if ((typeof key === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(key)) {
+        // It doesn't have to be quoted.
+        return key;
+      } else {
+        return this._impl_visitString(key);
+      }
+    }
+
+    /**
+     * Constructs a "shouldn't happen" error. This is used in the implementation
+     * of all the `_impl_visit*()` methods corresponding to types that aren't
+     * supposed to show up in a payload.
+     *
+     * @returns {Error} The error.
+     */
+    #shouldntHappen() {
+      return new Error('Shouldn\'t happen.');
+    }
+
+    /**
+     * Helper for various `_impl_visit*()` methods, which visits an aggregate
+     * object of some sort.
+     *
+     * @param {*} node The aggregate to visit.
+     * @param {string} open The "open" string.
+     * @param {string} close The "close" string.
+     * @param {string} ifEmpty The string to use to represent an empty
+     *   instance.
+     * @returns {Array<string>} The stringified aggregate, as an array.
+     */
+    #visitAggregate(node, open, close, ifEmpty) {
+      const isArray = Array.isArray(node);
+      const result  = [open];
+      let   first   = true;
+      let   inProps = !isArray;
+
+      const initialVisit = isArray
+        ? this._prot_visitArrayProperties(node)
+        : this._prot_visitObjectProperties(node);
+
+      for (const [k, v] of Object.entries(initialVisit)) {
+        if (!inProps && (k === 'length')) {
+          inProps = true;
+          continue;
+        } else if (first) {
+          first = false;
+        } else {
+          result.push(', ');
+        }
+
+        if (inProps) {
+          result.push(this.#renderKey(k), ': ');
+        }
+
+        result.push(v);
+      }
+
+      if (result.length === 1) {
+        return [ifEmpty];
+      } else {
+        result.push(close);
+        return result;
+      }
+    }
+  };
 }
