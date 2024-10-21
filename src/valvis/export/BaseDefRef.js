@@ -112,7 +112,7 @@ export class BaseDefRef {
   /**
    * Is this instance associated with the given visitor?
    *
-   * @param {BaseValueVisitor} visitor
+   * @param {BaseValueVisitor} visitor The visitor in question.
    * @returns {boolean} `true` if this instance's associated visitor is in
    *   fact `visitor`.
    */
