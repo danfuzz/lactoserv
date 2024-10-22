@@ -652,6 +652,108 @@ describe('_impl_shouldRef()', () => {
   });
 });
 
+
+describe('_impl_revisit()', () => {
+  class RevisitCheckVisitor extends BaseValueVisitor {
+    #doRefs;
+    calledArgs = [];
+
+    constructor(value, doRefs = true) {
+      super(value);
+      this.#doRefs = doRefs;
+    }
+
+    _impl_shouldRef(node) {
+      return this.#doRefs && (typeof node === 'object');
+    }
+
+    _impl_visitArray(node) {
+      return this._prot_visitProperties(node);
+    }
+
+    _impl_revisit(node, result, isCycleHead, ref) {
+      this.calledArgs.push({ node, result, isCycleHead, ref });
+    }
+  }
+
+  test('just returns `undefined` (default implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv._impl_revisit('florp', 'florp', false, null)).toBeUndefined();
+  });
+
+  test('is called once on a non-circular ref that was created during the visit, when the original `value` has two references to the shared value', () => {
+    const shared = ['shared'];
+    const vv     = new RevisitCheckVisitor([shared, shared]);
+
+    expect(vv.visitSync()).toBeArrayOfSize(2);
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+
+    expect(vv.calledArgs[0].node).toBe(shared);
+    expect(vv.calledArgs[0].result).toStrictEqual(shared);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+  });
+
+  test('is called twice on a non-circular ref that was created during the visit, when the original `value` has three references to the shared value', () => {
+    const shared = ['shared'];
+    const vv     = new RevisitCheckVisitor([shared, shared, shared]);
+
+    expect(vv.visitSync()).toBeArrayOfSize(3);
+    expect(vv.calledArgs).toBeArrayOfSize(2);
+
+    expect(vv.calledArgs[0].node).toBe(shared);
+    expect(vv.calledArgs[0].result).toStrictEqual(shared);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+    expect(vv.calledArgs[1]).toStrictEqual(vv.calledArgs[0]);
+  });
+
+  test('is called once on a circular ref that was created during the visit, when the original `value` has one circular reference to the value', () => {
+    const circular = ['circle'];
+    circular.push(circular);
+
+    const vv  = new RevisitCheckVisitor([circular]);
+    const got = vv.visitSync();
+
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+
+    expect(vv.calledArgs[0].node).toBe(circular);
+    expect(vv.calledArgs[0].result).toBeNull();
+    expect(vv.calledArgs[0].isCycleHead).toBeTrue();
+    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
+
+    expect(got).toBeArrayOfSize(1);
+    expect(got[0]).toStrictEqual(['circle', vv.calledArgs[0].ref]);
+  });
+
+  test.each`
+  label               | value
+  ${'null'}           | ${null}
+  ${'undefined'}      | ${undefined}
+  ${'a boolean'}      | ${true}
+  ${'a number'}       | ${12345}
+  ${'a bigint'}       | ${123987n}
+  ${'a string'}       | ${'stringy-string'}
+  ${'a symbol'}       | ${Symbol('blort')}
+  ${'an array'}       | ${[4, 5, 9]}
+  ${'a plain object'} | ${{ x: 'boop' }}
+  ${'an instance'}    | ${new Set('foo', 'bar')}
+  `('can get called for $label', ({ value }) => {
+    const vv  = new RevisitCheckVisitor([value, value], false);
+    const got = vv.visitSync();
+
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toBe(got[1]);
+
+    expect(vv.calledArgs).toBeArrayOfSize(1);
+    expect(vv.calledArgs[0].node).toBe(value);
+    expect(vv.calledArgs[0].result).toEqual(value);
+    expect(vv.calledArgs[0].result).toBe(got[0]);
+    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
+    expect(vv.calledArgs[0].ref).toBeNull();
+  });
+});
+
 // Common tests for type-specific visitors.
 describe.each`
 methodName                  | canWrap  | testVisit | value
@@ -772,104 +874,26 @@ describe('_impl_visitInstance()', () => {
   });
 });
 
-describe('_impl_revisit()', () => {
-  class RevisitCheckVisitor extends BaseValueVisitor {
-    #doRefs;
-    calledArgs = [];
+describe('_impl_visitProxy()', () => {
+  describe.each`
+  type          | value
+  ${'object'}   | ${new Proxy({}, {})}
+  ${'function'} | ${new Proxy(() => null, {})}
+  `('for a proxy of type `$type`', ({ value }) => {
+    test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
+      const vv = new BaseValueVisitor(value);
+      vv._impl_visitProxy = () => 'wrong-value';
 
-    constructor(value, doRefs = true) {
-      super(value);
-      this.#doRefs = doRefs;
-    }
+      expect(vv.visitSync()).toBe(value);
+    });
 
-    _impl_shouldRef(node) {
-      return this.#doRefs && (typeof node === 'object');
-    }
+    test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
+      const expected = 'right-value';
+      const vv       = new ProxyAwareVisitor(value);
+      vv._impl_visitProxy = () => expected;
 
-    _impl_visitArray(node) {
-      return this._prot_visitProperties(node);
-    }
-
-    _impl_revisit(node, result, isCycleHead, ref) {
-      this.calledArgs.push({ node, result, isCycleHead, ref });
-    }
-  }
-
-  test('just returns `undefined` (default implementation)', () => {
-    const vv = new BaseValueVisitor(null);
-    expect(vv._impl_revisit('florp', 'florp', false, null)).toBeUndefined();
-  });
-
-  test('is called once on a non-circular ref that was created during the visit, when the original `value` has two references to the shared value', () => {
-    const shared = ['shared'];
-    const vv     = new RevisitCheckVisitor([shared, shared]);
-
-    expect(vv.visitSync()).toBeArrayOfSize(2);
-    expect(vv.calledArgs).toBeArrayOfSize(1);
-
-    expect(vv.calledArgs[0].node).toBe(shared);
-    expect(vv.calledArgs[0].result).toStrictEqual(shared);
-    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
-    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
-  });
-
-  test('is called twice on a non-circular ref that was created during the visit, when the original `value` has three references to the shared value', () => {
-    const shared = ['shared'];
-    const vv     = new RevisitCheckVisitor([shared, shared, shared]);
-
-    expect(vv.visitSync()).toBeArrayOfSize(3);
-    expect(vv.calledArgs).toBeArrayOfSize(2);
-
-    expect(vv.calledArgs[0].node).toBe(shared);
-    expect(vv.calledArgs[0].result).toStrictEqual(shared);
-    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
-    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
-    expect(vv.calledArgs[1]).toStrictEqual(vv.calledArgs[0]);
-  });
-
-  test('is called once on a circular ref that was created during the visit, when the original `value` has one circular reference to the value', () => {
-    const circular = ['circle'];
-    circular.push(circular);
-
-    const vv  = new RevisitCheckVisitor([circular]);
-    const got = vv.visitSync();
-
-    expect(vv.calledArgs).toBeArrayOfSize(1);
-
-    expect(vv.calledArgs[0].node).toBe(circular);
-    expect(vv.calledArgs[0].result).toBeNull();
-    expect(vv.calledArgs[0].isCycleHead).toBeTrue();
-    expect(vv.calledArgs[0].ref).toBeInstanceOf(VisitRef);
-
-    expect(got).toBeArrayOfSize(1);
-    expect(got[0]).toStrictEqual(['circle', vv.calledArgs[0].ref]);
-  });
-
-  test.each`
-  label               | value
-  ${'null'}           | ${null}
-  ${'undefined'}      | ${undefined}
-  ${'a boolean'}      | ${true}
-  ${'a number'}       | ${12345}
-  ${'a bigint'}       | ${123987n}
-  ${'a string'}       | ${'stringy-string'}
-  ${'a symbol'}       | ${Symbol('blort')}
-  ${'an array'}       | ${[4, 5, 9]}
-  ${'a plain object'} | ${{ x: 'boop' }}
-  ${'an instance'}    | ${new Set('foo', 'bar')}
-  `('can get called for $label', ({ value }) => {
-    const vv  = new RevisitCheckVisitor([value, value], false);
-    const got = vv.visitSync();
-
-    expect(got).toBeArrayOfSize(2);
-    expect(got[0]).toBe(got[1]);
-
-    expect(vv.calledArgs).toBeArrayOfSize(1);
-    expect(vv.calledArgs[0].node).toBe(value);
-    expect(vv.calledArgs[0].result).toEqual(value);
-    expect(vv.calledArgs[0].result).toBe(got[0]);
-    expect(vv.calledArgs[0].isCycleHead).toBeFalse();
-    expect(vv.calledArgs[0].ref).toBeNull();
+      expect(vv.visitSync()).toBe(expected);
+    });
   });
 });
 
@@ -948,29 +972,6 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
 
       const got = vv[methodName](value);
       expect(got).toBe(expected);
-    });
-  });
-});
-
-describe('_impl_visitProxy()', () => {
-  describe.each`
-  type          | value
-  ${'object'}   | ${new Proxy({}, {})}
-  ${'function'} | ${new Proxy(() => null, {})}
-  `('for a proxy of type `$type`', ({ value }) => {
-    test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
-      const vv = new BaseValueVisitor(value);
-      vv._impl_visitProxy = () => 'wrong-value';
-
-      expect(vv.visitSync()).toBe(value);
-    });
-
-    test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
-      const expected = 'right-value';
-      const vv       = new ProxyAwareVisitor(value);
-      vv._impl_visitProxy = () => expected;
-
-      expect(vv.visitSync()).toBe(expected);
     });
   });
 });
