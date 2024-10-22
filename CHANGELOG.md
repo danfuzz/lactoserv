@@ -28,6 +28,7 @@ Breaking changes:
   * Removed `IntfLoggingEnviroment.logPayload()`.
   * New class `LoggedValueEncoder`, which replaces the log-related stuff in
     `codec`.
+  * Made the log written to stdout be a bit more colorful.
 
 Other notable changes:
 * `webapp-util`:
