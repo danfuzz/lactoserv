@@ -111,9 +111,6 @@ export class BaseValueVisitor {
 
     if (this.#allRefs instanceof Map) {
       return (allRefs.size > 0);
-    } else if (!this.#visitRoot().isFinished()) {
-      // The visit is still in progress.
-      return null;
     }
 
     // This is the first post-visit call to this method, so we can (and do) now
