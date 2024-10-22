@@ -975,203 +975,168 @@ describe('_impl_visitProxy()', () => {
   });
 });
 
-describe('_prot_visitArrayProperties()', () => {
-  test('operates synchronously when possible', () => {
-    const orig = [1, 2];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+describe('_prot_visitProperties()', () => {
+  class VisitPropertiesCheckVisitor extends BaseValueVisitor {
+    #beAsync;
+    #doErrors;
 
-    expect(got).toEqual(['1', '2']);
-  });
-
-  test('operates synchronously when possible, and recursively', () => {
-    const orig = [1, 2, [3, 4], 5];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-
-    expect(got).toEqual(['1', '2', ['3', '4'], '5']);
-  });
-
-  test('operates asynchronously', async () => {
-    const orig = [false, true];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-
-    expect(got).toEqual(['false', 'true']);
-  });
-
-  test('operates asynchronously and recursively', async () => {
-    const orig = [false, 1, [true, 2], false];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-
-    expect(got).toEqual(['false', '1', ['true', '2'], 'false']);
-  });
-
-  test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor([456n]);
-
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
-
-  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor([Symbol('zonk')]);
-
-    expect(vv.visit()).rejects.toThrow('NO');
-  });
-
-  test('preserves sparseness', () => {
-    const UND  = undefined;
-    const orig = Array(7);
-
-    orig[2] = 'x';
-    orig[4] = 'y';
-    orig[5] = 5;
-
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-
-    expect(got).toEqual([UND, UND, 'x', UND, 'y', '5', UND]);
-    for (let i = 0; i < 10; i++) {
-      expect(i in got).toBe(i in orig);
+    constructor(value, { async = false, errors = false } = {}) {
+      super(value);
+      this.#beAsync  = async;
+      this.#doErrors = errors;
     }
-  });
 
-  test('handles non-numeric string properties', () => {
-    const orig = [1];
-    orig.x = 2;
-    orig.y = 3;
+    _impl_visitNumber(node) {
+      if (this.#doErrors) {
+        return this.#doVisit(() => {
+          throw new Error(`Ouch: ${node}`);
+        });
+      } else {
+        return this.#doVisit(() => `${node}%`);
+      }
+    }
 
-    const expected = ['1'];
-    expected.x = '2';
-    expected.y = '3';
+    _impl_visitArray(node) {
+      return this.#doVisit(() => this._prot_visitProperties(node));
+    }
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toEqual(expected);
-  });
+    _impl_visitPlainObject(node) {
+      return this.#doVisit(() => this._prot_visitProperties(node));
+    }
 
-  test('handles synchronously-visitable symbol properties', () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = [123];
-    orig[SYM1] = 234;
-    orig[SYM2] = 321;
+    #doVisit(func) {
+      if (this.#beAsync) {
+        return (async () => {
+          await setImmediate();
+          return func();
+        })();
+      } else {
+        return func();
+      }
+    }
+  }
 
-    const expected = ['123'];
-    expected[SYM1] = '234';
-    expected[SYM2] = '321';
+  const SPARSE_ARRAY_VALUE  = [77, /*empty*/, 88]; // eslint-disable-line no-sparse-arrays
+  const SPARSE_ARRAY_RESULT = ['77%', /*empty*/, '88%']; // eslint-disable-line no-sparse-arrays
+  describe.each`
+  label                | value                             | proto              | expected
+  ${'a plain object'}  | ${{ a: 12, b: 45, c: { d: 98 } }} | ${null}            | ${{ a: '12%', b: '45%', c: { d: '98%' } }}
+  ${'a regular array'} | ${[11, 22, [33]]}                 | ${Array.prototype} | ${['11%', '22%', ['33%']]}
+  ${'a sparse array'}  | ${SPARSE_ARRAY_VALUE}             | ${Array.prototype} | ${SPARSE_ARRAY_RESULT}
+  `('given $label', ({ value, proto, expected }) => {
+    function checkProps(got) {
+      const expectProps = [
+        ...Object.getOwnPropertyNames(expected),
+        ...Object.getOwnPropertySymbols(expected)
+      ];
+      const gotProps = [
+        ...Object.getOwnPropertyNames(got),
+        ...Object.getOwnPropertySymbols(got)
+      ];
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toBeArrayOfSize(1);
-    expect(got[0]).toBe('123');
-    expect(got[SYM1]).toBe('234');
-    expect(got[SYM2]).toBe('321');
-  });
+      expect(gotProps).toStrictEqual(expectProps);
+    }
 
-  test('handles asynchronously-visitable symbol properties', async () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = [123];
-    orig[SYM1] = true;
-    orig[SYM2] = false;
+    test('operates synchronously when possible', () => {
+      const vv   = new VisitPropertiesCheckVisitor(value);
+      const got  = vv.visitSync();
 
-    const expected = ['123'];
-    expected[SYM1] = 'true';
-    expected[SYM2] = 'false';
+      expect(Object.getPrototypeOf(got)).toBe(proto);
+      expect(got).toEqual(expected);
+      checkProps(got);
+    });
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-    expect(got).toBeArrayOfSize(1);
-    expect(got[0]).toBe('123');
-    expect(got[SYM1]).toBe('true');
-    expect(got[SYM2]).toBe('false');
-  });
-});
+    test('operates asynchronously when not strictly necessary', async () => {
+      const vv   = new VisitPropertiesCheckVisitor(value);
+      const got  = vv.visit();
 
-describe('_prot_visitObjectProperties()', () => {
-  test('produces a `null`-prototype result', () => {
-    const orig = { x: 'foomp' };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+      expect(got).toBeInstanceOf(Promise);
+      expect(Object.getPrototypeOf(await got)).toBe(proto);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
 
-    expect(got).toEqual(orig);
-    expect(Object.getPrototypeOf(got)).toBeNull();
-  });
+    test('operates asynchronously when necessary', async () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
+      const got = vv.visit();
 
-  test('operates synchronously when possible', () => {
-    const orig = { a: 10, b: 20 };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+      expect(got).toBeInstanceOf(Promise);
+      expect(Object.getPrototypeOf(await got)).toBe(proto);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
 
-    expect(got).toEqual({ a: '10', b: '20' });
-  });
+    test('synchronously propagates an error thrown synchronously by one of the sub-calls', () => {
+      const vv = new VisitPropertiesCheckVisitor(value, { errors: true });
 
-  test('operates synchronously when possible, and recursively', () => {
-    const orig = { a: 1, b: 2, c: { d: 3, e: 4 }, f: 5 };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+      expect(() => vv.visitSync()).toThrow(/Ouch/);
+    });
 
-    expect(got).toEqual({ a: '1', b: '2',  c: { d: '3', e: '4' }, f: '5' });
-  });
+    test('asynchronously propagates an error thrown asynchronously by one of the sub-calls', async () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true, errors: true });
+      const got = vv.visit();
 
-  test('operates asynchronously', async () => {
-    const orig = { x: false, y: true };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
+      expect(got).toBeInstanceOf(Promise);
+      await expect(got).rejects.toThrow(/Ouch/);
+    });
 
-    expect(got).toEqual({ x: 'false', y: 'true' });
-  });
+    test('synchronously handles extra symbol properties if possible', () => {
+      const sym = Symbol('beep');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 914;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '914%';
 
-  test('operates asynchronously and recursively', async () => {
-    const orig = { x: false, y: 1, z: { a: true, b: 2 } };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
+      const vv   = new VisitPropertiesCheckVisitor(value);
+      const got  = vv.visitSync();
 
-    expect(got).toEqual({ x: 'false', y: '1', z: { a: 'true', b: '2' } });
-  });
+      expect(got).toEqual(expected);
+      checkProps(got);
+    });
 
-  test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor({ blorp: 456n });
+    test('asynchronously handles extra symbol properties when necessary', async () => {
+      const sym = Symbol('beep');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 914;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '914%';
 
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
+      const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
+      const got  = vv.visit();
 
-  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor({ blorp: Symbol('zonk') });
+      expect(got).toBeInstanceOf(Promise);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
 
-    expect(vv.visit()).rejects.toThrow('NO');
-  });
+    if (Array.isArray(value)) {
+      test('synchronously handles extra string properties if possible', () => {
+        value = [...value];
+        value.bloop = 321;
+        expected = [...expected];
+        expected.bloop = '321%';
 
-  test('handles synchronously-visitable symbol properties', () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = {
-      [SYM1]: 234,
-      [SYM2]: 321
-    };
+        const vv   = new VisitPropertiesCheckVisitor(value);
+        const got  = vv.visitSync();
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toBeObject();
-    expect(got[SYM1]).toBe('234');
-    expect(got[SYM2]).toBe('321');
-  });
+        expect(got).toEqual(expected);
+        checkProps(got);
+      });
 
-  test('handles asynchronously-visitable symbol properties', async () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = {
-      [SYM1]: true,
-      [SYM2]: false
-    };
+      test('asynchronously handles extra string properties when necessary', async () => {
+        value = [...value];
+        value.bloop = 321;
+        expected = [...expected];
+        expected.bloop = '321%';
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-    expect(got).toBeObject();
-    expect(got[SYM1]).toBe('true');
-    expect(got[SYM2]).toBe('false');
+        const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
+        const got  = vv.visit();
+
+        expect(got).toBeInstanceOf(Promise);
+        expect(await got).toEqual(expected);
+        checkProps(await got);
+      });
+    }
   });
 });
 
