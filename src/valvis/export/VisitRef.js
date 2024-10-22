@@ -42,6 +42,6 @@ export class VisitRef extends BaseDefRef {
    * @returns {*} The replacement form to encode.
    */
   toJSON(key_unused) {
-    return { '@ref': this.index };
+    return { '@ref': [this.index] };
   }
 }

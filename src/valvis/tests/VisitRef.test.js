@@ -19,6 +19,6 @@ describe('.ref', () => {
 describe('.toJSON()', () => {
   test('returns the expected replacement', () => {
     const ref = new VisitRef(null, 2);
-    expect(ref.toJSON()).toStrictEqual({ '@ref': 2 });
+    expect(ref.toJSON()).toStrictEqual({ '@ref': [2] });
   });
 });
