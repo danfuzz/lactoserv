@@ -983,7 +983,7 @@ describe('_prot_visit()', () => {
         return `${node}!`;
       }
 
-      _impl_visitString(node) {
+      _impl_visitString(node_unused) {
         const got = this._prot_visit(9999);
         expect(got).toBeInstanceOf(VisitResult);
         expect(got.value).toBe('9999!');
@@ -1001,7 +1001,7 @@ describe('_prot_visit()', () => {
         return `${node}!`;
       }
 
-      async _impl_visitString(node) {
+      async _impl_visitString(node_unused) {
         const got = this._prot_visit(98765);
         expect(got).toBeInstanceOf(Promise);
         expect(await got).toBeInstanceOf(VisitResult);
