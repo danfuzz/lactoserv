@@ -49,38 +49,6 @@ const PROMISE_EXAMPLES = [
 ];
 
 /**
- * Visitor subclass, with some synchronous and some asynchronous behavior, which
- * recursively visits plain objects and arrays.
- */
-class RecursiveVisitor extends BaseValueVisitor {
-  _impl_visitBigInt(node_unused) {
-    throw new Error('Nope!');
-  }
-
-  async _impl_visitBoolean(node) {
-    await setImmediate();
-    return `${node}`;
-  }
-
-  _impl_visitNumber(node) {
-    return `${node}`;
-  }
-
-  async _impl_visitSymbol(node_unused) {
-    await setImmediate();
-    throw new Error('NO');
-  }
-
-  _impl_visitArray(node) {
-    return this._prot_visitProperties(node);
-  }
-
-  _impl_visitPlainObject(node) {
-    return this._prot_visitProperties(node);
-  }
-}
-
-/**
  * Visitor subclass, which is set up to be proxy aware.
  */
 class ProxyAwareVisitor extends BaseValueVisitor {
@@ -256,6 +224,38 @@ ${'visitSync'} | ${false} | ${false} | ${true}
 ${'visitWrap'} | ${true}  | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
+
+  /**
+   * Visitor subclass, with some synchronous and some asynchronous behavior,
+   * which recursively visits plain objects and arrays.
+   */
+  class RecursiveVisitor extends BaseValueVisitor {
+    _impl_visitBigInt(node_unused) {
+      throw new Error('Nope!');
+    }
+
+    async _impl_visitBoolean(node) {
+      await setImmediate();
+      return `${node}`;
+    }
+
+    _impl_visitNumber(node) {
+      return `${node}`;
+    }
+
+    async _impl_visitSymbol(node_unused) {
+      await setImmediate();
+      throw new Error('NO');
+    }
+
+    _impl_visitArray(node) {
+      return this._prot_visitProperties(node);
+    }
+
+    _impl_visitPlainObject(node) {
+      return this._prot_visitProperties(node);
+    }
+  }
 
   async function doTest(value, options = {}) {
     const {
