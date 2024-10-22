@@ -75,16 +75,24 @@ export class HumanVisitor extends BaseValueVisitor {
   /** @override */
   _impl_visitInstance(node) {
     if (node instanceof LogPayload) {
-      const color          = HumanVisitor.#COLOR_PAYLOAD;
-      const { type, args } = node;
+      const { tag, when, type, args } = node;
+      const prefix = [
+        this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#COLOR_WHEN),
+        ' ',
+        tag.toHuman(this.#colorize),
+        ' '
+      ];
+
+      const color = HumanVisitor.#COLOR_PAYLOAD;
+
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `${type}()`;
-        return [this.#maybeColorize(text, color)];
+        return [...prefix, this.#maybeColorize(text, color)];
       } else {
         const open  = this.#maybeColorize(`${type}(`, color);
         const close = this.#maybeColorize(')', color);
-        return this.#visitAggregate(args, open, close, null);
+        return [...prefix, ...this.#visitAggregate(args, open, close, null)];
       }
     } else if (node instanceof BaseDefRef) {
       const color  = HumanVisitor.#COLOR_DEF_REF;
@@ -285,16 +293,7 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {string} The rendered "human form" string.
    */
   static payloadToHuman(payload, colorize = false) {
-    const { tag, when } = payload;
-    const whenString    = when.toString({ decimals: 4 });
-
-    const parts = [
-      colorize ? this.#COLOR_WHEN(whenString) : whenString,
-      ' ',
-      tag.toHuman(colorize),
-      ' ',
-      new HumanVisitor(payload, colorize).visitSync()
-    ];
+    const parts = new HumanVisitor(payload, colorize).visitSync();
 
     return parts.flat(Number.POSITIVE_INFINITY).join('');
   }
