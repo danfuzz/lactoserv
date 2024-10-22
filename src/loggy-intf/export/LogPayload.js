@@ -4,20 +4,12 @@
 import { EventPayload, EventSource } from '@this/async';
 import { IntfDeconstructable, Sexp } from '@this/decon';
 import { Moment } from '@this/quant';
-import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 import { StackTrace } from '@this/valvis';
 
 import { HumanVisitor } from '#p/HumanVisitor';
 import { LogTag } from '#x/LogTag';
 
-
-/**
- * Always-on `Chalk` instance.
- *
- * @type {Chalk}
- */
-const chalk = Chalk.ON;
 
 /**
  * The thing which is logged; it is the payload class used for events
@@ -100,18 +92,7 @@ export class LogPayload extends EventPayload {
    * @returns {string} The "human form" string.
    */
   toHuman(colorize = false) {
-    const whenString = this.#when.toString({ decimals: 4 });
-
-    const parts = [
-      colorize ? chalk.bold.blue(whenString) : whenString,
-      ' ',
-      this.#tag.toHuman(colorize),
-      ' '
-    ];
-
-    this.#appendHumanPayload(parts, colorize);
-
-    return parts.join('');
+    return HumanVisitor.payloadToHuman(this, colorize);
   }
 
   /**
@@ -132,18 +113,6 @@ export class LogPayload extends EventPayload {
       type: this.type,
       args: this.args
     };
-  }
-
-  /**
-   * Appends the human form of {@link #payload} to the given array of parts (to
-   * ultimately `join()`).
-   *
-   * @param {Array<string>} parts Parts to append to.
-   * @param {boolean} colorize Colorize the result?
-   */
-  #appendHumanPayload(parts, colorize) {
-    const human = new HumanVisitor(this, colorize).visitSync();
-    parts.push(...human.flat(Number.POSITIVE_INFINITY));
   }
 
 

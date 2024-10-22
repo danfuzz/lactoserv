@@ -257,4 +257,33 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
+
+  /**
+   * Colorizer function to use for `payload.when`.
+   *
+   * @type {Function}
+   */
+  static #COLOR_WHEN = chalk.bold.blue;
+
+  /**
+   * Implementation of {@link LogPayload#toHuman}.
+   *
+   * @param {LogPayload} payload The instance to render.
+   * @param {boolean} [colorize] Colorize the result?
+   * @returns {string} The rendered "human form" string.
+   */
+  static payloadToHuman(payload, colorize = false) {
+    const { tag, when } = payload;
+    const whenString    = when.toString({ decimals: 4 });
+
+    const parts = [
+      colorize ? this.#COLOR_WHEN(whenString) : whenString,
+      ' ',
+      tag.toHuman(colorize),
+      ' ',
+      new HumanVisitor(payload, colorize).visitSync()
+    ];
+
+    return parts.flat(Number.POSITIVE_INFINITY).join('');
+  }
 }
