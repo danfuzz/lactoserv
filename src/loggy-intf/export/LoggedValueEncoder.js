@@ -49,7 +49,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitArray(node) {
-    return this._prot_visitArrayProperties(node);
+    return this._prot_visitProperties(node);
   }
 
   /** @override */
@@ -84,7 +84,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
     const loggedForm = { [`@${className}`]: loggedBody };
 
-    return this._prot_visitObjectProperties(loggedForm);
+    return this._prot_visitProperties(loggedForm);
   }
 
   /** @override */
@@ -96,7 +96,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   _impl_visitInstance(node) {
     if (typeof node.deconstruct === 'function') {
       const sexpArray    = node.deconstruct().toArray();
-      const visitedArray = this._prot_visitArrayProperties(sexpArray);
+      const visitedArray = this._prot_visitProperties(sexpArray);
       return new Sexp(...visitedArray);
     } else {
       return this._prot_labelFromValue(node);
@@ -105,7 +105,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitPlainObject(node) {
-    return this._prot_visitObjectProperties(node);
+    return this._prot_visitProperties(node);
   }
 
   /** @override */
@@ -173,13 +173,13 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
     /** @override */
     _impl_visitArray(node) {
-      const result = this._prot_visitArrayProperties(node);
+      const result = this._prot_visitProperties(node);
       return this.#makeDefIfAppropriate(node, result);
     }
 
     /** @override */
     _impl_visitPlainObject(node) {
-      const result = this._prot_visitObjectProperties(node);
+      const result = this._prot_visitProperties(node);
       return this.#makeDefIfAppropriate(node, result);
     }
 
