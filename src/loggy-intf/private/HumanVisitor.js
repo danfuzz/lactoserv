@@ -203,9 +203,9 @@ export class HumanVisitor extends BaseValueVisitor {
     let   first   = true;
     let   inProps = !isArray;
 
-    const initialVisit = this._prot_visitProperties(node); // TODO: Use entries.
+    const initialVisit = this._prot_visitProperties(node, true);
 
-    for (const [k, v] of Object.entries(initialVisit)) {
+    for (const [k, v] of initialVisit) {
       if (!inProps && (k === 'length')) {
         inProps = true;
         continue;
