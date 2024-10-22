@@ -608,7 +608,9 @@ export class BaseValueVisitor {
    * * If the original `node` is a sparse array, the result will have the same
    *   "holes."
    * * If `returnEntries` is passed as `true` and `node` is an array, it _will_
-   *   have a result entry for `length`.
+   *   have a result entry for `length`. Furthermore, the `length` will be in
+   *   the result between indexed properties and named properties, just as with
+   *   `Object.getOwnPropertyNames()`.
    *
    * @param {object} node The node whose contents are to be visited.
    * @param {boolean} [returnEntries] Return an array of two-element entry
