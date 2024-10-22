@@ -49,38 +49,6 @@ const PROMISE_EXAMPLES = [
 ];
 
 /**
- * Visitor subclass, with some synchronous and some asynchronous behavior, which
- * recursively visits plain objects and arrays.
- */
-class RecursiveVisitor extends BaseValueVisitor {
-  _impl_visitBigInt(node_unused) {
-    throw new Error('Nope!');
-  }
-
-  async _impl_visitBoolean(node) {
-    await setImmediate();
-    return `${node}`;
-  }
-
-  _impl_visitNumber(node) {
-    return `${node}`;
-  }
-
-  async _impl_visitSymbol(node_unused) {
-    await setImmediate();
-    throw new Error('NO');
-  }
-
-  _impl_visitArray(node) {
-    return this._prot_visitArrayProperties(node);
-  }
-
-  _impl_visitPlainObject(node) {
-    return this._prot_visitObjectProperties(node);
-  }
-}
-
-/**
  * Visitor subclass, which is set up to be proxy aware.
  */
 class ProxyAwareVisitor extends BaseValueVisitor {
@@ -108,12 +76,12 @@ class RefMakingVisitor extends BaseValueVisitor {
   }
 
   _impl_visitArray(node) {
-    return this._prot_visitArrayProperties(node);
+    return this._prot_visitProperties(node);
   }
 
   async _impl_visitPlainObject(node) {
     await setImmediate();
-    return this._prot_visitObjectProperties(node);
+    return this._prot_visitProperties(node);
   }
 }
 
@@ -257,6 +225,38 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
 
+  /**
+   * Visitor subclass, with some synchronous and some asynchronous behavior,
+   * which recursively visits plain objects and arrays.
+   */
+  class RecursiveVisitor extends BaseValueVisitor {
+    _impl_visitBigInt(node_unused) {
+      throw new Error('Nope!');
+    }
+
+    async _impl_visitBoolean(node) {
+      await setImmediate();
+      return `${node}`;
+    }
+
+    _impl_visitNumber(node) {
+      return `${node}`;
+    }
+
+    async _impl_visitSymbol(node_unused) {
+      await setImmediate();
+      throw new Error('NO');
+    }
+
+    _impl_visitArray(node) {
+      return this._prot_visitProperties(node);
+    }
+
+    _impl_visitPlainObject(node) {
+      return this._prot_visitProperties(node);
+    }
+  }
+
   async function doTest(value, options = {}) {
     const {
       cls   = BaseValueVisitor,
@@ -384,7 +384,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       class ExtraAsyncVisitor extends RecursiveVisitor {
         async _impl_visitArray(node) {
           await setImmediate();
-          return this._prot_visitArrayProperties(node);
+          return this._prot_visitProperties(node);
         }
       }
 
@@ -493,7 +493,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       }
 
       _impl_visitArray(node) {
-        return this._prot_visitArrayProperties(node);
+        return this._prot_visitProperties(node);
       }
     }
 
@@ -523,7 +523,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       }
 
       _impl_visitArray(node) {
-        return this._prot_visitArrayProperties(node);
+        return this._prot_visitProperties(node);
       }
     }
 
@@ -652,125 +652,6 @@ describe('_impl_shouldRef()', () => {
   });
 });
 
-// Common tests for type-specific visitors.
-describe.each`
-methodName                  | canWrap  | testVisit | value
-${'_impl_visitArray'}       | ${true}  | ${true}   | ${[1, 2, 3]}
-${'_impl_visitBigInt'}      | ${false} | ${true}   | ${99988777n}
-${'_impl_visitBoolean'}     | ${false} | ${true}   | ${false}
-${'_impl_visitClass'}       | ${true}  | ${true}   | ${class Florp {}}
-${'_impl_visitError'}       | ${true}  | ${true}   | ${new Error('bonk')}
-${'_impl_visitFunction'}    | ${true}  | ${true}   | ${() => 'x'}
-${'_impl_visitInstance'}    | ${true}  | ${true}   | ${new Set(['woo'])}
-${'_impl_visitNull'}        | ${false} | ${true}   | ${null}
-${'_impl_visitNumber'}      | ${false} | ${true}   | ${54.321}
-${'_impl_visitPlainObject'} | ${true}  | ${true}   | ${{ x: 'bonk' }}
-${'_impl_visitProxy'}       | ${true}  | ${false}  | ${new Proxy({}, {})}
-${'_impl_visitString'}      | ${false} | ${true}   | ${'florp'}
-${'_impl_visitSymbol'}      | ${false} | ${true}   | ${Symbol('woo')}
-${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
-`('$methodName()', ({ methodName, canWrap, testVisit, value }) => {
-  test('returns the given value as-is (default implementation)', () => {
-    const vv = new BaseValueVisitor(null);
-    expect(vv[methodName](value)).toBe(value);
-  });
-
-  if (testVisit) {
-    test('gets called during a visit to a root value of the appropriate type', () => {
-      const expected = ['yep', 'it', 'was', 'called'];
-      const vv       = new BaseValueVisitor(value);
-      vv[methodName] = () => expected;
-      expect(vv.visitSync()).toBe(expected);
-    });
-
-    test('gets called during a visit to a non-root value of the appropriate type', () => {
-      // What's going on: We use `null` as the root value as a hook to make a
-      // sub-visit on the appropriate-typed value. _Except_, if the value is
-      // `null`, then we use a string instead.
-      const rootValue = (value === null) ? 'bonk' : null;
-      const rootImpl  = (rootValue === null) ? '_impl_visitNull' : '_impl_visitString';
-      const expected  = ['this', 'is', 'it'];
-      const vv        = new BaseValueVisitor(rootValue);
-      vv[methodName]  = () => expected;
-      vv[rootImpl]    = () => vv._prot_visitArrayProperties([value]);
-
-      const got = vv.visitSync();
-      expect(got).toBeInstanceOf(Array);
-      expect(got).toBeArrayOfSize(1);
-      expect(got[0]).toBe(expected);
-    });
-  }
-
-  if (canWrap) {
-    test('returns a wrapper given a needs-wrapping value', () => {
-      const vv = new BaseValueVisitor(null);
-      value.then = () => null;
-
-      try {
-        const got = vv[methodName](value);
-        expect(got).toBeInstanceOf(VisitResult);
-        expect(got.value).toBe(value);
-      } finally {
-        delete value.then;
-      }
-    });
-  }
-});
-
-describe('_impl_visitError()', () => {
-  test('calls through to `_impl_visitInstance()` (when not overridden)', () => {
-    const vv = new BaseValueVisitor(new Error('woo'));
-    vv._impl_visitInstance = () => 'yep';
-
-    expect(vv.visitSync()).toBe('yep');
-  });
-
-  test('gets called on a direct instance of `Error`', () => {
-    const vv = new BaseValueVisitor(new Error('woo'));
-    vv._impl_visitError = (e) => `yes: ${e.message}`;
-
-    expect(vv.visitSync()).toBe('yes: woo');
-  });
-
-  test('gets called on an instance of an subclass of `Error`', () => {
-    const vv = new BaseValueVisitor(new TypeError('eep'));
-    vv._impl_visitError = (e) => `yes: ${e.message}`;
-
-    expect(vv.visitSync()).toBe('yes: eep');
-  });
-});
-
-// Extra tests beyond the baseline above.
-describe('_impl_visitInstance()', () => {
-  class VisitInstanceCheckVisitor extends BaseValueVisitor {
-    gotNodes = [];
-
-    _impl_visitArray(node) {
-      return this._prot_visitArrayProperties(node);
-    }
-
-    _impl_visitInstance(node) {
-      this.gotNodes.push(node);
-      return 'yes-sir';
-    }
-  }
-
-  test('gets called on an instance of `VisitRef` that was not created by the visitor-in-progress', () => {
-    const ref = new VisitRef(null, 10);
-    const vv  = new VisitInstanceCheckVisitor([ref]);
-
-    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
-    expect(vv.gotNodes).toStrictEqual([ref]);
-  });
-
-  test('gets called on an instance of `VisitDef` that was not created by the visitor-in-progress', () => {
-    const def = new VisitDef(null, 4321);
-    const vv  = new VisitInstanceCheckVisitor([def]);
-
-    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
-    expect(vv.gotNodes).toStrictEqual([def]);
-  });
-});
 
 describe('_impl_revisit()', () => {
   class RevisitCheckVisitor extends BaseValueVisitor {
@@ -787,7 +668,7 @@ describe('_impl_revisit()', () => {
     }
 
     _impl_visitArray(node) {
-      return this._prot_visitArrayProperties(node);
+      return this._prot_visitProperties(node);
     }
 
     _impl_revisit(node, result, isCycleHead, ref) {
@@ -873,6 +754,149 @@ describe('_impl_revisit()', () => {
   });
 });
 
+// Common tests for type-specific visitors.
+describe.each`
+methodName                  | canWrap  | testVisit | value
+${'_impl_visitArray'}       | ${true}  | ${true}   | ${[1, 2, 3]}
+${'_impl_visitBigInt'}      | ${false} | ${true}   | ${99988777n}
+${'_impl_visitBoolean'}     | ${false} | ${true}   | ${false}
+${'_impl_visitClass'}       | ${true}  | ${true}   | ${class Florp {}}
+${'_impl_visitError'}       | ${true}  | ${true}   | ${new Error('bonk')}
+${'_impl_visitFunction'}    | ${true}  | ${true}   | ${() => 'x'}
+${'_impl_visitInstance'}    | ${true}  | ${true}   | ${new Set(['woo'])}
+${'_impl_visitNull'}        | ${false} | ${true}   | ${null}
+${'_impl_visitNumber'}      | ${false} | ${true}   | ${54.321}
+${'_impl_visitPlainObject'} | ${true}  | ${true}   | ${{ x: 'bonk' }}
+${'_impl_visitProxy'}       | ${true}  | ${false}  | ${new Proxy({}, {})}
+${'_impl_visitString'}      | ${false} | ${true}   | ${'florp'}
+${'_impl_visitSymbol'}      | ${false} | ${true}   | ${Symbol('woo')}
+${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
+`('$methodName()', ({ methodName, canWrap, testVisit, value }) => {
+  test('returns the given value as-is (default implementation)', () => {
+    const vv = new BaseValueVisitor(null);
+    expect(vv[methodName](value)).toBe(value);
+  });
+
+  if (testVisit) {
+    test('gets called during a visit to a root value of the appropriate type', () => {
+      const expected = ['yep', 'it', 'was', 'called'];
+      const vv       = new BaseValueVisitor(value);
+      vv[methodName] = () => expected;
+      expect(vv.visitSync()).toBe(expected);
+    });
+
+    test('gets called during a visit to a non-root value of the appropriate type', () => {
+      // What's going on: We use `null` as the root value as a hook to make a
+      // sub-visit on the appropriate-typed value. _Except_, if the value is
+      // `null`, then we use a string instead.
+      const rootValue = (value === null) ? 'bonk' : null;
+      const rootImpl  = (rootValue === null) ? '_impl_visitNull' : '_impl_visitString';
+      const expected  = ['this', 'is', 'it'];
+      const vv        = new BaseValueVisitor(rootValue);
+      vv[methodName]  = () => expected;
+      vv[rootImpl]    = () => vv._prot_visitProperties([value]);
+
+      const got = vv.visitSync();
+      expect(got).toBeInstanceOf(Array);
+      expect(got).toBeArrayOfSize(1);
+      expect(got[0]).toBe(expected);
+    });
+  }
+
+  if (canWrap) {
+    test('returns a wrapper given a needs-wrapping value', () => {
+      const vv = new BaseValueVisitor(null);
+      value.then = () => null;
+
+      try {
+        const got = vv[methodName](value);
+        expect(got).toBeInstanceOf(VisitResult);
+        expect(got.value).toBe(value);
+      } finally {
+        delete value.then;
+      }
+    });
+  }
+});
+
+describe('_impl_visitError()', () => {
+  test('calls through to `_impl_visitInstance()` (when not overridden)', () => {
+    const vv = new BaseValueVisitor(new Error('woo'));
+    vv._impl_visitInstance = () => 'yep';
+
+    expect(vv.visitSync()).toBe('yep');
+  });
+
+  test('gets called on a direct instance of `Error`', () => {
+    const vv = new BaseValueVisitor(new Error('woo'));
+    vv._impl_visitError = (e) => `yes: ${e.message}`;
+
+    expect(vv.visitSync()).toBe('yes: woo');
+  });
+
+  test('gets called on an instance of an subclass of `Error`', () => {
+    const vv = new BaseValueVisitor(new TypeError('eep'));
+    vv._impl_visitError = (e) => `yes: ${e.message}`;
+
+    expect(vv.visitSync()).toBe('yes: eep');
+  });
+});
+
+// Extra tests beyond the baseline above.
+describe('_impl_visitInstance()', () => {
+  class VisitInstanceCheckVisitor extends BaseValueVisitor {
+    gotNodes = [];
+
+    _impl_visitArray(node) {
+      return this._prot_visitProperties(node);
+    }
+
+    _impl_visitInstance(node) {
+      this.gotNodes.push(node);
+      return 'yes-sir';
+    }
+  }
+
+  test('gets called on an instance of `VisitRef` that was not created by the visitor-in-progress', () => {
+    const ref = new VisitRef(null, 10);
+    const vv  = new VisitInstanceCheckVisitor([ref]);
+
+    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
+    expect(vv.gotNodes).toStrictEqual([ref]);
+  });
+
+  test('gets called on an instance of `VisitDef` that was not created by the visitor-in-progress', () => {
+    const def = new VisitDef(null, 4321);
+    const vv  = new VisitInstanceCheckVisitor([def]);
+
+    expect(vv.visitSync()).toStrictEqual(['yes-sir']);
+    expect(vv.gotNodes).toStrictEqual([def]);
+  });
+});
+
+describe('_impl_visitProxy()', () => {
+  describe.each`
+  type          | value
+  ${'object'}   | ${new Proxy({}, {})}
+  ${'function'} | ${new Proxy(() => null, {})}
+  `('for a proxy of type `$type`', ({ value }) => {
+    test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
+      const vv = new BaseValueVisitor(value);
+      vv._impl_visitProxy = () => 'wrong-value';
+
+      expect(vv.visitSync()).toBe(value);
+    });
+
+    test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
+      const expected = 'right-value';
+      const vv       = new ProxyAwareVisitor(value);
+      vv._impl_visitProxy = () => expected;
+
+      expect(vv.visitSync()).toBe(expected);
+    });
+  });
+});
+
 describe.each`
 methodName                | expectVar
 ${'_prot_labelFromValue'} | ${'expectedLabel'}
@@ -952,226 +976,233 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   });
 });
 
-describe('_impl_visitProxy()', () => {
-  describe.each`
-  type          | value
-  ${'object'}   | ${new Proxy({}, {})}
-  ${'function'} | ${new Proxy(() => null, {})}
-  `('for a proxy of type `$type`', ({ value }) => {
-    test('does not get called during a visit when `_impl_proxyAware()` returns `false`', () => {
-      const vv = new BaseValueVisitor(value);
-      vv._impl_visitProxy = () => 'wrong-value';
+describe('_prot_visit()', () => {
+  test('works synchronously when possible', () => {
+    class VisitCheckVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node) {
+        return `${node}!`;
+      }
 
-      expect(vv.visitSync()).toBe(value);
-    });
-
-    test('gets called during a visit when `_impl_proxyAware()` returns `true`', () => {
-      const expected = 'right-value';
-      const vv       = new ProxyAwareVisitor(value);
-      vv._impl_visitProxy = () => expected;
-
-      expect(vv.visitSync()).toBe(expected);
-    });
-  });
-});
-
-describe('_prot_visitArrayProperties()', () => {
-  test('operates synchronously when possible', () => {
-    const orig = [1, 2];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-
-    expect(got).toEqual(['1', '2']);
-  });
-
-  test('operates synchronously when possible, and recursively', () => {
-    const orig = [1, 2, [3, 4], 5];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-
-    expect(got).toEqual(['1', '2', ['3', '4'], '5']);
-  });
-
-  test('operates asynchronously', async () => {
-    const orig = [false, true];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-
-    expect(got).toEqual(['false', 'true']);
-  });
-
-  test('operates asynchronously and recursively', async () => {
-    const orig = [false, 1, [true, 2], false];
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-
-    expect(got).toEqual(['false', '1', ['true', '2'], 'false']);
-  });
-
-  test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor([456n]);
-
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
-
-  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor([Symbol('zonk')]);
-
-    expect(vv.visit()).rejects.toThrow('NO');
-  });
-
-  test('preserves sparseness', () => {
-    const UND  = undefined;
-    const orig = Array(7);
-
-    orig[2] = 'x';
-    orig[4] = 'y';
-    orig[5] = 5;
-
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-
-    expect(got).toEqual([UND, UND, 'x', UND, 'y', '5', UND]);
-    for (let i = 0; i < 10; i++) {
-      expect(i in got).toBe(i in orig);
+      _impl_visitString(node_unused) {
+        const got = this._prot_visit(9999);
+        expect(got).toBeInstanceOf(VisitResult);
+        expect(got.value).toBe('9999!');
+        return 'yep';
+      }
     }
+
+    const got = new VisitCheckVisitor('boop').visitSync();
+    expect(got).toBe('yep');
   });
 
-  test('handles non-numeric string properties', () => {
-    const orig = [1];
-    orig.x = 2;
-    orig.y = 3;
+  test('works asynchronously when necessary', async () => {
+    class VisitCheckVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) {
+        return `${node}!`;
+      }
 
-    const expected = ['1'];
-    expected.x = '2';
-    expected.y = '3';
+      async _impl_visitString(node_unused) {
+        const got = this._prot_visit(98765);
+        expect(got).toBeInstanceOf(Promise);
+        expect(await got).toBeInstanceOf(VisitResult);
+        expect((await got).value).toBe('98765!');
+        return 'yep';
+      }
+    }
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toEqual(expected);
-  });
-
-  test('handles synchronously-visitable symbol properties', () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = [123];
-    orig[SYM1] = 234;
-    orig[SYM2] = 321;
-
-    const expected = ['123'];
-    expected[SYM1] = '234';
-    expected[SYM2] = '321';
-
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toBeArrayOfSize(1);
-    expect(got[0]).toBe('123');
-    expect(got[SYM1]).toBe('234');
-    expect(got[SYM2]).toBe('321');
-  });
-
-  test('handles asynchronously-visitable symbol properties', async () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = [123];
-    orig[SYM1] = true;
-    orig[SYM2] = false;
-
-    const expected = ['123'];
-    expected[SYM1] = 'true';
-    expected[SYM2] = 'false';
-
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-    expect(got).toBeArrayOfSize(1);
-    expect(got[0]).toBe('123');
-    expect(got[SYM1]).toBe('true');
-    expect(got[SYM2]).toBe('false');
+    const got = new VisitCheckVisitor('boop').visit();
+    expect(await got).toBe('yep');
   });
 });
 
-describe('_prot_visitObjectProperties()', () => {
-  test('produces a `null`-prototype result', () => {
-    const orig = { x: 'foomp' };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+describe('_prot_visitProperties()', () => {
+  class VisitPropertiesCheckVisitor extends BaseValueVisitor {
+    #beAsync;
+    #doErrors;
+    #doEntries;
 
-    expect(got).toEqual(orig);
-    expect(Object.getPrototypeOf(got)).toBeNull();
-  });
+    constructor(value, { async = false, errors = false, entries = false } = {}) {
+      super(value);
+      this.#beAsync   = async;
+      this.#doErrors  = errors;
+      this.#doEntries = entries;
+    }
 
-  test('operates synchronously when possible', () => {
-    const orig = { a: 10, b: 20 };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+    _impl_visitNumber(node) {
+      if (this.#doErrors) {
+        return this.#doVisit(() => {
+          throw new Error(`Ouch: ${node}`);
+        });
+      } else {
+        return this.#doVisit(() => `${node}%`);
+      }
+    }
 
-    expect(got).toEqual({ a: '10', b: '20' });
-  });
+    _impl_visitArray(node) {
+      return this.#doVisit(() => this._prot_visitProperties(node, this.#doEntries));
+    }
 
-  test('operates synchronously when possible, and recursively', () => {
-    const orig = { a: 1, b: 2, c: { d: 3, e: 4 }, f: 5 };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
+    _impl_visitPlainObject(node) {
+      return this.#doVisit(() => this._prot_visitProperties(node, this.#doEntries));
+    }
 
-    expect(got).toEqual({ a: '1', b: '2',  c: { d: '3', e: '4' }, f: '5' });
-  });
+    #doVisit(func) {
+      if (this.#beAsync) {
+        return (async () => {
+          await setImmediate();
+          return func();
+        })();
+      } else {
+        return func();
+      }
+    }
+  }
 
-  test('operates asynchronously', async () => {
-    const orig = { x: false, y: true };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
+  const SPARSE_ARRAY_VALUE  = [77, /*empty*/, 88]; // eslint-disable-line no-sparse-arrays
+  const SPARSE_ARRAY_RESULT = ['77%', /*empty*/, '88%']; // eslint-disable-line no-sparse-arrays
+  describe.each`
+  label                | value                             | proto              | expected
+  ${'a plain object'}  | ${{ a: 12, b: 45, c: { d: 98 } }} | ${null}            | ${{ a: '12%', b: '45%', c: { d: '98%' } }}
+  ${'a regular array'} | ${[11, 22, [33]]}                 | ${Array.prototype} | ${['11%', '22%', ['33%']]}
+  ${'a sparse array'}  | ${SPARSE_ARRAY_VALUE}             | ${Array.prototype} | ${SPARSE_ARRAY_RESULT}
+  `('given $label', ({ value, proto, expected }) => {
+    function checkProps(got) {
+      const expectProps = [
+        ...Object.getOwnPropertyNames(expected),
+        ...Object.getOwnPropertySymbols(expected)
+      ];
+      const gotProps = [
+        ...Object.getOwnPropertyNames(got),
+        ...Object.getOwnPropertySymbols(got)
+      ];
 
-    expect(got).toEqual({ x: 'false', y: 'true' });
-  });
+      expect(gotProps).toStrictEqual(expectProps);
+    }
 
-  test('operates asynchronously and recursively', async () => {
-    const orig = { x: false, y: 1, z: { a: true, b: 2 } };
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
+    function checkEntries(got) {
+      checkProps(Object.fromEntries(got));
+    }
 
-    expect(got).toEqual({ x: 'false', y: '1', z: { a: 'true', b: '2' } });
-  });
+    test('operates synchronously when possible', () => {
+      const vv   = new VisitPropertiesCheckVisitor(value);
+      const got  = vv.visitSync();
 
-  test('synchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor({ blorp: 456n });
+      expect(Object.getPrototypeOf(got)).toBe(proto);
+      expect(got).toEqual(expected);
+      checkProps(got);
+    });
 
-    expect(() => vv.visitSync()).toThrow('Nope!');
-  });
+    test('operates asynchronously when not strictly necessary', async () => {
+      const vv   = new VisitPropertiesCheckVisitor(value);
+      const got  = vv.visit();
 
-  test('asynchronously propagates an error thrown by one of the sub-calls', () => {
-    const vv = new RecursiveVisitor({ blorp: Symbol('zonk') });
+      expect(got).toBeInstanceOf(Promise);
+      expect(Object.getPrototypeOf(await got)).toBe(proto);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
 
-    expect(vv.visit()).rejects.toThrow('NO');
-  });
+    test('operates asynchronously when necessary', async () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
+      const got = vv.visit();
 
-  test('handles synchronously-visitable symbol properties', () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = {
-      [SYM1]: 234,
-      [SYM2]: 321
-    };
+      expect(got).toBeInstanceOf(Promise);
+      expect(Object.getPrototypeOf(await got)).toBe(proto);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = vv.visitSync();
-    expect(got).toBeObject();
-    expect(got[SYM1]).toBe('234');
-    expect(got[SYM2]).toBe('321');
-  });
+    test('produces entries (when asked)', () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { entries: true });
+      const got = vv.visitSync();
 
-  test('handles asynchronously-visitable symbol properties', async () => {
-    const SYM1 = Symbol.for('x');
-    const SYM2 = Symbol('y');
-    const orig = {
-      [SYM1]: true,
-      [SYM2]: false
-    };
+      checkEntries(got);
+    });
 
-    const vv   = new RecursiveVisitor(orig);
-    const got  = await vv.visit();
-    expect(got).toBeObject();
-    expect(got[SYM1]).toBe('true');
-    expect(got[SYM2]).toBe('false');
+    test('produces entries (when asked) including extra symbol-valued properties', () => {
+      const sym = Symbol('blonk');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 987;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '987%';
+
+      const vv  = new VisitPropertiesCheckVisitor(value, { entries: true });
+      const got = vv.visitSync();
+
+      checkEntries(got);
+    });
+
+    test('synchronously propagates an error thrown synchronously by one of the sub-calls', () => {
+      const vv = new VisitPropertiesCheckVisitor(value, { errors: true });
+
+      expect(() => vv.visitSync()).toThrow(/Ouch/);
+    });
+
+    test('asynchronously propagates an error thrown asynchronously by one of the sub-calls', async () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true, errors: true });
+      const got = vv.visit();
+
+      expect(got).toBeInstanceOf(Promise);
+      await expect(got).rejects.toThrow(/Ouch/);
+    });
+
+    test('synchronously handles extra symbol properties if possible', () => {
+      const sym = Symbol('beep');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 914;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '914%';
+
+      const vv  = new VisitPropertiesCheckVisitor(value);
+      const got = vv.visitSync();
+
+      expect(got).toEqual(expected);
+      checkProps(got);
+    });
+
+    test('asynchronously handles extra symbol properties when necessary', async () => {
+      const sym = Symbol('beep');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 914;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '914%';
+
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
+      const got = vv.visit();
+
+      expect(got).toBeInstanceOf(Promise);
+      expect(await got).toEqual(expected);
+      checkProps(await got);
+    });
+
+    if (Array.isArray(value)) {
+      test('synchronously handles extra string properties if possible', () => {
+        value = [...value];
+        value.bloop = 321;
+        expected = [...expected];
+        expected.bloop = '321%';
+
+        const vv  = new VisitPropertiesCheckVisitor(value);
+        const got = vv.visitSync();
+
+        expect(got).toEqual(expected);
+        checkProps(got);
+      });
+
+      test('asynchronously handles extra string properties when necessary', async () => {
+        value = [...value];
+        value.bloop = 321;
+        expected = [...expected];
+        expected.bloop = '321%';
+
+        const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
+        const got  = vv.visit();
+
+        expect(got).toBeInstanceOf(Promise);
+        expect(await got).toEqual(expected);
+        checkProps(await got);
+      });
+    }
   });
 });
 

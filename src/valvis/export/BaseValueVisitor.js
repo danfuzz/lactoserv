@@ -111,9 +111,6 @@ export class BaseValueVisitor {
 
     if (this.#allRefs instanceof Map) {
       return (allRefs.size > 0);
-    } else if (!this.#visitRoot().isFinished()) {
-      // The visit is still in progress.
-      return null;
     }
 
     // This is the first post-visit call to this method, so we can (and do) now
@@ -314,7 +311,7 @@ export class BaseValueVisitor {
    * Visits an array, that is, an object for which `Array.isArray()` returns
    * `true`. The base implementation returns the given `node` as-is. Subclasses
    * that wish to visit the contents can do so by calling
-   * {@link #_prot_visitArrayProperties}.
+   * {@link #_prot_visitProperties}.
    *
    * @param {Array} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -427,8 +424,7 @@ export class BaseValueVisitor {
    * Visits a plain object value, that is, a non-`null` value of type `object`,
    * which has a `prototype` of either `null` or the class `Object`. The base
    * implementation returns the given `node` as-is. Subclasses that wish to
-   * visit the contents can do so by calling
-   * {@link #_prot_visitObjectProperties}.
+   * visit the contents can do so by calling {@link #_prot_visitProperties}.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -594,42 +590,100 @@ export class BaseValueVisitor {
     const entry = this.#visitNode(node);
 
     return entry.isFinished()
-      ? new VisitResult(entry.extractSync())
-      : entry.promise;
+      ? entry.extractSync(true)
+      : entry.extractAsync(true);
   }
 
   /**
-   * Visits the indexed values and any other "own" property values of an array,
-   * _excluding_ `length`. Returns an array consisting of all the visited
-   * values, with indices / property names corresponding to the original. If the
-   * original `node` is a sparse array, the result will have the same "holes."
+   * Visits the "own" property values of an object, typically a plain object or
+   * array. Returns either an array (if given an array or if asked for entries)
+   * or a `null`-prototype plain object (if given a non-array object and _not_
+   * asked for entries), consisting of all the visited values, with property
+   * names / indexes corresponding to the original.
    *
-   * **Note:** If the given `node` has synthetic properties, this method will
-   * call those properties' getters.
+   * Some special cases:
    *
-   * @param {Array} node The node whose contents are to be visited.
-   * @returns {Array|Promise} An array of visited results, or a promise for same
-   *   in the case where any of the visitor methods act asynchronously.
-   */
-  _prot_visitArrayProperties(node) {
-    return this.#visitProperties(node, Array(node.length));
-  }
-
-  /**
-   * Visits the "own" property values of an object (typically a plain object).
-   * Returns a new plain object consisting of all the visited values, with
-   * property names corresponding to the original.
-   *
-   * **Note:** If the given `node` has synthetic properties, this method will
-   * call those properties' getters.
+   * * If the given `node` has synthetic properties, this method will call those
+   *   properties' getters.
+   * * If the original `node` is a sparse array, the result will have the same
+   *   "holes."
+   * * If `returnEntries` is passed as `true` and `node` is an array, it _will_
+   *   have a result entry for `length`. Furthermore, the `length` will be in
+   *   the result between indexed properties and named properties, just as with
+   *   `Object.getOwnPropertyNames()`.
    *
    * @param {object} node The node whose contents are to be visited.
-   * @returns {object|Promise} A `null`-prototype object with the visited
-   *   results, or a promise for same in the case where any of the visitor
-   *   methods act asynchronously.
+   * @param {boolean} [returnEntries] Return an array of two-element entry
+   *   arrays (a la `Object.entries()`) instead of a direct array or plain
+   *   object?
+   * @returns {object|Array|Promise} The visited results as an array or
+   *   `null`-prototype plain object, or a promise for same in the case where
+   *   any of the visitor methods act asynchronously.
    */
-  _prot_visitObjectProperties(node) {
-    return this.#visitProperties(node, Object.create(null));
+  _prot_visitProperties(node, returnEntries = false) {
+    const isArray    = Array.isArray(node);
+    const skipLength = isArray && !returnEntries;
+    const propArrays = [
+      Object.getOwnPropertyNames(node),
+      Object.getOwnPropertySymbols(node)
+    ];
+
+    const result = (() => {
+      if (returnEntries) return [];
+      else if (isArray)  return Array(node.length);
+      else               return Object.create(null);
+    })();
+    const addResult = (name, entry) => {
+      const value = entry.extractSync();
+      if (returnEntries) result.push([name, value]);
+      else               result[name] = value;
+    };
+
+    // We do this in an async IIFE, so that in the case of actually-synchronous
+    // completion, we can return or throw the non-Promise result.
+    let isAsync = false;
+    let error   = null;
+    const resultProm = (async () => {
+      for (const propArray of propArrays) {
+        for (const name of propArray) {
+          if (skipLength && (name === 'length')) {
+            // **Note:** This test is needed because `Object.getOwnProperties()`
+            // on an array includes `length`, and we _don't_ want to end up
+            // calling `result.length = <whatever>`.
+            continue;
+          }
+
+          const entry = this.#visitNode(node[name]);
+          if (entry.isFinished()) {
+            try {
+              addResult(name, entry);
+            } catch (e) {
+              if (isAsync) {
+                // Propagate the error to `resultProm`.
+                throw e;
+              } else {
+                // Arrange for the synchronous call to throw this error.
+                error = e;
+                break;
+              }
+            }
+          } else {
+            isAsync = true;
+            addResult(name, await entry.promise);
+          }
+        }
+      }
+
+      return result;
+    })();
+
+    if (isAsync) {
+      return resultProm;
+    } else if (error) {
+      throw error;
+    } else {
+      return result;
+    }
   }
 
   /**
@@ -804,66 +858,6 @@ export class BaseValueVisitor {
         throw new Error(`Unrecognized \`typeof\` result: ${typeof node}`);
       }
       /* c8 ignore stop */
-    }
-  }
-
-  /**
-   * Helper for {@link #_prot_visitArrayProperties} and
-   * {@link #_prot_visitObjectProperties}, which does most of the work.
-   *
-   * @param {object} node The node whose contents are to be visited.
-   * @param {object} result The result object or array to be filled in.
-   * @returns {object|Promise} `result` if the visitor acted entirely
-   *   synchronously, or a promise for `result` if not.
-   */
-  #visitProperties(node, result) {
-    const isArray    = Array.isArray(result);
-    const propArrays = [
-      Object.getOwnPropertyNames(node),
-      Object.getOwnPropertySymbols(node)
-    ];
-
-    // We do this in an async IIFE, so that in the case of actually-synchronous
-    // completion, we can return or throw the non-Promise result.
-    let isAsync = false;
-    let error   = null;
-    const resultProm = (async () => {
-      for (const propArray of propArrays) {
-        for (const name of propArray) {
-          if (isArray && (name === 'length')) {
-            continue;
-          }
-
-          const entry = this.#visitNode(node[name]);
-          if (entry.isFinished()) {
-            try {
-              result[name] = entry.extractSync();
-            } catch (e) {
-              if (isAsync) {
-                // Propagate the error to `resultProm`.
-                throw e;
-              } else {
-                // Arrange for the synchronous call to throw this error.
-                error = e;
-                break;
-              }
-            }
-          } else {
-            isAsync = true;
-            result[name] = (await entry.promise).extractSync();
-          }
-        }
-      }
-
-      return result;
-    })();
-
-    if (isAsync) {
-      return resultProm;
-    } else if (error) {
-      throw error;
-    } else {
-      return result;
     }
   }
 
