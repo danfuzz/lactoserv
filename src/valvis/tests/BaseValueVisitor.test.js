@@ -979,11 +979,13 @@ describe('_prot_visitProperties()', () => {
   class VisitPropertiesCheckVisitor extends BaseValueVisitor {
     #beAsync;
     #doErrors;
+    #doEntries;
 
-    constructor(value, { async = false, errors = false } = {}) {
+    constructor(value, { async = false, errors = false, entries = false } = {}) {
       super(value);
-      this.#beAsync  = async;
-      this.#doErrors = errors;
+      this.#beAsync   = async;
+      this.#doErrors  = errors;
+      this.#doEntries = entries;
     }
 
     _impl_visitNumber(node) {
@@ -997,11 +999,11 @@ describe('_prot_visitProperties()', () => {
     }
 
     _impl_visitArray(node) {
-      return this.#doVisit(() => this._prot_visitProperties(node));
+      return this.#doVisit(() => this._prot_visitProperties(node, this.#doEntries));
     }
 
     _impl_visitPlainObject(node) {
-      return this.#doVisit(() => this._prot_visitProperties(node));
+      return this.#doVisit(() => this._prot_visitProperties(node, this.#doEntries));
     }
 
     #doVisit(func) {
@@ -1037,6 +1039,16 @@ describe('_prot_visitProperties()', () => {
       expect(gotProps).toStrictEqual(expectProps);
     }
 
+    function checkEntries(got) {
+      const gotTweak = Object.fromEntries(got);
+
+      if (Array.isArray(value)) {
+        gotTweak.length = null;
+      }
+
+      checkProps(gotTweak);
+    }
+
     test('operates synchronously when possible', () => {
       const vv   = new VisitPropertiesCheckVisitor(value);
       const got  = vv.visitSync();
@@ -1066,6 +1078,26 @@ describe('_prot_visitProperties()', () => {
       checkProps(await got);
     });
 
+    test('produces entries (when asked)', () => {
+      const vv  = new VisitPropertiesCheckVisitor(value, { entries: true });
+      const got = vv.visitSync();
+
+      checkEntries(got);
+    });
+
+    test('produces entries (when asked) including extra symbol-valued properties', () => {
+      const sym = Symbol('blonk');
+      value = Array.isArray(value) ? [...value] : { ...value };
+      value[sym] = 987;
+      expected = Array.isArray(expected) ? [...expected] : { ...expected };
+      expected[sym] = '987%';
+
+      const vv  = new VisitPropertiesCheckVisitor(value, { entries: true });
+      const got = vv.visitSync();
+
+      checkEntries(got);
+    });
+
     test('synchronously propagates an error thrown synchronously by one of the sub-calls', () => {
       const vv = new VisitPropertiesCheckVisitor(value, { errors: true });
 
@@ -1087,8 +1119,8 @@ describe('_prot_visitProperties()', () => {
       expected = Array.isArray(expected) ? [...expected] : { ...expected };
       expected[sym] = '914%';
 
-      const vv   = new VisitPropertiesCheckVisitor(value);
-      const got  = vv.visitSync();
+      const vv  = new VisitPropertiesCheckVisitor(value);
+      const got = vv.visitSync();
 
       expect(got).toEqual(expected);
       checkProps(got);
@@ -1101,8 +1133,8 @@ describe('_prot_visitProperties()', () => {
       expected = Array.isArray(expected) ? [...expected] : { ...expected };
       expected[sym] = '914%';
 
-      const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
-      const got  = vv.visit();
+      const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
+      const got = vv.visit();
 
       expect(got).toBeInstanceOf(Promise);
       expect(await got).toEqual(expected);
@@ -1116,8 +1148,8 @@ describe('_prot_visitProperties()', () => {
         expected = [...expected];
         expected.bloop = '321%';
 
-        const vv   = new VisitPropertiesCheckVisitor(value);
-        const got  = vv.visitSync();
+        const vv  = new VisitPropertiesCheckVisitor(value);
+        const got = vv.visitSync();
 
         expect(got).toEqual(expected);
         checkProps(got);
