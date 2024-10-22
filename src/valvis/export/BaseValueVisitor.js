@@ -314,7 +314,7 @@ export class BaseValueVisitor {
    * Visits an array, that is, an object for which `Array.isArray()` returns
    * `true`. The base implementation returns the given `node` as-is. Subclasses
    * that wish to visit the contents can do so by calling
-   * {@link #_prot_visitArrayProperties}.
+   * {@link #_prot_visitProperties}.
    *
    * @param {Array} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -427,8 +427,7 @@ export class BaseValueVisitor {
    * Visits a plain object value, that is, a non-`null` value of type `object`,
    * which has a `prototype` of either `null` or the class `Object`. The base
    * implementation returns the given `node` as-is. Subclasses that wish to
-   * visit the contents can do so by calling
-   * {@link #_prot_visitObjectProperties}.
+   * visit the contents can do so by calling {@link #_prot_visitProperties}.
    *
    * @param {object} node The node to visit.
    * @returns {*} Arbitrary result of visiting.
@@ -596,40 +595,6 @@ export class BaseValueVisitor {
     return entry.isFinished()
       ? new VisitResult(entry.extractSync())
       : entry.promise;
-  }
-
-  /**
-   * Visits the indexed values and any other "own" property values of an array,
-   * _excluding_ `length`. Returns an array consisting of all the visited
-   * values, with indices / property names corresponding to the original. If the
-   * original `node` is a sparse array, the result will have the same "holes."
-   *
-   * **Note:** If the given `node` has synthetic properties, this method will
-   * call those properties' getters.
-   *
-   * @param {Array} node The node whose contents are to be visited.
-   * @returns {Array|Promise} An array of visited results, or a promise for same
-   *   in the case where any of the visitor methods act asynchronously.
-   */
-  _prot_visitArrayProperties(node) {
-    return this._prot_visitProperties(node);
-  }
-
-  /**
-   * Visits the "own" property values of an object (typically a plain object).
-   * Returns a new plain object consisting of all the visited values, with
-   * property names corresponding to the original.
-   *
-   * **Note:** If the given `node` has synthetic properties, this method will
-   * call those properties' getters.
-   *
-   * @param {object} node The node whose contents are to be visited.
-   * @returns {object|Promise} A `null`-prototype object with the visited
-   *   results, or a promise for same in the case where any of the visitor
-   *   methods act asynchronously.
-   */
-  _prot_visitObjectProperties(node) {
-    return this._prot_visitProperties(node);
   }
 
   /**
