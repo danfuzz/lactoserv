@@ -72,11 +72,11 @@ class RecursiveVisitor extends BaseValueVisitor {
   }
 
   _impl_visitArray(node) {
-    return this._prot_visitArrayProperties(node);
+    return this._prot_visitProperties(node);
   }
 
   _impl_visitPlainObject(node) {
-    return this._prot_visitObjectProperties(node);
+    return this._prot_visitProperties(node);
   }
 }
 
@@ -108,12 +108,12 @@ class RefMakingVisitor extends BaseValueVisitor {
   }
 
   _impl_visitArray(node) {
-    return this._prot_visitArrayProperties(node);
+    return this._prot_visitProperties(node);
   }
 
   async _impl_visitPlainObject(node) {
     await setImmediate();
-    return this._prot_visitObjectProperties(node);
+    return this._prot_visitProperties(node);
   }
 }
 
@@ -384,7 +384,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       class ExtraAsyncVisitor extends RecursiveVisitor {
         async _impl_visitArray(node) {
           await setImmediate();
-          return this._prot_visitArrayProperties(node);
+          return this._prot_visitProperties(node);
         }
       }
 
@@ -493,7 +493,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       }
 
       _impl_visitArray(node) {
-        return this._prot_visitArrayProperties(node);
+        return this._prot_visitProperties(node);
       }
     }
 
@@ -523,7 +523,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
       }
 
       _impl_visitArray(node) {
-        return this._prot_visitArrayProperties(node);
+        return this._prot_visitProperties(node);
       }
     }
 
@@ -692,7 +692,7 @@ ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
       const expected  = ['this', 'is', 'it'];
       const vv        = new BaseValueVisitor(rootValue);
       vv[methodName]  = () => expected;
-      vv[rootImpl]    = () => vv._prot_visitArrayProperties([value]);
+      vv[rootImpl]    = () => vv._prot_visitProperties([value]);
 
       const got = vv.visitSync();
       expect(got).toBeInstanceOf(Array);
@@ -746,7 +746,7 @@ describe('_impl_visitInstance()', () => {
     gotNodes = [];
 
     _impl_visitArray(node) {
-      return this._prot_visitArrayProperties(node);
+      return this._prot_visitProperties(node);
     }
 
     _impl_visitInstance(node) {
@@ -787,7 +787,7 @@ describe('_impl_revisit()', () => {
     }
 
     _impl_visitArray(node) {
-      return this._prot_visitArrayProperties(node);
+      return this._prot_visitProperties(node);
     }
 
     _impl_revisit(node, result, isCycleHead, ref) {
