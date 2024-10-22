@@ -119,7 +119,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNumber(node) {
-    return this.#maybeColorize(`${node}`, chalk.yellow);
+    return this.#maybeColorize(`${node}`, HumanVisitor.#COLOR_NUMBER);
   }
 
   /** @override */
@@ -135,7 +135,7 @@ export class HumanVisitor extends BaseValueVisitor {
   /** @override */
   _impl_visitString(node) {
     // `inspect()` to get good quoting, etc.
-    return this.#maybeColorize(util.inspect(node), chalk.green);
+    return this.#maybeColorize(util.inspect(node), HumanVisitor.#COLOR_STRING);
   }
 
   /** @override */
@@ -243,6 +243,13 @@ export class HumanVisitor extends BaseValueVisitor {
   static #COLOR_DEF_REF = chalk.magenta.bold;
 
   /**
+   * Colorizer function to use for numbers.
+   *
+   * @type {Function}
+   */
+  static #COLOR_NUMBER = chalk.yellow;
+
+  /**
    * Colorizer function to use for top-level payload type and cladding.
    *
    * @type {Function}
@@ -255,6 +262,13 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
+
+  /**
+   * Colorizer function to use for strings (that is, quoted string values).
+   *
+   * @type {Function}
+   */
+  static #COLOR_STRING = chalk.green;
 
   /**
    * Colorizer function to use for `payload.when`.
