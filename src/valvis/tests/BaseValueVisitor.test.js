@@ -976,6 +976,45 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   });
 });
 
+describe('_prot_visit()', () => {
+  test('works synchronously when possible', () => {
+    class VisitCheckVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node) {
+        return `${node}!`;
+      }
+
+      _impl_visitString(node) {
+        const got = this._prot_visit(9999);
+        expect(got).toBeInstanceOf(VisitResult);
+        expect(got.value).toBe('9999!');
+        return 'yep';
+      }
+    }
+
+    const got = new VisitCheckVisitor('boop').visitSync();
+    expect(got).toBe('yep');
+  });
+
+  test('works asynchronously when necessary', async () => {
+    class VisitCheckVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) {
+        return `${node}!`;
+      }
+
+      async _impl_visitString(node) {
+        const got = this._prot_visit(98765);
+        expect(got).toBeInstanceOf(Promise);
+        expect(await got).toBeInstanceOf(VisitResult);
+        expect((await got).value).toBe('98765!');
+        return 'yep';
+      }
+    }
+
+    const got = new VisitCheckVisitor('boop').visit();
+    expect(await got).toBe('yep');
+  });
+});
+
 describe('_prot_visitProperties()', () => {
   class VisitPropertiesCheckVisitor extends BaseValueVisitor {
     #beAsync;

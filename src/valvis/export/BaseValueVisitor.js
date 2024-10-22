@@ -593,8 +593,8 @@ export class BaseValueVisitor {
     const entry = this.#visitNode(node);
 
     return entry.isFinished()
-      ? new VisitResult(entry.extractSync())
-      : entry.promise;
+      ? entry.extractSync(true)
+      : entry.extractAsync(true);
   }
 
   /**
