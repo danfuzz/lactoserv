@@ -601,11 +601,14 @@ export class BaseValueVisitor {
    * asked for entries), consisting of all the visited values, with property
    * names / indexes corresponding to the original.
    *
-   * **Note:** If the given `node` has synthetic properties, this method will
-   * call those properties' getters.
+   * Some special cases:
    *
-   * **Note:** If the original `node` is a sparse array, the result will have
-   * the same "holes."
+   * * If the given `node` has synthetic properties, this method will call those
+   *   properties' getters.
+   * * If the original `node` is a sparse array, the result will have the same
+   *   "holes."
+   * * If `returnEntries` is passed as `true` and `node` is an array, it _will_
+   *   have a result entry for `length`.
    *
    * @param {object} node The node whose contents are to be visited.
    * @param {boolean} [returnEntries] Return an array of two-element entry
@@ -616,7 +619,8 @@ export class BaseValueVisitor {
    *   any of the visitor methods act asynchronously.
    */
   _prot_visitProperties(node, returnEntries = false) {
-    const isArray = Array.isArray(node);
+    const isArray    = Array.isArray(node);
+    const skipLength = isArray && !returnEntries;
     const propArrays = [
       Object.getOwnPropertyNames(node),
       Object.getOwnPropertySymbols(node)
@@ -640,11 +644,10 @@ export class BaseValueVisitor {
     const resultProm = (async () => {
       for (const propArray of propArrays) {
         for (const name of propArray) {
-          if (isArray && (name === 'length')) {
-            // **Note:** This test works because `Object.getOwnProperties()` on
-            // an array includes `length`. However, notably `Object.entries()`
-            // on an array does _not_ include an entry for length, so beware the
-            // choice of inspection method!
+          if (skipLength && (name === 'length')) {
+            // **Note:** This test is needed because `Object.getOwnProperties()`
+            // on an array includes `length`, and we _don't_ want to end up
+            // calling `result.length = <whatever>`.
             continue;
           }
 

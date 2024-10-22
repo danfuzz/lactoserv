@@ -1080,13 +1080,7 @@ describe('_prot_visitProperties()', () => {
     }
 
     function checkEntries(got) {
-      const gotTweak = Object.fromEntries(got);
-
-      if (Array.isArray(value)) {
-        gotTweak.length = null;
-      }
-
-      checkProps(gotTweak);
+      checkProps(Object.fromEntries(got));
     }
 
     test('operates synchronously when possible', () => {
