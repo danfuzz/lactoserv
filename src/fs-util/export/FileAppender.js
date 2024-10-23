@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
+import { Writable } from 'node:stream';
 
 import { WallClock } from '@this/clocky';
 import { Duration } from '@this/quant';
@@ -27,6 +28,13 @@ export class FileAppender {
    * @type {Duration}
    */
   #maxBufferTime;
+
+  /**
+   * The console stream associated with the file, or `null` if there is none.
+   *
+   * @type {Writable}
+   */
+  #consoleStream = null;
 
   /**
    * Buffered texts in need of writing.
@@ -62,6 +70,20 @@ export class FileAppender {
     this.#maxBufferTime = maxBufferTime
       ? MustBe.instanceOf(maxBufferTime, Duration)
       : Duration.ZERO;
+
+    switch (filePath) {
+      case '/dev/stderr': this.#consoleStream = process.stderr; break;
+      case '/dev/stdout': this.#consoleStream = process.stdout; break;
+    }
+  }
+
+  /**
+   * @returns {?number} The console width of this instance's file, if it is
+   * known to be a console, or `null` if the width is unknown or unavailable.
+   * This specifically works with `/dev/stdout` and `/dev/stderr`.
+   */
+  get columns() {
+    return this.#consoleStream?.columns ?? null;
   }
 
   /**
