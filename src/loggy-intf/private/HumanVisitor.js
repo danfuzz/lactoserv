@@ -8,7 +8,7 @@ import { Chalk } from '@this/text';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
-import { StyledString } from '#p/StyledString';
+import { StyledText } from '#p/StyledText';
 
 /**
  * Always-on `Chalk` instance.
@@ -166,7 +166,7 @@ export class HumanVisitor extends BaseValueVisitor {
    */
   #maybeColorize(text, func) {
     return this.#colorize
-      ? new StyledString(func(text), text.length)
+      ? new StyledText(func(text), text.length)
       : text;
   }
 

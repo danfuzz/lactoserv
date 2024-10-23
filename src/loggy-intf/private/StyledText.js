@@ -8,7 +8,7 @@
  * much of the time client code need not determine if it has a regular `string`
  * or an instance of this class.
  */
-export class StyledString {
+export class StyledText {
   /**
    * The string, including style/color escapes.
    *
