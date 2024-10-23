@@ -61,6 +61,8 @@ export class IntfText {
    *
    * @param {TypeText} text Text to render.
    * @param {object} [options] Rendering options.
+   * @param {?number} [options.firstWidth] Amount of render width available on
+   *   the first line. Defaults to `options.maxWidth`.
    * @param {number} [options.indentLevel] The indent level to render this at.
    *   This indicates the number of indentations to insert after each newline.
    *   Defaults to `0`.
@@ -69,12 +71,15 @@ export class IntfText {
    * @param {?number} [options.maxWidth] The desired maximum rendered width in
    *   columns, or `null` not to have a limit. This target _might_ not be
    *   achievable (e.g., because of a part which is too long and has no internal
-   *   potential line breaks). Defaults to `null`
+   *   potential line breaks). Defaults to `null`.
    * @returns {string} The rendered form.
    */
-  static render(text, { indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
-    return (typeof text === 'string')
-      ? text
-      : text.render({ indentLevel, indentWidth, maxWidth });
+  static render(text, { firstWidth, indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
+    if (typeof text === 'string') {
+      return text;
+    }
+
+    firstWidth ??= maxWidth;
+    return text.render({ firstWidth, indentLevel, indentWidth, maxWidth });
   }
 }
