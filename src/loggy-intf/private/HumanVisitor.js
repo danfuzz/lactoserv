@@ -9,6 +9,7 @@ import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
 import { StyledText } from '#p/StyledText';
+import { TypeText } from '#p/TypeText';
 
 /**
  * Always-on `Chalk` instance.
@@ -201,11 +202,10 @@ export class HumanVisitor extends BaseValueVisitor {
    * object of some sort.
    *
    * @param {*} node The aggregate to visit.
-   * @param {string} open The "open" string.
-   * @param {string} close The "close" string.
-   * @param {string} ifEmpty The string to use to represent an empty
-   *   instance.
-   * @returns {Array<string>} The stringified aggregate, as an array.
+   * @param {TypeText} open The "open" text.
+   * @param {TypeText} close The "close" text.
+   * @param {TypeText} ifEmpty The text to use to represent an empty instance.
+   * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, ifEmpty) {
     const isArray = Array.isArray(node);
