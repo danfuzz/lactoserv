@@ -89,10 +89,12 @@ export class LogPayload extends EventPayload {
    * human consumption.
    *
    * @param {boolean} [styled] Should the result be styled/colorized?
+   * @param {?number} [maxWidth] The desired maximum line width to aim for
+   *   (though not necessarily achieved), or `null` to have no limit.
    * @returns {string} The "human form" string.
    */
-  toHuman(styled = false) {
-    return HumanVisitor.payloadToHuman(this, styled);
+  toHuman(styled = false, maxWidth = null) {
+    return HumanVisitor.payloadToHuman(this, styled, maxWidth);
   }
 
   /**

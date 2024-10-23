@@ -291,11 +291,16 @@ export class HumanVisitor extends BaseValueVisitor {
    *
    * @param {LogPayload} payload The instance to render.
    * @param {boolean} [styled] Style/colorize the result?
+   * @param {?number} [maxWidth] The desired maximum line width to aim for
+   *   (though not necessarily achieved), or `null` to have no limit.
    * @returns {string} The rendered "human form" string.
    */
-  static payloadToHuman(payload, styled = false) {
+  static payloadToHuman(payload, styled = false, maxWidth = null) {
+    maxWidth ??= Number.POSITIVE_INFINITY;
+
     const text = new HumanVisitor(payload, styled).visitSync();
 
+    // TODO: Honor `maxWidth`.
     return text.toString();
   }
 }
