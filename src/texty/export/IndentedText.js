@@ -1,9 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ComboText } from '#p/ComboText';
-import { IntfText } from '#p/IntfText';
-import { TypeText } from '#p/TypeText';
+import { ComboText } from '#x/ComboText';
+import { IntfText } from '#x/IntfText';
+import { TypeText } from '#x/TypeText';
 
 
 /**

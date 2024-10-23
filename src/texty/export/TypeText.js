@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-import { IntfText } from '#p/IntfText';
+import { IntfText } from '#x/IntfText';
 
 /**
  * Type of "textish" things, as used by this module.

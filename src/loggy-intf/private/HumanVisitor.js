@@ -4,14 +4,11 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk } from '@this/texty';
+import { Chalk, ComboText, IndentedText, StyledText, TypeText }
+  from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
-import { ComboText } from '#p/ComboText';
-import { IndentedText } from '#p/IndentedText';
 import { LogPayload } from '#x/LogPayload';
-import { StyledText } from '#p/StyledText';
-import { TypeText } from '#p/TypeText';
 
 /**
  * Always-on `Chalk` instance.
