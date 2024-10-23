@@ -7,6 +7,8 @@ import { Sexp } from '@this/decon';
 import { Chalk } from '@this/text';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
+import { ComboText } from '#p/ComboText';
+import { IndentedText } from '#p/IndentedText';
 import { LogPayload } from '#x/LogPayload';
 import { StyledText } from '#p/StyledText';
 import { TypeText } from '#p/TypeText';
@@ -89,11 +91,11 @@ export class HumanVisitor extends BaseValueVisitor {
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `${type}()`;
-        return [...prefix, this.#maybeColorize(text, color)];
+        return new ComboText(...prefix, this.#maybeColorize(text, color));
       } else {
         const open  = this.#maybeColorize(`${type}(`, color);
         const close = this.#maybeColorize(')', color);
-        return [...prefix, ...this.#visitAggregate(args, open, close, null)];
+        return new ComboText(...prefix, this.#visitAggregate(args, open, close, null));
       }
     } else if (node instanceof BaseDefRef) {
       const color  = HumanVisitor.#COLOR_DEF_REF;
@@ -103,14 +105,14 @@ export class HumanVisitor extends BaseValueVisitor {
           this.#maybeColorize(' = ', color),
           this._prot_visit(node.value).value);
       }
-      return result;
+      return new ComboText(...result);
     } else if (node instanceof Sexp) {
       const color                 = HumanVisitor.#COLOR_SEXP;
       const { functorName, args } = node;
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `@${functorName}()`;
-        return [this.#maybeColorize(text, color)];
+        return this.#maybeColorize(text, color);
       } else {
         const open  = this.#maybeColorize(`@${functorName}(`, color);
         const close = this.#maybeColorize(')', color);
@@ -208,10 +210,9 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, ifEmpty) {
-    const isArray = Array.isArray(node);
-    const result  = [open];
+    const result  = [];
     let   first   = true;
-    let   inProps = !isArray;
+    let   inProps = !Array.isArray(node);
 
     const initialVisit = this._prot_visitProperties(node, true);
 
@@ -232,11 +233,10 @@ export class HumanVisitor extends BaseValueVisitor {
       result.push(v);
     }
 
-    if (result.length === 1) {
-      return [ifEmpty];
+    if (first) {
+      return ifEmpty;
     } else {
-      result.push(close);
-      return result;
+      return new ComboText(open, new IndentedText(...result), close);
     }
   }
 
@@ -295,8 +295,8 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {string} The rendered "human form" string.
    */
   static payloadToHuman(payload, colorize = false) {
-    const parts = new HumanVisitor(payload, colorize).visitSync();
+    const text = new HumanVisitor(payload, colorize).visitSync();
 
-    return parts.flat(Number.POSITIVE_INFINITY).join('');
+    return text.toString();
   }
 }
