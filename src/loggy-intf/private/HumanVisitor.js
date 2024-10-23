@@ -77,42 +77,42 @@ export class HumanVisitor extends BaseValueVisitor {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
       const prefix = [
-        this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#COLOR_WHEN),
+        this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
         ' ',
         tag.toHuman(this.#styled),
         ' '
       ];
 
-      const color = HumanVisitor.#COLOR_PAYLOAD;
+      const style = HumanVisitor.#STYLE_PAYLOAD;
 
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `${type}()`;
-        return new ComboText(...prefix, this.#maybeColorize(text, color));
+        return new ComboText(...prefix, this.#maybeColorize(text, style));
       } else {
-        const open  = this.#maybeColorize(`${type}(`, color);
-        const close = this.#maybeColorize(')', color);
+        const open  = this.#maybeColorize(`${type}(`, style);
+        const close = this.#maybeColorize(')', style);
         return new ComboText(...prefix, this.#visitAggregate(args, open, close, null));
       }
     } else if (node instanceof BaseDefRef) {
-      const color  = HumanVisitor.#COLOR_DEF_REF;
-      const result = [this.#maybeColorize(`#${node.index}`, color)];
+      const style  = HumanVisitor.#STYLE_DEF_REF;
+      const result = [this.#maybeColorize(`#${node.index}`, style)];
       if (node instanceof VisitDef) {
         result.push(
-          this.#maybeColorize(' = ', color),
+          this.#maybeColorize(' = ', style),
           this._prot_visit(node.value).value);
       }
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
-      const color                 = HumanVisitor.#COLOR_SEXP;
+      const style                 = HumanVisitor.#STYLE_SEXP;
       const { functorName, args } = node;
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `@${functorName}()`;
-        return this.#maybeColorize(text, color);
+        return this.#maybeColorize(text, style);
       } else {
-        const open  = this.#maybeColorize(`@${functorName}(`, color);
-        const close = this.#maybeColorize(')', color);
+        const open  = this.#maybeColorize(`@${functorName}(`, style);
+        const close = this.#maybeColorize(')', style);
         return this.#visitAggregate(args, open, close, null);
       }
     } else {
@@ -127,7 +127,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNumber(node) {
-    return this.#maybeColorize(`${node}`, HumanVisitor.#COLOR_NUMBER);
+    return this.#maybeColorize(`${node}`, HumanVisitor.#STYLE_NUMBER);
   }
 
   /** @override */
@@ -143,7 +143,7 @@ export class HumanVisitor extends BaseValueVisitor {
   /** @override */
   _impl_visitString(node) {
     // `inspect()` to get good quoting, etc.
-    return this.#maybeColorize(util.inspect(node), HumanVisitor.#COLOR_STRING);
+    return this.#maybeColorize(util.inspect(node), HumanVisitor.#STYLE_STRING);
   }
 
   /** @override */
@@ -243,46 +243,46 @@ export class HumanVisitor extends BaseValueVisitor {
   //
 
   /**
-   * Colorizer function to use for defs and refs.
+   * Styling function to use for defs and refs.
    *
    * @type {Function}
    */
-  static #COLOR_DEF_REF = chalk.magenta.bold;
+  static #STYLE_DEF_REF = chalk.magenta.bold;
 
   /**
-   * Colorizer function to use for numbers.
+   * Styling function to use for numbers.
    *
    * @type {Function}
    */
-  static #COLOR_NUMBER = chalk.yellow;
+  static #STYLE_NUMBER = chalk.yellow;
 
   /**
-   * Colorizer function to use for top-level payload type and cladding.
+   * Styling function to use for top-level payload type and cladding.
    *
    * @type {Function}
    */
-  static #COLOR_PAYLOAD = chalk.bold;
+  static #STYLE_PAYLOAD = chalk.bold;
 
   /**
-   * Colorizer function to use for {@link Sexp} type and cladding.
+   * Styling function to use for {@link Sexp} type and cladding.
    *
    * @type {Function}
    */
-  static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
+  static #STYLE_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
 
   /**
-   * Colorizer function to use for strings (that is, quoted string values).
+   * Styling function to use for strings (that is, quoted string values).
    *
    * @type {Function}
    */
-  static #COLOR_STRING = chalk.green;
+  static #STYLE_STRING = chalk.green;
 
   /**
-   * Colorizer function to use for `payload.when`.
+   * Styling function to use for `payload.when`.
    *
    * @type {Function}
    */
-  static #COLOR_WHEN = chalk.bold.blue;
+  static #STYLE_WHEN = chalk.bold.blue;
 
   /**
    * Implementation of {@link LogPayload#toHuman}.
