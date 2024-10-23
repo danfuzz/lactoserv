@@ -5,10 +5,10 @@ import { IntfText } from '#x/IntfText';
 
 
 /**
- * A text string with style/color escape codes, which knows its "visible"
- * length. Its API is meant to be compatible with built-in `string`s, such that
- * much of the time client code need not determine if it has a regular `string`
- * or an instance of this class.
+ * A text string with style/color escape codes, and with no internal newlines,
+ * which knows its "visible" length. Its API is meant to be compatible with
+ * built-in `string`s, such that much of the time client code need not determine
+ * if it has a regular `string` or an instance of this class.
  */
 export class StyledText extends IntfText {
   /**
@@ -40,6 +40,13 @@ export class StyledText extends IntfText {
   /** @override */
   get length() {
     return this.#visibleLength;
+  }
+
+  /** @override */
+  render(options_unused) {
+    // There are no internal breaks in instances of this class, so there's
+    // nothing to do except just return the underlying string.
+    return this.toString();
   }
 
   /** @override */

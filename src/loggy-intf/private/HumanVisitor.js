@@ -300,7 +300,6 @@ export class HumanVisitor extends BaseValueVisitor {
 
     const text = new HumanVisitor(payload, styled).visitSync();
 
-    // TODO: Honor `maxWidth`.
-    return text.toString();
+    return text.render({ maxWidth });
   }
 }

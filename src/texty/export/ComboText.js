@@ -56,6 +56,12 @@ export class ComboText extends IntfText {
   }
 
   /** @override */
+  render(options_unused) {
+    // TODO
+    return this.toString();
+  }
+
+  /** @override */
   toString() {
     if (!this.#singleLineValue) {
       this.#singleLineValue = this.#parts.join('');

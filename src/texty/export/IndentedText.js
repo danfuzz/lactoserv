@@ -39,6 +39,12 @@ export class IndentedText extends IntfText {
   }
 
   /** @override */
+  render(options_unused) {
+    // TODO
+    return this.toString();
+  }
+
+  /** @override */
   toString() {
     return this.#innerText.toString();
   }
