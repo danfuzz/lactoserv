@@ -1,7 +1,7 @@
-@this/text
-==========
+@this/texty
+===========
 
-Utilities for text wrangling.
+Classes and utilities for text wrangling.
 
 - - - - - - - - - -
 ```

@@ -249,7 +249,7 @@ describe.each`
 });
 
 describe('toHuman()', () => {
-  test('does not get stuck on color vs. not (that is, no overzealous caching)', () => {
+  test('does not get stuck on style vs. not (that is, no overzealous caching)', () => {
     const tag1    = new LogTag('oho', 'flop', 'zop');
     const expect1 = 'oho.flop.zop';
     expect(tag1.toHuman(false)).toBe(expect1);

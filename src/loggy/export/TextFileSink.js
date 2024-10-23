@@ -30,7 +30,7 @@ export class TextFileSink extends EventSink {
   /**
    * Function to convert an event into writable form.
    *
-   * @type {function(LogPayload): Buffer|string}
+   * @type {function(LogPayload, number): Buffer|string}
    */
   #formatter;
 
@@ -84,9 +84,11 @@ export class TextFileSink extends EventSink {
    *   write" marker.
    */
   async #writePayload(payload) {
+    const width = this.#appender.columns ?? 120;
+
     // `?? null` to force it to be a function call and not a method call on
     // `this`.
-    const text = (this.#formatter ?? null)(payload);
+    const text = (this.#formatter ?? null)(payload, width);
 
     if (text !== null) {
       await this.#appender.appendText(text, true);
@@ -120,9 +122,9 @@ export class TextFileSink extends EventSink {
    * @type {Map<string, function(LogPayload): Buffer|string>}
    */
   static #FORMATTERS = new Map(Object.entries({
-    human:      (payload) => this.#formatHuman(payload, false),
-    humanColor: (payload) => this.#formatHuman(payload, true),
-    json:       (payload) => this.#formatJson(payload)
+    human:       (payload, width) => this.#formatHuman(payload, width, false),
+    humanStyled: (payload, width) => this.#formatHuman(payload, width, true),
+    json:        (payload, width_unused) => this.#formatJson(payload)
   }));
 
   /**
@@ -140,16 +142,17 @@ export class TextFileSink extends EventSink {
    *
    * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
    *   a "first write" marker.
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {number} maxWidth Desired maximum line width.
+   * @param {boolean} styled Style/colorize the result?
    * @returns {string} Converted form.
    */
-  static #formatHuman(payload, colorize) {
+  static #formatHuman(payload, maxWidth, styled) {
     if (payload === null) {
       // This is a "page break" written to non-console files.
       return `\n\n${'- '.repeat(38)}-\n\n\n`;
     }
 
-    return payload.toHuman(colorize);
+    return payload.toHuman(styled, maxWidth);
   }
 
   /**

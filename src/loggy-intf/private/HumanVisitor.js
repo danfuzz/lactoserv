@@ -4,11 +4,11 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk } from '@this/text';
+import { Chalk, ComboText, IndentedText, StyledText, TypeText }
+  from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
-
 
 /**
  * Always-on `Chalk` instance.
@@ -25,21 +25,21 @@ const chalk = Chalk.ON;
  */
 export class HumanVisitor extends BaseValueVisitor {
   /**
-   * Should the output be colorized?
+   * Should the output be styled/colorized?
    *
    * @type {boolean}
    */
-  #colorize;
+  #styled;
 
   /**
    * Constructs an instance.
    *
    * @param {*} value The value to visit.
-   * @param {boolean} colorize Colorize the output?
+   * @param {boolean} styled Should the output be styled/colorized?
    */
-  constructor(value, colorize) {
+  constructor(value, styled) {
     super(value);
-    this.#colorize = colorize;
+    this.#styled = styled;
   }
 
   /** @override */
@@ -77,42 +77,44 @@ export class HumanVisitor extends BaseValueVisitor {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
       const prefix = [
-        this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#COLOR_WHEN),
+        this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
         ' ',
-        tag.toHuman(this.#colorize),
+        tag.toHuman(this.#styled),
         ' '
       ];
 
-      const color = HumanVisitor.#COLOR_PAYLOAD;
+      const style = HumanVisitor.#STYLE_PAYLOAD;
 
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `${type}()`;
-        return [...prefix, this.#maybeColorize(text, color)];
+        return new ComboText(...prefix, this.#maybeStyle(text, style));
       } else {
-        const open  = this.#maybeColorize(`${type}(`, color);
-        const close = this.#maybeColorize(')', color);
-        return [...prefix, ...this.#visitAggregate(args, open, close, null)];
+        const open  = this.#maybeStyle(`${type}(`, style);
+        const close = this.#maybeStyle(')', style);
+        return new ComboText(
+          ...prefix,
+          new IndentedText(this.#visitAggregate(args, open, close, null)));
       }
     } else if (node instanceof BaseDefRef) {
-      const color  = HumanVisitor.#COLOR_DEF_REF;
-      const result = [this.#maybeColorize(`#${node.index}`, color)];
+      const style  = HumanVisitor.#STYLE_DEF_REF;
+      const result = [this.#maybeStyle(`#${node.index}`, style)];
       if (node instanceof VisitDef) {
         result.push(
-          this.#maybeColorize(' = ', color),
+          this.#maybeStyle(' = ', style),
           this._prot_visit(node.value).value);
       }
-      return result;
+      return new ComboText(...result);
     } else if (node instanceof Sexp) {
-      const color                 = HumanVisitor.#COLOR_SEXP;
+      const style                 = HumanVisitor.#STYLE_SEXP;
       const { functorName, args } = node;
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `@${functorName}()`;
-        return [this.#maybeColorize(text, color)];
+        return this.#maybeStyle(text, style);
       } else {
-        const open  = this.#maybeColorize(`@${functorName}(`, color);
-        const close = this.#maybeColorize(')', color);
+        const open  = this.#maybeStyle(`@${functorName}(`, style);
+        const close = this.#maybeStyle(')', style);
         return this.#visitAggregate(args, open, close, null);
       }
     } else {
@@ -127,7 +129,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNumber(node) {
-    return this.#maybeColorize(`${node}`, HumanVisitor.#COLOR_NUMBER);
+    return this.#maybeStyle(`${node}`, HumanVisitor.#STYLE_NUMBER);
   }
 
   /** @override */
@@ -143,7 +145,7 @@ export class HumanVisitor extends BaseValueVisitor {
   /** @override */
   _impl_visitString(node) {
     // `inspect()` to get good quoting, etc.
-    return this.#maybeColorize(util.inspect(node), HumanVisitor.#COLOR_STRING);
+    return this.#maybeStyle(util.inspect(node), HumanVisitor.#STYLE_STRING);
   }
 
   /** @override */
@@ -157,15 +159,17 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /**
-   * Colorizes the given text, but only if this instance has been told to
-   * colorize.
+   * Styles the given text, but only if this instance has been told to be
+   * styled.
    *
    * @param {string} text The text in question.
    * @param {Function} func The colorizer function.
-   * @returns {string} The colorized-or-not result.
+   * @returns {string} The styled-or-not result.
    */
-  #maybeColorize(text, func) {
-    return this.#colorize ? func(text) : text;
+  #maybeStyle(text, func) {
+    return this.#styled
+      ? new StyledText(func(text), text.length)
+      : text;
   }
 
   /**
@@ -199,17 +203,15 @@ export class HumanVisitor extends BaseValueVisitor {
    * object of some sort.
    *
    * @param {*} node The aggregate to visit.
-   * @param {string} open The "open" string.
-   * @param {string} close The "close" string.
-   * @param {string} ifEmpty The string to use to represent an empty
-   *   instance.
-   * @returns {Array<string>} The stringified aggregate, as an array.
+   * @param {TypeText} open The "open" text.
+   * @param {TypeText} close The "close" text.
+   * @param {TypeText} ifEmpty The text to use to represent an empty instance.
+   * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, ifEmpty) {
-    const isArray = Array.isArray(node);
-    const result  = [open];
+    const result  = [];
     let   first   = true;
-    let   inProps = !isArray;
+    let   inProps = !Array.isArray(node);
 
     const initialVisit = this._prot_visitProperties(node, true);
 
@@ -230,11 +232,10 @@ export class HumanVisitor extends BaseValueVisitor {
       result.push(v);
     }
 
-    if (result.length === 1) {
-      return [ifEmpty];
+    if (first) {
+      return ifEmpty;
     } else {
-      result.push(close);
-      return result;
+      return new ComboText(open, new IndentedText(...result), close);
     }
   }
 
@@ -244,57 +245,62 @@ export class HumanVisitor extends BaseValueVisitor {
   //
 
   /**
-   * Colorizer function to use for defs and refs.
+   * Styling function to use for defs and refs.
    *
    * @type {Function}
    */
-  static #COLOR_DEF_REF = chalk.magenta.bold;
+  static #STYLE_DEF_REF = chalk.magenta.bold;
 
   /**
-   * Colorizer function to use for numbers.
+   * Styling function to use for numbers.
    *
    * @type {Function}
    */
-  static #COLOR_NUMBER = chalk.yellow;
+  static #STYLE_NUMBER = chalk.yellow;
 
   /**
-   * Colorizer function to use for top-level payload type and cladding.
+   * Styling function to use for top-level payload type and cladding.
    *
    * @type {Function}
    */
-  static #COLOR_PAYLOAD = chalk.bold;
+  static #STYLE_PAYLOAD = chalk.bold;
 
   /**
-   * Colorizer function to use for {@link Sexp} type and cladding.
+   * Styling function to use for {@link Sexp} type and cladding.
    *
    * @type {Function}
    */
-  static #COLOR_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
+  static #STYLE_SEXP = chalk.ansi256(130).bold; // Dark orange, more or less.
 
   /**
-   * Colorizer function to use for strings (that is, quoted string values).
+   * Styling function to use for strings (that is, quoted string values).
    *
    * @type {Function}
    */
-  static #COLOR_STRING = chalk.green;
+  static #STYLE_STRING = chalk.green;
 
   /**
-   * Colorizer function to use for `payload.when`.
+   * Styling function to use for `payload.when`.
    *
    * @type {Function}
    */
-  static #COLOR_WHEN = chalk.bold.blue;
+  static #STYLE_WHEN = chalk.bold.blue;
 
   /**
    * Implementation of {@link LogPayload#toHuman}.
    *
    * @param {LogPayload} payload The instance to render.
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Style/colorize the result?
+   * @param {?number} [maxWidth] The desired maximum line width to aim for
+   *   (though not necessarily achieved), or `null` to have no limit.
    * @returns {string} The rendered "human form" string.
    */
-  static payloadToHuman(payload, colorize = false) {
-    const parts = new HumanVisitor(payload, colorize).visitSync();
+  static payloadToHuman(payload, styled = false, maxWidth = null) {
+    maxWidth ??= Number.POSITIVE_INFINITY;
 
-    return parts.flat(Number.POSITIVE_INFINITY).join('');
+    const text = new HumanVisitor(payload, styled).visitSync();
+
+    // TODO: Honor `maxWidth`.
+    return text.toString();
   }
 }

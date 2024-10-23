@@ -32,7 +32,7 @@ export class LoggingManager {
 
     const bufferPeriod = Duration.parse('0.1 sec');
     const event        = Loggy.earliestEvent;
-    const formatter    = process.stdout.isTTY ? 'humanColor' : 'human';
+    const formatter    = process.stdout.isTTY ? 'humanStyled' : 'human';
 
     this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event, bufferPeriod);
     this.#stdoutSink.run();

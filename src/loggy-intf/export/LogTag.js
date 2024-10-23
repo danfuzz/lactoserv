@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfDeconstructable, Sexp } from '@this/decon';
-import { Chalk } from '@this/text';
+import { Chalk } from '@this/texty';
 import { MustBe } from '@this/typey';
 
 
@@ -140,24 +140,24 @@ export class LogTag extends IntfDeconstructable {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Should the result be styled/colorized?
    * @returns {string} The "human form" string.
    */
-  toHuman(colorize = false) {
-    const objKey = colorize ? 'color' : 'noColor';
+  toHuman(styled = false) {
+    const objKey = styled ? 'styled' : 'unstyled';
 
     if (!this.#humanStrings[objKey]) {
       const parts = [
-        colorize ? LogTag.#COLOR_MAIN(this.#main) : this.#main
+        styled ? LogTag.#STYLE_MAIN(this.#main) : this.#main
       ];
 
       const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        const color = colorize
-          ? LogTag.#COLOR_CONTEXT[n]
+        const style = styled
+          ? LogTag.#STYLE_CONTEXT[n]
           : null;
 
-        parts.push('.', color ? color(ctx[n]) : ctx[n]);
+        parts.push('.', style ? style(ctx[n]) : ctx[n]);
       }
 
       this.#humanStrings[objKey] = parts.join('');
@@ -188,18 +188,18 @@ export class LogTag extends IntfDeconstructable {
   //
 
   /**
-   * Color function for the main tag.
+   * Styling function for the main tag.
    *
    * @type {Function}
    */
-  static #COLOR_MAIN = chalk.dim;
+  static #STYLE_MAIN = chalk.dim;
 
   /**
-   * Color functions for context tags at the corresponding indexes.
+   * Styling functions for context tags at the corresponding indexes.
    *
    * @type {Array<Function>}
    */
-  static #COLOR_CONTEXT = [
+  static #STYLE_CONTEXT = [
     chalk.bold.dim,
     chalk.bold.ansi256(54),
     chalk.ansi256(54),

@@ -69,21 +69,21 @@ describe('toHuman()', () => {
     const got      = payload.toHuman(...args);
 
     if (args[0] === true) {
-      expect(got).not.toBe(expected); // Because it should be colorized.
+      expect(got).not.toBe(expected); // Because it should be styled/colorized.
       expect(stripAnsi(got)).toBe(expected);
     } else {
       expect(got).toBe(expected);
     }
   }
 
-  describe('with `colorize === false`', () => {
+  describe('with `styled === false`', () => {
     test('works as expected on an example payload', () => {
       doTest();
       doTest(false);
     });
   });
 
-  describe('with `colorize === true`', () => {
+  describe('with `styled === true`', () => {
     test('works as expected on an example payload', () => {
       doTest(true);
     });
