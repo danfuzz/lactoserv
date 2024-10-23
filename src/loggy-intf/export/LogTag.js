@@ -140,20 +140,20 @@ export class LogTag extends IntfDeconstructable {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Should the result be styled/colorized?
    * @returns {string} The "human form" string.
    */
-  toHuman(colorize = false) {
-    const objKey = colorize ? 'color' : 'noColor';
+  toHuman(styled = false) {
+    const objKey = styled ? 'styled' : 'unstyled';
 
     if (!this.#humanStrings[objKey]) {
       const parts = [
-        colorize ? LogTag.#COLOR_MAIN(this.#main) : this.#main
+        styled ? LogTag.#COLOR_MAIN(this.#main) : this.#main
       ];
 
       const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        const color = colorize
+        const color = styled
           ? LogTag.#COLOR_CONTEXT[n]
           : null;
 

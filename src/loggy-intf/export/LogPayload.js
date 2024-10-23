@@ -88,11 +88,11 @@ export class LogPayload extends EventPayload {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Should the result be styled/colorized?
    * @returns {string} The "human form" string.
    */
-  toHuman(colorize = false) {
-    return HumanVisitor.payloadToHuman(this, colorize);
+  toHuman(styled = false) {
+    return HumanVisitor.payloadToHuman(this, styled);
   }
 
   /**

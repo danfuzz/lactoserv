@@ -25,21 +25,21 @@ const chalk = Chalk.ON;
  */
 export class HumanVisitor extends BaseValueVisitor {
   /**
-   * Should the output be colorized?
+   * Should the output be styled/colorized?
    *
    * @type {boolean}
    */
-  #colorize;
+  #styled;
 
   /**
    * Constructs an instance.
    *
    * @param {*} value The value to visit.
-   * @param {boolean} colorize Colorize the output?
+   * @param {boolean} styled Should the output be styled/colorized?
    */
-  constructor(value, colorize) {
+  constructor(value, styled) {
     super(value);
-    this.#colorize = colorize;
+    this.#styled = styled;
   }
 
   /** @override */
@@ -79,7 +79,7 @@ export class HumanVisitor extends BaseValueVisitor {
       const prefix = [
         this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#COLOR_WHEN),
         ' ',
-        tag.toHuman(this.#colorize),
+        tag.toHuman(this.#styled),
         ' '
       ];
 
@@ -157,15 +157,15 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /**
-   * Colorizes the given text, but only if this instance has been told to
-   * colorize.
+   * Styles the given text, but only if this instance has been told to be
+   * styled.
    *
    * @param {string} text The text in question.
    * @param {Function} func The colorizer function.
-   * @returns {string} The colorized-or-not result.
+   * @returns {string} The styled-or-not result.
    */
   #maybeColorize(text, func) {
-    return this.#colorize
+    return this.#styled
       ? new StyledText(func(text), text.length)
       : text;
   }
@@ -288,11 +288,11 @@ export class HumanVisitor extends BaseValueVisitor {
    * Implementation of {@link LogPayload#toHuman}.
    *
    * @param {LogPayload} payload The instance to render.
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Style/colorize the result?
    * @returns {string} The rendered "human form" string.
    */
-  static payloadToHuman(payload, colorize = false) {
-    const text = new HumanVisitor(payload, colorize).visitSync();
+  static payloadToHuman(payload, styled = false) {
+    const text = new HumanVisitor(payload, styled).visitSync();
 
     return text.toString();
   }

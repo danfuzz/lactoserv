@@ -140,16 +140,16 @@ export class TextFileSink extends EventSink {
    *
    * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
    *   a "first write" marker.
-   * @param {boolean} [colorize] Colorize the result?
+   * @param {boolean} [styled] Style/colorize the result?
    * @returns {string} Converted form.
    */
-  static #formatHuman(payload, colorize) {
+  static #formatHuman(payload, styled) {
     if (payload === null) {
       // This is a "page break" written to non-console files.
       return `\n\n${'- '.repeat(38)}-\n\n\n`;
     }
 
-    return payload.toHuman(colorize);
+    return payload.toHuman(styled);
   }
 
   /**
