@@ -21,15 +21,15 @@ export class IndentedText extends IntfText {
   /**
    * Constructs an instance.
    *
-   * @param {TypeText|Array<TypeText>} innerText The text, which _might_ end up
-   *   indented. If passed as an array, this creates an instance of
-   *   {@link ComboText} to serve as the actual value.
+   * @param {...TypeText} innerText The text, which _might_ end up indented. If
+   *   more than one argument is passed, this uses an instance of
+   *   {@link ComboText} to serve as the actual inner text value.
    */
-  constructor(innerText) {
+  constructor(...innerText) {
     super();
 
-    this.#innerText = Array.isArray(innerText)
-      ? new ComboText(innerText)
+    this.#innerText = (innerText.length !== 1)
+      ? new ComboText(...innerText)
       : innerText;
   }
 

@@ -35,9 +35,9 @@ export class ComboText extends IntfText {
   /**
    * Constructs an instance.
    *
-   * @param {Array<TypeText>} parts The text parts.
+   * @param {...TypeTextArray} parts The text parts.
    */
-  constructor(parts) {
+  constructor(...parts) {
     super();
     this.#parts = parts;
   }
