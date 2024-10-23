@@ -29,6 +29,7 @@ Breaking changes:
   * New class `LoggedValueEncoder`, which replaces the log-related stuff in
     `codec`.
   * Made the log written to stdout be a bit more colorful.
+* `texty`: Renamed this module from `text`.
 
 Other notable changes:
 * `webapp-util`:

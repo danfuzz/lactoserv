@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfDeconstructable, Sexp } from '@this/decon';
-import { Chalk } from '@this/text';
+import { Chalk } from '@this/texty';
 import { MustBe } from '@this/typey';
 
 

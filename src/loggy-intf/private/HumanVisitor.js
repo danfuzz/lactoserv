@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk } from '@this/text';
+import { Chalk } from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { ComboText } from '#p/ComboText';
