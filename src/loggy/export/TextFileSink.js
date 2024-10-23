@@ -122,9 +122,9 @@ export class TextFileSink extends EventSink {
    * @type {Map<string, function(LogPayload): Buffer|string>}
    */
   static #FORMATTERS = new Map(Object.entries({
-    human:      (payload, width) => this.#formatHuman(payload, width, false),
-    humanColor: (payload, width) => this.#formatHuman(payload, width, true),
-    json:       (payload, width_unused) => this.#formatJson(payload)
+    human:       (payload, width) => this.#formatHuman(payload, width, false),
+    humanStyled: (payload, width) => this.#formatHuman(payload, width, true),
+    json:        (payload, width_unused) => this.#formatJson(payload)
   }));
 
   /**
