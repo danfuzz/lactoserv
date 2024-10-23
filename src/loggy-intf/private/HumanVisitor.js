@@ -77,7 +77,7 @@ export class HumanVisitor extends BaseValueVisitor {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
       const prefix = [
-        this.#maybeColorize(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
+        this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
         ' ',
         tag.toHuman(this.#styled),
         ' '
@@ -88,18 +88,18 @@ export class HumanVisitor extends BaseValueVisitor {
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `${type}()`;
-        return new ComboText(...prefix, this.#maybeColorize(text, style));
+        return new ComboText(...prefix, this.#maybeStyle(text, style));
       } else {
-        const open  = this.#maybeColorize(`${type}(`, style);
-        const close = this.#maybeColorize(')', style);
+        const open  = this.#maybeStyle(`${type}(`, style);
+        const close = this.#maybeStyle(')', style);
         return new ComboText(...prefix, this.#visitAggregate(args, open, close, null));
       }
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
-      const result = [this.#maybeColorize(`#${node.index}`, style)];
+      const result = [this.#maybeStyle(`#${node.index}`, style)];
       if (node instanceof VisitDef) {
         result.push(
-          this.#maybeColorize(' = ', style),
+          this.#maybeStyle(' = ', style),
           this._prot_visit(node.value).value);
       }
       return new ComboText(...result);
@@ -109,10 +109,10 @@ export class HumanVisitor extends BaseValueVisitor {
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
         const text = `@${functorName}()`;
-        return this.#maybeColorize(text, style);
+        return this.#maybeStyle(text, style);
       } else {
-        const open  = this.#maybeColorize(`@${functorName}(`, style);
-        const close = this.#maybeColorize(')', style);
+        const open  = this.#maybeStyle(`@${functorName}(`, style);
+        const close = this.#maybeStyle(')', style);
         return this.#visitAggregate(args, open, close, null);
       }
     } else {
@@ -127,7 +127,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNumber(node) {
-    return this.#maybeColorize(`${node}`, HumanVisitor.#STYLE_NUMBER);
+    return this.#maybeStyle(`${node}`, HumanVisitor.#STYLE_NUMBER);
   }
 
   /** @override */
@@ -143,7 +143,7 @@ export class HumanVisitor extends BaseValueVisitor {
   /** @override */
   _impl_visitString(node) {
     // `inspect()` to get good quoting, etc.
-    return this.#maybeColorize(util.inspect(node), HumanVisitor.#STYLE_STRING);
+    return this.#maybeStyle(util.inspect(node), HumanVisitor.#STYLE_STRING);
   }
 
   /** @override */
@@ -164,7 +164,7 @@ export class HumanVisitor extends BaseValueVisitor {
    * @param {Function} func The colorizer function.
    * @returns {string} The styled-or-not result.
    */
-  #maybeColorize(text, func) {
+  #maybeStyle(text, func) {
     return this.#styled
       ? new StyledText(func(text), text.length)
       : text;
