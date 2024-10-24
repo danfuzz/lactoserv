@@ -81,7 +81,7 @@ export class ComboText extends BaseText {
     let   { atColumn } = options;
     const result       = [];
 
-    if (atColumn !== 0) {
+    if (atColumn !== -1) {
       atColumn = maxWidth; // Force it to start on a new line.
     }
 
