@@ -5,6 +5,7 @@ import stripAnsi from 'strip-ansi';
 
 import { Sexp } from '@this/decon';
 import { LogTag } from '@this/loggy-intf';
+import { StyledText } from '@this/texty';
 
 
 describe('constructor()', () => {
@@ -207,17 +208,18 @@ describe('equals()', () => {
 });
 
 describe.each`
-  label        | args       | expectColor
+  label        | args       | expectStyle
   ${'<empty>'} | ${[]}      | ${false}
   ${'false'}   | ${[false]} | ${false}
   ${'true'}    | ${[true]}  | ${true}
-`('toHuman($label)', ({ args, expectColor }) => {
+`('toHuman($label)', ({ args, expectStyle }) => {
   function checkResult(tag, expected) {
     const got = tag.toHuman(...args);
 
-    if (expectColor) {
-      expect(got).not.toBe(expected);
-      expect(stripAnsi(got)).toBe(expected);
+    if (expectStyle) {
+      expect(got).toBeInstanceOf(StyledText);
+      expect(stripAnsi(got.toString())).toBe(expected);
+      expect(got.length).toBe(expected.length);
     } else {
       expect(got).toBe(expected);
     }

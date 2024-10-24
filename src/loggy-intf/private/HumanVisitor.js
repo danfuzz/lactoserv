@@ -4,8 +4,7 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk, ComboText, IndentedText, StyledText, TypeText }
-  from '@this/texty';
+import { Chalk, ComboText, StyledText, TypeText } from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
@@ -76,32 +75,29 @@ export class HumanVisitor extends BaseValueVisitor {
   _impl_visitInstance(node) {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
-      const prefix = [
-        this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
-        ' ',
-        tag.toHuman(this.#styled),
-        ' '
-      ];
+      const whenText = this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
+      const tagText  = tag.toHuman(this.#styled);
+      const style    = HumanVisitor.#STYLE_PAYLOAD;
 
-      const style = HumanVisitor.#STYLE_PAYLOAD;
-
+      let mainText;
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
-        const text = `${type}()`;
-        return new ComboText(...prefix, this.#maybeStyle(text, style));
+        mainText = this.#maybeStyle(`${type}()`, style);
       } else {
         const open  = this.#maybeStyle(`${type}(`, style);
         const close = this.#maybeStyle(')', style);
-        return new ComboText(
-          ...prefix,
-          new IndentedText(this.#visitAggregate(args, open, close, null)));
+        mainText = this.#visitAggregate(args, open, close, null);
       }
+
+      return new ComboText(
+        whenText, ComboText.INDENT, ' ', tagText, ' ', mainText);
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
       if (node instanceof VisitDef) {
         result.push(
           this.#maybeStyle(' = ', style),
+          ComboText.INDENT,
           this._prot_visit(node.value).value);
       }
       return new ComboText(...result);
@@ -235,7 +231,8 @@ export class HumanVisitor extends BaseValueVisitor {
     if (first) {
       return ifEmpty;
     } else {
-      return new ComboText(open, new IndentedText(...result), close);
+      return new ComboText(
+        open, ComboText.INDENT, ...result, ComboText.OUTDENT, close);
     }
   }
 
@@ -296,11 +293,9 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {string} The rendered "human form" string.
    */
   static payloadToHuman(payload, styled = false, maxWidth = null) {
-    maxWidth ??= Number.POSITIVE_INFINITY;
+    const text     = new HumanVisitor(payload, styled).visitSync();
+    const rendered = text.render({ maxWidth });
 
-    const text = new HumanVisitor(payload, styled).visitSync();
-
-    // TODO: Honor `maxWidth`.
-    return text.toString();
+    return rendered.value;
   }
 }

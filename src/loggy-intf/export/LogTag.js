@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfDeconstructable, Sexp } from '@this/decon';
-import { Chalk } from '@this/texty';
+import { Chalk, StyledText, TypeText } from '@this/texty';
 import { MustBe } from '@this/typey';
 
 
@@ -137,30 +137,32 @@ export class LogTag extends IntfDeconstructable {
   }
 
   /**
-   * Gets a string representation of this instance intended for maximally-easy
+   * Gets a text representation of this instance intended for maximally-easy
    * human consumption.
    *
    * @param {boolean} [styled] Should the result be styled/colorized?
-   * @returns {string} The "human form" string.
+   * @returns {TypeText} The "human form" text.
    */
   toHuman(styled = false) {
     const objKey = styled ? 'styled' : 'unstyled';
 
+    const maybeStyle = (text, style) => {
+      return (styled && style)
+        ? new StyledText(text, style)
+        : text;
+    };
+
     if (!this.#humanStrings[objKey]) {
-      const parts = [
-        styled ? LogTag.#STYLE_MAIN(this.#main) : this.#main
-      ];
+      const parts = [maybeStyle(this.#main, LogTag.#STYLE_MAIN)];
+      const ctx   = this.#context;
 
-      const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        const style = styled
-          ? LogTag.#STYLE_CONTEXT[n]
-          : null;
-
-        parts.push('.', style ? style(ctx[n]) : ctx[n]);
+        parts.push('.', maybeStyle(ctx[n], LogTag.#STYLE_CONTEXT[n]));
       }
 
-      this.#humanStrings[objKey] = parts.join('');
+      this.#humanStrings[objKey] = styled
+        ? StyledText.concat(...parts)
+        : parts.join('');
     }
 
     return this.#humanStrings[objKey];

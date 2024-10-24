@@ -84,7 +84,7 @@ export class TextFileSink extends EventSink {
    *   write" marker.
    */
   async #writePayload(payload) {
-    const width = this.#appender.columns ?? 120;
+    const width = (this.#appender.columns ?? 120) - 1;
 
     // `?? null` to force it to be a function call and not a method call on
     // `this`.

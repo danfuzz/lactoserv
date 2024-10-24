@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-import { IntfText } from '#x/IntfText';
+import { BaseText } from '#x/BaseText';
 
 /**
  * Type of "textish" things, as used by this module.
  *
- * @typedef {IntfText|string} TypeText
+ * @typedef {BaseText|string} TypeText
  */
 export const TypeText = Symbol('TypeText');
