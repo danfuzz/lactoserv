@@ -26,15 +26,24 @@ export class StyledText extends IntfText {
   #visibleLength;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. This takes _either_ an unstyled string and a
+   * styling function, _or_ a styled string and a precomputed visible length.
    *
-   * @param {string} value The string, including style/color escapes.
-   * @param {number} visibleLength The visible length of the string.
+   * @param {string} value The string, either with or without style/color
+   *   escapes.
+   * @param {number|Function} visibleLengthOrStyler The visible length of the
+   *   string _or_ a styling function to apply to `value`.
    */
-  constructor(value, visibleLength) {
+  constructor(value, visibleLengthOrStyler) {
     super();
-    this.#value         = value;
-    this.#visibleLength = visibleLength;
+
+    if (typeof visibleLengthOrStyler === 'number') {
+      this.#value         = value;
+      this.#visibleLength = visibleLengthOrStyler;
+    } else {
+      this.#value         = visibleLengthOrStyler(value);
+      this.#visibleLength = value.length;
+    }
   }
 
   /** @override */
