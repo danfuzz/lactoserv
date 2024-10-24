@@ -8,9 +8,9 @@ import { TypeText } from '#x/TypeText';
 
 /**
  * A list of text strings/objects (including instances of this class), which can
- * be treated as a single unit of text. The special value {@link #INDENT} can be
- * used in the list of parts to indicate an increase in indentation for the
- * remainder of the parts.
+ * be treated as a single unit of text. The special values {@link #INDENT} and
+ * {@link #OUTDENT} can be used in the list of parts to control the mid-render
+ * indentation.
  */
 export class ComboText extends BaseText {
   /**
@@ -86,9 +86,16 @@ export class ComboText extends BaseText {
     }
 
     for (const part of this.#parts) {
-      if (part === ComboText.#INDENT) {
-        options = { ...options, indentLevel: options.indentLevel + 1 };
-        continue;
+      switch (part) {
+        case ComboText.#INDENT: {
+          options = { ...options, indentLevel: options.indentLevel + 1 };
+          continue;
+        }
+
+        case ComboText.#OUTDENT: {
+          options = { ...options, indentLevel: options.indentLevel - 1 };
+          continue;
+        }
       }
 
       const { endColumn, value } = part.render({ ...options, atColumn });
@@ -105,17 +112,32 @@ export class ComboText extends BaseText {
   //
 
   /**
-   * Special instance indicating mid-render indentation increase.
+   * Special text instance indicating mid-render indentation increase.
    *
-   * @type {ComboText}
+   * @type {TypeText}
    */
-  static #INDENT = new ComboText();
+  static #INDENT = new StringText('');
 
   /**
-   * @returns {ComboText} Special instance indicating mid-render indentation
+   * Special text instance indicating mid-render indentation decrease.
+   *
+   * @type {TypeText}
+   */
+  static #OUTDENT = new StringText('');
+
+  /**
+   * @returns {TypeText} Special text instance indicating mid-render indentation
    * increase.
    */
   static get INDENT() {
     return ComboText.#INDENT;
+  }
+
+  /**
+   * @returns {TypeText} Special text instance indicating mid-render indentation
+   * increase.
+   */
+  static get OUTDENT() {
+    return ComboText.#OUTDENT;
   }
 }

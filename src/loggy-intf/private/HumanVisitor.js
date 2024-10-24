@@ -231,7 +231,8 @@ export class HumanVisitor extends BaseValueVisitor {
     if (first) {
       return ifEmpty;
     } else {
-      return new ComboText(open, new IndentedText(...result), close);
+      return new ComboText(
+        open, ComboText.INDENT, ...result, ComboText.OUTDENT, close);
     }
   }
 
