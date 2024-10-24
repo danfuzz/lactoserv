@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfText } from '#x/IntfText';
+import { BaseText } from '#x/BaseText';
 import { TypeText } from '#x/TypeText';
 
 
@@ -11,7 +11,7 @@ import { TypeText } from '#x/TypeText';
  * built-in `string`s, such that much of the time client code need not determine
  * if it has a regular `string` or an instance of this class.
  */
-export class StyledText extends IntfText {
+export class StyledText extends BaseText {
   /**
    * The string, including style/color escapes.
    *
@@ -71,7 +71,7 @@ export class StyledText extends IntfText {
    * @returns {StyledText} The concatenated result.
    */
   static concat(...texts) {
-    const len = IntfText.visibleLengthOf(...texts);
+    const len = BaseText.visibleLengthOf(...texts);
     return new StyledText(texts.join(''), len);
   }
 }

@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk, ComboText, IndentedText, IntfText, StyledText, TypeText }
+import { Chalk, ComboText, IndentedText, BaseText, StyledText, TypeText }
   from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
@@ -295,7 +295,7 @@ export class HumanVisitor extends BaseValueVisitor {
     maxWidth ??= Number.POSITIVE_INFINITY;
 
     const text     = new HumanVisitor(payload, styled).visitSync();
-    const rendered = IntfText.render(text, { maxWidth });
+    const rendered = BaseText.render(text, { maxWidth });
 
     return rendered.value;
   }

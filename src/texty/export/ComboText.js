@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfText } from '#x/IntfText';
+import { BaseText } from '#x/BaseText';
 import { StringText } from '#x/StringText';
 import { TypeText } from '#x/TypeText';
 
@@ -10,7 +10,7 @@ import { TypeText } from '#x/TypeText';
  * A list of text strings/objects (including instances of this class), which can
  * be treated as a single unit of text.
  */
-export class ComboText extends IntfText {
+export class ComboText extends BaseText {
   /**
    * The text parts.
    *
@@ -79,7 +79,7 @@ export class ComboText extends IntfText {
     const result       = [];
 
     for (const part of this.#parts) {
-      const { endColumn, value } = IntfText.render(part, { ...options, atColumn });
+      const { endColumn, value } = BaseText.render(part, { ...options, atColumn });
       atColumn = endColumn;
       result.push(value);
     }

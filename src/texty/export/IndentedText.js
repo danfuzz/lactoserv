@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ComboText } from '#x/ComboText';
-import { IntfText } from '#x/IntfText';
+import { BaseText } from '#x/BaseText';
 import { TypeText } from '#x/TypeText';
 
 
@@ -10,7 +10,7 @@ import { TypeText } from '#x/TypeText';
  * Text which is to treated as having more indentation than its surrounding
  * context, if it turns out to be rendered over multiple lines.
  */
-export class IndentedText extends IntfText {
+export class IndentedText extends BaseText {
   /**
    * The text, which _might_ end up indented.
    *
@@ -50,7 +50,7 @@ export class IndentedText extends IntfText {
     // necessary).
 
     const { atColumn, indentLevel, maxWidth, ...restOpts } = options;
-    const { value } = IntfText.render(this.#innerText, {
+    const { value } = BaseText.render(this.#innerText, {
       atColumn:    (atColumn === -1) ? -1 : maxWidth,
       indentLevel: indentLevel + 1,
       maxWidth,

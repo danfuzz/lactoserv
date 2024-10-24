@@ -10,10 +10,8 @@ import { TypeText } from '#x/TypeText';
  * Base class for the various concrete "rendered text" classes. These classes
  * are all set up so that their clients can often be oblivious to the
  * distinction between both each other as well as `string` primitives.
- *
- * @interface
  */
-export class IntfText {
+export class BaseText {
   /**
    * @abstract
    * @returns {number} The visible length of the string. This is done so that
@@ -51,7 +49,7 @@ export class IntfText {
     if (fullLineRequiredWidth <= maxWidth) {
       // A single-line render fits on a line by itself.
       const maybeNl = (atColumn === -1) ? '' : '\n';
-      const indent  = IntfText.indentString(options);
+      const indent  = BaseText.indentString(options);
       return {
         endColumn: fullLineRequiredWidth,
         value:     `${maybeNl}${indent}${this.toString()}`
@@ -88,7 +86,7 @@ export class IntfText {
 
     const maybeNl   = (atColumn === -1) ? '' : '\n';
     const endColumn = (indentLevel * indentWidth) + this.length;
-    const indent    = IntfText.indentString(options);
+    const indent    = BaseText.indentString(options);
 
     return { endColumn, value: `${maybeNl}${indent}${this.toString()}` };
   }
@@ -118,7 +116,7 @@ export class IntfText {
    * This method exists so as to provide reasonable defaults for calling into
    * the corresponding instance method.
    *
-   * @param {IntfText} text Text to render.
+   * @param {BaseText} text Text to render.
    * @param {object} [options] Rendering options.
    * @param {?number} [options.atColumn] The zero-based column of the "cursor"
    *   with respect to the rendering, including any indentation. The special

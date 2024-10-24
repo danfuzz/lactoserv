@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfText } from '#x/IntfText';
+import { BaseText } from '#x/BaseText';
 import { TypeText } from '#x/TypeText';
 
 
@@ -9,7 +9,7 @@ import { TypeText } from '#x/TypeText';
  * Text class that just wraps a regular string, which is expected to be
  * unstyled.
  */
-export class StringText extends IntfText {
+export class StringText extends BaseText {
   /**
    * The string.
    *
