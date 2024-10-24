@@ -63,6 +63,8 @@ TLDR:
 
 * `run-tests --do=build` to do a build first, for convenience.
 * `run-tests --type=unit-coverage` to generate a coverage report.
+* `run-tests --type=unit-debug` to enable interactive debugging while running
+  the unit tests.
 
 ### Running
 
