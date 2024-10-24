@@ -46,13 +46,13 @@ export class BaseText {
    * @returns {{ endColumn: number, value: string }} The updated cursor position
    *   and the rendered form.
    */
-  render(options) {
+  render(options = {}) {
     const thisLength = this.length;
+    const maxWidth   = options.maxWidth ?? Number.POSITIVE_INFINITY;
     const {
       atColumn    = -1,
       indentLevel = 0,
-      indentWidth = 2,
-      maxWidth    = options.maxWidth ?? Number.POSITIVE_INFINITY
+      indentWidth = 2
     } = options;
     options = { atColumn, indentLevel, indentWidth, maxWidth };
 
