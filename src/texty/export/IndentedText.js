@@ -30,7 +30,7 @@ export class IndentedText extends IntfText {
 
     this.#innerText = (innerText.length !== 1)
       ? new ComboText(...innerText)
-      : innerText;
+      : innerText[0];
   }
 
   /** @override */
