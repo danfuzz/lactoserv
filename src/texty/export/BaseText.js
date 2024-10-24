@@ -116,6 +116,13 @@ export class BaseText {
   //
 
   /**
+   * Cache of precomputed indent strings, as a sparse array.
+   *
+   * @type {Array<string>}
+   */
+  static #INDENT_CACHE = [];
+
+  /**
    * Gets an indentation string based on the given {@link #render} options.
    *
    * @param {object} options The render options.
@@ -124,7 +131,16 @@ export class BaseText {
    * @returns {string} The indentation string.
    */
   static indentString({ indentLevel, indentWidth }) {
-    return ' '.repeat(indentLevel * indentWidth);
+    const len     = indentLevel * indentWidth;
+    const already = BaseText.#INDENT_CACHE[len];
+
+    if (already) {
+      return already;
+    } else {
+      const indent = ' '.repeat(len);
+      BaseText.#INDENT_CACHE[len] = indent;
+      return indent;
+    }
   }
 
   /**
