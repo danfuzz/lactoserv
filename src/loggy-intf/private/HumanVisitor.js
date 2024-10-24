@@ -97,6 +97,7 @@ export class HumanVisitor extends BaseValueVisitor {
       if (node instanceof VisitDef) {
         result.push(
           this.#maybeStyle(' = ', style),
+          ComboText.INDENT,
           this._prot_visit(node.value).value);
       }
       return new ComboText(...result);
