@@ -4,8 +4,7 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk, ComboText, IndentedText, BaseText, StyledText, TypeText }
-  from '@this/texty';
+import { Chalk, ComboText, StyledText, TypeText } from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
 import { LogPayload } from '#x/LogPayload';
