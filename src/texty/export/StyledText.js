@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfText } from '#x/IntfText';
+import { TypeText } from '#x/TypeText';
 
 
 /**
@@ -73,7 +74,7 @@ export class StyledText extends IntfText {
    * of this class. It uses `toString()` on instances, making the result be a
    * single-line rendering.
    *
-   * @param {...TypeText|string} texts
+   * @param {...TypeText|string} texts The texts to concatenate.
    * @returns {StyledText} The concatenated result.
    */
   static concat(...texts) {
