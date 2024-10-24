@@ -146,17 +146,18 @@ export class LogTag extends IntfDeconstructable {
   toHuman(styled = false) {
     const objKey = styled ? 'styled' : 'unstyled';
 
+    const maybeStyle = (text, style) => {
+      return (styled && style)
+        ? new StyledText(text, style)
+        : text;
+    }
+
     if (!this.#humanStrings[objKey]) {
-      const parts = [
-        styled ? new StyledText(this.#main, LogTag.#STYLE_MAIN) : this.#main
-      ];
+      const parts = [maybeStyle(this.#main, LogTag.#STYLE_MAIN)];
+      const ctx   = this.#context;
 
-      const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        const styler = styled ? LogTag.#STYLE_CONTEXT[n] : null;
-        const str    = styler ? styler(ctx[n]) : ctx[n];
-
-        parts.push('.', str);
+        parts.push('.', maybeStyle(ctx[n], LogTag.#STYLE_CONTEXT[n]));
       }
 
       this.#humanStrings[objKey] = styled
