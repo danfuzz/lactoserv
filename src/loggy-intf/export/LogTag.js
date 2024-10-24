@@ -150,7 +150,7 @@ export class LogTag extends IntfDeconstructable {
       return (styled && style)
         ? new StyledText(text, style)
         : text;
-    }
+    };
 
     if (!this.#humanStrings[objKey]) {
       const parts = [maybeStyle(this.#main, LogTag.#STYLE_MAIN)];
