@@ -53,6 +53,19 @@ export class IntfText {
   //
 
   /**
+   * Gets an indentation string based on the given {@link #render} options. The
+   * result includes an initial newline.
+   *
+   * @param {object} options The render options.
+   * @param {object} options.indentLevel Same as with {@link #render}.
+   * @param {object} options.indentWidth Same as with {@link #render}.
+   * @returns {string} The indentation string.
+   */
+  static indentString({ indentLevel, indentWidth }) {
+    return `\n${' '.repeat(indentLevel * indentWidth)}`;
+  }
+
+  /**
    * Renders an instance into a string, possibly over multiple lines; or returns
    * the given string directly. This method exists so as to provide reasonable
    * defaults for calling into the corresponding instance method, _and_ so
