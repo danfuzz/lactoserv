@@ -32,6 +32,9 @@ Breaking changes:
 * `texty`: Renamed this module from `text`.
 
 Other notable changes:
+* `texty`:
+  * Added a bunch of new classes to help with structured text rendering (such as
+    for logs).
 * `webapp-util`:
   * Fixed `Rotator` and `Saver` to not bother "preserving" empty files.
 
