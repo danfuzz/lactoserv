@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseText } from '#x/BaseText';
-import { TypeText } from '#x/TypeText';
 
 
 /**
@@ -35,5 +34,18 @@ export class StringText extends BaseText {
   /** @override */
   toString() {
     return this.#value;
+  }
+
+  /** @override */
+  _impl_renderMultiline(options) {
+    // What's going on: If the string is just spaces and we're at the beginning
+    // of a line, then we don't render anything. This handles cases like
+    // splitting at the commas or braces in `{ x: 10, y: 20 }`.
+
+    const { atColumn } = options;
+
+    return ((atColumn === -1) && /^ *$/.test(this.#value))
+      ? { endColumn: atColumn, value: '' }
+      : super._impl_renderMultiline(options);
   }
 }
