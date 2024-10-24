@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfDeconstructable, Sexp } from '@this/decon';
-import { Chalk, ComboText, StyledText, TypeText } from '@this/texty';
+import { Chalk, StyledText, TypeText } from '@this/texty';
 import { MustBe } from '@this/typey';
 
 
@@ -160,7 +160,7 @@ export class LogTag extends IntfDeconstructable {
       }
 
       this.#humanStrings[objKey] = styled
-        ? new ComboText(...parts)
+        ? StyledText.concat(...parts)
         : parts.join('');
     }
 
