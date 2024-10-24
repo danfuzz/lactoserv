@@ -8,7 +8,9 @@ import { TypeText } from '#x/TypeText';
 
 /**
  * A list of text strings/objects (including instances of this class), which can
- * be treated as a single unit of text.
+ * be treated as a single unit of text. The special value {@link #INDENT} can be
+ * used in the list of parts to indicate an increase in indentation for the
+ * remainder of the parts.
  */
 export class ComboText extends BaseText {
   /**
@@ -75,15 +77,45 @@ export class ComboText extends BaseText {
 
   /** @override */
   _impl_renderMultiline(options) {
+    const { maxWidth } = options;
     let   { atColumn } = options;
     const result       = [];
 
+    if (atColumn !== 0) {
+      atColumn = maxWidth; // Force it to start on a new line.
+    }
+
     for (const part of this.#parts) {
+      if (part === ComboText.#INDENT) {
+        options = { ...options, indentLevel: options.indentLevel + 1 };
+        continue;
+      }
+
       const { endColumn, value } = part.render({ ...options, atColumn });
       atColumn = endColumn;
       result.push(value);
     }
 
     return { endColumn: atColumn, value: result.join('') };
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Special instance indicating mid-render indentation increase.
+   *
+   * @type {ComboText}
+   */
+  static #INDENT = new ComboText();
+
+  /**
+   * @returns {ComboText} Special instance indicating mid-render indentation
+   * increase.
+   */
+  static get INDENT() {
+    return ComboText.#INDENT;
   }
 }

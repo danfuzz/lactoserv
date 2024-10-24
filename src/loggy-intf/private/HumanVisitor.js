@@ -91,7 +91,7 @@ export class HumanVisitor extends BaseValueVisitor {
       }
 
       return new ComboText(
-        whenText, ' ', new IndentedText(tagText), ' ', new IndentedText(mainText));
+        whenText, ComboText.INDENT, ' ', tagText, ' ', mainText);
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
