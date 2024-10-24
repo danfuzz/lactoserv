@@ -35,8 +35,31 @@ export class IntfText {
    * @returns {{ endColumn: number, value: string }} The updated cursor position
    *   and the rendered form.
    */
-  render(options) { // eslint-disable-line no-unused-vars
-    throw Methods.abstract();
+  render(options) {
+    const { atColumn, indentLevel, indentWidth, maxWidth } = options;
+    const thisLength = this.length;
+
+    if (atColumn !== -1) {
+      // A single-line render fits on the remaining portion of the current line.
+      const endColumn = atColumn + thisLength;
+      if (endColumn <= maxWidth) {
+        return { endColumn, value: this.toString() };
+      }
+    }
+
+    const fullLineRequiredWidth = (indentLevel * indentWidth) + thisLength;
+    if (fullLineRequiredWidth <= maxWidth) {
+      // A single-line render fits on a line by itself.
+      const maybeNl = (atColumn === -1) ? '' : '\n';
+      const indent  = IntfText.indentString(options);
+      return {
+        endColumn: fullLineRequiredWidth,
+        value:     `${maybeNl}${indent}${this.toString()}`
+      };
+    }
+
+    // Needs to be rendered over multiple lines (if possible).
+    return this._impl_renderMultiline(options);
   }
 
   /**
@@ -48,6 +71,26 @@ export class IntfText {
    */
   toString() {
     throw Methods.abstract();
+  }
+
+  /**
+   * Renders this instance over multiple lines, if possible. Subclasses which
+   * are capable of doing multi-line renders are expected to override this
+   * method. The base class implementation just does a single-line render, while
+   * ensuring that it occurs on its own line.
+   *
+   * @param {object} options Rendering options, as with {@link #render}.
+   * @returns {{ endColumn: number, value: string }} Result to return from
+   *   {@link #render}.
+   */
+  _impl_renderMultiline(options) {
+    const { atColumn, indentLevel, indentWidth } = options;
+
+    const maybeNl   = (atColumn === -1) ? '' : '\n';
+    const endColumn = (indentLevel * indentWidth) + this.length;
+    const indent    = IntfText.indentString(options);
+
+    return { endColumn, value: `${maybeNl}${indent}${this.toString()}` };
   }
 
 
@@ -73,10 +116,9 @@ export class IntfText {
    * `atColumn` (in the `options`), to indicate the post-render cursor position.
    *
    * This method exists so as to provide reasonable defaults for calling into
-   * the corresponding instance method, _and_ so client code doesn't have to
-   * care if they happen to have been given a regular `string` to render.
+   * the corresponding instance method.
    *
-   * @param {TypeText} text Text to render.
+   * @param {IntfText} text Text to render.
    * @param {object} [options] Rendering options.
    * @param {?number} [options.atColumn] The zero-based column of the "cursor"
    *   with respect to the rendering, including any indentation. The special
@@ -97,40 +139,7 @@ export class IntfText {
    *   and the rendered form.
    */
   static render(text, { atColumn = -1, indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
-    const options = { atColumn, indentLevel, indentWidth, maxWidth };
-
-    if (typeof text === 'string') {
-      const singleLineResult = this.renderSingleLineIfPossible(text, options);
-      if (singleLineResult) {
-        return singleLineResult;
-      } else {
-        const maybeNl   = (atColumn === -1) ? '' : '\n';
-        const endColumn = (indentLevel * indentWidth) + text.length;
-        const indent    = this.indentString(options);
-        return { endColumn, value: `${maybeNl}${indent}${text}` };
-      }
-    }
-
     return text.render({ atColumn, indentLevel, indentWidth, maxWidth });
-  }
-
-  static renderSingleLineIfPossible(text, options) {
-    const { atColumn, indentLevel, indentWidth, maxWidth } = options;
-
-    if (atColumn === -1) {
-      const endColumn = (indentLevel * indentWidth) + text.length;
-      if (endColumn <= maxWidth) {
-        const indent = this.indentString(options);
-        return { endColumn, value: `${indent}${text.toString()}` };
-      }
-    }
-
-    const endColumn = atColumn + text.length;
-    if (endColumn <= maxWidth) {
-      return { endColumn, value: text.toString() };
-    }
-
-    return null;
   }
 
   /**

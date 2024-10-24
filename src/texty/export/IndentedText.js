@@ -39,12 +39,12 @@ export class IndentedText extends IntfText {
   }
 
   /** @override */
-  render(options) {
-    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
-    if (singleLineResult) {
-      return singleLineResult;
-    }
+  toString() {
+    return this.#innerText.toString();
+  }
 
+  /** @override */
+  _impl_renderMultiline(options) {
     // Note: Setting `*Column` to `maxWidth` (used twice below) ensures that
     // the rendering is all on its own lines (newlines before and/or after when
     // necessary).
@@ -58,10 +58,5 @@ export class IndentedText extends IntfText {
     });
 
     return { endColumn: maxWidth, value };
-  }
-
-  /** @override */
-  toString() {
-    return this.#innerText.toString();
   }
 }

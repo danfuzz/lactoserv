@@ -5,5 +5,6 @@ export * from '#x/Chalk';
 export * from '#x/ComboText';
 export * from '#x/IndentedText';
 export * from '#x/IntfText';
+export * from '#x/StringText';
 export * from '#x/StyledText';
 export * from '#x/TypeText';

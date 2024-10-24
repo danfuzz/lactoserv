@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfText } from '#x/IntfText';
+import { StringText } from '#x/StringText';
 import { TypeText } from '#x/TypeText';
 
 
@@ -35,10 +36,18 @@ export class ComboText extends IntfText {
   /**
    * Constructs an instance.
    *
-   * @param {...TypeText} parts The text parts.
+   * @param {...TypeText} parts The text parts. Any parts which are plain
+   *   strings get wrapped in instances of {@link StringText}.
    */
   constructor(...parts) {
     super();
+
+    for (let at = 0; at < parts.length; at++) {
+      if (typeof parts[at] === 'string') {
+        parts[at] = new StringText(parts[at]);
+      }
+    }
+
     this.#parts = parts;
   }
 
@@ -56,12 +65,16 @@ export class ComboText extends IntfText {
   }
 
   /** @override */
-  render(options) {
-    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
-    if (singleLineResult) {
-      return singleLineResult;
+  toString() {
+    if (!this.#singleLineValue) {
+      this.#singleLineValue = this.#parts.join('');
     }
 
+    return this.#singleLineValue;
+  }
+
+  /** @override */
+  _impl_renderMultiline(options) {
     let   { atColumn } = options;
     const result       = [];
 
@@ -72,14 +85,5 @@ export class ComboText extends IntfText {
     }
 
     return { endColumn: atColumn, value: result.join('') };
-  }
-
-  /** @override */
-  toString() {
-    if (!this.#singleLineValue) {
-      this.#singleLineValue = this.#parts.join('');
-    }
-
-    return this.#singleLineValue;
   }
 }

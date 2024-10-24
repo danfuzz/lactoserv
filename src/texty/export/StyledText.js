@@ -53,22 +53,6 @@ export class StyledText extends IntfText {
   }
 
   /** @override */
-  render(options) {
-    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
-    if (singleLineResult) {
-      return singleLineResult;
-    }
-
-    const { atColumn, indentLevel, indentWidth } = options;
-
-    const maybeNl   = (atColumn === -1) ? '' : '\n';
-    const endColumn = (indentLevel * indentWidth) + this.length;
-    const indent    = IntfText.indentString(options);
-
-    return { endColumn, value: `${maybeNl}${indent}${this.#value}` };
-  }
-
-  /** @override */
   toString() {
     return this.#value;
   }
