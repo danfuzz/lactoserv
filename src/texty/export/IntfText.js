@@ -95,4 +95,19 @@ export class IntfText {
     firstWidth ??= maxWidth;
     return text.render({ firstWidth, indentLevel, indentWidth, maxWidth });
   }
+
+  /**
+   * Calculates the total visible length of a list of {@link TypeText}s.
+   *
+   * @param {...TypeText} texts The texts.
+   * @returns {number} The total visible length.
+   */
+  static visibleLengthOf(...texts) {
+    let len = 0;
+    for (const t of texts) {
+      len += t.length;
+    }
+
+    return len;
+  }
 }
