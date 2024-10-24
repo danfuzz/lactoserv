@@ -77,15 +77,17 @@ describe('toHuman()', () => {
   }
 
   describe('with `styled === false`', () => {
-    test('works as expected on an example payload', () => {
+    test('works as expected on an example payload, with infinite `maxWidth`', () => {
       doTest();
       doTest(false);
+      doTest(false, null);
     });
   });
 
   describe('with `styled === true`', () => {
-    test('works as expected on an example payload', () => {
+    test('works as expected on an example payload, with infinite `maxWidth`', () => {
       doTest(true);
+      doTest(true, null);
     });
   });
 });
