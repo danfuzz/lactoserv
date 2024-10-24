@@ -87,11 +87,11 @@ export class HumanVisitor extends BaseValueVisitor {
       } else {
         const open  = this.#maybeStyle(`${type}(`, style);
         const close = this.#maybeStyle(')', style);
-        mainText = new IndentedText(this.#visitAggregate(args, open, close, null));
+        mainText = this.#visitAggregate(args, open, close, null);
       }
 
       return new ComboText(
-        whenText, ' ', new IndentedText(tagText, ' ', mainText));
+        whenText, ' ', new IndentedText(tagText), ' ', new IndentedText(mainText));
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
