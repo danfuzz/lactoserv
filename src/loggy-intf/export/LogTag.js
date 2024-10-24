@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfDeconstructable, Sexp } from '@this/decon';
-import { Chalk } from '@this/texty';
+import { Chalk, ComboText, StyledText, TypeText } from '@this/texty';
 import { MustBe } from '@this/typey';
 
 
@@ -137,30 +137,31 @@ export class LogTag extends IntfDeconstructable {
   }
 
   /**
-   * Gets a string representation of this instance intended for maximally-easy
+   * Gets a text representation of this instance intended for maximally-easy
    * human consumption.
    *
    * @param {boolean} [styled] Should the result be styled/colorized?
-   * @returns {string} The "human form" string.
+   * @returns {TypeText} The "human form" text.
    */
   toHuman(styled = false) {
     const objKey = styled ? 'styled' : 'unstyled';
 
     if (!this.#humanStrings[objKey]) {
       const parts = [
-        styled ? LogTag.#STYLE_MAIN(this.#main) : this.#main
+        styled ? new StyledText(this.#main, LogTag.#STYLE_MAIN) : this.#main
       ];
 
       const ctx = this.#context;
       for (let n = 0; n < ctx.length; n++) {
-        const style = styled
-          ? LogTag.#STYLE_CONTEXT[n]
-          : null;
+        const styler = styled ? LogTag.#STYLE_CONTEXT[n] : null;
+        const str    = styler ? styler(ctx[n]) : ctx[n];
 
-        parts.push('.', style ? style(ctx[n]) : ctx[n]);
+        parts.push('.', str);
       }
 
-      this.#humanStrings[objKey] = parts.join('');
+      this.#humanStrings[objKey] = styled
+        ? new ComboText(...parts)
+        : parts.join('');
     }
 
     return this.#humanStrings[objKey];
