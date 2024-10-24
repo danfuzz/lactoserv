@@ -62,4 +62,22 @@ export class StyledText extends IntfText {
   toString() {
     return this.#value;
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Concatenates multiple instances of {@link TypeText} into a single instance
+   * of this class. It uses `toString()` on instances, making the result be a
+   * single-line rendering.
+   *
+   * @param {...TypeText|string} texts
+   * @returns {StyledText} The concatenated result.
+   */
+  static concat(...texts) {
+    const len = IntfText.visibleLengthOf(...texts);
+    return new StyledText(texts.join(''), len);
+  }
 }
