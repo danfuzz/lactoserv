@@ -4,7 +4,7 @@
 import * as util from 'node:util';
 
 import { Sexp } from '@this/decon';
-import { Chalk, ComboText, IndentedText, StyledText, TypeText }
+import { Chalk, ComboText, IndentedText, IntfText, StyledText, TypeText }
   from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 
@@ -300,6 +300,6 @@ export class HumanVisitor extends BaseValueVisitor {
 
     const text = new HumanVisitor(payload, styled).visitSync();
 
-    return text.render({ maxWidth });
+    return IntfText.render(text, { maxWidth });
   }
 }
