@@ -50,7 +50,7 @@ export class IndentedText extends BaseText {
     // necessary).
 
     const { atColumn, indentLevel, maxWidth, ...restOpts } = options;
-    const { value } = BaseText.render(this.#innerText, {
+    const { value } = this.#innerText.render({
       atColumn:    (atColumn === -1) ? -1 : maxWidth,
       indentLevel: indentLevel + 1,
       maxWidth,

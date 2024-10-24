@@ -292,10 +292,8 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {string} The rendered "human form" string.
    */
   static payloadToHuman(payload, styled = false, maxWidth = null) {
-    maxWidth ??= Number.POSITIVE_INFINITY;
-
     const text     = new HumanVisitor(payload, styled).visitSync();
-    const rendered = BaseText.render(text, { maxWidth });
+    const rendered = text.render({ maxWidth });
 
     return rendered.value;
   }

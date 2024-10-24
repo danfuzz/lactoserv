@@ -27,15 +27,34 @@ export class BaseText {
    * returning both the rendered form and the column number of the cursor
    * resulting from the render.
    *
-   * @abstract
-   * @param {object} options Rendering options, as with the corresponding static
-   *   method, except all are required.
+   * @param {object} [options] Rendering options.
+   * @param {?number} [options.atColumn] The zero-based column of the "cursor"
+   *   with respect to the rendering, including any indentation. The special
+   *   value of `-1` indicates that the column is zero _and_ no indentation has
+   *   yet been emitted for the current line. This option is taken into
+   *   consideration when figuring out whether an instance can be rendered in
+   *   single-line form. Defaults to `-1`.
+   * @param {number} [options.indentLevel] The indent level to render this at.
+   *   This indicates the number of indentations to insert after each newline.
+   *   Defaults to `0`.
+   * @param {number} [options.indentWidth] Number of spaces per indentation
+   *   level. Defaults to `2`.
+   * @param {?number} [options.maxWidth] The desired maximum rendered width in
+   *   columns, or `null` not to have a limit. This target _might_ not be
+   *   achievable (e.g., because of a part which is too long and has no internal
+   *   potential line breaks). Defaults to `null`.
    * @returns {{ endColumn: number, value: string }} The updated cursor position
    *   and the rendered form.
    */
   render(options) {
-    const { atColumn, indentLevel, indentWidth, maxWidth } = options;
     const thisLength = this.length;
+    const {
+      atColumn    = -1,
+      indentLevel = 0,
+      indentWidth = 2,
+      maxWidth    = options.maxWidth ?? Number.POSITIVE_INFINITY
+    } = options;
+    options = { atColumn, indentLevel, indentWidth, maxWidth };
 
     if (atColumn !== -1) {
       // A single-line render fits on the remaining portion of the current line.
@@ -106,38 +125,6 @@ export class BaseText {
    */
   static indentString({ indentLevel, indentWidth }) {
     return ' '.repeat(indentLevel * indentWidth);
-  }
-
-  /**
-   * Renders an instance into a string, possibly over multiple lines; or returns
-   * the given string directly. This method also returns a new value for
-   * `atColumn` (in the `options`), to indicate the post-render cursor position.
-   *
-   * This method exists so as to provide reasonable defaults for calling into
-   * the corresponding instance method.
-   *
-   * @param {BaseText} text Text to render.
-   * @param {object} [options] Rendering options.
-   * @param {?number} [options.atColumn] The zero-based column of the "cursor"
-   *   with respect to the rendering, including any indentation. The special
-   *   value of `-1` indicates that the column is zero _and_ no indentation has
-   *   yet been emitted for the current line. This option is taken into
-   *   consideration when figuring out whether an instance can be rendered in
-   *   single-line form. Defaults to `-1`.
-   * @param {number} [options.indentLevel] The indent level to render this at.
-   *   This indicates the number of indentations to insert after each newline.
-   *   Defaults to `0`.
-   * @param {number} [options.indentWidth] Number of spaces per indentation
-   *   level. Defaults to `2`.
-   * @param {?number} [options.maxWidth] The desired maximum rendered width in
-   *   columns, or `null` not to have a limit. This target _might_ not be
-   *   achievable (e.g., because of a part which is too long and has no internal
-   *   potential line breaks). Defaults to `null`.
-   * @returns {{ endColumn: number, value: string }} The updated cursor position
-   *   and the rendered form.
-   */
-  static render(text, { atColumn = -1, indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
-    return text.render({ atColumn, indentLevel, indentWidth, maxWidth });
   }
 
   /**

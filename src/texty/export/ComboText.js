@@ -79,7 +79,7 @@ export class ComboText extends BaseText {
     const result       = [];
 
     for (const part of this.#parts) {
-      const { endColumn, value } = BaseText.render(part, { ...options, atColumn });
+      const { endColumn, value } = part.render({ ...options, atColumn });
       atColumn = endColumn;
       result.push(value);
     }
