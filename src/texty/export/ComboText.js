@@ -56,9 +56,22 @@ export class ComboText extends IntfText {
   }
 
   /** @override */
-  render(options_unused) {
-    // TODO
-    return this.toString();
+  render(options) {
+    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
+    if (singleLineResult) {
+      return singleLineResult;
+    }
+
+    let   { atColumn } = options;
+    const result       = [];
+
+    for (const part of this.#parts) {
+      const { endColumn, value } = IntfText.render(part, { ...options, atColumn });
+      atColumn = endColumn;
+      result.push(value);
+    }
+
+    return { endColumn: atColumn, value: result.join('') };
   }
 
   /** @override */

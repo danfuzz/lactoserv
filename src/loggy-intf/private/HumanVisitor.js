@@ -76,26 +76,22 @@ export class HumanVisitor extends BaseValueVisitor {
   _impl_visitInstance(node) {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
-      const prefix = [
-        this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN),
-        ' ',
-        tag.toHuman(this.#styled),
-        ' '
-      ];
+      const whenText = this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
+      const tagText  = tag.toHuman(this.#styled);
+      const style    = HumanVisitor.#STYLE_PAYLOAD;
 
-      const style = HumanVisitor.#STYLE_PAYLOAD;
-
+      let mainText;
       if (args.length === 0) {
         // Avoid extra work in the easy zero-args case.
-        const text = `${type}()`;
-        return new ComboText(...prefix, this.#maybeStyle(text, style));
+        mainText = this.#maybeStyle(`${type}()`, style);
       } else {
         const open  = this.#maybeStyle(`${type}(`, style);
         const close = this.#maybeStyle(')', style);
-        return new ComboText(
-          ...prefix,
-          new IndentedText(this.#visitAggregate(args, open, close, null)));
+        mainText = new IndentedText(this.#visitAggregate(args, open, close, null));
       }
+
+      return new ComboText(
+        whenText, ' ', new IndentedText(tagText, ' ', mainText));
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
@@ -298,8 +294,9 @@ export class HumanVisitor extends BaseValueVisitor {
   static payloadToHuman(payload, styled = false, maxWidth = null) {
     maxWidth ??= Number.POSITIVE_INFINITY;
 
-    const text = new HumanVisitor(payload, styled).visitSync();
+    const text     = new HumanVisitor(payload, styled).visitSync();
+    const rendered = IntfText.render(text, { maxWidth });
 
-    return IntfText.render(text, { maxWidth });
+    return rendered.value;
   }
 }

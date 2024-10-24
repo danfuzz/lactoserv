@@ -53,10 +53,19 @@ export class StyledText extends IntfText {
   }
 
   /** @override */
-  render(options_unused) {
-    // There are no internal breaks in instances of this class, so there's
-    // nothing to do except just return the underlying string.
-    return this.toString();
+  render(options) {
+    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
+    if (singleLineResult) {
+      return singleLineResult;
+    }
+
+    const { atColumn, indentLevel, indentWidth } = options;
+
+    const maybeNl   = (atColumn === -1) ? '' : '\n';
+    const endColumn = (indentLevel * indentWidth) + this.length;
+    const indent    = IntfText.indentString(options);
+
+    return { endColumn, value: `${maybeNl}${indent}${this.#value}` };
   }
 
   /** @override */

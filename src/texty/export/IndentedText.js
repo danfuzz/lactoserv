@@ -39,9 +39,25 @@ export class IndentedText extends IntfText {
   }
 
   /** @override */
-  render(options_unused) {
-    // TODO
-    return this.toString();
+  render(options) {
+    const singleLineResult = IntfText.renderSingleLineIfPossible(this, options);
+    if (singleLineResult) {
+      return singleLineResult;
+    }
+
+    // Note: Setting `*Column` to `maxWidth` (used twice below) ensures that
+    // the rendering is all on its own lines (newlines before and/or after when
+    // necessary).
+
+    const { atColumn, indentLevel, maxWidth, ...restOpts } = options;
+    const { value } = IntfText.render(this.#innerText, {
+      atColumn:    (atColumn === -1) ? -1 : maxWidth,
+      indentLevel: indentLevel + 1,
+      maxWidth,
+      ...restOpts
+    });
+
+    return { endColumn: maxWidth, value };
   }
 
   /** @override */

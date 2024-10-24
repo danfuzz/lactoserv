@@ -25,12 +25,15 @@ export class IntfText {
   }
 
   /**
-   * Renders this instance into a string, possibly over multiple lines.
+   * Renders this instance into a string, possibly over multiple lines,
+   * returning both the rendered form and the column number of the cursor
+   * resulting from the render.
    *
    * @abstract
    * @param {object} options Rendering options, as with the corresponding static
    *   method, except all are required.
-   * @returns {string} The rendered form.
+   * @returns {{ endColumn: number, value: string }} The updated cursor position
+   *   and the rendered form.
    */
   render(options) { // eslint-disable-line no-unused-vars
     throw Methods.abstract();
@@ -53,8 +56,7 @@ export class IntfText {
   //
 
   /**
-   * Gets an indentation string based on the given {@link #render} options. The
-   * result includes an initial newline.
+   * Gets an indentation string based on the given {@link #render} options.
    *
    * @param {object} options The render options.
    * @param {object} options.indentLevel Same as with {@link #render}.
@@ -62,20 +64,26 @@ export class IntfText {
    * @returns {string} The indentation string.
    */
   static indentString({ indentLevel, indentWidth }) {
-    return `\n${' '.repeat(indentLevel * indentWidth)}`;
+    return ' '.repeat(indentLevel * indentWidth);
   }
 
   /**
    * Renders an instance into a string, possibly over multiple lines; or returns
-   * the given string directly. This method exists so as to provide reasonable
-   * defaults for calling into the corresponding instance method, _and_ so
-   * client code doesn't have to care if they happen to have been given a
-   * regular `string` to render.
+   * the given string directly. This method also returns a new value for
+   * `atColumn` (in the `options`), to indicate the post-render cursor position.
+   *
+   * This method exists so as to provide reasonable defaults for calling into
+   * the corresponding instance method, _and_ so client code doesn't have to
+   * care if they happen to have been given a regular `string` to render.
    *
    * @param {TypeText} text Text to render.
    * @param {object} [options] Rendering options.
-   * @param {?number} [options.firstWidth] Amount of render width available on
-   *   the first line. Defaults to `options.maxWidth`.
+   * @param {?number} [options.atColumn] The zero-based column of the "cursor"
+   *   with respect to the rendering, including any indentation. The special
+   *   value of `-1` indicates that the column is zero _and_ no indentation has
+   *   yet been emitted for the current line. This option is taken into
+   *   consideration when figuring out whether an instance can be rendered in
+   *   single-line form. Defaults to `-1`.
    * @param {number} [options.indentLevel] The indent level to render this at.
    *   This indicates the number of indentations to insert after each newline.
    *   Defaults to `0`.
@@ -85,15 +93,44 @@ export class IntfText {
    *   columns, or `null` not to have a limit. This target _might_ not be
    *   achievable (e.g., because of a part which is too long and has no internal
    *   potential line breaks). Defaults to `null`.
-   * @returns {string} The rendered form.
+   * @returns {{ endColumn: number, value: string }} The updated cursor position
+   *   and the rendered form.
    */
-  static render(text, { firstWidth, indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
+  static render(text, { atColumn = -1, indentLevel = 0, indentWidth = 2, maxWidth = null } = {}) {
+    const options = { atColumn, indentLevel, indentWidth, maxWidth };
+
     if (typeof text === 'string') {
-      return text;
+      const singleLineResult = this.renderSingleLineIfPossible(text, options);
+      if (singleLineResult) {
+        return singleLineResult;
+      } else {
+        const maybeNl   = (atColumn === -1) ? '' : '\n';
+        const endColumn = (indentLevel * indentWidth) + text.length;
+        const indent    = this.indentString(options);
+        return { endColumn, value: `${maybeNl}${indent}${text}` };
+      }
     }
 
-    firstWidth ??= maxWidth;
-    return text.render({ firstWidth, indentLevel, indentWidth, maxWidth });
+    return text.render({ atColumn, indentLevel, indentWidth, maxWidth });
+  }
+
+  static renderSingleLineIfPossible(text, options) {
+    const { atColumn, indentLevel, indentWidth, maxWidth } = options;
+
+    if (atColumn === -1) {
+      const endColumn = (indentLevel * indentWidth) + text.length;
+      if (endColumn <= maxWidth) {
+        const indent = this.indentString(options);
+        return { endColumn, value: `${indent}${text.toString()}` };
+      }
+    }
+
+    const endColumn = atColumn + text.length;
+    if (endColumn <= maxWidth) {
+      return { endColumn, value: text.toString() };
+    }
+
+    return null;
   }
 
   /**
