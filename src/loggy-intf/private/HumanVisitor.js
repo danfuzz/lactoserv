@@ -191,41 +191,41 @@ export class HumanVisitor extends BaseValueVisitor {
     const isArray      = Array.isArray(node);
     const initialVisit = this._prot_visitProperties(node, true);
 
-    if (initialVisit.length === (isArray ? 1 : 0)) {
-      // Avoid a lot of work to produce an empty-aggregate result. (If it's an
-      // empty array, it still has a `length` property, hence the `?:` above.)
+    // If it's an array, it has a `length` property, which we skip.
+    const propCount = initialVisit.length - (isArray ? 1 : 0);
+
+    if (propCount === 0) {
+      // Avoid a lot of work to produce an empty-aggregate result.
       return `${open}${close}`;
     }
 
-    const parts     = [];
-    let   inProps   = !isArray;
-    let   prevValue = null; // Needed because of comma wrangling.
+    const parts   = [];
+    let   isFirst = true;
+    let   inProps = !isArray;
 
     for (const [k, v] of initialVisit) {
-      if (!inProps && (k === 'length')) {
+      if (isArray && (k === 'length')) {
         inProps = true;
         continue;
       }
 
-      if (prevValue) {
-        // It's only now that we know we need to slap a comma onto the previous
-        // value.
-        parts.push(ComboText.INDENT, prevValue, ComboText.NO_BREAK, ',', ComboText.OUTDENT, ComboText.SPACE);
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        parts.push(ComboText.NO_BREAK, ',', ComboText.SPACE);
       }
 
       if (inProps) {
         parts.push(ComboText.BREAK, this.#renderKey(k), ComboText.SPACE);
       }
 
-      prevValue = v;
+      parts.push(v);
     }
 
     const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
     return new ComboText(
       open, ...maybeSpace,
-      ComboText.INDENT,
-      ...parts, prevValue,
-      ComboText.OUTDENT,
+      ComboText.INDENT, ...parts, ComboText.OUTDENT,
       ComboText.BREAK, ...maybeSpace, close);
   }
 
