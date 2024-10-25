@@ -77,20 +77,10 @@ export class HumanVisitor extends BaseValueVisitor {
       const { tag, when, type, args } = node;
       const whenText = this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
       const tagText  = tag.toHuman(this.#styled);
-      const style    = HumanVisitor.#STYLE_PAYLOAD;
-
-      let mainText;
-      if (args.length === 0) {
-        // Avoid extra work in the easy zero-args case.
-        mainText = this.#maybeStyle(`${type}()`, style);
-      } else {
-        const open  = this.#maybeStyle(`${type}(`, style);
-        const close = this.#maybeStyle(')', style);
-        mainText = this.#visitAggregate(args, open, close, null);
-      }
+      const callText = this.#visitCall(type, args, HumanVisitor.#STYLE_PAYLOAD);
 
       return new ComboText(
-        whenText, ComboText.INDENT, ' ', tagText, ' ', mainText);
+        whenText, ComboText.INDENT, ' ', tagText, ' ', callText);
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
@@ -102,17 +92,8 @@ export class HumanVisitor extends BaseValueVisitor {
       }
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
-      const style                 = HumanVisitor.#STYLE_SEXP;
       const { functorName, args } = node;
-      if (args.length === 0) {
-        // Avoid extra work in the easy zero-args case.
-        const text = `@${functorName}()`;
-        return this.#maybeStyle(text, style);
-      } else {
-        const open  = this.#maybeStyle(`@${functorName}(`, style);
-        const close = this.#maybeStyle(')', style);
-        return this.#visitAggregate(args, open, close, null);
-      }
+      return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
     } else {
       throw this.#shouldntHappen();
     }
@@ -242,6 +223,29 @@ export class HumanVisitor extends BaseValueVisitor {
         ComboText.CLEAR, ...maybeSpace, close);
     } else {
       return ifEmpty;
+    }
+  }
+
+  /**
+   * Visits a call-like thing which has a functor-ish thing and optional
+   * arguments.
+   *
+   * @param {string} funcString The string form of the functor or functor-like
+   *   thing.
+   * @param {Array} args The arguments.
+   * @param {?Function} claddingStyle The styler for the "cladding" (name and
+   *   parens), or `null` if none.
+   * @returns {TypeText} The rendered form.
+   */
+  #visitCall(funcString, args, claddingStyle) {
+    if (args.length === 0) {
+      // Avoid extra work in the easy zero-args case.
+      const text = `${funcString}()`;
+      return this.#maybeStyle(text, claddingStyle);
+    } else {
+      const open  = this.#maybeStyle(`${funcString}(`, claddingStyle);
+      const close = this.#maybeStyle(')', claddingStyle);
+      return this.#visitAggregate(args, open, close, null);
     }
   }
 
