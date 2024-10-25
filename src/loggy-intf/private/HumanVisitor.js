@@ -239,7 +239,7 @@ export class HumanVisitor extends BaseValueVisitor {
         ComboText.INDENT,
         ...result, prevValue,
         ComboText.OUTDENT,
-        ...maybeSpace, ComboText.CLEAR, close);
+        ComboText.CLEAR, ...maybeSpace, close);
     } else {
       return ifEmpty;
     }
