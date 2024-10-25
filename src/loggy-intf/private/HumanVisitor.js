@@ -243,17 +243,20 @@ export class HumanVisitor extends BaseValueVisitor {
       return this.#maybeStyle(text, claddingStyle);
     }
 
-    const open   = this.#maybeStyle(`${funcString}(`, claddingStyle);
-    const close  = this.#maybeStyle(')', claddingStyle);
-    const result = [open, ComboText.INDENT];
+    const open  = this.#maybeStyle(`${funcString}(`, claddingStyle);
+    const close = this.#maybeStyle(')', claddingStyle);
+    const parts = [open, ComboText.INDENT];
 
     for (let at = 0; at < args.length; at++) {
       const arg    = this._prot_visit(args[at]).value;
       const isLast = (at === (args.length - 1));
-      result.push(new ComboText(arg, isLast ? close : ','));
+      if (at !== 0) {
+        parts.push(' ');
+      }
+      parts.push(new ComboText(arg, isLast ? close : ','));
     }
 
-    return new ComboText(...result);
+    return new ComboText(...parts);
   }
 
 
