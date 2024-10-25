@@ -187,7 +187,7 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, spaceBrackets = false) {
-    const result    = [];
+    const parts     = [];
     let   inProps   = !Array.isArray(node);
     let   prevValue = null; // Needed because of comma wrangling.
 
@@ -202,11 +202,11 @@ export class HumanVisitor extends BaseValueVisitor {
       if (prevValue) {
         // It's only now that we know we need to slap a comma onto the previous
         // value.
-        result.push(new ComboText(prevValue, ','), ' ');
+        parts.push(new ComboText(prevValue, ','), ' ');
       }
 
       if (inProps) {
-        result.push(ComboText.CLEAR, this.#renderKey(k), ' ');
+        parts.push(ComboText.CLEAR, this.#renderKey(k), ' ');
       }
 
       prevValue = v;
@@ -217,7 +217,7 @@ export class HumanVisitor extends BaseValueVisitor {
       return new ComboText(
         open, ...maybeSpace,
         ComboText.INDENT,
-        ...result, prevValue,
+        ...parts, prevValue,
         ComboText.OUTDENT,
         ComboText.CLEAR, ...maybeSpace, close);
     } else {
