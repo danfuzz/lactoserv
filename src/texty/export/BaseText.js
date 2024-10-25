@@ -28,6 +28,8 @@ export class BaseText {
    * resulting from the render.
    *
    * @param {object} [options] Rendering options.
+   * @param {?boolean} [options.allowBreak] Allow a newline to be inserted
+   *   before rendering? Defaults to `true`.
    * @param {?number} [options.atColumn] The zero-based column of the "cursor"
    *   with respect to the rendering, including any indentation. The special
    *   value of `-1` indicates that the column is zero _and_ no indentation has
@@ -50,29 +52,33 @@ export class BaseText {
     const thisLength = this.length;
     const maxWidth   = options.maxWidth ?? Number.POSITIVE_INFINITY;
     const {
+      allowBreak  = true,
       atColumn    = -1,
       indentLevel = 0,
       indentWidth = 2
     } = options;
-    options = { atColumn, indentLevel, indentWidth, maxWidth };
+    options = { allowBreak, atColumn, indentLevel, indentWidth, maxWidth };
 
     if (atColumn !== -1) {
-      // A single-line render fits on the remaining portion of the current line.
       const endColumn = atColumn + thisLength;
       if (endColumn <= maxWidth) {
+        // A single-line render fits on the remaining portion of the current
+        // line.
         return { endColumn, value: this.toString() };
       }
     }
 
-    const fullLineRequiredWidth = (indentLevel * indentWidth) + thisLength;
-    if (fullLineRequiredWidth <= maxWidth) {
-      // A single-line render fits on a line by itself.
-      const maybeNl = (atColumn === -1) ? '' : '\n';
-      const indent  = BaseText.indentString(options);
-      return {
-        endColumn: fullLineRequiredWidth,
-        value:     `${maybeNl}${indent}${this.toString()}`
-      };
+    if (allowBreak) {
+      const fullLineRequiredWidth = (indentLevel * indentWidth) + thisLength;
+      if (fullLineRequiredWidth <= maxWidth) {
+        // A single-line render fits on a line by itself.
+        const maybeNl = (atColumn === -1) ? '' : '\n';
+        const indent  = BaseText.indentString(options);
+        return {
+          endColumn: fullLineRequiredWidth,
+          value:     `${maybeNl}${indent}${this.toString()}`
+        };
+      }
     }
 
     // Needs to be rendered over multiple lines (if possible).
@@ -94,14 +100,21 @@ export class BaseText {
    * Renders this instance over multiple lines, if possible. Subclasses which
    * are capable of doing multi-line renders are expected to override this
    * method. The base class implementation just does a single-line render, while
-   * ensuring that it occurs on its own line.
+   * ensuring that it occurs on its own line when allowed.
    *
    * @param {object} options Rendering options, as with {@link #render}.
    * @returns {{ endColumn: number, value: string }} Result to return from
    *   {@link #render}.
    */
   _impl_renderMultiline(options) {
-    const { atColumn, indentLevel, indentWidth } = options;
+    const { allowBreak, atColumn, indentLevel, indentWidth } = options;
+
+    if ((atColumn !== -1) && !allowBreak) {
+      return {
+        endColumn: atColumn + this.length,
+        value:     this.toString()
+      };
+    }
 
     const maybeNl   = (atColumn === -1) ? '' : '\n';
     const endColumn = (indentLevel * indentWidth) + this.length;

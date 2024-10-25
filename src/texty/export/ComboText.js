@@ -8,9 +8,9 @@ import { TypeText } from '#x/TypeText';
 
 /**
  * A list of text strings/objects (including instances of this class), which can
- * be treated as a single unit of text. The special values {@link #CLEAR},
- * {@link #INDENT} and {@link #OUTDENT} can be used in the list of parts to
- * control indentation and line breaks.
+ * be treated as a single unit of text. Special static "text" values defined by
+ * this class can be used in the constructor arguments to this class in order to
+ * control formatting (indentation, line breaks, etc.).
  */
 export class ComboText extends BaseText {
   /**
@@ -77,11 +77,12 @@ export class ComboText extends BaseText {
 
   /** @override */
   _impl_renderMultiline(options) {
-    const { maxWidth } = options;
-    let   { atColumn } = options;
-    const result       = [];
+    const { maxWidth }             = options;
+    let   { allowBreak, atColumn } = options;
 
-    if (atColumn !== -1) {
+    const result = [];
+
+    if (allowBreak && (atColumn !== -1)) {
       atColumn = maxWidth; // Force it to start on a new line.
     }
 
@@ -99,14 +100,20 @@ export class ComboText extends BaseText {
           continue;
         }
 
+        case ComboText.#NO_BREAK: {
+          allowBreak = false;
+          continue;
+        }
+
         case ComboText.#OUTDENT: {
           options = { ...options, indentLevel: options.indentLevel - 1 };
           continue;
         }
       }
 
-      const { endColumn, value } = part.render({ ...options, atColumn });
-      atColumn = endColumn;
+      const { endColumn, value } = part.render({ ...options, allowBreak, atColumn });
+      allowBreak = true;
+      atColumn   = endColumn;
       result.push(value);
     }
 
@@ -119,21 +126,28 @@ export class ComboText extends BaseText {
   //
 
   /**
-   * Special text instance indicating mid-render forcing of a line break.
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
   static #CLEAR = new StringText('');
 
   /**
-   * Special text instance indicating mid-render indentation increase.
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
   static #INDENT = new StringText('');
 
   /**
-   * Special text instance indicating mid-render indentation decrease.
+   * Value for the corresponding getter.
+   *
+   * @type {TypeText}
+   */
+  static #NO_BREAK = new StringText('');
+
+  /**
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
@@ -153,6 +167,14 @@ export class ComboText extends BaseText {
    */
   static get INDENT() {
     return ComboText.#INDENT;
+  }
+
+  /**
+   * @returns {TypeText} Special text instance indicating that no line break
+   * should be added between the previous and next items to be rendered.
+   */
+  static get NO_BREAK() {
+    return ComboText.#NO_BREAK;
   }
 
   /**

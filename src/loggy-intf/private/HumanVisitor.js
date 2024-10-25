@@ -202,7 +202,7 @@ export class HumanVisitor extends BaseValueVisitor {
       if (prevValue) {
         // It's only now that we know we need to slap a comma onto the previous
         // value.
-        parts.push(new ComboText(prevValue, ','), ' ');
+        parts.push(prevValue, ComboText.NO_BREAK, ',', ' ');
       }
 
       if (inProps) {
@@ -253,7 +253,7 @@ export class HumanVisitor extends BaseValueVisitor {
       if (at !== 0) {
         parts.push(' ');
       }
-      parts.push(new ComboText(arg, isLast ? close : ','));
+      parts.push(arg, ComboText.NO_BREAK, isLast ? close : ',');
     }
 
     return new ComboText(...parts);
