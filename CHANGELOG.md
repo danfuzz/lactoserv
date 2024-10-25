@@ -28,7 +28,8 @@ Breaking changes:
   * Removed `IntfLoggingEnviroment.logPayload()`.
   * New class `LoggedValueEncoder`, which replaces the log-related stuff in
     `codec`.
-  * Made the log written to stdout be a bit more colorful.
+  * Made the system logs written to stdout be a bit more colorful and a _lot_
+    more readable.
 * `texty`: Renamed this module from `text`.
 
 Other notable changes:
