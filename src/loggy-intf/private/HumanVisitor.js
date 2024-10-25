@@ -236,14 +236,25 @@ export class HumanVisitor extends BaseValueVisitor {
         arrayIdx = Number.parseInt(k) + 1;
       }
 
-      parts.push(v);
+      if (v[HumanVisitor.#SYM_isIndentedValue]) {
+        parts.push(v);
+      } else {
+        // What's going on: The rendered value we're about to append _isn't_ a
+        // complex indented value (object, sexp, etc.), and if it won't fit on
+        // the same line as the key, we _do_ want to have it indented from the
+        // key.
+        parts.push(ComboText.INDENT, v, ComboText.OUTDENT);
+      }
     }
 
     const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
-    return new ComboText(
+    const result = new ComboText(
       open, ...maybeSpace,
       ComboText.INDENT, ...parts, ComboText.OUTDENT,
       ComboText.BREAK, ...maybeSpace, close);
+
+    result[HumanVisitor.#SYM_isIndentedValue] = true;
+    return result;
   }
 
   /**
@@ -277,13 +288,25 @@ export class HumanVisitor extends BaseValueVisitor {
       parts.push(arg, ComboText.NO_BREAK, isLast ? close : ',');
     }
 
-    return new ComboText(...parts);
+    const result = new ComboText(...parts);
+
+    result[HumanVisitor.#SYM_isIndentedValue] = true;
+    return result;
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * Symbol for property added to instances of {@link ComboText}, to indicate
+   * that they were produced by this class's complex indented value rendering
+   * methods.
+   *
+   * @type {Symbol}
+   */
+  static #SYM_isIndentedValue = Symbol('HumanVisitor.isIndentedValue');
 
   /**
    * Styling function to use for defs and refs.
