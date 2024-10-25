@@ -188,11 +188,18 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, spaceBrackets = false) {
-    const parts     = [];
-    let   inProps   = !Array.isArray(node);
-    let   prevValue = null; // Needed because of comma wrangling.
-
+    const isArray      = Array.isArray(node);
     const initialVisit = this._prot_visitProperties(node, true);
+
+    if (initialVisit.length === (isArray ? 1 : 0)) {
+      // Avoid a lot of work to produce an empty-aggregate result. (If it's an
+      // empty array, it still has a `length` property, hence the `?:` above.)
+      return `${open}${close}`;
+    }
+
+    const parts     = [];
+    let   inProps   = !isArray;
+    let   prevValue = null; // Needed because of comma wrangling.
 
     for (const [k, v] of initialVisit) {
       if (!inProps && (k === 'length')) {
@@ -203,7 +210,7 @@ export class HumanVisitor extends BaseValueVisitor {
       if (prevValue) {
         // It's only now that we know we need to slap a comma onto the previous
         // value.
-        parts.push(prevValue, ComboText.NO_BREAK, ',', ComboText.SPACE);
+        parts.push(ComboText.INDENT, prevValue, ComboText.NO_BREAK, ',', ComboText.OUTDENT, ComboText.SPACE);
       }
 
       if (inProps) {
@@ -213,17 +220,13 @@ export class HumanVisitor extends BaseValueVisitor {
       prevValue = v;
     }
 
-    if (prevValue) {
-      const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
-      return new ComboText(
-        open, ...maybeSpace,
-        ComboText.INDENT,
-        ...parts, prevValue,
-        ComboText.OUTDENT,
-        ComboText.BREAK, ...maybeSpace, close);
-    } else {
-      return `${open}${close}`;
-    }
+    const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
+    return new ComboText(
+      open, ...maybeSpace,
+      ComboText.INDENT,
+      ...parts, prevValue,
+      ComboText.OUTDENT,
+      ComboText.BREAK, ...maybeSpace, close);
   }
 
   /**

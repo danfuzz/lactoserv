@@ -89,5 +89,6 @@ export class ProcessInfo {
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
+    ThisModule.logger?.BOOP({}, []);
   }
 }
