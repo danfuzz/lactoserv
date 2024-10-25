@@ -130,7 +130,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitPlainObject(node) {
-    return this.#visitAggregate(node, '{ ', ' }', '{}');
+    return this.#visitAggregate(node, '{', '}', '{}', true);
   }
 
   /** @override */
@@ -199,12 +199,14 @@ export class HumanVisitor extends BaseValueVisitor {
    * object of some sort.
    *
    * @param {*} node The aggregate to visit.
-   * @param {TypeText} open The "open" text.
-   * @param {TypeText} close The "close" text.
+   * @param {TypeText} open The "open" bracket text.
+   * @param {TypeText} close The "close" bracket text.
    * @param {TypeText} ifEmpty The text to use to represent an empty instance.
+   * @param {boolean} [spaceBrackets] Use spaces inside the bracket text, when
+   *   non-empty (and on a single line)?
    * @returns {TypeText} The rendered aggregate.
    */
-  #visitAggregate(node, open, close, ifEmpty) {
+  #visitAggregate(node, open, close, ifEmpty, spaceBrackets = false) {
     const result    = [];
     let   inProps   = !Array.isArray(node);
     let   prevValue = null; // Needed because of comma wrangling.
@@ -231,9 +233,13 @@ export class HumanVisitor extends BaseValueVisitor {
     }
 
     if (prevValue) {
-      result.push(prevValue);
+      const maybeSpace = spaceBrackets ? [' '] : [];
       return new ComboText(
-        open, ComboText.INDENT, ...result, ComboText.OUTDENT, close);
+        open, ...maybeSpace,
+        ComboText.INDENT,
+        ...result, prevValue,
+        ComboText.OUTDENT,
+        ...maybeSpace, close);
     } else {
       return ifEmpty;
     }
