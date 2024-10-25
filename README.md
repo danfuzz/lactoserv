@@ -15,20 +15,21 @@ See also:
 
 - - - - - - - - - -
 
-**Lactoserv is a deployable experiment to see just how far one can go in terms
-of directly serving network traffic (specifically HTTP-ish protocols) in Node,
-with minimal intermediation. It is actively run in production on a small number
-of public-facing websites.**
+**Lactoserv is a standalone "batteries included" web server, which knows how to
+serve requests based on configured components &mdash; applications and services
+&mdash along with a toolkit for defining those components. It comes bundled with
+a set of built-in components, making it possible to be used productively "out of
+the box" without any programming beyond defining a configuration file.**
 
-It is also intended as a solid foundation for prototyping high-level OS system
-services.
+Lactoserv is also intended as a solid foundation for prototyping high-level OS
+system services.
 
-More concretely, Lactoserv is a standalone "batteries included" web server,
-which knows how to serve requests based on configured components &mdash;
-applications and services &mdash, along with a toolkit for defining those
-components. It comes bundled with a set of built-in components, making it
-possible to be used productively "out of the box" without any programming beyond
-defining a configuration file.
+And, though not the main point of it, Lactoserv is a deployable experiment to
+see just how far one can go in terms of directly serving network traffic
+(specifically HTTP-ish protocols) in Node, with minimal intermediation.
+
+It is actively run in production on a small number of public-facing websites.
+
 
 ### Features
 
@@ -93,7 +94,7 @@ To run (versions as above):
 
 ### Organization
 
-Lactoserv is a member of the [Postham](https://postham.org/) organization.
+Lactoserv is a project of the [Postham](https://postham.org/) organization.
 
 - - - - - - - - - -
 ```
