@@ -242,11 +242,19 @@ export class HumanVisitor extends BaseValueVisitor {
       // Avoid extra work in the easy zero-args case.
       const text = `${funcString}()`;
       return this.#maybeStyle(text, claddingStyle);
-    } else {
-      const open  = this.#maybeStyle(`${funcString}(`, claddingStyle);
-      const close = this.#maybeStyle(')', claddingStyle);
-      return this.#visitAggregate(args, open, close, null);
     }
+
+    const open   = this.#maybeStyle(`${funcString}(`, claddingStyle);
+    const close  = this.#maybeStyle(')', claddingStyle);
+    const result = [open, ComboText.INDENT];
+
+    for (let at = 0; at < args.length; at++) {
+      const arg    = this._prot_visit(args[at]).value;
+      const isLast = (at === (args.length - 1));
+      result.push(new ComboText(arg, isLast ? close : ','));
+    }
+
+    return new ComboText(...result);
   }
 
 
