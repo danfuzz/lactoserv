@@ -43,7 +43,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitArray(node) {
-    return this.#visitAggregate(node, '[', ']', '[]');
+    return this.#visitAggregate(node, '[', ']');
   }
 
   /** @override */
@@ -77,20 +77,11 @@ export class HumanVisitor extends BaseValueVisitor {
       const { tag, when, type, args } = node;
       const whenText = this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
       const tagText  = tag.toHuman(this.#styled);
-      const style    = HumanVisitor.#STYLE_PAYLOAD;
-
-      let mainText;
-      if (args.length === 0) {
-        // Avoid extra work in the easy zero-args case.
-        mainText = this.#maybeStyle(`${type}()`, style);
-      } else {
-        const open  = this.#maybeStyle(`${type}(`, style);
-        const close = this.#maybeStyle(')', style);
-        mainText = this.#visitAggregate(args, open, close, null);
-      }
+      const callText = this.#visitCall(type, args, HumanVisitor.#STYLE_PAYLOAD);
 
       return new ComboText(
-        whenText, ComboText.INDENT, ' ', tagText, ' ', mainText);
+        whenText, ComboText.INDENT, ComboText.SPACE,
+        tagText, ComboText.SPACE, callText);
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
@@ -102,17 +93,8 @@ export class HumanVisitor extends BaseValueVisitor {
       }
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
-      const style                 = HumanVisitor.#STYLE_SEXP;
       const { functorName, args } = node;
-      if (args.length === 0) {
-        // Avoid extra work in the easy zero-args case.
-        const text = `@${functorName}()`;
-        return this.#maybeStyle(text, style);
-      } else {
-        const open  = this.#maybeStyle(`@${functorName}(`, style);
-        const close = this.#maybeStyle(')', style);
-        return this.#visitAggregate(args, open, close, null);
-      }
+      return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
     } else {
       throw this.#shouldntHappen();
     }
@@ -130,7 +112,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitPlainObject(node) {
-    return this.#visitAggregate(node, '{', '}', '{}', true);
+    return this.#visitAggregate(node, '{', '}', true);
   }
 
   /** @override */
@@ -199,56 +181,132 @@ export class HumanVisitor extends BaseValueVisitor {
    * object of some sort.
    *
    * @param {*} node The aggregate to visit.
-   * @param {TypeText} open The "open" bracket text.
-   * @param {TypeText} close The "close" bracket text.
-   * @param {TypeText} ifEmpty The text to use to represent an empty instance.
+   * @param {string} open The "open" bracket text.
+   * @param {string} close The "close" bracket text.
    * @param {boolean} [spaceBrackets] Use spaces inside the bracket text, when
    *   non-empty (and on a single line)?
    * @returns {TypeText} The rendered aggregate.
    */
-  #visitAggregate(node, open, close, ifEmpty, spaceBrackets = false) {
-    const result    = [];
-    let   inProps   = !Array.isArray(node);
-    let   prevValue = null; // Needed because of comma wrangling.
+  #visitAggregate(node, open, close, spaceBrackets = false) {
+    const isArray    = Array.isArray(node);
+    const innerVisit = this._prot_visitProperties(node, true);
 
-    const initialVisit = this._prot_visitProperties(node, true);
+    // If it's an array, it has a `length` property.
+    const propCount = innerVisit.length - (isArray ? 1 : 0);
 
-    for (const [k, v] of initialVisit) {
-      if (!inProps && (k === 'length')) {
+    if ((propCount === 0) && !(isArray && (node.length !== 0))) {
+      // Avoid a lot of work to produce an empty-aggregate result.
+      return `${open}${close}`;
+    }
+
+    const parts   = [];
+    let   isFirst = true;
+    let   inProps = !isArray;
+    let   arrayIdx = 0;
+
+    const maybeComma = () => {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        parts.push(ComboText.NO_BREAK, ',', ComboText.SPACE);
+      }
+    };
+
+    for (const [k, v] of innerVisit) {
+      if (isArray && (k === 'length')) {
+        if (node.length !== arrayIdx) {
+          // There was some sparseness at the end of the array.
+          maybeComma();
+          parts.push('[length]:', ComboText.SPACE, v);
+        }
         inProps = true;
         continue;
       }
 
-      if (prevValue) {
-        // It's only now that we know we need to slap a comma onto the previous
-        // value.
-        result.push(new ComboText(prevValue, ','), ' ');
-      }
+      maybeComma();
 
       if (inProps) {
-        result.push(ComboText.CLEAR, this.#renderKey(k), ' ');
+        parts.push(ComboText.BREAK, this.#renderKey(k), ComboText.SPACE);
+      } else if (k === `${arrayIdx}`) {
+        // We got the expected (non-sparse) array index.
+        arrayIdx++;
+      } else {
+        // We just skipped over some indexes in a sparse array.
+        parts.push(`[${k}]:`, ComboText.SPACE);
+        arrayIdx = Number.parseInt(k) + 1;
       }
 
-      prevValue = v;
+      if (v[HumanVisitor.#SYM_isIndentedValue]) {
+        parts.push(v);
+      } else {
+        // What's going on: The rendered value we're about to append _isn't_ a
+        // complex indented value (object, sexp, etc.), and if it won't fit on
+        // the same line as the key, we _do_ want to have it indented from the
+        // key.
+        parts.push(ComboText.INDENT, v, ComboText.OUTDENT);
+      }
     }
 
-    if (prevValue) {
-      const maybeSpace = spaceBrackets ? [' '] : [];
-      return new ComboText(
-        open, ...maybeSpace,
-        ComboText.INDENT,
-        ...result, prevValue,
-        ComboText.OUTDENT,
-        ComboText.CLEAR, ...maybeSpace, close);
-    } else {
-      return ifEmpty;
+    const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
+    const result = new ComboText(
+      open, ...maybeSpace,
+      ComboText.INDENT, ...parts, ComboText.OUTDENT,
+      ComboText.BREAK, ...maybeSpace, close);
+
+    result[HumanVisitor.#SYM_isIndentedValue] = true;
+    return result;
+  }
+
+  /**
+   * Visits a call-like thing which has a functor-ish thing and optional
+   * arguments.
+   *
+   * @param {string} funcString The string form of the functor or functor-like
+   *   thing.
+   * @param {Array} args The arguments.
+   * @param {?Function} claddingStyle The styler for the "cladding" (name and
+   *   parens), or `null` if none.
+   * @returns {TypeText} The rendered form.
+   */
+  #visitCall(funcString, args, claddingStyle) {
+    if (args.length === 0) {
+      // Avoid extra work in the easy zero-args case.
+      const text = `${funcString}()`;
+      return this.#maybeStyle(text, claddingStyle);
     }
+
+    const open  = this.#maybeStyle(`${funcString}(`, claddingStyle);
+    const close = this.#maybeStyle(')', claddingStyle);
+    const parts = [open, ComboText.INDENT];
+
+    for (let at = 0; at < args.length; at++) {
+      const arg    = this._prot_visit(args[at]).value;
+      const isLast = (at === (args.length - 1));
+      if (at !== 0) {
+        parts.push(ComboText.SPACE);
+      }
+      parts.push(arg, ComboText.NO_BREAK, isLast ? close : ',');
+    }
+
+    const result = new ComboText(...parts);
+
+    result[HumanVisitor.#SYM_isIndentedValue] = true;
+    return result;
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * Symbol for property added to instances of {@link ComboText}, to indicate
+   * that they were produced by this class's complex indented value rendering
+   * methods.
+   *
+   * @type {symbol}
+   */
+  static #SYM_isIndentedValue = Symbol('HumanVisitor.isIndentedValue');
 
   /**
    * Styling function to use for defs and refs.

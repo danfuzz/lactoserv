@@ -8,9 +8,9 @@ import { TypeText } from '#x/TypeText';
 
 /**
  * A list of text strings/objects (including instances of this class), which can
- * be treated as a single unit of text. The special values {@link #CLEAR},
- * {@link #INDENT} and {@link #OUTDENT} can be used in the list of parts to
- * control indentation and line breaks.
+ * be treated as a single unit of text. Special static "text" values defined by
+ * this class can be used in the constructor arguments to this class in order to
+ * control formatting (indentation, line breaks, etc.).
  */
 export class ComboText extends BaseText {
   /**
@@ -77,19 +77,22 @@ export class ComboText extends BaseText {
 
   /** @override */
   _impl_renderMultiline(options) {
-    const { maxWidth } = options;
-    let   { atColumn } = options;
+    const { maxWidth }             = options;
+    let   { allowBreak, atColumn } = options;
+
+    let   pendingSpace = false; // Breaking space waiting for its fate?
     const result       = [];
 
-    if (atColumn !== -1) {
+    if (allowBreak && (atColumn !== -1)) {
       atColumn = maxWidth; // Force it to start on a new line.
     }
 
     for (const part of this.#parts) {
       switch (part) {
-        case ComboText.#CLEAR: {
+        case ComboText.#BREAK: {
           if (atColumn !== -1) {
-            atColumn = maxWidth; // (See above.)
+            atColumn   = maxWidth; // (See above.)
+            allowBreak = true;
           }
           continue;
         }
@@ -99,15 +102,45 @@ export class ComboText extends BaseText {
           continue;
         }
 
+        case ComboText.#NO_BREAK: {
+          allowBreak = false;
+          continue;
+        }
+
         case ComboText.#OUTDENT: {
           options = { ...options, indentLevel: options.indentLevel - 1 };
           continue;
         }
+
+        case ComboText.#SPACE: {
+          pendingSpace = true;
+          continue;
+        }
       }
 
-      const { endColumn, value } = part.render({ ...options, atColumn });
-      atColumn = endColumn;
-      result.push(value);
+      if (pendingSpace) {
+        if (atColumn === -1) {
+          // Suppress a beginning-of-line space.
+          pendingSpace = false;
+          continue;
+        }
+      }
+
+      const { endColumn, value } = part.render({
+        ...options,
+        allowBreak,
+        atColumn: pendingSpace ? atColumn + 1 : atColumn
+      });
+
+      if (pendingSpace && !/^\n/.test(value)) {
+        result.push(' ', value);
+      } else {
+        result.push(value);
+      }
+
+      allowBreak   = true;
+      atColumn     = endColumn;
+      pendingSpace = false;
     }
 
     return { endColumn: atColumn, value: result.join('') };
@@ -119,32 +152,46 @@ export class ComboText extends BaseText {
   //
 
   /**
-   * Special text instance indicating mid-render forcing of a line break.
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
-  static #CLEAR = new StringText('');
+  static #BREAK = new StringText('');
 
   /**
-   * Special text instance indicating mid-render indentation increase.
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
   static #INDENT = new StringText('');
 
   /**
-   * Special text instance indicating mid-render indentation decrease.
+   * Value for the corresponding getter.
+   *
+   * @type {TypeText}
+   */
+  static #NO_BREAK = new StringText('');
+
+  /**
+   * Value for the corresponding getter.
    *
    * @type {TypeText}
    */
   static #OUTDENT = new StringText('');
 
   /**
+   * Value for the corresponding getter.
+   *
+   * @type {TypeText}
+   */
+  static #SPACE = new StringText(' ');
+
+  /**
    * @returns {TypeText} Special text instance indicating mid-render forcing of
    * a line break.
    */
-  static get CLEAR() {
-    return ComboText.#CLEAR;
+  static get BREAK() {
+    return ComboText.#BREAK;
   }
 
   /**
@@ -156,10 +203,26 @@ export class ComboText extends BaseText {
   }
 
   /**
+   * @returns {TypeText} Special text instance indicating that no line break
+   * should be added between the previous and next items to be rendered.
+   */
+  static get NO_BREAK() {
+    return ComboText.#NO_BREAK;
+  }
+
+  /**
    * @returns {TypeText} Special text instance indicating mid-render indentation
    * increase.
    */
   static get OUTDENT() {
     return ComboText.#OUTDENT;
+  }
+
+  /**
+   * @returns {TypeText} Special text instance indicating a breaking space,
+   * which does not get rendered at the starts or ends of lines.
+   */
+  static get SPACE() {
+    return ComboText.#SPACE;
   }
 }
