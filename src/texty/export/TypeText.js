@@ -4,6 +4,7 @@
 
 import { BaseText } from '#x/BaseText';
 
+
 /**
  * Type of "textish" things, as used by this module.
  *

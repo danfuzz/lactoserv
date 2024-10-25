@@ -6,6 +6,7 @@ import { Methods } from '@this/typey';
 
 import { TypeText } from '#x/TypeText';
 
+
 /**
  * Base class for the various concrete "rendered text" classes. These classes
  * are all set up so that their clients can often be oblivious to the

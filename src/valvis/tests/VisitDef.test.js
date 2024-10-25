@@ -3,6 +3,7 @@
 
 import { VisitDef } from '@this/valvis';
 
+
 describe('constructor()', () => {
   test('doesn\'t throw given `entry === null`', () => {
     expect(() => new VisitDef(null, 0)).not.toThrow();

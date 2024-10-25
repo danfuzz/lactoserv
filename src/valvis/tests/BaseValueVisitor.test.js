@@ -4,7 +4,8 @@
 import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
-import { BaseValueVisitor, VisitDef, VisitRef, VisitResult } from '@this/valvis';
+import { BaseValueVisitor, VisitDef, VisitRef, VisitResult }
+  from '@this/valvis';
 
 
 const EXAMPLES = [

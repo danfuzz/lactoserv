@@ -3,6 +3,7 @@
 
 import { VisitRef } from '@this/valvis';
 
+
 describe('constructor()', () => {
   test('doesn\'t throw given `entry === null`', () => {
     expect(() => new VisitRef(null, 0)).not.toThrow();
