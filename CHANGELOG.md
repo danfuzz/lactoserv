@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.2 -- 2024-10-25
+
+Breaking changes:
 * `valvis`, `decon`, `util`, and `codec`:
   * New module `valvis` ("VALue VISitor"), derived from `codec`:
     * New class `BaseValueVisitor`, along with a couple helper classes. This is
