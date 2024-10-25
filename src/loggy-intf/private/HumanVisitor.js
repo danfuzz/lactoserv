@@ -172,14 +172,14 @@ export class HumanVisitor extends BaseValueVisitor {
    * Renders an object key, quoting and colorizing as appropriate.
    *
    * @param {*} key The key.
-   * @returns {string} The rendered form.
+   * @returns {TypeText} The rendered form.
    */
   #renderKey(key) {
     if ((typeof key === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(key)) {
       // It doesn't have to be quoted.
-      return key;
+      return `${key}:`;
     } else {
-      return this._impl_visitString(key);
+      return new ComboText(this._impl_visitString(key), ':');
     }
   }
 
@@ -226,7 +226,7 @@ export class HumanVisitor extends BaseValueVisitor {
       }
 
       if (inProps) {
-        result.push(new ComboText(this.#renderKey(k), ':'), ' ');
+        result.push(this.#renderKey(k), ' ');
       }
 
       prevValue = v;
