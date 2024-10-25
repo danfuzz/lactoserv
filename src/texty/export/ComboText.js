@@ -8,9 +8,9 @@ import { TypeText } from '#x/TypeText';
 
 /**
  * A list of text strings/objects (including instances of this class), which can
- * be treated as a single unit of text. The special values {@link #INDENT} and
- * {@link #OUTDENT} can be used in the list of parts to control the mid-render
- * indentation.
+ * be treated as a single unit of text. The special values {@link #CLEAR},
+ * {@link #INDENT} and {@link #OUTDENT} can be used in the list of parts to
+ * control indentation and line breaks.
  */
 export class ComboText extends BaseText {
   /**
