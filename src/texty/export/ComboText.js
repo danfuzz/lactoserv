@@ -179,6 +179,11 @@ export class ComboText extends BaseText {
    */
   static #OUTDENT = new StringText('');
 
+  /**
+   * Value for the corresponding getter.
+   *
+   * @type {TypeText}
+   */
   static #SPACE = new StringText(' ');
 
   /**
@@ -213,6 +218,10 @@ export class ComboText extends BaseText {
     return ComboText.#OUTDENT;
   }
 
+  /**
+   * @returns {TypeText} Special text instance indicating a breaking space,
+   * which does not get rendered at the starts or ends of lines.
+   */
   static get SPACE() {
     return ComboText.#SPACE;
   }
