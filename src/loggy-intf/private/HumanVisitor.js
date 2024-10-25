@@ -188,11 +188,11 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered aggregate.
    */
   #visitAggregate(node, open, close, spaceBrackets = false) {
-    const isArray      = Array.isArray(node);
-    const initialVisit = this._prot_visitProperties(node, true);
+    const isArray    = Array.isArray(node);
+    const innerVisit = this._prot_visitProperties(node, true);
 
     // If it's an array, it has a `length` property, which we skip.
-    const propCount = initialVisit.length - (isArray ? 1 : 0);
+    const propCount = innerVisit.length - (isArray ? 1 : 0);
 
     if (propCount === 0) {
       // Avoid a lot of work to produce an empty-aggregate result.
@@ -203,7 +203,7 @@ export class HumanVisitor extends BaseValueVisitor {
     let   isFirst = true;
     let   inProps = !isArray;
 
-    for (const [k, v] of initialVisit) {
+    for (const [k, v] of innerVisit) {
       if (isArray && (k === 'length')) {
         inProps = true;
         continue;
