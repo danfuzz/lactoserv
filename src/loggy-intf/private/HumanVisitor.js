@@ -20,8 +20,8 @@ const chalk = Chalk.ON;
 /**
  * Visitor class which stringifies instances of {@link LogPayload} and all its
  * components. This produces an array whose elements are either strings or
- * arrays (of strings or arrays of...), with the array nesting representing
- * the hierarchical structure of instance.
+ * arrays (of strings or arrays of...), with the array nesting representing the
+ * hierarchical structure of instance.
  */
 export class HumanVisitor extends BaseValueVisitor {
   /**

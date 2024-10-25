@@ -108,8 +108,8 @@ export class BaseDefRef {
 
   /**
    * @returns {*} The result value of the visit.
-   * @throws {Error} Thrown if the visit was unsuccessful or is still
-   *   in progress.
+   * @throws {Error} Thrown if the visit was unsuccessful or is still in
+   *   progress.
    */
   get value() {
     return this.#entry?.extractSync() ?? null;
@@ -119,8 +119,8 @@ export class BaseDefRef {
    * Is this instance associated with the given visitor?
    *
    * @param {BaseValueVisitor} visitor The visitor in question.
-   * @returns {boolean} `true` if this instance's associated visitor is in
-   *   fact `visitor`.
+   * @returns {boolean} `true` if this instance's associated visitor is in fact
+   *   `visitor`.
    */
   isAssociatedWith(visitor) {
     return this.#entry?.isAssociatedWith(visitor) ?? false;

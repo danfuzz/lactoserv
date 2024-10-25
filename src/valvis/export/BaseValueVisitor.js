@@ -578,8 +578,8 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits the given value as a "sub-visit" of the main visit. This can be
-   * used in concrete subclasses, for example, to visit the various pieces of
+   * Visits the given value as a "sub-visit" of the main visit. This can be used
+   * in concrete subclasses, for example, to visit the various pieces of
    * instances, where a simple object property visit wouldn't suffice.
    *
    * @param {*} node Value to visit.
