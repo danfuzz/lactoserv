@@ -130,7 +130,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitPlainObject(node) {
-    return this.#visitAggregate(node, '{ ', ' }', '{}');
+    return this.#visitAggregate(node, '{', '}', '{}', true);
   }
 
   /** @override */
@@ -172,14 +172,14 @@ export class HumanVisitor extends BaseValueVisitor {
    * Renders an object key, quoting and colorizing as appropriate.
    *
    * @param {*} key The key.
-   * @returns {string} The rendered form.
+   * @returns {TypeText} The rendered form.
    */
   #renderKey(key) {
     if ((typeof key === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(key)) {
       // It doesn't have to be quoted.
-      return key;
+      return `${key}:`;
     } else {
-      return this._impl_visitString(key);
+      return new ComboText(this._impl_visitString(key), ':');
     }
   }
 
@@ -199,15 +199,17 @@ export class HumanVisitor extends BaseValueVisitor {
    * object of some sort.
    *
    * @param {*} node The aggregate to visit.
-   * @param {TypeText} open The "open" text.
-   * @param {TypeText} close The "close" text.
+   * @param {TypeText} open The "open" bracket text.
+   * @param {TypeText} close The "close" bracket text.
    * @param {TypeText} ifEmpty The text to use to represent an empty instance.
+   * @param {boolean} [spaceBrackets] Use spaces inside the bracket text, when
+   *   non-empty (and on a single line)?
    * @returns {TypeText} The rendered aggregate.
    */
-  #visitAggregate(node, open, close, ifEmpty) {
-    const result  = [];
-    let   first   = true;
-    let   inProps = !Array.isArray(node);
+  #visitAggregate(node, open, close, ifEmpty, spaceBrackets = false) {
+    const result    = [];
+    let   inProps   = !Array.isArray(node);
+    let   prevValue = null; // Needed because of comma wrangling.
 
     const initialVisit = this._prot_visitProperties(node, true);
 
@@ -215,24 +217,31 @@ export class HumanVisitor extends BaseValueVisitor {
       if (!inProps && (k === 'length')) {
         inProps = true;
         continue;
-      } else if (first) {
-        first = false;
-      } else {
-        result.push(', ');
+      }
+
+      if (prevValue) {
+        // It's only now that we know we need to slap a comma onto the previous
+        // value.
+        result.push(new ComboText(prevValue, ','), ' ');
       }
 
       if (inProps) {
-        result.push(this.#renderKey(k), ': ');
+        result.push(this.#renderKey(k), ' ');
       }
 
-      result.push(v);
+      prevValue = v;
     }
 
-    if (first) {
-      return ifEmpty;
-    } else {
+    if (prevValue) {
+      const maybeSpace = spaceBrackets ? [' '] : [];
       return new ComboText(
-        open, ComboText.INDENT, ...result, ComboText.OUTDENT, close);
+        open, ...maybeSpace,
+        ComboText.INDENT,
+        ...result, prevValue,
+        ComboText.OUTDENT,
+        ...maybeSpace, close);
+    } else {
+      return ifEmpty;
     }
   }
 
