@@ -88,7 +88,7 @@ export class ComboText extends BaseText {
 
     for (const part of this.#parts) {
       switch (part) {
-        case ComboText.#CLEAR: {
+        case ComboText.#BREAK: {
           if (atColumn !== -1) {
             atColumn = maxWidth; // (See above.)
           }
@@ -130,7 +130,7 @@ export class ComboText extends BaseText {
    *
    * @type {TypeText}
    */
-  static #CLEAR = new StringText('');
+  static #BREAK = new StringText('');
 
   /**
    * Value for the corresponding getter.
@@ -157,8 +157,8 @@ export class ComboText extends BaseText {
    * @returns {TypeText} Special text instance indicating mid-render forcing of
    * a line break.
    */
-  static get CLEAR() {
-    return ComboText.#CLEAR;
+  static get BREAK() {
+    return ComboText.#BREAK;
   }
 
   /**

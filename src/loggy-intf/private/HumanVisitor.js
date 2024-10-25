@@ -206,7 +206,7 @@ export class HumanVisitor extends BaseValueVisitor {
       }
 
       if (inProps) {
-        parts.push(ComboText.CLEAR, this.#renderKey(k), ' ');
+        parts.push(ComboText.BREAK, this.#renderKey(k), ' ');
       }
 
       prevValue = v;
@@ -219,7 +219,7 @@ export class HumanVisitor extends BaseValueVisitor {
         ComboText.INDENT,
         ...parts, prevValue,
         ComboText.OUTDENT,
-        ComboText.CLEAR, ...maybeSpace, close);
+        ComboText.BREAK, ...maybeSpace, close);
     } else {
       return `${open}${close}`;
     }
