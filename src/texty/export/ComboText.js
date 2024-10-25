@@ -87,6 +87,13 @@ export class ComboText extends BaseText {
 
     for (const part of this.#parts) {
       switch (part) {
+        case ComboText.#CLEAR: {
+          if (atColumn !== -1) {
+            atColumn = maxWidth; // (See above.)
+          }
+          continue;
+        }
+
         case ComboText.#INDENT: {
           options = { ...options, indentLevel: options.indentLevel + 1 };
           continue;
@@ -112,6 +119,13 @@ export class ComboText extends BaseText {
   //
 
   /**
+   * Special text instance indicating mid-render forcing of a line break.
+   *
+   * @type {TypeText}
+   */
+  static #CLEAR = new StringText('');
+
+  /**
    * Special text instance indicating mid-render indentation increase.
    *
    * @type {TypeText}
@@ -124,6 +138,14 @@ export class ComboText extends BaseText {
    * @type {TypeText}
    */
   static #OUTDENT = new StringText('');
+
+  /**
+   * @returns {TypeText} Special text instance indicating mid-render forcing of
+   * a line break.
+   */
+  static get CLEAR() {
+    return ComboText.#CLEAR;
+  }
 
   /**
    * @returns {TypeText} Special text instance indicating mid-render indentation
