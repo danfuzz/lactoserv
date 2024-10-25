@@ -191,10 +191,10 @@ export class HumanVisitor extends BaseValueVisitor {
     const isArray    = Array.isArray(node);
     const innerVisit = this._prot_visitProperties(node, true);
 
-    // If it's an array, it has a `length` property, which we skip.
+    // If it's an array, it has a `length` property.
     const propCount = innerVisit.length - (isArray ? 1 : 0);
 
-    if (propCount === 0) {
+    if ((propCount === 0) && !(isArray && (node.length !== 0))) {
       // Avoid a lot of work to produce an empty-aggregate result.
       return `${open}${close}`;
     }
@@ -202,21 +202,38 @@ export class HumanVisitor extends BaseValueVisitor {
     const parts   = [];
     let   isFirst = true;
     let   inProps = !isArray;
+    let   arrayIdx = 0;
 
-    for (const [k, v] of innerVisit) {
-      if (isArray && (k === 'length')) {
-        inProps = true;
-        continue;
-      }
-
+    const maybeComma = () => {
       if (isFirst) {
         isFirst = false;
       } else {
         parts.push(ComboText.NO_BREAK, ',', ComboText.SPACE);
       }
+    }
+
+    for (const [k, v] of innerVisit) {
+      if (isArray && (k === 'length')) {
+        if (node.length !== arrayIdx) {
+          // There was some sparseness at the end of the array.
+          maybeComma();
+          parts.push('[length]:', ComboText.SPACE, v);
+        }
+        inProps = true;
+        continue;
+      }
+
+      maybeComma();
 
       if (inProps) {
         parts.push(ComboText.BREAK, this.#renderKey(k), ComboText.SPACE);
+      } else if (k === `${arrayIdx}`) {
+        // We got the expected (non-sparse) array index.
+        arrayIdx++;
+      } else {
+        // We just skipped over some indexes in a sparse array.
+        parts.push(`[${k}]:`, ComboText.SPACE);
+        arrayIdx = Number.parseInt(k) + 1;
       }
 
       parts.push(v);
