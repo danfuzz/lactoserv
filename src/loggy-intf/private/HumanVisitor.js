@@ -210,7 +210,7 @@ export class HumanVisitor extends BaseValueVisitor {
       } else {
         parts.push(ComboText.NO_BREAK, ',', ComboText.SPACE);
       }
-    }
+    };
 
     for (const [k, v] of innerVisit) {
       if (isArray && (k === 'length')) {
@@ -304,7 +304,7 @@ export class HumanVisitor extends BaseValueVisitor {
    * that they were produced by this class's complex indented value rendering
    * methods.
    *
-   * @type {Symbol}
+   * @type {symbol}
    */
   static #SYM_isIndentedValue = Symbol('HumanVisitor.isIndentedValue');
 
