@@ -80,7 +80,8 @@ export class HumanVisitor extends BaseValueVisitor {
       const callText = this.#visitCall(type, args, HumanVisitor.#STYLE_PAYLOAD);
 
       return new ComboText(
-        whenText, ComboText.INDENT, ' ', tagText, ' ', callText);
+        whenText, ComboText.INDENT, ComboText.SPACE,
+        tagText, ComboText.SPACE, callText);
     } else if (node instanceof BaseDefRef) {
       const style  = HumanVisitor.#STYLE_DEF_REF;
       const result = [this.#maybeStyle(`#${node.index}`, style)];
@@ -202,18 +203,18 @@ export class HumanVisitor extends BaseValueVisitor {
       if (prevValue) {
         // It's only now that we know we need to slap a comma onto the previous
         // value.
-        parts.push(prevValue, ComboText.NO_BREAK, ',', ' ');
+        parts.push(prevValue, ComboText.NO_BREAK, ',', ComboText.SPACE);
       }
 
       if (inProps) {
-        parts.push(ComboText.BREAK, this.#renderKey(k), ' ');
+        parts.push(ComboText.BREAK, this.#renderKey(k), ComboText.SPACE);
       }
 
       prevValue = v;
     }
 
     if (prevValue) {
-      const maybeSpace = spaceBrackets ? [' '] : [];
+      const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
       return new ComboText(
         open, ...maybeSpace,
         ComboText.INDENT,
@@ -251,7 +252,7 @@ export class HumanVisitor extends BaseValueVisitor {
       const arg    = this._prot_visit(args[at]).value;
       const isLast = (at === (args.length - 1));
       if (at !== 0) {
-        parts.push(' ');
+        parts.push(ComboText.SPACE);
       }
       parts.push(arg, ComboText.NO_BREAK, isLast ? close : ',');
     }

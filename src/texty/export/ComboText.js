@@ -80,7 +80,8 @@ export class ComboText extends BaseText {
     const { maxWidth }             = options;
     let   { allowBreak, atColumn } = options;
 
-    const result = [];
+    let   pendingSpace = false; // Breaking space waiting for its fate?
+    const result       = [];
 
     if (allowBreak && (atColumn !== -1)) {
       atColumn = maxWidth; // Force it to start on a new line.
@@ -90,7 +91,8 @@ export class ComboText extends BaseText {
       switch (part) {
         case ComboText.#BREAK: {
           if (atColumn !== -1) {
-            atColumn = maxWidth; // (See above.)
+            atColumn   = maxWidth; // (See above.)
+            allowBreak = true;
           }
           continue;
         }
@@ -109,12 +111,36 @@ export class ComboText extends BaseText {
           options = { ...options, indentLevel: options.indentLevel - 1 };
           continue;
         }
+
+        case ComboText.#SPACE: {
+          pendingSpace = true;
+          continue;
+        }
       }
 
-      const { endColumn, value } = part.render({ ...options, allowBreak, atColumn });
-      allowBreak = true;
-      atColumn   = endColumn;
-      result.push(value);
+      if (pendingSpace) {
+        if (atColumn === -1) {
+          // Suppress a beginning-of-line space.
+          pendingSpace = false;
+          continue;
+        }
+      }
+
+      const { endColumn, value } = part.render({
+        ...options,
+        allowBreak,
+        atColumn: pendingSpace ? atColumn + 1 : atColumn
+      });
+
+      if (pendingSpace && !/^\n/.test(value)) {
+        result.push(' ', value);
+      } else {
+        result.push(value);
+      }
+
+      allowBreak   = true;
+      atColumn     = endColumn;
+      pendingSpace = false;
     }
 
     return { endColumn: atColumn, value: result.join('') };
@@ -153,6 +179,8 @@ export class ComboText extends BaseText {
    */
   static #OUTDENT = new StringText('');
 
+  static #SPACE = new StringText(' ');
+
   /**
    * @returns {TypeText} Special text instance indicating mid-render forcing of
    * a line break.
@@ -183,5 +211,9 @@ export class ComboText extends BaseText {
    */
   static get OUTDENT() {
     return ComboText.#OUTDENT;
+  }
+
+  static get SPACE() {
+    return ComboText.#SPACE;
   }
 }
