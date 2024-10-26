@@ -165,8 +165,8 @@ export class BaseValueVisitor {
    * was returned from the `_impl_*()` method that was called to do the main
    * processing of the value, except that this method "collapses" the promises
    * that result from asynchronous visitor behavior with the promises that are
-   * direct visitor results. See {@link #visitAsyncWrap} for a "promise-preserving"
-   * variant.
+   * direct visitor results. See {@link #visitAsyncWrap} for a
+   * "promise-preserving" variant.
    *
    * If this method is called more than once on any given instance, the visit
    * procedure is only actually run once; subsequent calls reuse the return
