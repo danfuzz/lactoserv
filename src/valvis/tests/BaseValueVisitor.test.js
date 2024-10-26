@@ -488,6 +488,15 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         }
       });
     });
+
+    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitBoolean(node) { throw new Error('oof!'); }
+      }
+
+      await expect(doTest(true, { cls: TestVisitor }))
+        .rejects.toThrow('oof!');
+    });
   }
 
   return;
@@ -496,11 +505,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   // --------------------------------------------------------------------
 
   if (isAsync) {
-    test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-      const value = Symbol('eep');
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('NO');
-    });
-
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
       const circ1 = [true, 4];
       const circ2 = [true, 5, 6, circ1];
