@@ -337,12 +337,13 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   }
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) {
+        return this._prot_visitProperties(node);
+      }
+    }
+
     const circ1 = [4];
     const circ2 = [5, 6, circ1];
     const value = [1, [2, 3, circ1]];
@@ -351,11 +352,16 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
     await expect(
       doTest(value, {
-        cls:      RecursiveVisitor,
+        cls:      TestVisitor,
         runsSync: true
       })
     ).rejects.toThrow(CIRCULAR_MSG);
   });
+
+  return;
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
 
   test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
     const inner = [1];
