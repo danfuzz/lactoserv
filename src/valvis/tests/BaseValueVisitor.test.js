@@ -219,12 +219,12 @@ describe('refFromResultValue()', () => {
 
 // Tests for all three `visit*()` methods.
 describe.each`
-methodName          | isAsync   | wraps    | canReturnPromises
-${'visit'}          | ${true}   | ${false} | ${false}
-${'visitSync'}      | ${false}  | ${false} | ${true} // TODO: Delete this method!
-${'visitWrap'}      | ${'both'} | ${true}  | ${true}
-${'visitAsyncWrap'} | ${true}   | ${true}  | ${true}
-`('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
+methodName          | isAsync  | isSync   | wraps    | canReturnPromises
+${'visit'}          | ${true}  | ${false} | ${false} | ${false}
+${'visitSync'}      | ${false} | ${true}  | ${false} | ${true} // TODO: Delete this method!
+${'visitWrap'}      | ${true}  | ${true}  | ${true}  | ${true}
+${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
+`('$methodName()', ({ methodName, isAsync, isSync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
 
   /**
@@ -260,14 +260,19 @@ ${'visitAsyncWrap'} | ${true}   | ${true}  | ${true}
   }
 
   async function doTest(value, options = {}) {
+    if (isAsync && isSync) {
+      throw new Error('TODO');
+    }
+
     const {
-      cls   = BaseValueVisitor,
-      check = (got, visitor_unused) => { expect(got).toBe(value); }
+      cls           = BaseValueVisitor,
+      check         = (got, visitor_unused) => { expect(got).toBe(value); },
+      expectPromise = (isAsync && !isSync)
     } = options;
 
     const visitor = new cls(value);
 
-    if (isAsync) {
+    if (expectPromise) {
       const got = visitor[methodName]();
       expect(got).toBeInstanceOf(Promise);
       if (wraps) {
@@ -398,7 +403,9 @@ ${'visitAsyncWrap'} | ${true}   | ${true}  | ${true}
 
       await expect(doTest(value, { cls: ExtraAsyncVisitor })).rejects.toThrow(CIRCULAR_MSG);
     });
-  } else {
+  }
+
+  if (isSync) {
     const MSG = 'Visit did not finish synchronously.';
 
     test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
