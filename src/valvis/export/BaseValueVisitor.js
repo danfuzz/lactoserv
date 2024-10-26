@@ -222,7 +222,11 @@ export class BaseValueVisitor {
    *   determined synchronously.
    */
   visitWrap() {
-    // TODO
+    const entry = this.#visitRoot();
+
+    return entry.isFinished()
+      ? entry.extractSync(true)
+      : entry.extractAsync(true);
   }
 
   /**
