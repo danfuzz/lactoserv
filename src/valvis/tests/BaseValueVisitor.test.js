@@ -20,7 +20,8 @@ const EXAMPLES = [
   { what: 'is up?' },
   new Set(['x', 'y', 'z']),
   (x, y) => { return x < y; },
-  class Flomp { /*empty*/ }
+  class Flomp { /*empty*/ },
+  Map
 ];
 
 const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
