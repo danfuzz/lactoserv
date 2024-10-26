@@ -268,8 +268,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     } = options;
 
     if (isSync && !isAsync && !runsSync) {
-      // This unit test should be under a title like, "throws an error
-      // indicating the call could not complete synchronously."
+      // This unit test shouldn't have been called for this method.
       throw new Error('Test should not have been run!');
     }
 
