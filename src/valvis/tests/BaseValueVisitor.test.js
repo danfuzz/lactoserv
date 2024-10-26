@@ -428,6 +428,22 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   });
 
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node) {
+        throw new Error('Nope!');
+      }
+    }
+
+    const value = 123;
+    await expect(
+      doTest(value, {
+        cls:      TestVisitor,
+        runsSync: true
+      })
+    ).rejects.toThrow('Nope!');
+  });
+
   return;
   // --------------------------------------------------------------------
   // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
@@ -512,11 +528,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
     });
   }
-
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const value = 123n;
-    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('Nope!');
-  });
 
   test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
     const shared = [9, 99, 999];
