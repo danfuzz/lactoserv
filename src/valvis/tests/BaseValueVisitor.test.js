@@ -711,6 +711,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
 // Tests for plain `visit()` not easily covered by the common `visit*()` test
 // mechanism above.
+// TODO: Remove this method!
 describe('visit()', () => {
   test('plumbs through a resolved promise value', async () => {
     const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
@@ -755,7 +756,6 @@ describe('_impl_shouldRef()', () => {
     expect(vv._impl_shouldRef([])).toBeFalse();
   });
 });
-
 
 describe('_impl_revisit()', () => {
   class RevisitCheckVisitor extends BaseValueVisitor {
