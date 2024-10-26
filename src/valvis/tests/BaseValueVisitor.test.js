@@ -294,8 +294,27 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     }
   }
 
-  test.each([...EXAMPLES, ...PROXY_EXAMPLES])('returns the given synchronously-available value as-is: %o', async (value) => {
+  test.each([...EXAMPLES])('returns the given synchronously-available value as-is: %o', async (value) => {
     await doTest(value, { runsSync: true });
+  });
+
+  describe('when `_impl_proxyAware() === false`', () => {
+    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
+      await doTest(value, { runsSync: true });
+    });
+  });
+
+  describe('when `_impl_proxyAware() === true`', () => {
+    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
+      await doTest(value, {
+        cls:      ProxyAwareVisitor,
+        runsSync: true,
+        check: (got) => {
+          expect(got).toEqual({ proxy: value });
+          expect(got.proxy).toBe(value);
+        }
+      });
+    });
   });
 
   if (canReturnPromises) {
@@ -593,24 +612,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         expect(ref).toBe(ref.value[2]);
         expect(wasFinished).toBeFalse();
       }
-    });
-  });
-
-  describe('when `_impl_proxyAware() === false`', () => {
-    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
-      await doTest(value);
-    });
-  });
-
-  describe('when `_impl_proxyAware() === true`', () => {
-    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
-      await doTest(value, {
-        cls: ProxyAwareVisitor,
-        check: (got) => {
-          expect(got).toEqual({ proxy: value });
-          expect(got.proxy).toBe(value);
-        }
-      });
     });
   });
 
