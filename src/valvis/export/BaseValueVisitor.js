@@ -33,7 +33,7 @@ import { VisitResult } from '#x/VisitResult';
  * must use the method `_prot_wrapResult()` on its return value. Such a wrapped
  * value will get treated literally through all the visitor plumbing. Then, in
  * order to receive a promise from a visit call, client code can either use
- * {@link #visitSync} or {@link #visitWrap} (but not normal asynchronous
+ * {@link #visitSync} or {@link #visitAsyncWrap} (but not normal asynchronous
  * {@link #visit}).
  */
 export class BaseValueVisitor {
@@ -165,7 +165,7 @@ export class BaseValueVisitor {
    * was returned from the `_impl_*()` method that was called to do the main
    * processing of the value, except that this method "collapses" the promises
    * that result from asynchronous visitor behavior with the promises that are
-   * direct visitor results. See {@link #visitWrap} for a "promise-preserving"
+   * direct visitor results. See {@link #visitAsyncWrap} for a "promise-preserving"
    * variant.
    *
    * If this method is called more than once on any given instance, the visit
@@ -203,7 +203,7 @@ export class BaseValueVisitor {
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    * processed the original `value`.
    */
-  async visitWrap() {
+  async visitAsyncWrap() {
     return this.#visitRoot().extractAsync(true);
   }
 
@@ -1026,7 +1026,7 @@ export class BaseValueVisitor {
      * `wrapResult` is passed as `false`, this will cause the client (external
      * caller) to ultimately receive the fulfilled (resolved/rejected) value of
      * that promise and not the result promise per se. This is the crux of the
-     * difference between {link #visit} and {@link #visitWrap} (see which).
+     * difference between {link #visit} and {@link #visitAsyncWrap} (see which).
      *
      * @param {boolean} [wrapResult] Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed

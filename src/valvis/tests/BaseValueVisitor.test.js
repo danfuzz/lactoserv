@@ -219,10 +219,10 @@ describe('refFromResultValue()', () => {
 
 // Tests for all three `visit*()` methods.
 describe.each`
-methodName     | isAsync  | wraps    | canReturnPromises
-${'visit'}     | ${true}  | ${false} | ${false}
-${'visitSync'} | ${false} | ${false} | ${true}
-${'visitWrap'} | ${true}  | ${true}  | ${true}
+methodName          | isAsync  | wraps    | canReturnPromises
+${'visit'}          | ${true}  | ${false} | ${false}
+${'visitSync'}      | ${false} | ${false} | ${true}
+${'visitAsyncWrap'} | ${true}  | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
 
