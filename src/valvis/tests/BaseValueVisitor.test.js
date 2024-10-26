@@ -977,7 +977,7 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   });
 });
 
-describe('_prot_visit()', () => {
+describe('_prot_visitWrap()', () => {
   test('works synchronously when possible', () => {
     class VisitCheckVisitor extends BaseValueVisitor {
       _impl_visitNumber(node) {
@@ -985,7 +985,7 @@ describe('_prot_visit()', () => {
       }
 
       _impl_visitString(node_unused) {
-        const got = this._prot_visit(9999);
+        const got = this._prot_visitWrap(9999);
         expect(got).toBeInstanceOf(VisitResult);
         expect(got.value).toBe('9999!');
         return 'yep';
@@ -1003,7 +1003,7 @@ describe('_prot_visit()', () => {
       }
 
       async _impl_visitString(node_unused) {
-        const got = this._prot_visit(98765);
+        const got = this._prot_visitWrap(98765);
         expect(got).toBeInstanceOf(Promise);
         expect(await got).toBeInstanceOf(VisitResult);
         expect((await got).value).toBe('98765!');

@@ -582,11 +582,16 @@ export class BaseValueVisitor {
    * in concrete subclasses, for example, to visit the various pieces of
    * instances, where a simple object property visit wouldn't suffice.
    *
+   * This method returns synchronously if possible, or asynchronously if not. As
+   * such, it always returns a result wrapped in a {@link VisitResult}, so that
+   * returned promises can always be distinguished from promises due to the
+   * asynchronous nature of a visit.
+   *
    * @param {*} node Value to visit.
    * @returns {VisitResult|Promise<VisitResult>} The visit result if
    * synchronously available, or a promise for the result if not.
    */
-  _prot_visit(node) {
+  _prot_visitWrap(node) {
     const entry = this.#visitNode(node);
 
     return entry.isFinished()
