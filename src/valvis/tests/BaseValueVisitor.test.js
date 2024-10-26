@@ -261,18 +261,25 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
   async function doTest(value, options = {}) {
     if (isAsync && isSync) {
+      return;
       throw new Error('TODO');
     }
 
     const {
-      cls           = BaseValueVisitor,
-      check         = (got, visitor_unused) => { expect(got).toBe(value); },
-      expectPromise = (isAsync && !isSync)
+      cls       = BaseValueVisitor,
+      check     = (got, visitor_unused) => { expect(got).toBe(value); },
+      runsAsync = (isAsync && !isSync)
     } = options;
 
     const visitor = new cls(value);
 
-    if (expectPromise) {
+    if (isSync && !isAsync && runsAsync) {
+      // This unit test should be under a title like, "throws an error
+      // indicating the call could not complete synchronously."
+      throw new Error('Test should not have been run!');
+    }
+
+    if (isAsync) {
       const got = visitor[methodName]();
       expect(got).toBeInstanceOf(Promise);
       if (wraps) {
@@ -420,12 +427,31 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   }
 
   if (canReturnPromises) {
-    test.each([
-      RESOLVED_PROMISE,
-      REJECTED_PROMISE,
-      PENDING_PROMISE
-    ])('returns promise as-is: %o', async (value) => {
-      await doTest(value);
+    class AsyncPromiseReturnVisitor extends BaseValueVisitor {
+      async _impl_visitInstance(node) {
+        await setImmediate();
+        return new VisitResult(node);
+      }
+    }
+
+    describe.each`
+    label         | value
+    ${'pending'}  | ${PENDING_PROMISE}
+    ${'resolved'} | ${RESOLVED_PROMISE}
+    ${'rejected'} | ${REJECTED_PROMISE}
+    `('when the direct result is a $label promise', ({ value }) => {
+      test('returns the promise as-is when synchronously available', async () => {
+        await doTest(value, { runsAsync: false });
+      });
+
+      if (isAsync) {
+        test('returns the promise as-is when asynchronously available', async () => {
+          await doTest(value, {
+            cls:       AsyncPromiseReturnVisitor,
+            runsAsync: true
+          });
+        });
+      }
     });
   }
 
