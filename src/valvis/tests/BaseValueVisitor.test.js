@@ -299,6 +299,44 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     await doTest(value);
   });
 
+  if (canReturnPromises) {
+    class AsyncPromiseReturnVisitor extends BaseValueVisitor {
+      async _impl_visitInstance(node) {
+        await setImmediate();
+        return new VisitResult(node);
+      }
+    }
+
+    class SyncPromiseReturnVisitor extends BaseValueVisitor {
+      _impl_visitInstance(node) {
+        return new VisitResult(node);
+      }
+    }
+
+    describe.each`
+    label         | value
+    ${'pending'}  | ${PENDING_PROMISE}
+    ${'resolved'} | ${RESOLVED_PROMISE}
+    ${'rejected'} | ${REJECTED_PROMISE}
+    `('when the direct result is a $label promise', ({ value }) => {
+      test('returns the promise as-is when synchronously available', async () => {
+        await doTest(value, {
+          cls:      SyncPromiseReturnVisitor,
+          runsSync: true
+        });
+      });
+
+      if (isAsync) {
+        test('returns the promise as-is when asynchronously available', async () => {
+          await doTest(value, {
+            cls:      AsyncPromiseReturnVisitor,
+            runsSync: false
+          });
+        });
+      }
+    });
+  }
+
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
     const circ1 = [4];
     const circ2 = [5, 6, circ1];
@@ -429,44 +467,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     test('throws the right error if a will-fail visit did not finish synchronously', async () => {
       const value = Symbol('eeeeek');
       await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
-    });
-  }
-
-  if (canReturnPromises) {
-    class AsyncPromiseReturnVisitor extends BaseValueVisitor {
-      async _impl_visitInstance(node) {
-        await setImmediate();
-        return new VisitResult(node);
-      }
-    }
-
-    class SyncPromiseReturnVisitor extends BaseValueVisitor {
-      _impl_visitInstance(node) {
-        return new VisitResult(node);
-      }
-    }
-
-    describe.each`
-    label         | value
-    ${'pending'}  | ${PENDING_PROMISE}
-    ${'resolved'} | ${RESOLVED_PROMISE}
-    ${'rejected'} | ${REJECTED_PROMISE}
-    `('when the direct result is a $label promise', ({ value }) => {
-      test('returns the promise as-is when synchronously available', async () => {
-        await doTest(value, {
-          cls:      SyncPromiseReturnVisitor,
-          runsSync: true
-        });
-      });
-
-      if (isAsync) {
-        test('returns the promise as-is when asynchronously available', async () => {
-          await doTest(value, {
-            cls:      AsyncPromiseReturnVisitor,
-            runsSync: false
-          });
-        });
-      }
     });
   }
 
