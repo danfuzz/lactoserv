@@ -339,9 +339,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
     class TestVisitor extends BaseValueVisitor {
-      _impl_visitArray(node) {
-        return this._prot_visitProperties(node);
-      }
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
     }
 
     const circ1 = [4];
@@ -356,6 +354,28 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         runsSync: true
       })
     ).rejects.toThrow(CIRCULAR_MSG);
+  });
+
+  test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const inner = [1];
+    const outer = [inner, inner];
+
+    await doTest(outer, {
+      cls:      TestVisitor,
+      runsSync: true,
+      check: (got) => {
+        expect(got).toBeArrayOfSize(2);
+        expect(got[0]).toBe(got[1]);
+        const gotInner = got[0];
+        expect(gotInner).toBeArrayOfSize(1);
+        expect(gotInner[0]).toBe('1');
+      }
+    });
   });
 
   return;
