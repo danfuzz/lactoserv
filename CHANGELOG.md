@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `valvis`:
+  * Renamed some methods in `BaseValueVisitor`, for clarity and consistency.
 
 Other notable changes:
 * None.
