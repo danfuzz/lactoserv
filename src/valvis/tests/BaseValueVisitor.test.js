@@ -295,7 +295,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     }
   }
 
-  test.each(EXAMPLES)('returns the given value as-is: %o', async (value) => {
+  test.each([...EXAMPLES, ...PROXY_EXAMPLES])('returns the given value as-is: %o', async (value) => {
     await doTest(value);
   });
 
