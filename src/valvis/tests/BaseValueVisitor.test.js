@@ -337,6 +337,10 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   }
 
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
+
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
     const circ1 = [4];
     const circ2 = [5, 6, circ1];
