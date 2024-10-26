@@ -516,19 +516,16 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       await expect(doTest(value, { cls: TestVisitor }))
         .rejects.toThrow(CIRCULAR_MSG);
     });
-  }
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
-  if (isAsync) {
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
-      class ExtraAsyncVisitor extends RecursiveVisitor {
+      class TestVisitor extends BaseValueVisitor {
         async _impl_visitArray(node) {
           await setImmediate();
           return this._prot_visitProperties(node);
+        }
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
         }
       }
 
@@ -538,9 +535,15 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
       circ1.push(circ2);
 
-      await expect(doTest(value, { cls: ExtraAsyncVisitor })).rejects.toThrow(CIRCULAR_MSG);
+      await expect(doTest(value, { cls: TestVisitor }))
+        .rejects.toThrow(CIRCULAR_MSG);
     });
   }
+
+  return;
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
 
   if (isSync) {
     const MSG = 'Visit did not finish synchronously.';
