@@ -284,7 +284,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         const result = wrapperOrResult;
         check(result, visitor);
       }
-    }
+    };
 
     if (runsSync && isSync) {
       callCheck(got);
@@ -429,30 +429,30 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
   test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
     class TestVisitor extends BaseValueVisitor {
-      _impl_visitNumber(node) {
+      _impl_visitNumber(node_unused) {
         throw new Error('Nope!');
       }
     }
 
-    const value = 123;
     await expect(
-      doTest(value, {
+      doTest(123, {
         cls:      TestVisitor,
         runsSync: true
       })
     ).rejects.toThrow('Nope!');
   });
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
-      const value = true;
-      await doTest(value, {
-        cls: RecursiveVisitor,
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
+      await doTest(true, {
+        cls: TestVisitor,
         check: (got) => {
           expect(got).toBe('true');
         }
@@ -460,12 +460,20 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
 
     test('handles non-circular asynchronously-visited duplicate references correctly', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
       const inner  = [true];
       const middle = [inner, inner, inner, true];
       const outer  = [middle, inner, middle, false];
 
       await doTest(outer, {
-        cls: RecursiveVisitor,
+        cls: TestVisitor,
         check: (got) => {
           expect(got).toBeArrayOfSize(4);
           expect(got[0]).toBe(got[2]);
@@ -480,7 +488,14 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         }
       });
     });
+  }
 
+  return;
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
+
+  if (isAsync) {
     test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
       const value = Symbol('eep');
       await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('NO');
