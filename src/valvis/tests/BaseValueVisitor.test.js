@@ -434,6 +434,12 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       }
     }
 
+    class SyncPromiseReturnVisitor extends BaseValueVisitor {
+      _impl_visitInstance(node) {
+        return new VisitResult(node);
+      }
+    }
+
     describe.each`
     label         | value
     ${'pending'}  | ${PENDING_PROMISE}
@@ -441,7 +447,10 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     ${'rejected'} | ${REJECTED_PROMISE}
     `('when the direct result is a $label promise', ({ value }) => {
       test('returns the promise as-is when synchronously available', async () => {
-        await doTest(value, { runsAsync: false });
+        await doTest(value, {
+          cls:       SyncPromiseReturnVisitor,
+          runsAsync: false
+        });
       });
 
       if (isAsync) {
