@@ -228,38 +228,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
 
-  /**
-   * Visitor subclass, with some synchronous and some asynchronous behavior,
-   * which recursively visits plain objects and arrays.
-   */
-  class RecursiveVisitor extends BaseValueVisitor {
-    _impl_visitBigInt(node_unused) {
-      throw new Error('Nope!');
-    }
-
-    async _impl_visitBoolean(node) {
-      await setImmediate();
-      return `${node}`;
-    }
-
-    _impl_visitNumber(node) {
-      return `${node}`;
-    }
-
-    async _impl_visitSymbol(node_unused) {
-      await setImmediate();
-      throw new Error('NO');
-    }
-
-    _impl_visitArray(node) {
-      return this._prot_visitProperties(node);
-    }
-
-    _impl_visitPlainObject(node) {
-      return this._prot_visitProperties(node);
-    }
-  }
-
   async function doTest(value, options = {}) {
     const {
       cls      = BaseValueVisitor,
@@ -461,6 +429,36 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     ).rejects.toThrow('Nope!');
   });
 
+  if (isSync && !isAsync) {
+    const MSG = 'Visit did not finish synchronously.';
+
+    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node) { return node; }
+      }
+
+      await expect(doTest(999888,
+        {
+          cls:      TestVisitor,
+          runsSync: true
+        }
+      )).rejects.toThrow(MSG);
+    });
+
+    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node) { throw new Error('Bonk!'); }
+      }
+
+      await expect(doTest(65432,
+        {
+          cls:      TestVisitor,
+          runsSync: true
+        }
+      )).rejects.toThrow(MSG);
+    });
+  }
+
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
       class TestVisitor extends BaseValueVisitor {
@@ -563,20 +561,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   // --------------------------------------------------------------------
   // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
   // --------------------------------------------------------------------
-
-  if (isSync) {
-    const MSG = 'Visit did not finish synchronously.';
-
-    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
-      const value = true;
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
-    });
-
-    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
-      const value = Symbol('eeeeek');
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
-    });
-  }
 
   test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
     const shared = [9, 99, 999];
