@@ -266,14 +266,14 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     }
 
     const {
-      cls       = BaseValueVisitor,
-      check     = (got, visitor_unused) => { expect(got).toBe(value); },
-      runsAsync = (isAsync && !isSync)
+      cls      = BaseValueVisitor,
+      check    = (got, visitor_unused) => { expect(got).toBe(value); },
+      runsSync = isSync && !isAsync
     } = options;
 
     const visitor = new cls(value);
 
-    if (isSync && !isAsync && runsAsync) {
+    if (isSync && !isAsync && !runsSync) {
       // This unit test should be under a title like, "throws an error
       // indicating the call could not complete synchronously."
       throw new Error('Test should not have been run!');
@@ -305,7 +305,12 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
     circ1.push(circ2);
 
-    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
+    await expect(
+      doTest(value, {
+        cls:      RecursiveVisitor,
+        runsSync: true
+      })
+    ).rejects.toThrow(CIRCULAR_MSG);
   });
 
   test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
@@ -448,16 +453,16 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     `('when the direct result is a $label promise', ({ value }) => {
       test('returns the promise as-is when synchronously available', async () => {
         await doTest(value, {
-          cls:       SyncPromiseReturnVisitor,
-          runsAsync: false
+          cls:      SyncPromiseReturnVisitor,
+          runsSync: true
         });
       });
 
       if (isAsync) {
         test('returns the promise as-is when asynchronously available', async () => {
           await doTest(value, {
-            cls:       AsyncPromiseReturnVisitor,
-            runsAsync: true
+            cls:      AsyncPromiseReturnVisitor,
+            runsSync: false
           });
         });
       }
