@@ -222,7 +222,7 @@ describe.each`
 methodName          | isAsync   | wraps    | canReturnPromises
 ${'visit'}          | ${true}   | ${false} | ${false}
 ${'visitSync'}      | ${false}  | ${false} | ${true} // TODO: Delete this method!
-${'visitWrap'}      | ${'both'} | ${true}  | ${false}
+${'visitWrap'}      | ${'both'} | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}   | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
