@@ -497,6 +497,25 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       await expect(doTest(true, { cls: TestVisitor }))
         .rejects.toThrow('oof!');
     });
+
+    test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
+      const circ1 = [true, 4];
+      const circ2 = [true, 5, 6, circ1];
+      const value = [true, 1, [2, 3, circ1]];
+
+      circ1.push(circ2);
+
+      await expect(doTest(value, { cls: TestVisitor }))
+        .rejects.toThrow(CIRCULAR_MSG);
+    });
   }
 
   return;
@@ -505,16 +524,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   // --------------------------------------------------------------------
 
   if (isAsync) {
-    test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
-      const circ1 = [true, 4];
-      const circ2 = [true, 5, 6, circ1];
-      const value = [true, 1, [2, 3, circ1]];
-
-      circ1.push(circ2);
-
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
-    });
-
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
       class ExtraAsyncVisitor extends RecursiveVisitor {
         async _impl_visitArray(node) {
