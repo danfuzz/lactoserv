@@ -378,17 +378,18 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   });
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
   test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
     const inner = [1];
     const outer = [inner, inner];
 
     await doTest(outer, {
-      cls: RecursiveVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got) => {
         expect(got).toBeArrayOfSize(2);
         expect(got[0]).toBe(got[1]);
@@ -400,12 +401,18 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   });
 
   test('handles non-circular synchronously-visited duplicate references correctly (two refs)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
     const inner  = [1];
     const middle = [inner, inner, inner, 2];
     const outer  = [middle, inner, middle, 3];
 
     await doTest(outer, {
-      cls: RecursiveVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got) => {
         expect(got).toBeArrayOfSize(4);
         expect(got[0]).toBe(got[2]);
@@ -420,6 +427,11 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       }
     });
   });
+
+  return;
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
 
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
