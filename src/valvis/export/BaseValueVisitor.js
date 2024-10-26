@@ -903,6 +903,11 @@ export class BaseValueVisitor {
    * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
    */
   #visitRoot() {
+    // Note: This isn't _just_ `return this.#visitNode(<root>)`, because that
+    // would end up invoking the def/ref mechanism, which would be incorrect to
+    // do in this case (because we're not trying to possibly-share a result
+    // within the visit, just trying to _get_ the result).
+
     const node = this.#rootValue;
     return this.#visits.get(node) ?? this.#visitNode(node);
   }
