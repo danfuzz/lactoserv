@@ -447,7 +447,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
     test('throws the right error if a will-fail visit did not finish synchronously', async () => {
       class TestVisitor extends BaseValueVisitor {
-        async _impl_visitNumber(node) { throw new Error('Bonk!'); }
+        async _impl_visitNumber(node_unused) { throw new Error('Bonk!'); }
       }
 
       await expect(doTest(65432,
@@ -508,7 +508,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 
     test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
       class TestVisitor extends BaseValueVisitor {
-        async _impl_visitBoolean(node) { throw new Error('oof!'); }
+        async _impl_visitBoolean(node_unused) { throw new Error('oof!'); }
       }
 
       await expect(doTest(true, { cls: TestVisitor }))
@@ -540,6 +540,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
           await setImmediate();
           return this._prot_visitProperties(node);
         }
+
         async _impl_visitBoolean(node) {
           await setImmediate();
           return `${node}`;
