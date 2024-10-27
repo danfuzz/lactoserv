@@ -213,7 +213,7 @@ describe('refFromResultValue()', () => {
 });
 
 // Tests for all three `visit*()` methods.
-describe.only.each`
+describe.each`
 methodName          | isAsync  | isSync   | wraps    | canReturnPromises
 ${'visit'}          | ${true}  | ${false} | ${false} | ${false}
 ${'visitSync'}      | ${false} | ${true}  | ${false} | ${true} // TODO: Delete this method!
