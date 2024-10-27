@@ -3,7 +3,7 @@
 
 import { setImmediate } from 'node:timers/promises';
 
-import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
+import { PromiseState, PromiseUtil } from '@this/async';
 import { BaseValueVisitor, VisitDef, VisitRef, VisitResult }
   from '@this/valvis';
 
