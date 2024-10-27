@@ -134,7 +134,7 @@ describe('hasRefs()', () => {
   test('returns `null` if the visit is still in progress, then works after the visit is done', async () => {
     const value   = { x: 123 };
     const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visit();
+    const gotProm = vv.visitAsyncWrap();
 
     expect(PromiseState.isPending(gotProm)); // Baseline.
     expect(vv.hasRefs()).toBeNull();
@@ -201,7 +201,7 @@ describe('refFromResultValue()', () => {
     const inner   = { b: { c: 123 } };
     const value   = { a1: inner, a2: inner };
     const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visit();
+    const gotProm = vv.visitAsyncWrap();
 
     expect(PromiseState.isPending(gotProm)); // Baseline.
     expect(vv.refFromResultValue('bonk')).toBeNull();
@@ -216,7 +216,6 @@ describe('refFromResultValue()', () => {
 describe.each`
 methodName          | isAsync  | isSync   | wraps    | canReturnPromises
 ${'visit'}          | ${true}  | ${false} | ${false} | ${false}
-${'visitSync'}      | ${false} | ${true}  | ${false} | ${true} // TODO: Delete this method!
 ${'visitWrap'}      | ${true}  | ${true}  | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps, canReturnPromises }) => {
@@ -678,40 +677,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
         }
       });
     });
-  });
-});
-
-// Tests for plain `visit()` not easily covered by the common `visit*()` test
-// mechanism above.
-// TODO: Remove this method!
-describe('visit()', () => {
-  test('plumbs through a resolved promise value', async () => {
-    const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
-    const got = vv.visit();
-
-    await expect(got).resolves.toBe(RESOLVED_VALUE);
-  });
-
-  test('plumbs through a rejected promise value', async () => {
-    const vv  = new BaseValueVisitor(REJECTED_PROMISE);
-    const got = vv.visit();
-
-    await expect(got).rejects.toThrow(REJECTED_ERROR);
-  });
-
-  test('plumbs through a pending promise', async () => {
-    const mp  = new ManualPromise();
-    const vv  = new BaseValueVisitor(mp.promise);
-    const got = vv.visit();
-
-    await setImmediate();
-    expect(PromiseState.isPending(got)).toBeTrue();
-
-    mp.resolve('zonk');
-
-    await setImmediate();
-    expect(PromiseState.isFulfilled(got)).toBeTrue();
-    expect(await got).toBe('zonk');
   });
 });
 
