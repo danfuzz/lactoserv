@@ -609,6 +609,33 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   });
 
+  describe('when `_impl_shouldRef()` returns `false` (which is by default)', () => {
+    test.each`
+    label             | value                     | expected
+    ${'array'}        | ${[99, 88, 123]}          | ${[99, 88, 123]}
+    ${'plain object'} | ${{ zonk: 'zeep' }}       | ${{ zonk: 'zeep' }}
+    ${'function'}     | ${() => 'x'}              | ${'() => \'x\''}
+    ${'instance'}     | ${new Set('a', 'z', 'x')} | ${'[object Set]'}
+    `('does not make a ref for a shared $label', async ({ value, expected }) => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        _impl_visitPlainObject(node) { return this._prot_visitProperties(node); }
+        _impl_visitInstance(node) { return node.toString(); }
+        _impl_visitFunction(node) { return node.toString(); }
+      }
+
+      await doTest([value, value], {
+        cls:      TestVisitor,
+        runsSync: true,
+        check: (got) => {
+          expect(got).toBeArrayOfSize(2);
+          expect(got[0]).toBe(got[1]);
+          expect(got[0]).toEqual(expected);
+        }
+      });
+    });
+  });
+
   return;
   // --------------------------------------------------------------------
   // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
