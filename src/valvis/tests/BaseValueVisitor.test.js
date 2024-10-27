@@ -214,11 +214,11 @@ describe('refFromResultValue()', () => {
 
 // Tests for all three `visit*()` methods.
 describe.each`
-methodName          | isAsync  | isSync   | wraps    | canReturnPromises
-${'visitSync'}      | ${false} | ${true}  | ${false} | ${true}
-${'visitWrap'}      | ${true}  | ${true}  | ${true}  | ${true}
-${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
-`('$methodName()', ({ methodName, isAsync, isSync, wraps, canReturnPromises }) => {
+methodName          | isAsync  | isSync   | wraps
+${'visitSync'}      | ${false} | ${true}  | ${false}
+${'visitWrap'}      | ${true}  | ${true}  | ${true}
+${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
+`('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
 
   async function doTest(value, options = {}) {
@@ -278,43 +278,41 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   });
 
-  if (canReturnPromises) {
-    class AsyncPromiseReturnVisitor extends BaseValueVisitor {
-      async _impl_visitInstance(node) {
-        await setImmediate();
-        return new VisitResult(node);
+  describe.each`
+  label         | value
+  ${'pending'}  | ${PENDING_PROMISE}
+  ${'resolved'} | ${RESOLVED_PROMISE}
+  ${'rejected'} | ${REJECTED_PROMISE}
+  `('when the direct result is a $label promise', ({ value }) => {
+    test('returns the promise as-is when synchronously available', async () => {
+      class SyncPromiseReturnVisitor extends BaseValueVisitor {
+        _impl_visitInstance(node) {
+          return new VisitResult(node);
+        }
       }
-    }
 
-    class SyncPromiseReturnVisitor extends BaseValueVisitor {
-      _impl_visitInstance(node) {
-        return new VisitResult(node);
-      }
-    }
+      await doTest(value, {
+        cls:      SyncPromiseReturnVisitor,
+        runsSync: true
+      });
+    });
 
-    describe.each`
-    label         | value
-    ${'pending'}  | ${PENDING_PROMISE}
-    ${'resolved'} | ${RESOLVED_PROMISE}
-    ${'rejected'} | ${REJECTED_PROMISE}
-    `('when the direct result is a $label promise', ({ value }) => {
-      test('returns the promise as-is when synchronously available', async () => {
+    if (isAsync) {
+      test('returns the promise as-is when asynchronously available', async () => {
+        class AsyncPromiseReturnVisitor extends BaseValueVisitor {
+          async _impl_visitInstance(node) {
+            await setImmediate();
+            return new VisitResult(node);
+          }
+        }
+
         await doTest(value, {
-          cls:      SyncPromiseReturnVisitor,
-          runsSync: true
+          cls:      AsyncPromiseReturnVisitor,
+          runsSync: false
         });
       });
-
-      if (isAsync) {
-        test('returns the promise as-is when asynchronously available', async () => {
-          await doTest(value, {
-            cls:      AsyncPromiseReturnVisitor,
-            runsSync: false
-          });
-        });
-      }
-    });
-  }
+    }
+  });
 
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
     class TestVisitor extends BaseValueVisitor {
