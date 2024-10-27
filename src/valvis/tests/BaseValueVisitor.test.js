@@ -215,7 +215,7 @@ describe('refFromResultValue()', () => {
 // Tests for all three `visit*()` methods.
 describe.each`
 methodName          | isAsync  | isSync   | wraps    | canReturnPromises
-${'visit'}          | ${true}  | ${false} | ${false} | ${false}
+${'visitSync'}      | ${false} | ${true}  | ${false} | ${true}
 ${'visitWrap'}      | ${true}  | ${true}  | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps, canReturnPromises }) => {

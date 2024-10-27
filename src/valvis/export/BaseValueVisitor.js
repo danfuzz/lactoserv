@@ -160,29 +160,6 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits this instance's designated value. This in turn calls through to the
-   * various `_impl_*()` methods, as appropriate. The return value is whatever
-   * was returned from the `_impl_*()` method that was called to do the main
-   * processing of the value, except that this method "collapses" the promises
-   * that result from asynchronous visitor behavior with the promises that are
-   * direct visitor results. See {@link #visitAsyncWrap} for a
-   * "promise-preserving" variant.
-   *
-   * If this method is called more than once on any given instance, the visit
-   * procedure is only actually run once; subsequent calls reuse the return
-   * value from the first call, even if the first call is still in progress at
-   * the time of the call.
-   *
-   * TODO: REMOVE THIS METHOD!
-   *
-   * @returns {*} Whatever result was returned from the `_impl_*()` method which
-   * processed the original `value`.
-   */
-  async visit() {
-    return this.#visitRoot().extractAsync(false);
-  }
-
-  /**
    * Similar to {@link #visitWrap}, except (a) it will fail if the visit did not
    * finish synchronously; and (b) the result is not wrapped. Specifically with
    * respect to (b), if a promise is returned, it is only ever
