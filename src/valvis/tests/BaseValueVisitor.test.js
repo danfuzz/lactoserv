@@ -3,7 +3,7 @@
 
 import { setImmediate } from 'node:timers/promises';
 
-import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
+import { PromiseState, PromiseUtil } from '@this/async';
 import { BaseValueVisitor, VisitDef, VisitRef, VisitResult }
   from '@this/valvis';
 
@@ -20,7 +20,8 @@ const EXAMPLES = [
   { what: 'is up?' },
   new Set(['x', 'y', 'z']),
   (x, y) => { return x < y; },
-  class Flomp { /*empty*/ }
+  class Flomp { /*empty*/ },
+  Map
 ];
 
 const OBJECT_PROXY   = new Proxy({ a: 'florp' }, {});
@@ -66,12 +67,6 @@ class ProxyAwareVisitor extends BaseValueVisitor {
  * Visitor subclass, which is set up to use refs for duplicate objects.
  */
 class RefMakingVisitor extends BaseValueVisitor {
-  refs = [];
-
-  _impl_newRef(ref) {
-    this.refs.push({ ref, wasFinished: ref.isFinished() });
-  }
-
   _impl_shouldRef(value) {
     return (typeof value === 'object');
   }
@@ -139,7 +134,7 @@ describe('hasRefs()', () => {
   test('returns `null` if the visit is still in progress, then works after the visit is done', async () => {
     const value   = { x: 123 };
     const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visit();
+    const gotProm = vv.visitAsyncWrap();
 
     expect(PromiseState.isPending(gotProm)); // Baseline.
     expect(vv.hasRefs()).toBeNull();
@@ -206,7 +201,7 @@ describe('refFromResultValue()', () => {
     const inner   = { b: { c: 123 } };
     const value   = { a1: inner, a2: inner };
     const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visit();
+    const gotProm = vv.visitAsyncWrap();
 
     expect(PromiseState.isPending(gotProm)); // Baseline.
     expect(vv.refFromResultValue('bonk')).toBeNull();
@@ -219,88 +214,159 @@ describe('refFromResultValue()', () => {
 
 // Tests for all three `visit*()` methods.
 describe.each`
-methodName     | isAsync  | wraps    | canReturnPromises
-${'visit'}     | ${true}  | ${false} | ${false}
-${'visitSync'} | ${false} | ${false} | ${true}
-${'visitWrap'} | ${true}  | ${true}  | ${true}
-`('$methodName()', ({ methodName, isAsync, wraps, canReturnPromises }) => {
+methodName          | isAsync  | isSync   | wraps
+${'visitSync'}      | ${false} | ${true}  | ${false}
+${'visitWrap'}      | ${true}  | ${true}  | ${true}
+${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
+`('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
   const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
-
-  /**
-   * Visitor subclass, with some synchronous and some asynchronous behavior,
-   * which recursively visits plain objects and arrays.
-   */
-  class RecursiveVisitor extends BaseValueVisitor {
-    _impl_visitBigInt(node_unused) {
-      throw new Error('Nope!');
-    }
-
-    async _impl_visitBoolean(node) {
-      await setImmediate();
-      return `${node}`;
-    }
-
-    _impl_visitNumber(node) {
-      return `${node}`;
-    }
-
-    async _impl_visitSymbol(node_unused) {
-      await setImmediate();
-      throw new Error('NO');
-    }
-
-    _impl_visitArray(node) {
-      return this._prot_visitProperties(node);
-    }
-
-    _impl_visitPlainObject(node) {
-      return this._prot_visitProperties(node);
-    }
-  }
 
   async function doTest(value, options = {}) {
     const {
-      cls   = BaseValueVisitor,
-      check = (got, visitor_unused) => { expect(got).toBe(value); }
+      cls      = BaseValueVisitor,
+      check    = (got, visitor_unused) => { expect(got).toBe(value); },
+      runsSync = isSync && !isAsync
     } = options;
 
-    const visitor = new cls(value);
+    if (isSync && !isAsync && !runsSync) {
+      // This unit test shouldn't have been called for this method.
+      throw new Error('Test should not have been run!');
+    }
 
-    if (isAsync) {
-      const got = visitor[methodName]();
-      expect(got).toBeInstanceOf(Promise);
+    const visitor = new cls(value);
+    const got     = visitor[methodName]();
+
+    const callCheck = (wrapperOrResult) => {
       if (wraps) {
-        const wrapper = await got;
+        const wrapper = wrapperOrResult;
         expect(wrapper).toBeInstanceOf(VisitResult);
         check(wrapper.value, visitor);
       } else {
-        check(await got, visitor);
+        const result = wrapperOrResult;
+        check(result, visitor);
       }
+    };
+
+    if (runsSync && isSync) {
+      callCheck(got);
     } else {
-      check(visitor[methodName](), visitor);
+      expect(got).toBeInstanceOf(Promise);
+      callCheck(await got);
     }
   }
 
-  test.each(EXAMPLES)('returns the given value as-is: %o', async (value) => {
-    await doTest(value);
+  test.each([...EXAMPLES])('returns the given synchronously-available value as-is: %o', async (value) => {
+    await doTest(value, { runsSync: true });
+  });
+
+  describe('when `_impl_proxyAware() === false`', () => {
+    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
+      await doTest(value, { runsSync: true });
+    });
+  });
+
+  describe('when `_impl_proxyAware() === true`', () => {
+    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
+      await doTest(value, {
+        cls:      ProxyAwareVisitor,
+        runsSync: true,
+        check: (got) => {
+          expect(got).toEqual({ proxy: value });
+          expect(got.proxy).toBe(value);
+        }
+      });
+    });
+  });
+
+  describe.each`
+  label         | value
+  ${'pending'}  | ${PENDING_PROMISE}
+  ${'resolved'} | ${RESOLVED_PROMISE}
+  ${'rejected'} | ${REJECTED_PROMISE}
+  `('when the direct result is a $label promise', ({ value }) => {
+    test('returns the promise as-is when synchronously available', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitInstance(node) {
+          return new VisitResult(node);
+        }
+      }
+
+      await doTest(value, {
+        cls:      TestVisitor,
+        runsSync: true
+      });
+    });
+
+    if (isAsync) {
+      test('returns the promise as-is when asynchronously available', async () => {
+        class TestVisitor extends BaseValueVisitor {
+          async _impl_visitInstance(node) {
+            await setImmediate();
+            return new VisitResult(node);
+          }
+        }
+
+        await doTest(value, {
+          cls:      TestVisitor,
+          runsSync: false
+        });
+      });
+    }
   });
 
   test('throws the right error if given a value whose synchronous visit directly encountered a circular reference', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+    }
+
     const circ1 = [4];
     const circ2 = [5, 6, circ1];
     const value = [1, [2, 3, circ1]];
 
     circ1.push(circ2);
 
-    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
+    await expect(
+      doTest(value, {
+        cls:      TestVisitor,
+        runsSync: true
+      })
+    ).rejects.toThrow(CIRCULAR_MSG);
   });
 
   test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
     const inner = [1];
     const outer = [inner, inner];
 
     await doTest(outer, {
-      cls: RecursiveVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
+      check: (got) => {
+        expect(got).toBeArrayOfSize(2);
+        expect(got[0]).toBe(got[1]);
+        const gotInner = got[0];
+        expect(gotInner).toBeArrayOfSize(1);
+        expect(gotInner[0]).toBe('1');
+      }
+    });
+  });
+
+  test('handles non-circular synchronously-visited duplicate references correctly (one ref)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const inner = [1];
+    const outer = [inner, inner];
+
+    await doTest(outer, {
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got) => {
         expect(got).toBeArrayOfSize(2);
         expect(got[0]).toBe(got[1]);
@@ -312,12 +378,18 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   });
 
   test('handles non-circular synchronously-visited duplicate references correctly (two refs)', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
     const inner  = [1];
     const middle = [inner, inner, inner, 2];
     const outer  = [middle, inner, middle, 3];
 
     await doTest(outer, {
-      cls: RecursiveVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got) => {
         expect(got).toBeArrayOfSize(4);
         expect(got[0]).toBe(got[2]);
@@ -333,11 +405,62 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     });
   });
 
+  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node_unused) {
+        throw new Error('Nope!');
+      }
+    }
+
+    await expect(
+      doTest(123, {
+        cls:      TestVisitor,
+        runsSync: true
+      })
+    ).rejects.toThrow('Nope!');
+  });
+
+  if (isSync && !isAsync) {
+    const MSG = 'Visit did not finish synchronously.';
+
+    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node) { return node; }
+      }
+
+      await expect(doTest(999888,
+        {
+          cls:      TestVisitor,
+          runsSync: true
+        }
+      )).rejects.toThrow(MSG);
+    });
+
+    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node_unused) { throw new Error('Bonk!'); }
+      }
+
+      await expect(doTest(65432,
+        {
+          cls:      TestVisitor,
+          runsSync: true
+        }
+      )).rejects.toThrow(MSG);
+    });
+  }
+
   if (isAsync) {
     test('returns the value which was returned asynchronously by an `_impl_visit*()` method', async () => {
-      const value = true;
-      await doTest(value, {
-        cls: RecursiveVisitor,
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
+      await doTest(true, {
+        cls: TestVisitor,
         check: (got) => {
           expect(got).toBe('true');
         }
@@ -345,12 +468,20 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     });
 
     test('handles non-circular asynchronously-visited duplicate references correctly', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
       const inner  = [true];
       const middle = [inner, inner, inner, true];
       const outer  = [middle, inner, middle, false];
 
       await doTest(outer, {
-        cls: RecursiveVisitor,
+        cls: TestVisitor,
         check: (got) => {
           expect(got).toBeArrayOfSize(4);
           expect(got[0]).toBe(got[2]);
@@ -367,26 +498,44 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     });
 
     test('throws the error which was thrown asynchronously by an `_impl_visit*()` method', async () => {
-      const value = Symbol('eep');
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('NO');
+      class TestVisitor extends BaseValueVisitor {
+        async _impl_visitBoolean(node_unused) { throw new Error('oof!'); }
+      }
+
+      await expect(doTest(true, { cls: TestVisitor }))
+        .rejects.toThrow('oof!');
     });
 
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
+      }
+
       const circ1 = [true, 4];
       const circ2 = [true, 5, 6, circ1];
       const value = [true, 1, [2, 3, circ1]];
 
       circ1.push(circ2);
 
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(CIRCULAR_MSG);
+      await expect(doTest(value, { cls: TestVisitor }))
+        .rejects.toThrow(CIRCULAR_MSG);
     });
 
     test('throws the right error if given a value whose asynchronous visit would directly contain a circular reference (even more async)', async () => {
-      class ExtraAsyncVisitor extends RecursiveVisitor {
+      class TestVisitor extends BaseValueVisitor {
         async _impl_visitArray(node) {
           await setImmediate();
           return this._prot_visitProperties(node);
         }
+
+        async _impl_visitBoolean(node) {
+          await setImmediate();
+          return `${node}`;
+        }
       }
 
       const circ1 = [true, 4];
@@ -395,91 +544,10 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
 
       circ1.push(circ2);
 
-      await expect(doTest(value, { cls: ExtraAsyncVisitor })).rejects.toThrow(CIRCULAR_MSG);
-    });
-  } else {
-    const MSG = 'Visit did not finish synchronously.';
-
-    test('throws the right error if a will-be-successful visit did not finish synchronously', async () => {
-      const value = true;
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
-    });
-
-    test('throws the right error if a will-fail visit did not finish synchronously', async () => {
-      const value = Symbol('eeeeek');
-      await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow(MSG);
+      await expect(doTest(value, { cls: TestVisitor }))
+        .rejects.toThrow(CIRCULAR_MSG);
     });
   }
-
-  if (canReturnPromises) {
-    test.each([
-      RESOLVED_PROMISE,
-      REJECTED_PROMISE,
-      PENDING_PROMISE
-    ])('returns promise as-is: %o', async (value) => {
-      await doTest(value);
-    });
-  }
-
-  test('throws the error which was thrown synchronously by an `_impl_visit*()` method', async () => {
-    const value = 123n;
-    await expect(doTest(value, { cls: RecursiveVisitor })).rejects.toThrow('Nope!');
-  });
-
-  test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
-    const shared = [9, 99, 999];
-    const value  = [1, [2, shared], shared];
-
-    await doTest(value, {
-      cls: RefMakingVisitor,
-      check: (got, visitor) => {
-        expect(visitor.refs).toBeArrayOfSize(1);
-        const { ref, wasFinished } = visitor.refs[0];
-        expect(ref).toBe(got[2]);
-        expect(ref.originalValue).toBe(shared);
-        expect(ref.value).toBe(got[1][1]);
-        expect(wasFinished).toBeTrue();
-      }
-    });
-  });
-
-  test('calls `_impl_newRef()` when a circular reference is detected', async () => {
-    const selfRef = [9, 99];
-    const value   = [1, [2, selfRef], selfRef];
-
-    selfRef.push(selfRef);
-
-    await doTest(value, {
-      cls: RefMakingVisitor,
-      check: (got, visitor) => {
-        expect(visitor.refs).toBeArrayOfSize(1);
-        const { ref, wasFinished } = visitor.refs[0];
-        expect(ref).toBe(got[2]);
-        expect(ref.originalValue).toBe(selfRef);
-        expect(ref.value).toBe(got[1][1]);
-        expect(ref).toBe(ref.value[2]);
-        expect(wasFinished).toBeFalse();
-      }
-    });
-  });
-
-  describe('when `_impl_proxyAware() === false`', () => {
-    test.each(PROXY_EXAMPLES)('returns the given value as-is: %o', async (value) => {
-      await doTest(value);
-    });
-  });
-
-  describe('when `_impl_proxyAware() === true`', () => {
-    test.each(PROXY_EXAMPLES)('returns the value returned from `_impl_visitProxy()`: %o', async (value) => {
-      await doTest(value, {
-        cls: ProxyAwareVisitor,
-        check: (got) => {
-          expect(got).toEqual({ proxy: value });
-          expect(got.proxy).toBe(value);
-        }
-      });
-    });
-  });
 
   test.each`
   value
@@ -488,19 +556,15 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   ${true}
   ${123}
   `('does not call `_impl_shouldRef()` on $value', async ({ value }) => {
-    class ShouldRefThrowsVisitor extends BaseValueVisitor {
-      _impl_shouldRef() {
-        throw new Error('Oopsie');
-      }
-
-      _impl_visitArray(node) {
-        return this._prot_visitProperties(node);
-      }
+    class TestVisitor extends BaseValueVisitor {
+      _impl_shouldRef() { throw new Error('Oopsie'); }
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
     }
 
     await doTest([value, value], {
-      cls: ShouldRefThrowsVisitor,
-      check: () => null
+      cls:      TestVisitor,
+      runsSync: true,
+      check:    () => null
     });
   });
 
@@ -515,7 +579,7 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
   ${'an instance'}          | ${new Map()}
   ${'a function'}           | ${() => null}
   `('calls `_impl_shouldRef()` on $label', async ({ value }) => {
-    class ShouldRefCheckVisitor extends BaseValueVisitor {
+    class TestVisitor extends BaseValueVisitor {
       calledOn = [];
 
       _impl_shouldRef(node) {
@@ -529,113 +593,88 @@ ${'visitWrap'} | ${true}  | ${true}  | ${true}
     }
 
     await doTest([value, value], {
-      cls: ShouldRefCheckVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got_unused, visitor) => {
         expect(visitor.calledOn).toStrictEqual([value]);
       }
     });
   });
 
-  describe('when `_impl_shouldRef()` can return `true`', () => {
-    test('makes a ref for a non-circular duplicate value', async () => {
-      const inner = ['bonk'];
-      const outer = [inner, [inner], inner];
+  describe('when `_impl_shouldRef()` returns `false` (which is by default)', () => {
+    test.each`
+    label             | value                     | expected
+    ${'array'}        | ${[99, 88, 123]}          | ${[99, 88, 123]}
+    ${'plain object'} | ${{ zonk: 'zeep' }}       | ${{ zonk: 'zeep' }}
+    ${'function'}     | ${() => 'x'}              | ${'() => \'x\''}
+    ${'instance'}     | ${new Set('a', 'z', 'x')} | ${'[object Set]'}
+    `('does not make a ref for a shared $label', async ({ value, expected }) => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        _impl_visitPlainObject(node) { return this._prot_visitProperties(node); }
+        _impl_visitInstance(node) { return node.toString(); }
+        _impl_visitFunction(node) { return node.toString(); }
+      }
 
-      await doTest(outer, {
-        cls: RefMakingVisitor,
-        check: (got) => {
-          expect(got).toBeArrayOfSize(3);
-
-          const gotInner  = got[0];
-          const gotMiddle = got[1];
-
-          expect(gotInner).toEqual(['bonk']);
-          expect(gotMiddle).toBeArrayOfSize(1);
-
-          const gotRef = gotMiddle[0];
-
-          expect(gotRef).toBeInstanceOf(VisitRef);
-          expect(got[2]).toBeInstanceOf(VisitRef);
-          expect(gotRef).toBe(got[2]);
-          expect(gotRef.originalValue).toBe(inner);
-          expect(gotRef.value).toBe(gotInner);
-        }
-      });
-    });
-
-    test('makes a ref for a circularly-referenced value', async () => {
-      const inner = ['bonk'];
-      const outer = [inner, inner];
-
-      inner.push(inner);
-
-      await doTest(outer, {
-        cls: RefMakingVisitor,
+      await doTest([value, value], {
+        cls:      TestVisitor,
+        runsSync: true,
         check: (got) => {
           expect(got).toBeArrayOfSize(2);
-          const gotInner = got[0];
-          const gotRef   = got[1];
-
-          expect(gotRef).toBeInstanceOf(VisitRef);
-          expect(gotInner).toBeArrayOfSize(2);
-          expect(gotInner[0]).toEqual('bonk');
-          expect(gotInner[1]).toBeInstanceOf(VisitRef);
-          expect(gotInner[1]).toBe(gotRef);
-          expect(gotRef.originalValue).toBe(inner);
-          expect(gotRef.value).toBe(gotInner);
-        }
-      });
-    });
-
-    test('makes refs with the expected `index`es', async () => {
-      const shared0 = ['bonk'];
-      const shared1 = ['boop'];
-      const outer   = [shared0, shared1, shared0, shared1];
-
-      await doTest(outer, {
-        cls: RefMakingVisitor,
-        check: (got) => {
-          expect(got).toBeArrayOfSize(4);
-          expect(got[2]).toBeInstanceOf(VisitRef);
-          expect(got[3]).toBeInstanceOf(VisitRef);
-          expect(got[2].index).toBe(0);
-          expect(got[3].index).toBe(1);
+          expect(got[0]).toBe(got[1]);
+          expect(got[0]).toEqual(expected);
         }
       });
     });
   });
-});
 
-// Tests for plain `visit()` not easily covered by the common `visit*()` test
-// mechanism above.
-describe('visit()', () => {
-  test('plumbs through a resolved promise value', async () => {
-    const vv  = new BaseValueVisitor(RESOLVED_PROMISE);
-    const got = vv.visit();
+  describe('when `_impl_shouldRef()` can return `true`', () => {
+    class TestVisitor extends RefMakingVisitor {
+      refs = [];
 
-    await expect(got).resolves.toBe(RESOLVED_VALUE);
-  });
+      _impl_newRef(ref) {
+        this.refs.push({ ref, wasFinished: ref.isFinished() });
+      }
+    }
 
-  test('plumbs through a rejected promise value', async () => {
-    const vv  = new BaseValueVisitor(REJECTED_PROMISE);
-    const got = vv.visit();
+    test('makes a ref and calls `_impl_newRef()` when a non-circular shared reference is detected', async () => {
+      const shared = [9, 99, 999];
+      const value  = [1, [2, shared], shared];
 
-    await expect(got).rejects.toThrow(REJECTED_ERROR);
-  });
+      await doTest(value, {
+        cls:      TestVisitor,
+        runsSync: true,
+        check: (got, visitor) => {
+          expect(visitor.refs).toBeArrayOfSize(1);
+          const { ref, wasFinished } = visitor.refs[0];
+          expect(ref).toBe(got[2]);
+          expect(ref.originalValue).toBe(shared);
+          expect(ref.value).toBe(got[1][1]);
+          expect(wasFinished).toBeTrue();
+        }
+      });
+    });
 
-  test('plumbs through a pending promise', async () => {
-    const mp  = new ManualPromise();
-    const vv  = new BaseValueVisitor(mp.promise);
-    const got = vv.visit();
+    test('makes a ref and calls `_impl_newRef()` when a circular reference is detected', async () => {
+      const selfRef = [9, 99];
+      const value   = [1, [2, selfRef], selfRef];
 
-    await setImmediate();
-    expect(PromiseState.isPending(got)).toBeTrue();
+      selfRef.push(selfRef);
 
-    mp.resolve('zonk');
-
-    await setImmediate();
-    expect(PromiseState.isFulfilled(got)).toBeTrue();
-    expect(await got).toBe('zonk');
+      await doTest(value, {
+        cls:      TestVisitor,
+        runsSync: true,
+        check: (got, visitor) => {
+          expect(visitor.refs).toBeArrayOfSize(1);
+          const { ref, wasFinished } = visitor.refs[0];
+          expect(ref).toBe(got[2]);
+          expect(ref.originalValue).toBe(selfRef);
+          expect(ref.value).toBe(got[1][1]);
+          expect(ref).toBe(ref.value[2]);
+          expect(wasFinished).toBeFalse();
+        }
+      });
+    });
   });
 });
 
@@ -652,7 +691,6 @@ describe('_impl_shouldRef()', () => {
     expect(vv._impl_shouldRef([])).toBeFalse();
   });
 });
-
 
 describe('_impl_revisit()', () => {
   class RevisitCheckVisitor extends BaseValueVisitor {
@@ -977,7 +1015,7 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   });
 });
 
-describe('_prot_visit()', () => {
+describe('_prot_visitWrap()', () => {
   test('works synchronously when possible', () => {
     class VisitCheckVisitor extends BaseValueVisitor {
       _impl_visitNumber(node) {
@@ -985,7 +1023,7 @@ describe('_prot_visit()', () => {
       }
 
       _impl_visitString(node_unused) {
-        const got = this._prot_visit(9999);
+        const got = this._prot_visitWrap(9999);
         expect(got).toBeInstanceOf(VisitResult);
         expect(got.value).toBe('9999!');
         return 'yep';
@@ -1003,7 +1041,7 @@ describe('_prot_visit()', () => {
       }
 
       async _impl_visitString(node_unused) {
-        const got = this._prot_visit(98765);
+        const got = this._prot_visitWrap(98765);
         expect(got).toBeInstanceOf(Promise);
         expect(await got).toBeInstanceOf(VisitResult);
         expect((await got).value).toBe('98765!');
@@ -1011,8 +1049,8 @@ describe('_prot_visit()', () => {
       }
     }
 
-    const got = new VisitCheckVisitor('boop').visit();
-    expect(await got).toBe('yep');
+    const got = await new VisitCheckVisitor('boop').visitAsyncWrap();
+    expect((await got).value).toBe('yep');
   });
 });
 
@@ -1093,24 +1131,28 @@ describe('_prot_visitProperties()', () => {
       checkProps(got);
     });
 
-    test('operates asynchronously when not strictly necessary', async () => {
+    test('operates asynchronously when called as such but not strictly necessary', async () => {
       const vv   = new VisitPropertiesCheckVisitor(value);
-      const got  = vv.visit();
+      const got  = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(Object.getPrototypeOf(await got)).toBe(proto);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(Object.getPrototypeOf(result)).toBe(proto);
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     test('operates asynchronously when necessary', async () => {
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(Object.getPrototypeOf(await got)).toBe(proto);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(Object.getPrototypeOf(result)).toBe(proto);
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     test('produces entries (when asked)', () => {
@@ -1141,7 +1183,7 @@ describe('_prot_visitProperties()', () => {
 
     test('asynchronously propagates an error thrown asynchronously by one of the sub-calls', async () => {
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true, errors: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
       await expect(got).rejects.toThrow(/Ouch/);
@@ -1169,11 +1211,13 @@ describe('_prot_visitProperties()', () => {
       expected[sym] = '914%';
 
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     if (Array.isArray(value)) {
@@ -1197,11 +1241,11 @@ describe('_prot_visitProperties()', () => {
         expected.bloop = '321%';
 
         const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
-        const got  = vv.visit();
+        const got  = vv.visitAsyncWrap();
 
-        expect(got).toBeInstanceOf(Promise);
-        expect(await got).toEqual(expected);
-        checkProps(await got);
+        const result = (await got).value;
+        expect(result).toEqual(expected);
+        checkProps(result);
       });
     }
   });

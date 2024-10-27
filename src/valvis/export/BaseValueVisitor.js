@@ -33,7 +33,7 @@ import { VisitResult } from '#x/VisitResult';
  * must use the method `_prot_wrapResult()` on its return value. Such a wrapped
  * value will get treated literally through all the visitor plumbing. Then, in
  * order to receive a promise from a visit call, client code can either use
- * {@link #visitSync} or {@link #visitWrap} (but not normal asynchronous
+ * {@link #visitSync} or {@link #visitAsyncWrap} (but not normal asynchronous
  * {@link #visit}).
  */
 export class BaseValueVisitor {
@@ -160,50 +160,60 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Visits this instance's designated value. This in turn calls through to the
-   * various `_impl_*()` methods, as appropriate. The return value is whatever
-   * was returned from the `_impl_*()` method that was called to do the main
-   * processing of the value, except that this method "collapses" the promises
-   * that result from asynchronous visitor behavior with the promises that are
-   * direct visitor results. See {@link #visitWrap} for a "promise-preserving"
-   * variant.
-   *
-   * If this method is called more than once on any given instance, the visit
-   * procedure is only actually run once; subsequent calls reuse the return
-   * value from the first call, even if the first call is still in progress at
-   * the time of the call.
+   * Similar to {@link #visitWrap}, except (a) it will fail if the visit did not
+   * finish synchronously; and (b) the result is not wrapped. Specifically with
+   * respect to (b), if a promise is returned, it is only ever
+   * because an `_impl_visit*()` method returned a promise result per se (and
+   * not because a visitor acted asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
-   * processed the original `value`.
-   */
-  async visit() {
-    return this.#visitRoot().extractAsync(false);
-  }
-
-  /**
-   * Similar to {@link #visit}, except (a) it will fail if the visit did not
-   * finish synchronously; and (b) if a promise is returned, it is only ever
-   * because a visitor returned a promise per se (and not from a visitor acting
-   * asynchronously).
-   *
-   * @returns {*} Whatever result was returned from the `_impl_*()` method which
-   * processed the original `value`.
+   *   processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit which could be
+   *   determined synchronously, _or_ if the visit could not be completed
+   *   synchronously.
    */
   visitSync() {
     return this.#visitRoot().extractSync();
   }
 
   /**
-   * Like {@link #visit}, except that successful results are wrapped in an
-   * instance of {@link VisitResult}, which makes it possible for a caller to
-   * tell the difference between a promise which is returned because the visitor
-   * is acting asynchronously and a promise which is returned because it is an
-   * actual visitor result.
+   * Visits this instance's designated value by calling through to the various
+   * `_impl_*()` methods as necessary (and as defined by the concrete subclass),
+   * synchronously if possible or asynchronously if not. That is, if all of the
+   * `_impl_*()` methods act synchronously, then this method returns
+   * synchronously with a result; but if any of the called methods returns a
+   * promise, then this method in turn returns a promise. In all cases, an
+   * ultimately successful return value is an instance of {@link VisitResult},
+   * which wraps the actual result value and can be queried for it. (This
+   * wrapping is made necessary because otherwise a result which is a promise
+   * would be mistaken for an asynchronous visit.)
    *
-   * @returns {*} Whatever result was returned from the `_impl_*()` method which
-   * processed the original `value`.
+   * If this method is called more than once on any given instance, the visit
+   * procedure is only actually run once; subsequent calls reuse the return
+   * value from the first call, even if the first call is still in progress at
+   * the time of the call.
+   *
+   * @returns {VisitResult|Promise<VisitResult>} Whatever result was returned
+   *   from the `_impl_*()` method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit which could be
+   *   determined synchronously.
    */
-  async visitWrap() {
+  visitWrap() {
+    const entry = this.#visitRoot();
+
+    return entry.isFinished()
+      ? entry.extractSync(true)
+      : entry.extractAsync(true);
+  }
+
+  /**
+   * Like {@link #visitWrap}, except that it always operates asynchronously.
+   *
+   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
+   *   method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit.
+   */
+  async visitAsyncWrap() {
     return this.#visitRoot().extractAsync(true);
   }
 
@@ -582,11 +592,16 @@ export class BaseValueVisitor {
    * in concrete subclasses, for example, to visit the various pieces of
    * instances, where a simple object property visit wouldn't suffice.
    *
+   * This method returns synchronously if possible, or asynchronously if not. As
+   * such, it always returns a result wrapped in a {@link VisitResult}, so that
+   * returned promises can always be distinguished from promises due to the
+   * asynchronous nature of a visit.
+   *
    * @param {*} node Value to visit.
    * @returns {VisitResult|Promise<VisitResult>} The visit result if
    * synchronously available, or a promise for the result if not.
    */
-  _prot_visit(node) {
+  _prot_visitWrap(node) {
     const entry = this.#visitNode(node);
 
     return entry.isFinished()
@@ -869,6 +884,11 @@ export class BaseValueVisitor {
    * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
    */
   #visitRoot() {
+    // Note: This isn't _just_ `return this.#visitNode(<root>)`, because that
+    // would end up invoking the def/ref mechanism, which would be incorrect to
+    // do in this case (because we're not trying to possibly-share a result
+    // within the visit, just trying to _get_ the result).
+
     const node = this.#rootValue;
     return this.#visits.get(node) ?? this.#visitNode(node);
   }
@@ -1021,7 +1041,7 @@ export class BaseValueVisitor {
      * `wrapResult` is passed as `false`, this will cause the client (external
      * caller) to ultimately receive the fulfilled (resolved/rejected) value of
      * that promise and not the result promise per se. This is the crux of the
-     * difference between {link #visit} and {@link #visitWrap} (see which).
+     * difference between {link #visit} and {@link #visitAsyncWrap} (see which).
      *
      * @param {boolean} [wrapResult] Should a successful result be wrapped?
      * @returns {*} The successful result of the visit, if it was indeed

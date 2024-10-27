@@ -11,7 +11,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `valvis`:
+  * Renamed some methods in `BaseValueVisitor`, for clarity and consistency, and
+    introduced a public method `visitWrap()`, which has the same "synchronous if
+    possible but async if not" behavior that is used internally.
 
 Other notable changes:
 * None.
