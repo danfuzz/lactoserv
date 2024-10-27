@@ -285,21 +285,21 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
   ${'rejected'} | ${REJECTED_PROMISE}
   `('when the direct result is a $label promise', ({ value }) => {
     test('returns the promise as-is when synchronously available', async () => {
-      class SyncPromiseReturnVisitor extends BaseValueVisitor {
+      class TestVisitor extends BaseValueVisitor {
         _impl_visitInstance(node) {
           return new VisitResult(node);
         }
       }
 
       await doTest(value, {
-        cls:      SyncPromiseReturnVisitor,
+        cls:      TestVisitor,
         runsSync: true
       });
     });
 
     if (isAsync) {
       test('returns the promise as-is when asynchronously available', async () => {
-        class AsyncPromiseReturnVisitor extends BaseValueVisitor {
+        class TestVisitor extends BaseValueVisitor {
           async _impl_visitInstance(node) {
             await setImmediate();
             return new VisitResult(node);
@@ -307,7 +307,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
         }
 
         await doTest(value, {
-          cls:      AsyncPromiseReturnVisitor,
+          cls:      TestVisitor,
           runsSync: false
         });
       });
