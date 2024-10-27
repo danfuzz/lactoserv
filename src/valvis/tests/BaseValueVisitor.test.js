@@ -1051,8 +1051,8 @@ describe('_prot_visitWrap()', () => {
       }
     }
 
-    const got = new VisitCheckVisitor('boop').visit();
-    expect(await got).toBe('yep');
+    const got = await new VisitCheckVisitor('boop').visitAsyncWrap();
+    expect((await got).value).toBe('yep');
   });
 });
 
@@ -1133,24 +1133,28 @@ describe('_prot_visitProperties()', () => {
       checkProps(got);
     });
 
-    test('operates asynchronously when not strictly necessary', async () => {
+    test('operates asynchronously when called as such but not strictly necessary', async () => {
       const vv   = new VisitPropertiesCheckVisitor(value);
-      const got  = vv.visit();
+      const got  = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(Object.getPrototypeOf(await got)).toBe(proto);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(Object.getPrototypeOf(result)).toBe(proto);
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     test('operates asynchronously when necessary', async () => {
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(Object.getPrototypeOf(await got)).toBe(proto);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(Object.getPrototypeOf(result)).toBe(proto);
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     test('produces entries (when asked)', () => {
@@ -1181,7 +1185,7 @@ describe('_prot_visitProperties()', () => {
 
     test('asynchronously propagates an error thrown asynchronously by one of the sub-calls', async () => {
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true, errors: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
       await expect(got).rejects.toThrow(/Ouch/);
@@ -1209,11 +1213,13 @@ describe('_prot_visitProperties()', () => {
       expected[sym] = '914%';
 
       const vv  = new VisitPropertiesCheckVisitor(value, { async: true });
-      const got = vv.visit();
+      const got = vv.visitAsyncWrap();
 
       expect(got).toBeInstanceOf(Promise);
-      expect(await got).toEqual(expected);
-      checkProps(await got);
+
+      const result = (await got).value;
+      expect(result).toEqual(expected);
+      checkProps(result);
     });
 
     if (Array.isArray(value)) {
@@ -1237,11 +1243,11 @@ describe('_prot_visitProperties()', () => {
         expected.bloop = '321%';
 
         const vv   = new VisitPropertiesCheckVisitor(value, { async: true });
-        const got  = vv.visit();
+        const got  = vv.visitAsyncWrap();
 
-        expect(got).toBeInstanceOf(Promise);
-        expect(await got).toEqual(expected);
-        checkProps(await got);
+        const result = (await got).value;
+        expect(result).toEqual(expected);
+        checkProps(result);
       });
     }
   });
