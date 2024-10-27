@@ -67,12 +67,6 @@ class ProxyAwareVisitor extends BaseValueVisitor {
  * Visitor subclass, which is set up to use refs for duplicate objects.
  */
 class RefMakingVisitor extends BaseValueVisitor {
-  refs = [];
-
-  _impl_newRef(ref) {
-    this.refs.push({ ref, wasFinished: ref.isFinished() });
-  }
-
   _impl_shouldRef(value) {
     return (typeof value === 'object');
   }
@@ -637,18 +631,22 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   });
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
   describe('when `_impl_shouldRef()` can return `true`', () => {
-    test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
+    class TestVisitor extends RefMakingVisitor {
+      refs = [];
+
+      _impl_newRef(ref) {
+        this.refs.push({ ref, wasFinished: ref.isFinished() });
+      }
+    }
+
+    test('makes a ref and calls `_impl_newRef()` when a non-circular shared reference is detected', async () => {
       const shared = [9, 99, 999];
       const value  = [1, [2, shared], shared];
 
       await doTest(value, {
-        cls: RefMakingVisitor,
+        cls:      TestVisitor,
+        runsSync: true,
         check: (got, visitor) => {
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
@@ -660,14 +658,15 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
       });
     });
 
-    test('calls `_impl_newRef()` when a circular reference is detected', async () => {
+    test('makes a ref and calls `_impl_newRef()` when a circular reference is detected', async () => {
       const selfRef = [9, 99];
       const value   = [1, [2, selfRef], selfRef];
 
       selfRef.push(selfRef);
 
       await doTest(value, {
-        cls: RefMakingVisitor,
+        cls:      TestVisitor,
+        runsSync: true,
         check: (got, visitor) => {
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
@@ -676,73 +675,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
           expect(ref.value).toBe(got[1][1]);
           expect(ref).toBe(ref.value[2]);
           expect(wasFinished).toBeFalse();
-        }
-      });
-    });
-
-    test('makes a ref for a non-circular duplicate value', async () => {
-      const inner = ['bonk'];
-      const outer = [inner, [inner], inner];
-
-      await doTest(outer, {
-        cls: RefMakingVisitor,
-        check: (got) => {
-          expect(got).toBeArrayOfSize(3);
-
-          const gotInner  = got[0];
-          const gotMiddle = got[1];
-
-          expect(gotInner).toEqual(['bonk']);
-          expect(gotMiddle).toBeArrayOfSize(1);
-
-          const gotRef = gotMiddle[0];
-
-          expect(gotRef).toBeInstanceOf(VisitRef);
-          expect(got[2]).toBeInstanceOf(VisitRef);
-          expect(gotRef).toBe(got[2]);
-          expect(gotRef.originalValue).toBe(inner);
-          expect(gotRef.value).toBe(gotInner);
-        }
-      });
-    });
-
-    test('makes a ref for a circularly-referenced value', async () => {
-      const inner = ['bonk'];
-      const outer = [inner, inner];
-
-      inner.push(inner);
-
-      await doTest(outer, {
-        cls: RefMakingVisitor,
-        check: (got) => {
-          expect(got).toBeArrayOfSize(2);
-          const gotInner = got[0];
-          const gotRef   = got[1];
-
-          expect(gotRef).toBeInstanceOf(VisitRef);
-          expect(gotInner).toBeArrayOfSize(2);
-          expect(gotInner[0]).toEqual('bonk');
-          expect(gotInner[1]).toBeInstanceOf(VisitRef);
-          expect(gotInner[1]).toBe(gotRef);
-          expect(gotRef.originalValue).toBe(inner);
-          expect(gotRef.value).toBe(gotInner);
-        }
-      });
-    });
-
-    test('makes refs with the expected `index`es', async () => {
-      const shared0 = ['bonk'];
-      const shared1 = ['boop'];
-      const outer   = [shared0, shared1, shared0, shared1];
-
-      await doTest(outer, {
-        cls: RefMakingVisitor,
-        check: (got) => {
-          expect(got).toBeArrayOfSize(4);
-          expect(got[2]).toBeInstanceOf(VisitRef);
-          expect(got[3]).toBeInstanceOf(VisitRef);
-          expect(got[2].index).toBe(0);
-          expect(got[3].index).toBe(1);
         }
       });
     });
