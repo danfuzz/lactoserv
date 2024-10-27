@@ -557,48 +557,6 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     });
   }
 
-  return;
-  // --------------------------------------------------------------------
-  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
-  // --------------------------------------------------------------------
-
-  test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
-    const shared = [9, 99, 999];
-    const value  = [1, [2, shared], shared];
-
-    await doTest(value, {
-      cls: RefMakingVisitor,
-      check: (got, visitor) => {
-        expect(visitor.refs).toBeArrayOfSize(1);
-        const { ref, wasFinished } = visitor.refs[0];
-        expect(ref).toBe(got[2]);
-        expect(ref.originalValue).toBe(shared);
-        expect(ref.value).toBe(got[1][1]);
-        expect(wasFinished).toBeTrue();
-      }
-    });
-  });
-
-  test('calls `_impl_newRef()` when a circular reference is detected', async () => {
-    const selfRef = [9, 99];
-    const value   = [1, [2, selfRef], selfRef];
-
-    selfRef.push(selfRef);
-
-    await doTest(value, {
-      cls: RefMakingVisitor,
-      check: (got, visitor) => {
-        expect(visitor.refs).toBeArrayOfSize(1);
-        const { ref, wasFinished } = visitor.refs[0];
-        expect(ref).toBe(got[2]);
-        expect(ref.originalValue).toBe(selfRef);
-        expect(ref.value).toBe(got[1][1]);
-        expect(ref).toBe(ref.value[2]);
-        expect(wasFinished).toBeFalse();
-      }
-    });
-  });
-
   test.each`
   value
   ${null}
@@ -606,19 +564,15 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   ${true}
   ${123}
   `('does not call `_impl_shouldRef()` on $value', async ({ value }) => {
-    class ShouldRefThrowsVisitor extends BaseValueVisitor {
-      _impl_shouldRef() {
-        throw new Error('Oopsie');
-      }
-
-      _impl_visitArray(node) {
-        return this._prot_visitProperties(node);
-      }
+    class TestVisitor extends BaseValueVisitor {
+      _impl_shouldRef() { throw new Error('Oopsie'); }
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
     }
 
     await doTest([value, value], {
-      cls: ShouldRefThrowsVisitor,
-      check: () => null
+      cls:      TestVisitor,
+      runsSync: true,
+      check:    () => null
     });
   });
 
@@ -633,7 +587,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
   ${'an instance'}          | ${new Map()}
   ${'a function'}           | ${() => null}
   `('calls `_impl_shouldRef()` on $label', async ({ value }) => {
-    class ShouldRefCheckVisitor extends BaseValueVisitor {
+    class TestVisitor extends BaseValueVisitor {
       calledOn = [];
 
       _impl_shouldRef(node) {
@@ -647,14 +601,57 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}  | ${true}
     }
 
     await doTest([value, value], {
-      cls: ShouldRefCheckVisitor,
+      cls:      TestVisitor,
+      runsSync: true,
       check: (got_unused, visitor) => {
         expect(visitor.calledOn).toStrictEqual([value]);
       }
     });
   });
 
+  return;
+  // --------------------------------------------------------------------
+  // TODO: TWEAK AND VALIDATE EVERYTHING BELOW THIS COMMENT
+  // --------------------------------------------------------------------
+
   describe('when `_impl_shouldRef()` can return `true`', () => {
+    test('calls `_impl_newRef()` when a non-circular reference is detected', async () => {
+      const shared = [9, 99, 999];
+      const value  = [1, [2, shared], shared];
+
+      await doTest(value, {
+        cls: RefMakingVisitor,
+        check: (got, visitor) => {
+          expect(visitor.refs).toBeArrayOfSize(1);
+          const { ref, wasFinished } = visitor.refs[0];
+          expect(ref).toBe(got[2]);
+          expect(ref.originalValue).toBe(shared);
+          expect(ref.value).toBe(got[1][1]);
+          expect(wasFinished).toBeTrue();
+        }
+      });
+    });
+
+    test('calls `_impl_newRef()` when a circular reference is detected', async () => {
+      const selfRef = [9, 99];
+      const value   = [1, [2, selfRef], selfRef];
+
+      selfRef.push(selfRef);
+
+      await doTest(value, {
+        cls: RefMakingVisitor,
+        check: (got, visitor) => {
+          expect(visitor.refs).toBeArrayOfSize(1);
+          const { ref, wasFinished } = visitor.refs[0];
+          expect(ref).toBe(got[2]);
+          expect(ref.originalValue).toBe(selfRef);
+          expect(ref.value).toBe(got[1][1]);
+          expect(ref).toBe(ref.value[2]);
+          expect(wasFinished).toBeFalse();
+        }
+      });
+    });
+
     test('makes a ref for a non-circular duplicate value', async () => {
       const inner = ['bonk'];
       const outer = [inner, [inner], inner];
