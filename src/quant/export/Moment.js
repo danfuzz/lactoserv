@@ -339,8 +339,7 @@ export class Moment extends IntfDeconstructable {
     const timeSep = colons ? ':' : '';
     const frac    = (decimals === 0) ? '' : this.#fracString(atSec, decimals);
 
-    return '' +
-      `${year}${month}${date}-${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
+    return `${year}${month}${date}-${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
   }
 
   /**
