@@ -221,13 +221,9 @@ export class Moment extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
-    // Note: This string is included for the convenience of humans who happen to
-    // be looking at logs (etc.), but is not actually used when reconstructing
-    // an instance.
-    const str = this.toString({ decimals: 6 });
-
-    return new Sexp(Moment, this.#atSec, str);
+  deconstruct(forLogging) {
+    const extraArgs = forLogging ? [this.toString({ decimals: 6 })] : [];
+    return new Sexp(Moment, this.#atSec, ...extraArgs);
   }
 
 

@@ -65,13 +65,9 @@ export class Duration extends UnitQuantity {
   }
 
   /** @override */
-  deconstruct() {
-    // Note: This string is included for the convenience of humans who happen to
-    // be looking at logs (etc.), but is not actually used when reconstructing
-    // an instance.
-    const str = Duration.stringFromSec(this.sec);
-
-    return new Sexp(Duration, this.sec, str);
+  deconstruct(forLogging) {
+    const extraArgs = forLogging ? [Duration.stringFromSec(this.sec)] : [];
+    return new Sexp(Duration, this.sec, ...extraArgs);
   }
 
 

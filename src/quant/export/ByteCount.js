@@ -43,13 +43,9 @@ export class ByteCount extends UnitQuantity {
   }
 
   /** @override */
-  deconstruct() {
-    // Note: This string is included for the convenience of humans who happen to
-    // be looking at logs (etc.), but is not actually used when reconstructing
-    // an instance.
-    const str = this.toString();
-
-    return new Sexp(ByteCount, this.byte, str);
+  deconstruct(forLogging = false) {
+    const extraArgs = forLogging ? [this.toString()] : [];
+    return new Sexp(ByteCount, this.byte, ...extraArgs);
   }
 
 
