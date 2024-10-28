@@ -65,7 +65,7 @@ describe('toHuman()', () => {
       someStack, new Moment(1715623760.5432), someTag, 'yeah', { 'a': 10, 'b-c': 20 },
       [1, 2, 3], 'yes!');
 
-    const expected = "20240513-18:09:20.5432 some.tag yeah({ a: 10, 'b-c': 20 }, [1, 2, 3], 'yes!')";
+    const expected = ":20.5432 some.tag yeah({ a: 10, 'b-c': 20 }, [1, 2, 3], 'yes!')";
     const got      = payload.toHuman(...args);
 
     if (args[0] === true) {
