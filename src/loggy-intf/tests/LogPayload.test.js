@@ -100,7 +100,7 @@ describe('toPlainObject()', () => {
 
     expect(got).toContainAllKeys(['stack', 'when', 'tag', 'type', 'args']);
     expect(got.stack).toStrictEqual(someStack.frames);
-    expect(got.when).toStrictEqual(someMoment.toPlainObject());
+    expect(got.when).toStrictEqual(someMoment.toPlainObject({ middleUnderscore: false }));
     expect(got.tag).toStrictEqual(someTag.allParts);
     expect(got.type).toBe('bonk');
     expect(got.args).toStrictEqual([123, { a: 10 }, ['x']]);
