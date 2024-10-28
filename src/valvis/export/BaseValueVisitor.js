@@ -74,7 +74,7 @@ export class BaseValueVisitor {
    *
    * @type {Set<BaseValueVisitor#VisitEntry>}
    */
-  #visitSet = new Set();
+  #activeVisits = new Set();
 
   /**
    * Constructs an instance whose purpose in life is to visit the indicated
@@ -794,7 +794,7 @@ export class BaseValueVisitor {
 
         this._impl_revisit(node, result, isCycleHead, ref);
         return this.#visitNode(ref);
-      } else if (this.#visitSet.has(already)) {
+      } else if (this.#activeVisits.has(already)) {
         // We have encountered the head of a reference cycle that was _not_
         // handled by making a "ref" object for the back-reference.
 
@@ -1194,7 +1194,7 @@ export class BaseValueVisitor {
       // about circular references.
       this.#promise = (async () => {
         const visitor = this.#visitor;
-        visitor.#visitSet.add(this);
+        visitor.#activeVisits.add(this);
 
         try {
           let result = visitor.#visitNode0(this.#node);
@@ -1214,7 +1214,7 @@ export class BaseValueVisitor {
           this.#finishWithError(e);
         }
 
-        visitor.#visitSet.delete(this);
+        visitor.#activeVisits.delete(this);
 
         return this;
       })();
