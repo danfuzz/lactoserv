@@ -1027,13 +1027,6 @@ export class BaseValueVisitor {
     #def = null;
 
     /**
-     * Ref which corresponds to this instance, or `null` if there is none.
-     *
-     * @type {?VisitRef}
-     */
-    #ref = null;
-
-    /**
      * Constructs an instance.
      *
      * @param {BaseValueVisitor} visitor The visitor instance ("outer `this`")
@@ -1077,7 +1070,7 @@ export class BaseValueVisitor {
      * there is none.
      */
     get ref() {
-      return this.#ref;
+      return this.#def?.ref ?? null;
     }
 
     /**
@@ -1165,11 +1158,10 @@ export class BaseValueVisitor {
       const valueArg = this.isFinished() ? [this.extractSync()] : [];
 
       this.#def = new VisitDef(index, ...valueArg);
-      this.#ref = this.#def.ref;
 
       const propArgs = [BaseValueVisitor.#SYM_associatedVisitor, { value: this.#visitor }];
       Object.defineProperty(this.#def, ...propArgs);
-      Object.defineProperty(this.#ref, ...propArgs);
+      Object.defineProperty(this.#def.ref, ...propArgs);
     }
 
     /**
