@@ -366,4 +366,20 @@ export class HumanVisitor extends BaseValueVisitor {
 
     return rendered.value;
   }
+
+  /**
+   * Gets a full-length unabbreviated string corresponding to the given
+   * instance's {@link #when}.
+   *
+   * @param {LogPayload} payload The instance in question.
+   * @param {boolean} [styled] Should the result be styled/colorized?
+   * @returns {string} The full-length when string.
+   */
+  static whenStringFrom(payload, styled) {
+    const whenText = payload.when.toString({ decimals: 4 });
+
+    return styled
+      ? HumanVisitor.#STYLE_WHEN(whenText)
+      : whenText;
+  }
 }
