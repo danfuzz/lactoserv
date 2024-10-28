@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable, Sexp } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { Chalk, StyledText, TypeText } from '@this/texty';
 import { MustBe } from '@this/typey';
 

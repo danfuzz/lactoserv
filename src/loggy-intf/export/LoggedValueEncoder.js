@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Sexp } from '@this/decon';
+import { Sexp } from '@this/sexp';
 import { AskIf } from '@this/typey';
 import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/valvis';
 

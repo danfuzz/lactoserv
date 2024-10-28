@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { IntfDeconstructable, Sexp } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';

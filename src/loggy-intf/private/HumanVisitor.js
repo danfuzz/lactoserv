@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { Sexp } from '@this/decon';
+import { Sexp } from '@this/sexp';
 import { Chalk, ComboText, StyledText, TypeText } from '@this/texty';
 import { BaseDefRef, BaseValueVisitor, VisitDef } from '@this/valvis';
 

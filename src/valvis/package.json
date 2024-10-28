@@ -14,7 +14,7 @@
   },
 
   "dependencies": {
-    "@this/decon": "*",
+    "@this/sexp": "*",
     "@this/typey": "*"
   }
 }

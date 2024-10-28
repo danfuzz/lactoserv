@@ -3,7 +3,7 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { Sexp } from '@this/decon';
+import { Sexp } from '@this/sexp';
 import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Moment } from '@this/quant';
 import { StackTrace } from '@this/valvis';

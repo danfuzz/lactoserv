@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventPayload, EventSource } from '@this/async';
-import { IntfDeconstructable, Sexp } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { Moment } from '@this/quant';
 import { MustBe } from '@this/typey';
 import { StackTrace } from '@this/valvis';
