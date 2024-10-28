@@ -1117,8 +1117,8 @@ export class BaseValueVisitor {
       }
       /* c8 ignore stop */
 
-      this.#def = new VisitDef(this, index);
-      this.#ref = new VisitRef(this, index);
+      this.#def = new VisitDef(index, this);
+      this.#ref = new VisitRef(index, this);
     }
 
     /**

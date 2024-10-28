@@ -40,18 +40,18 @@
  */
 export class BaseDefRef {
   /**
-   * The entry which is being referred to.
-   *
-   * @type {VisitEntry}
-   */
-  #entry;
-
-  /**
    * The reference index number.
    *
    * @type {number}
    */
   #index;
+
+  /**
+   * The entry which is being referred to.
+   *
+   * @type {VisitEntry}
+   */
+  #entry;
 
   /**
    * Constructs an instance. Note that the first parameter is an instance of a
@@ -63,9 +63,9 @@ export class BaseDefRef {
    *   case is mostly intended for testing scenarios.)
    * @param {number} index The reference index number.
    */
-  constructor(entry, index) {
-    this.#entry = entry;
+  constructor(index, entry) {
     this.#index = index;
+    this.#entry = entry;
   }
 
   /**
