@@ -2,14 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseDefRef } from '#x/BaseDefRef';
-
-/**
- * Forward declaration of this class, because `import`ing it would cause a
- * circular dependency while loading.
- *
- * @typedef VisitDef
- * @type {object}
- */
+import { VisitDef } from '#x/VisitDef';
 
 
 /**
