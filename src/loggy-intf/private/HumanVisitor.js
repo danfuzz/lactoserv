@@ -376,7 +376,7 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {string} The full-length when string.
    */
   static whenStringFrom(payload, styled) {
-    const whenText = payload.when.toString({ decimals: 4, colons: true });
+    const whenText = payload.when.toString({ decimals: 4, colons: true, dashes: true, middleUnderscore: false });
 
     return styled
       ? HumanVisitor.#STYLE_WHEN(whenText)

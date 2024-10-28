@@ -171,7 +171,7 @@ export class ProcessInfoFile extends TemplThreadComponent('FileThread', BaseFile
       // `ProcessInfo` (which will appear in the earliest of the `earlierRuns`)
       // is kinda moot. Instead, substitute the current time, that is, the
       // _reload_ time.
-      contents.startedAt = WallClock.now().toPlainObject();
+      contents.startedAt = WallClock.now().toPlainObject({ middleUnderscore: false });
     }
 
     return contents;
@@ -210,7 +210,7 @@ export class ProcessInfoFile extends TemplThreadComponent('FileThread', BaseFile
   #updateContents() {
     this.#contents.disposition = {
       running:   true,
-      updatedAt: WallClock.now().toPlainObject(),
+      updatedAt: WallClock.now().toPlainObject({ middleUnderscore: false }),
       uptime:    ProcessInfo.uptime.toPlainObject()
     };
 
@@ -241,7 +241,7 @@ export class ProcessInfoFile extends TemplThreadComponent('FileThread', BaseFile
         };
     }
 
-    contents.disposition.stoppedAt = stoppedAt.toPlainObject();
+    contents.disposition.stoppedAt = stoppedAt.toPlainObject({ middleUnderscore: false });
     contents.disposition.uptime    = Duration.plainObjectFromSec(uptimeSec);
 
     // Get `earlierRuns` to be at the end of the object when it gets encoded to

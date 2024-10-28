@@ -85,7 +85,7 @@ export class ProcessInfo {
     this.#fixedInfo = {
       pid:       processPid,
       ppid:      processPpid,
-      startedAt: this.#startedAt.toPlainObject()
+      startedAt: this.#startedAt.toPlainObject({ middleUnderscore: false })
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
