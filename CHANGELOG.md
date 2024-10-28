@@ -24,6 +24,10 @@ Breaking changes:
     possible but async if not" behavior that is used internally.
   * Reworked `VisitDef` and `VisitRef` to not assume an associated visitor
     instance.
+* `loggy`:
+  * Changed "human" logs to just emit a "seconds-only" timestamp on each logged
+    event, while adding a full timestamp as a header of sorts once per minute.
+    This makes for more width for the logged payloads, so easier to read.
 
 Other notable changes:
 * None.
