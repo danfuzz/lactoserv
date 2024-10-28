@@ -14,9 +14,10 @@
  * Companion class of {@link BaseValueVisitor}, which holds the result from a
  * visit.
  *
- * This class exists to avoid ambiguity when promises are used as results-per-se
- * from visiting, as opposed to being used because of the JavaScript execution
- * semantics involved in implementing a visitor method as `async`.
+ * This class exists to avoid ambiguity when promises are used as the
+ * result-per-se from a visit (or sub-visit), as opposed to being used because
+ * of the JavaScript execution semantics involved in implementing a visitor
+ * method as `async`.
  */
 export class VisitResult {
   /**
