@@ -52,16 +52,46 @@ describe('.value', () => {
   });
 
   test('throws if constructed without a value, and no `finish*()` call was made', () => {
-    const def = new VisitDef(2);
+    const def = new VisitDef(3);
     expect(() => def.value).toThrow(/Not yet finished./);
   });
 
   test('throws the error set by `finishWithError()`', () => {
-    const def = new VisitDef(3);
+    const def = new VisitDef(4);
     const err = new Error('Nope!');
 
     def.finishWithError(err);
     expect(() => def.value).toThrow(err);
+  });
+});
+
+describe.each`
+methodName           | arg
+${'finishWithError'} | ${new Error('Eek!')}
+${'finishWithValue'} | ${'florp'}
+`('$methodName()', ({ methodName, arg }) => {
+  test('does not throw, given an unfinished instance', () => {
+    const def = new VisitDef(1);
+    expect(() => def[methodName](arg)).not.toThrow();
+  });
+
+  test('throws given an instance that was constructed with a value', () => {
+    const def = new VisitDef(2, 999);
+    expect(() => def[methodName](arg)).toThrow(/Already finished/);
+  });
+
+  test('throws given an instance upon which `finishWithValue()` was called', () => {
+    const def = new VisitDef(3);
+
+    def.finishWithValue('x');
+    expect(() => def[methodName](arg)).toThrow(/Already finished/);
+  });
+
+  test('throws given an instance upon which `finishWithError()` was called', () => {
+    const def = new VisitDef(4);
+
+    def.finishWithValue('x');
+    expect(() => def[methodName](arg)).toThrow(/Already finished/);
   });
 });
 
