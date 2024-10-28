@@ -56,7 +56,7 @@ export class BaseValueVisitor {
    *
    * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
-  #visits = new Map();
+  #visitEntries = new Map();
 
   /**
    * During a visit, an array of all refs created during the visit, in order of
@@ -736,7 +736,7 @@ export class BaseValueVisitor {
    * started yet).
    */
   get #rootEntry() {
-    return this.#visits.get(this.#rootValue);
+    return this.#visitEntries.get(this.#rootValue);
   }
 
   /**
@@ -765,16 +765,16 @@ export class BaseValueVisitor {
   /**
    * Visitor for a "node" (referenced value, including possibly the root) of the
    * graph of values being visited. If there is already an entry in
-   * {@link #visits} for the node, it is returned. Otherwise, a new entry is
-   * created, and visiting is initiated (and possibly, but not necessarily,
+   * {@link #visitEntries} for the node, it is returned. Otherwise, a new entry
+   * is created, and visiting is initiated (and possibly, but not necessarily,
    * finished).
    *
    * @param {*} node The node being visited.
-   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visits} which
-   *   represents the current state of the visit.
+   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visitEntries}
+   *   which represents the current state of the visit.
    */
   #visitNode(node) {
-    const already = this.#visits.get(node);
+    const already = this.#visitEntries.get(node);
 
     if (already) {
       let ref = already.ref;
@@ -818,7 +818,7 @@ export class BaseValueVisitor {
     // We have not previously encountered `node` during this visit.
 
     const visitEntry = new BaseValueVisitor.#VisitEntry(this, node);
-    this.#visits.set(node, visitEntry);
+    this.#visitEntries.set(node, visitEntry);
 
     // This call synchronously calls back to `visitNode0()`.
     visitEntry.startVisit();
@@ -921,7 +921,7 @@ export class BaseValueVisitor {
   //
 
   /**
-   * Entry in a {@link #visits} map.
+   * Entry in a {@link #visitEntries} map.
    */
   static #VisitEntry = class VisitEntry {
     /**
