@@ -96,6 +96,62 @@ describe('.rootValue', () => {
   });
 });
 
+describe('getVisitResult()', () => {
+  test('throws if given a value that was not visited', () => {
+    const vv = new BaseValueVisitor(123);
+
+    vv.visitSync();
+    expect(() => vv.getVisitResult('florp')).toThrow(/was not visited/);
+  });
+
+  test('throws before the visit completes, but then works afterwards', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 34.21;
+    const vv    = new TestVisitor(value);
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/not yet started/);
+    expect(() => vv.getVisitResult(value)).toThrow(/not yet started/);
+
+    const got = vv.visitAsyncWrap();
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/not yet finished/);
+    expect(() => vv.getVisitResult(value)).toThrow(/not yet finished/);
+
+    await got;
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/was not visited/);
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+
+  test('finds the root value', () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 12.34;
+    const vv    = new TestVisitor(value);
+
+    vv.visitSync();
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+
+  test('finds a sub-visit value', () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 12.34;
+    const vv = new TestVisitor([value]);
+
+    vv.visitSync();
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+});
+
 describe('hasRefs()', () => {
   test('returns `false` after a visit where no refs were created', () => {
     const vv  = new BaseValueVisitor(123);
@@ -131,17 +187,48 @@ describe('hasRefs()', () => {
     expect(vv.hasRefs()).toBeTrue();
   });
 
-  test('returns `null` if the visit is still in progress, then works after the visit is done', async () => {
-    const value   = { x: 123 };
-    const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visitAsyncWrap();
+  test('throws if the visit has not yet finished, then works after the visit is done', async () => {
+    const value = { x: 123 };
+    const vv    = new RefMakingVisitor(value);
 
+    expect(() => vv.hasRefs()).toThrow(/not yet started/);
+
+    const gotProm = vv.visitAsyncWrap();
     expect(PromiseState.isPending(gotProm)); // Baseline.
-    expect(vv.hasRefs()).toBeNull();
+
+    expect(() => vv.hasRefs()).toThrow(/not yet finished/);
 
     // Make sure the call didn't mess up the post-visit behavior.
     await gotProm;
     expect(vv.hasRefs()).toBeFalse();
+  });
+});
+
+describe('isFinished()', () => {
+  test('returns `false` before the visit starts', () => {
+    const vv = new BaseValueVisitor(null);
+
+    expect(vv.isFinished()).toBeFalse();
+  });
+
+  test('returns `false` when the visit is in progress', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) { return node; }
+    }
+
+    const vv  = new TestVisitor(9000);
+    const got = vv.visitAsyncWrap();
+
+    expect(vv.isFinished()).toBeFalse();
+
+    await got; // Clean up pending promise.
+  });
+
+  test('returns `true` when the visit is complete', () => {
+    const vv = new BaseValueVisitor(null);
+
+    vv.visitSync();
+    expect(vv.isFinished()).toBeTrue();
   });
 });
 
@@ -163,8 +250,8 @@ describe('refFromResultValue()', () => {
 
     // The actual test.
     expect(vv.refFromResultValue(got)).toBe(gotRef);
-    expect(gotRef.originalValue).toBe(value);
     expect(gotRef.value).toBe(got);
+    expect(vv.getVisitResult(value)).toBe(got);
   });
 
   test('finds a sub-visit result reference', () => {
@@ -184,8 +271,8 @@ describe('refFromResultValue()', () => {
 
     // The actual test.
     expect(vv.refFromResultValue(gotInner)).toBe(gotRef);
-    expect(gotRef.originalValue).toBe(inner);
     expect(gotRef.value).toBe(gotInner);
+    expect(vv.getVisitResult(inner)).toBe(gotRef.value);
   });
 
   test('returns `null` given any argument if there were no refs created', () => {
@@ -197,14 +284,18 @@ describe('refFromResultValue()', () => {
     expect(vv.refFromResultValue('boop')).toBeNull();
   });
 
-  test('returns `null` given any argument if the visit is still in progress, then works after the visit is done', async () => {
-    const inner   = { b: { c: 123 } };
-    const value   = { a1: inner, a2: inner };
-    const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visitAsyncWrap();
+  test('throws if the visit is still in progress, then works after the visit is done', async () => {
+    const inner = { b: { c: 123 } };
+    const value = { a1: inner, a2: inner };
+    const vv    = new RefMakingVisitor(value);
 
+    expect(() => vv.refFromResultValue('bonk')).toThrow(/not yet started/);
+
+    const gotProm = vv.visitAsyncWrap();
     expect(PromiseState.isPending(gotProm)); // Baseline.
-    expect(vv.refFromResultValue('bonk')).toBeNull();
+
+    expect(() => vv.hasRefs()).toThrow(/not yet finished/);
+    expect(() => vv.refFromResultValue('bonk')).toThrow(/not yet finished/);
 
     // Make sure the call didn't mess up the post-visit behavior.
     const got = await gotProm;
@@ -219,7 +310,7 @@ ${'visitSync'}      | ${false} | ${true}  | ${false}
 ${'visitWrap'}      | ${true}  | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
-  const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
+  const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference';
 
   async function doTest(value, options = {}) {
     const {
@@ -648,8 +739,8 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
           expect(ref).toBe(got[2]);
-          expect(ref.originalValue).toBe(shared);
           expect(ref.value).toBe(got[1][1]);
+          expect(visitor.getVisitResult(shared)).toBe(ref.value);
           expect(wasFinished).toBeTrue();
         }
       });
@@ -668,8 +759,8 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
           expect(ref).toBe(got[2]);
-          expect(ref.originalValue).toBe(selfRef);
           expect(ref.value).toBe(got[1][1]);
+          expect(visitor.getVisitResult(selfRef)).toBe(ref.value);
           expect(ref).toBe(ref.value[2]);
           expect(wasFinished).toBeFalse();
         }
@@ -897,7 +988,7 @@ describe('_impl_visitInstance()', () => {
   }
 
   test('gets called on an instance of `VisitRef` that was not created by the visitor-in-progress', () => {
-    const ref = new VisitRef(null, 10);
+    const ref = new VisitRef(new VisitDef(10));
     const vv  = new VisitInstanceCheckVisitor([ref]);
 
     expect(vv.visitSync()).toStrictEqual(['yes-sir']);
@@ -905,7 +996,7 @@ describe('_impl_visitInstance()', () => {
   });
 
   test('gets called on an instance of `VisitDef` that was not created by the visitor-in-progress', () => {
-    const def = new VisitDef(null, 4321);
+    const def = new VisitDef(4321);
     const vv  = new VisitInstanceCheckVisitor([def]);
 
     expect(vv.visitSync()).toStrictEqual(['yes-sir']);

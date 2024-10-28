@@ -45,18 +45,18 @@ export class BaseValueVisitor {
   #proxyAware;
 
   /**
-   * The root value being visited.
+   * The root value to be visited (or currently being visited).
    *
    * @type {*}
    */
   #rootValue;
 
   /**
-   * Map from visited values to their visit representatives.
+   * Map from each visited value to its visit-representing entry.
    *
    * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
-  #visits = new Map();
+  #visitEntries = new Map();
 
   /**
    * During a visit, an array of all refs created during the visit, in order of
@@ -74,7 +74,7 @@ export class BaseValueVisitor {
    *
    * @type {Set<BaseValueVisitor#VisitEntry>}
    */
-  #visitSet = new Set();
+  #activeVisits = new Set();
 
   /**
    * Constructs an instance whose purpose in life is to visit the indicated
@@ -96,16 +96,39 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Gets the visit result corresponding to a value that was encountered during
+   * the visit. This works for either the original {@link #rootValue} or any
+   * value it refers to and was visited.
+   *
+   * @param {*} value The value that was visited (either the main visit or a
+   *   sub-visit).
+   * @returns {*} The result of the visit.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started, _or_ if `value` was never visited.
+   */
+  getVisitResult(value) {
+    this.#throwIfNotFinished();
+
+    const entry = this.#visitEntries.get(value);
+
+    if (!entry) {
+      throw new Error('Value was not visited.');
+    }
+
+    return entry.extractSync();
+  }
+
+  /**
    * Indicates whether or not the visit represented by this instance resulted in
    * the creation of any refs.
    *
-   * @returns {?boolean} `true` if the visit caused refs to be created, `false`
-   *   if not, or `null` if the visit is still in-progress.
+   * @returns {boolean} `true` if the visit caused refs to be created, or
+   *  `false` if not.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started.
    */
   hasRefs() {
-    if (!this.isFinished()) {
-      return null;
-    }
+    this.#throwIfNotFinished();
 
     const allRefs = this.#allRefs;
 
@@ -134,7 +157,7 @@ export class BaseValueVisitor {
    *   either in-progress or hasn't yet started.
    */
   isFinished() {
-    const entry = this.#visits.get(this.#rootValue);
+    const entry = this.#rootEntry;
 
     return entry
       ? entry.isFinished()
@@ -150,6 +173,8 @@ export class BaseValueVisitor {
    * @param {*} value The result value to look up.
    * @returns {?VisitRef} The corresponding ref, or `null` if there is no ref
    *   for `value`.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started.
    */
   refFromResultValue(value) {
     // Note: The first call to `hasRefs()` after a visit finishes will cause
@@ -729,6 +754,27 @@ export class BaseValueVisitor {
   }
 
   /**
+   * @returns {?BaseValueVisitor#VisitEntry} The entry corresponding to
+   * {@link #rootValue}, or `null` if it hasn't yet been created (which means
+   * that the visit hasn't started yet).
+   */
+  get #rootEntry() {
+    return this.#visitEntries.get(this.#rootValue);
+  }
+
+  /**
+   * Is the given value a def or ref that was produced by this instance?
+   *
+   * @param {*} value The value in question.
+   * @returns {boolean} `true` iff `value` is a def or ref that was produced by
+   *   this instance.
+   */
+  #isAssociatedDefOrRef(value) {
+    return (value instanceof BaseDefRef)
+      && (value[BaseValueVisitor.#SYM_associatedVisitor] === this);
+  }
+
+  /**
    * Is the given value a proxy which should be detected as such? This checks
    * proxyness, but only if the instance is configured to do so.
    *
@@ -740,18 +786,30 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Throws an error indicating that the visit either hasn't started yet or
+   * hasn't finished yet, if either of those are the case. If the visit has
+   * finished, then this does nothing.
+   */
+  #throwIfNotFinished() {
+    if (!this.isFinished()) {
+      const verb = this.#rootEntry ? 'finished' : 'started';
+      throw new Error(`Visit has not yet ${verb}. (Call a \`visit*()\` method.)`);
+    }
+  }
+
+  /**
    * Visitor for a "node" (referenced value, including possibly the root) of the
    * graph of values being visited. If there is already an entry in
-   * {@link #visits} for the node, it is returned. Otherwise, a new entry is
-   * created, and visiting is initiated (and possibly, but not necessarily,
+   * {@link #visitEntries} for the node, it is returned. Otherwise, a new entry
+   * is created, and visiting is initiated (and possibly, but not necessarily,
    * finished).
    *
    * @param {*} node The node being visited.
-   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visits} which
-   *   represents the current state of the visit.
+   * @returns {BaseValueVisitor#VisitEntry} Entry from {@link #visitEntries}
+   *   which represents the current state of the visit.
    */
   #visitNode(node) {
-    const already = this.#visits.get(node);
+    const already = this.#visitEntries.get(node);
 
     if (already) {
       let ref = already.ref;
@@ -771,7 +829,7 @@ export class BaseValueVisitor {
 
         this._impl_revisit(node, result, isCycleHead, ref);
         return this.#visitNode(ref);
-      } else if (this.#visitSet.has(already)) {
+      } else if (this.#activeVisits.has(already)) {
         // We have encountered the head of a reference cycle that was _not_
         // handled by making a "ref" object for the back-reference.
 
@@ -784,7 +842,7 @@ export class BaseValueVisitor {
       } else {
         // This is a revisit of a value for which `_impl_shouldRef()` returned
         // `false`.
-        if (!((node instanceof BaseDefRef) && node.isAssociatedWith(this))) {
+        if (!this.#isAssociatedDefOrRef(node)) {
           // Only call `revisit()` if it's not a self-associated ref/def.
           this._impl_revisit(node, already.extractSync(), false, null);
         }
@@ -795,7 +853,7 @@ export class BaseValueVisitor {
     // We have not previously encountered `node` during this visit.
 
     const visitEntry = new BaseValueVisitor.#VisitEntry(this, node);
-    this.#visits.set(node, visitEntry);
+    this.#visitEntries.set(node, visitEntry);
 
     // This call synchronously calls back to `visitNode0()`.
     visitEntry.startVisit();
@@ -854,11 +912,10 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
-        } else if ((node instanceof BaseDefRef) && node.isAssociatedWith(this)) {
-          // Any defs or refs that are from this visit are just returned as-is.
-          // (But if they're associated with a different visitor, they're
-          // treated as regular instances, due to the `isAssociatedWith()` check
-          // above.)
+        } else if (this.#isAssociatedDefOrRef(node)) {
+          // This is a def or ref constructed by this instance, so they are just
+          // returned as-is. (But if they're defs or refs associated with a
+          // different visitor, they're treated as regular instances.)
           return node;
         } else if (node instanceof Error) {
           return this._impl_visitError(node);
@@ -884,13 +941,12 @@ export class BaseValueVisitor {
    * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
    */
   #visitRoot() {
-    // Note: This isn't _just_ `return this.#visitNode(<root>)`, because that
-    // would end up invoking the def/ref mechanism, which would be incorrect to
-    // do in this case (because we're not trying to possibly-share a result
-    // within the visit, just trying to _get_ the result).
+    // Note: This isn't _just_ `return this.#visitNode(this.#rootValue)`,
+    // because that would end up invoking the def/ref mechanism, which would be
+    // incorrect to do in this case (because we're not trying to possibly-share
+    // a result within the visit, just trying to _get_ the result).
 
-    const node = this.#rootValue;
-    return this.#visits.get(node) ?? this.#visitNode(node);
+    return this.#rootEntry ?? this.#visitNode(this.#rootValue);
   }
 
 
@@ -899,7 +955,15 @@ export class BaseValueVisitor {
   //
 
   /**
-   * Entry in a {@link #visits} map.
+   * Uninterned symbol used for "secret" property on defs and refs which stores
+   * the associated visitor instance.
+   *
+   * @type {symbol}
+   */
+  static #SYM_associatedVisitor = Symbol('BaseValueVisitor.associatedVisitor');
+
+  /**
+   * Entry in a {@link #visitEntries} map.
    */
   static #VisitEntry = class VisitEntry {
     /**
@@ -979,14 +1043,6 @@ export class BaseValueVisitor {
     constructor(visitor, node) {
       this.#visitor = visitor;
       this.#node    = node;
-    }
-
-    /**
-     * @returns {*} The original value (not the visit result) which this
-     * instance is a reference to.
-     */
-    get originalValue() {
-      return this.#node;
     }
 
     /**
@@ -1082,17 +1138,6 @@ export class BaseValueVisitor {
     }
 
     /**
-     * Is this instance associated with the given visitor?
-     *
-     * @param {BaseValueVisitor} visitor The visitor in question.
-     * @returns {boolean} `true` if this instance's associated visitor is in
-     *   fact `visitor`.
-     */
-    isAssociatedWith(visitor) {
-      return this.#visitor === visitor;
-    }
-
-    /**
      * Returns an indication of whether the visit has finished.
      *
      * @returns {boolean} `true` if the visit of the referenced value is
@@ -1117,8 +1162,14 @@ export class BaseValueVisitor {
       }
       /* c8 ignore stop */
 
-      this.#def = new VisitDef(this, index);
-      this.#ref = new VisitRef(this, index);
+      const valueArg = this.isFinished() ? [this.extractSync()] : [];
+
+      this.#def = new VisitDef(index, ...valueArg);
+      this.#ref = this.#def.ref;
+
+      const propArgs = [BaseValueVisitor.#SYM_associatedVisitor, { value: this.#visitor }];
+      Object.defineProperty(this.#def, ...propArgs);
+      Object.defineProperty(this.#ref, ...propArgs);
     }
 
     /**
@@ -1134,23 +1185,23 @@ export class BaseValueVisitor {
      */
     shouldRef() {
       if (this.#shouldRef === null) {
-        const node   = this.#node;
-        let   result = false;
+        const visitor = this.#visitor;
+        const node    = this.#node;
+        let   result  = false;
 
         switch (typeof node) {
           case 'bigint':
           case 'function':
           case 'string':
           case 'symbol': {
-            result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
 
             break;
           }
 
           case 'object': {
-            if (   (node !== null)
-                && !((node instanceof VisitRef) && (node.isAssociatedWith(this.#visitor)))) {
-              result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            if ((node !== null) && !visitor.#isAssociatedDefOrRef(node)) {
+              result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
             }
             break;
           }
@@ -1172,7 +1223,7 @@ export class BaseValueVisitor {
       // about circular references.
       this.#promise = (async () => {
         const visitor = this.#visitor;
-        visitor.#visitSet.add(this);
+        visitor.#activeVisits.add(this);
 
         try {
           let result = visitor.#visitNode0(this.#node);
@@ -1192,10 +1243,25 @@ export class BaseValueVisitor {
           this.#finishWithError(e);
         }
 
-        visitor.#visitSet.delete(this);
+        visitor.#activeVisits.delete(this);
 
         return this;
       })();
+    }
+
+    /**
+     * Sets the visit result to be an error value. This indicates that the visit
+     * has in fact finished with `ok === false`.
+     *
+     * @param {Error} error The visit error.
+     */
+    #finishWithError(error) {
+      this.#ok    = false;
+      this.#error = error;
+
+      if (this.#def && !this.#def.isFinished()) {
+        this.#def.finishWithValue(error);
+      }
     }
 
     /**
@@ -1210,17 +1276,10 @@ export class BaseValueVisitor {
       this.#value  = (value instanceof VisitResult)
         ? value.value
         : value;
-    }
 
-    /**
-     * Sets the visit result to be an error value. This indicates that the visit
-     * has in fact finished with `ok === false`.
-     *
-     * @param {Error} error The visit error.
-     */
-    #finishWithError(error) {
-      this.#ok    = false;
-      this.#error = error;
+      if (this.#def && !this.#def.isFinished()) {
+        this.#def.finishWithValue(this.#value);
+      }
     }
   };
 }

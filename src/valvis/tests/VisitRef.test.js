@@ -1,25 +1,33 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { VisitRef } from '@this/valvis';
+import { VisitDef, VisitRef } from '@this/valvis';
 
 
 describe('constructor()', () => {
-  test('doesn\'t throw given `entry === null`', () => {
-    expect(() => new VisitRef(null, 0)).not.toThrow();
+  test('doesn\'t throw given a def', () => {
+    expect(() => new VisitRef(new VisitDef(0, null, 999))).not.toThrow();
+  });
+});
+
+describe('.def', () => {
+  test('returns the `def` passed in the constructor', () => {
+    const def = new VisitDef(22, null, 987);
+    const ref = new VisitRef(def);
+    expect(ref.def).toBe(def);
   });
 });
 
 describe('.ref', () => {
   test('returns `this`', () => {
-    const ref = new VisitRef(null, 1);
+    const ref = new VisitRef(new VisitDef(1, null));
     expect(ref.ref).toBe(ref);
   });
 });
 
 describe('.toJSON()', () => {
   test('returns the expected replacement', () => {
-    const ref = new VisitRef(null, 2);
+    const ref = new VisitRef(new VisitDef(2, null));
     expect(ref.toJSON()).toStrictEqual({ '@ref': [2] });
   });
 });
