@@ -115,7 +115,7 @@ export class BaseValueVisitor {
       throw new Error('Value was not visited.');
     }
 
-    return entry.extractSync();
+    return entry.extractSync(false);
   }
 
   /**
@@ -198,7 +198,7 @@ export class BaseValueVisitor {
    *   synchronously.
    */
   visitSync() {
-    return this.#visitRoot().extractSync();
+    return this.#visitRoot().extractSync(false);
   }
 
   /**
@@ -674,7 +674,7 @@ export class BaseValueVisitor {
       else               return Object.create(null);
     })();
     const addResult = (name, entry) => {
-      const value = entry.extractSync();
+      const value = entry.extractSync(false);
       if (returnEntries) result.push([name, value]);
       else               result[name] = value;
     };
@@ -818,7 +818,7 @@ export class BaseValueVisitor {
         // We either already have a ref, or we are supposed to make a ref.
 
         const isCycleHead = !already.isFinished();
-        const result      = isCycleHead ? null : already.extractSync();
+        const result      = isCycleHead ? null : already.extractSync(false);
 
         if (!ref) {
           already.setDefRef(this.#allRefs.length);
@@ -844,7 +844,7 @@ export class BaseValueVisitor {
         // `false`.
         if (!this.#isAssociatedDefOrRef(node)) {
           // Only call `revisit()` if it's not a self-associated ref/def.
-          this._impl_revisit(node, already.extractSync(), false, null);
+          this._impl_revisit(node, already.extractSync(false), false, null);
         }
         return already;
       }
@@ -1104,13 +1104,14 @@ export class BaseValueVisitor {
     /**
      * Synchronously extracts the result or error of a visit.
      *
-     * @param {boolean} [wrapResult] Should a successful result be wrapped?
+     * @param {boolean} wrapResult Should a successful result be wrapped a la
+     *   {@link #visitWrap}?
      * @returns {*} The successful result of the visit, if it was indeed
      *   successful.
      * @throws {Error} The error resulting from the visit, if it failed; or an
      *   error indicating that the visit is still in progress.
      */
-    extractSync(wrapResult = false) {
+    extractSync(wrapResult) {
       if (this.isFinished()) {
         if (this.#ok) {
           return wrapResult
