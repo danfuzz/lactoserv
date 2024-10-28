@@ -1164,7 +1164,7 @@ export class BaseValueVisitor {
 
       const valueArg = this.isFinished() ? [this.extractSync()] : [];
 
-      this.#def = new VisitDef(index, this, ...valueArg);
+      this.#def = new VisitDef(index, ...valueArg);
       this.#ref = this.#def.ref;
 
       Object.defineProperty(this.#def, BaseValueVisitor.#SYM_associatedVisitor,

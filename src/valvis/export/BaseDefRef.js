@@ -20,14 +20,6 @@ import { Methods } from '@this/typey';
  */
 
 /**
- * Declaration of the class `BaseValueVisitor.#VisitEntry` for documentation
- * purposes. The class isn't exposed publicly.
- *
- * @typedef VisitEntry
- * @type {object}
- */
-
-/**
  * Forward declaration of this class, because `import`ing it would cause a
  * circular dependency while loading.
  *
@@ -77,14 +69,11 @@ export class BaseDefRef {
    * constructor isn't usable publicly.
    *
    * @param {number} index The reference index number.
-   * @param {?VisitEntry} entry_ignored The visit-in-progress entry representing
-   *   the original visit, or `null` if there is no associated entry. (The
-   *   latter case is mostly intended for testing scenarios.)
    * @param {*} [value] The already-known associated value. If not passed, the
    *   value is treated as not yet known, which relatedly means that the
    *   associated (sub-)visit is not yet finished.
    */
-  constructor(index, entry_ignored, value = BaseDefRef.#SYM_notFinished) {
+  constructor(index, value = BaseDefRef.#SYM_notFinished) {
     this.#index = index;
     this.#error = null;
 
