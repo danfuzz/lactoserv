@@ -102,7 +102,7 @@ export class PathKey extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(PathKey, this.#path, this.#wildcard);
   }
 

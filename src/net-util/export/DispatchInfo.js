@@ -61,7 +61,7 @@ export class DispatchInfo extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(DispatchInfo, this.#base, this.#extra);
   }
 

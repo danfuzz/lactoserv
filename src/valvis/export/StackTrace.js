@@ -79,7 +79,7 @@ export class StackTrace extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(this.constructor, this.#frames);
   }
 

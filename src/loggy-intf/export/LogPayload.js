@@ -79,7 +79,7 @@ export class LogPayload extends EventPayload {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(LogPayload,
       this.#stack, this.#when, this.#tag, this.type, ...this.args);
   }

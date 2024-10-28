@@ -180,7 +180,7 @@ export class LogTag extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(LogTag, this.#main, ...this.#context);
   }
 
