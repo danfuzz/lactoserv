@@ -204,6 +204,34 @@ describe('hasRefs()', () => {
   });
 });
 
+describe('isFinished()', () => {
+  test('returns `false` before the visit starts', () => {
+    const vv = new BaseValueVisitor(null);
+
+    expect(vv.isFinished()).toBeFalse();
+  });
+
+  test('returns `false` when the visit is in progress', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) { return node; }
+    }
+
+    const vv  = new TestVisitor(9000);
+    const got = vv.visitAsyncWrap();
+
+    expect(vv.isFinished()).toBeFalse();
+
+    await got; // Clean up pending promise.
+  });
+
+  test('returns `true` when the visit is complete', () => {
+    const vv = new BaseValueVisitor(null);
+
+    vv.visitSync();
+    expect(vv.isFinished()).toBeTrue();
+  });
+});
+
 describe('refFromResultValue()', () => {
   test('finds a root result reference', () => {
     // Note: This test can only possibly work if the root value itself
