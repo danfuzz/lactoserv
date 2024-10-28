@@ -41,49 +41,12 @@ export class BaseDefRef {
   #index;
 
   /**
-   * The value being referred to, or `null` if not yet known.
-   *
-   * @type {*} value
-   */
-  #value;
-
-  /**
-   * The error resulting from the visit, or `null` if there was none _or_ it is
-   * not yet  known.
-   *
-   * @type {?Error}
-   */
-  #error;
-
-  /**
-   * Is the visit finished? Relatedly, are {@link #value} and {@link #error}
-   * known?
-   *
-   * @type {boolean}
-   */
-  #finished;
-
-  /**
-   * Constructs an instance. Note that the first parameter is an instance of a
-   * private inner class of {@link BaseValueVisitor}, and as such, this
-   * constructor isn't usable publicly.
+   * Constructs an instance.
    *
    * @param {number} index The reference index number.
-   * @param {*} [value] The already-known associated value. If not passed, the
-   *   value is treated as not yet known, which relatedly means that the
-   *   associated (sub-)visit is not yet finished.
    */
-  constructor(index, value = BaseDefRef.#SYM_notFinished) {
+  constructor(index) {
     this.#index = index;
-    this.#error = null;
-
-    if (value === BaseDefRef.#SYM_notFinished) {
-      this.#value    = null;
-      this.#finished = false;
-    } else {
-      this.#value    = value;
-      this.#finished = true;
-    }
   }
 
   /**
@@ -113,73 +76,24 @@ export class BaseDefRef {
   }
 
   /**
+   * @abstract
    * @returns {*} The result value of the visit.
    * @throws {Error} Thrown if the visit was unsuccessful or is still in
    *   progress.
    */
   get value() {
-    if (!this.#finished) {
-      throw new Error('Not yet finished.');
-    } else if (this.#error) {
-      throw this.#error;
-    } else {
-      return this.#value;
-    }
-  }
-
-  /**
-   * Indicates that this instance's visit has now finished unsuccessfully with
-   * the given error. It is only ever valid to call this on an unfinished
-   * instance.
-   *
-   * @param {Error} error The error.
-   */
-  finishWithError(error) {
-    if (this.#finished) {
-      throw new Error('Already finished.');
-    }
-
-    this.#finished = true;
-    this.#error    = error;
-  }
-
-  /**
-   * Indicates that this instance's visit has now finished successfully with the
-   * given result value. It is only ever valid to call this on an unfinished
-   * instance.
-   *
-   * @param {*} value The result value.
-   */
-  finishWithValue(value) {
-    if (this.#finished) {
-      throw new Error('Already finished.');
-    }
-
-    this.#finished = true;
-    this.#value    = value;
+    throw Methods.abstract();
   }
 
   /**
    * Indicates whether or not the visit of the referenced value is finished and
    * has a result value or error.
    *
+   * @abstract
    * @returns {boolean} `true` if the visit of the referenced value is finished,
    *   or `false` if it is still in-progress.
    */
   isFinished() {
-    return this.#finished;
+    throw Methods.abstract();
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Special uninterned symbol used in the constructor in order to distinguish
-   * whether the `value` argument was passed.
-   *
-   * @type {symbol}
-   */
-  static #SYM_notFinished = Symbol('BaseDefRef.notFinished');
 }

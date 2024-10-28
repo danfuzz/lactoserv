@@ -1167,10 +1167,9 @@ export class BaseValueVisitor {
       this.#def = new VisitDef(index, ...valueArg);
       this.#ref = this.#def.ref;
 
-      Object.defineProperty(this.#def, BaseValueVisitor.#SYM_associatedVisitor,
-        { value: this.#visitor });
-      Object.defineProperty(this.#ref, BaseValueVisitor.#SYM_associatedVisitor,
-        { value: this.#visitor });
+      const propArgs = [BaseValueVisitor.#SYM_associatedVisitor, { value: this.#visitor }];
+      Object.defineProperty(this.#def, ...propArgs);
+      Object.defineProperty(this.#ref, ...propArgs);
     }
 
     /**
@@ -1263,10 +1262,6 @@ export class BaseValueVisitor {
       if (this.#def && !this.#def.isFinished()) {
         this.#def.finishWithValue(error);
       }
-
-      if (this.#ref && !this.#ref.isFinished()) {
-        this.#ref.finishWithError(error);
-      }
     }
 
     /**
@@ -1284,10 +1279,6 @@ export class BaseValueVisitor {
 
       if (this.#def && !this.#def.isFinished()) {
         this.#def.finishWithValue(this.#value);
-      }
-
-      if (this.#ref && !this.#ref.isFinished()) {
-        this.#ref.finishWithValue(this.#value);
       }
     }
   };
