@@ -50,13 +50,13 @@ export class VisitDef extends BaseDefRef {
    *   instance being created to represent the result of a value that is part of
    *   a reference cycle).
    */
-  constructor(index, value = VisitDef.#SYM_notFinished) {
+  constructor(index, value) {
     super(index);
 
     this.#ref   = new VisitRef(this);
     this.#error = null;
 
-    if (value === VisitDef.#SYM_notFinished) {
+    if (arguments.length < 2) {
       this.#value    = null;
       this.#finished = false;
     } else {
@@ -146,17 +146,4 @@ export class VisitDef extends BaseDefRef {
 
     return { '@def': [this.index, ...valueArg] };
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Special uninterned symbol used in the constructor in order to distinguish
-   * whether the `value` argument was passed.
-   *
-   * @type {symbol}
-   */
-  static #SYM_notFinished = Symbol('BaseDefRef.notFinished');
 }

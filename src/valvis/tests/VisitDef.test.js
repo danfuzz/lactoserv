@@ -12,6 +12,12 @@ describe('constructor()', () => {
   test('doesn\'t throw when given a `value`', () => {
     expect(() => new VisitDef(0, 'floomp')).not.toThrow();
   });
+
+  test('treats an explicit `undefined` for `value` as `undefined` per se', () => {
+    const def = new VisitDef(1, undefined);
+    expect(def.isFinished()).toBeTrue();
+    expect(def.value).toBeUndefined();
+  });
 });
 
 describe('.def', () => {
