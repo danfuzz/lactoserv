@@ -58,10 +58,10 @@ export class BaseDefRef {
    * private inner class of {@link BaseValueVisitor}, and as such, this
    * constructor isn't usable publicly.
    *
+   * @param {number} index The reference index number.
    * @param {?VisitEntry} entry The visit-in-progress entry representing the
    *   original visit, or `null` if there is no associated entry. (The latter
    *   case is mostly intended for testing scenarios.)
-   * @param {number} index The reference index number.
    */
   constructor(index, entry) {
     this.#index = index;
