@@ -45,14 +45,14 @@ export class BaseValueVisitor {
   #proxyAware;
 
   /**
-   * The root value being visited.
+   * The root value to be visited (or currently being visited).
    *
    * @type {*}
    */
   #rootValue;
 
   /**
-   * Map from visited values to their visit representatives.
+   * Map from each visited value to its visit-representing entry.
    *
    * @type {Map<*, BaseValueVisitor#VisitEntry>}
    */
