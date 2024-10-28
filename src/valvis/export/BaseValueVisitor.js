@@ -1154,8 +1154,10 @@ export class BaseValueVisitor {
       }
       /* c8 ignore stop */
 
-      this.#def = new VisitDef(index, this);
-      this.#ref = new VisitRef(index, this);
+      const valueArg = this.isFinished() ? [this.extractSync()] : [];
+
+      this.#def = new VisitDef(index, this, ...valueArg);
+      this.#ref = new VisitRef(index, this, ...valueArg);
     }
 
     /**
@@ -1247,6 +1249,14 @@ export class BaseValueVisitor {
       this.#value  = (value instanceof VisitResult)
         ? value.value
         : value;
+
+      if (this.#def && !this.#def.isFinished()) {
+        this.#def.finishWithValue(this.#value);
+      }
+
+      if (this.#ref && !this.#ref.isFinished()) {
+        this.#ref.finishWithValue(this.#value);
+      }
     }
 
     /**
@@ -1258,6 +1268,14 @@ export class BaseValueVisitor {
     #finishWithError(error) {
       this.#ok    = false;
       this.#error = error;
+
+      if (this.#def && !this.#def.isFinished()) {
+        this.#def.finishWithValue(error);
+      }
+
+      if (this.#ref && !this.#ref.isFinished()) {
+        this.#ref.finishWithError(error);
+      }
     }
   };
 }
