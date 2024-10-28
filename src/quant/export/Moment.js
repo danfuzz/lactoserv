@@ -322,12 +322,22 @@ export class Moment extends IntfDeconstructable {
    * @param {object} [options] Formatting options.
    * @param {boolean} [options.colons] Use colons to separate the time-of-day
    *   components?
+   * @param {boolean} [options.dashes] Use dashes to separate the year-and-day
+   *   components?
    * @param {number} [options.decimals] Number of fractional-second digits
    *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
+   * @param {boolean} [options.middleUnderscore] Use an underscore between the
+   *    year-and-day and the time-of-day components? If `false`, a space will be
+   *    used.
    * @returns {string} The friendly time string.
    */
   static stringFromSec(atSec, options = {}) {
-    const { colons = true, decimals = 0 } = options;
+    const {
+      colons = true,
+      dashes = true,
+      decimals = 0,
+      middleUnderscore = true
+    } = options;
 
     const when    = new Date(atSec * 1000);
     const date    = this.#td(when.getUTCDate());
@@ -336,10 +346,12 @@ export class Moment extends IntfDeconstructable {
     const hour    = this.#td(when.getUTCHours());
     const min     = this.#td(when.getUTCMinutes());
     const sec     = this.#td(when.getUTCSeconds());
-    const timeSep = colons ? ':' : '';
     const frac    = this.#fracString(atSec, decimals);
+    const timeSep = colons ? ':' : '';
+    const dateSep = dashes ? '-' : '';
+    const mainSep = middleUnderscore ? '_' : ' ';
 
-    return `${year}${month}${date}-${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
+    return `${year}${dateSep}${month}${dateSep}${date}${mainSep}${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
   }
 
   /**
