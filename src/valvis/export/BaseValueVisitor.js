@@ -134,7 +134,7 @@ export class BaseValueVisitor {
    *   either in-progress or hasn't yet started.
    */
   isFinished() {
-    const entry = this.#visits.get(this.#rootValue);
+    const entry = this.#rootEntry;
 
     return entry
       ? entry.isFinished()
@@ -729,6 +729,15 @@ export class BaseValueVisitor {
   }
 
   /**
+   * @returns {?VisitEntry} The entry corresponding to {@link #rootValue}, or
+   * `null` if it hasn't yet been created (which means that the visit hasn't
+   * started yet).
+   */
+  get #rootEntry() {
+    return this.#visits.get(this.#rootValue);
+  }
+
+  /**
    * Is the given value a proxy which should be detected as such? This checks
    * proxyness, but only if the instance is configured to do so.
    *
@@ -884,13 +893,12 @@ export class BaseValueVisitor {
    * @returns {BaseValueVisitor#VisitEntry} Vititor entry for the root value.
    */
   #visitRoot() {
-    // Note: This isn't _just_ `return this.#visitNode(<root>)`, because that
-    // would end up invoking the def/ref mechanism, which would be incorrect to
-    // do in this case (because we're not trying to possibly-share a result
-    // within the visit, just trying to _get_ the result).
+    // Note: This isn't _just_ `return this.#visitNode(this.#rootValue)`,
+    // because that would end up invoking the def/ref mechanism, which would be
+    // incorrect to do in this case (because we're not trying to possibly-share
+    // a result within the visit, just trying to _get_ the result).
 
-    const node = this.#rootValue;
-    return this.#visits.get(node) ?? this.#visitNode(node);
+    return this.#rootEntry ?? this.#visitNode(this.#rootValue);
   }
 
 
