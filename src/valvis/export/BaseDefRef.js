@@ -23,6 +23,8 @@ import { Methods } from '@this/typey';
  * Base class of {@link VisitDef} and {@link VisitRef}, for ease of `instanceof`
  * (because often one doesn't care which one one has) and for common
  * implementation details.
+ *
+ * @abstract
  */
 export class BaseDefRef {
   /**
