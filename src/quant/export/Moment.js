@@ -337,7 +337,7 @@ export class Moment extends IntfDeconstructable {
     const min     = this.#td(when.getUTCMinutes());
     const sec     = this.#td(when.getUTCSeconds());
     const timeSep = colons ? ':' : '';
-    const frac    = (decimals === 0) ? '' : this.#fracString(atSec, decimals);
+    const frac    = this.#fracString(atSec, decimals);
 
     return `${year}${month}${date}-${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
   }
@@ -350,6 +350,10 @@ export class Moment extends IntfDeconstructable {
    * @returns {string} The corresponding string.
    */
   static #fracString(atSec, decimals) {
+    if (decimals === 0) {
+      return '';
+    }
+
     // Non-obvious: If you take `atSec % 1` and then operate on the remaining
     // fraction, you can end up with a string representation that's off by 1,
     // because of floating point (im)precision. That's why we _don't_ do that.
