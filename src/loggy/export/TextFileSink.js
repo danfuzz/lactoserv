@@ -4,7 +4,7 @@
 import { EventSink, LinkedEvent } from '@this/async';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
-import { Duration } from '@this/quant';
+import { Duration, Moment } from '@this/quant';
 import { MustBe } from '@this/typey';
 
 
@@ -40,6 +40,14 @@ export class TextFileSink extends EventSink {
    * @type {boolean}
    */
   #everWritten = false;
+
+  /**
+   * The moment at or after which a full timestamp is to be written, or `null`
+   * if one should always be written.
+   *
+   * @type {Moment}
+   */
+  #nextFullTimestamp = null;
 
   /**
    * Constructs an instance.
@@ -89,9 +97,19 @@ export class TextFileSink extends EventSink {
       return `\n\n${'- '.repeat(38)}-\n\n\n`;
     }
 
-    const width = (this.#appender.columns ?? 120) - 1;
+    const width    = (this.#appender.columns ?? 120) - 1;
+    const when     = payload.when;
+    const nextFull = this.#nextFullTimestamp;
+    const human    = payload.toHuman(styled, width);
 
-    return payload.toHuman(styled, width);
+    if (!nextFull || (when.ge(nextFull))) {
+      const fullStamp = payload.getWhenString(styled);
+      const dashes    = '-'.repeat((Math.min(width, 80) - 30) >> 1);
+      this.#nextFullTimestamp = TextFileSink.#roundToNextMinute(when);
+      return `\n${dashes} ${fullStamp} ${dashes}\n${human}`;
+    } else {
+      return human;
+    }
   }
 
   /**
@@ -177,5 +195,18 @@ export class TextFileSink extends EventSink {
    */
   static isValidFormat(format) {
     return this.#FORMATTERS.has(format);
+  }
+
+  /**
+   * Rounds a time up to the start of the next minute.
+   *
+   * @param {Moment} moment The time in question.
+   * @returns {Moment} Time representing the start of the next minute.
+   */
+  static #roundToNextMinute(moment) {
+    const atSec      = moment.atSec;
+    const thisMinute = Math.trunc(atSec / 60) * 60;
+
+    return new Moment(thisMinute + 60);
   }
 }
