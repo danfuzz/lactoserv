@@ -6,17 +6,8 @@ import { VisitRef } from '#x/VisitRef';
 
 
 /**
- * Forward declaration of this class, because `import`ing it would cause a
- * circular dependency while loading.
- *
- * @typedef BaseValueVisitor
- * @type {object}
- */
-
-/**
- * Companion class of {@link BaseValueVisitor}, which represents the defining
- * occurrence of a result of a (sub-)visit which appears more than once in an
- * overall visit result.
+ * Representation of a result of a (sub-)visit which appears more than
+ * once in an overall visit result.
  */
 export class VisitDef extends BaseDefRef {
   /**
@@ -55,7 +46,9 @@ export class VisitDef extends BaseDefRef {
    * @param {number} index The reference index number.
    * @param {*} [value] The already-known associated value. If not passed, the
    *   value is treated as not yet known, which relatedly means that the
-   *   associated (sub-)visit is not yet finished.
+   *   associated (sub-)visit is not yet finished (generally due to this
+   *   instance being created to represent the result of a value that is part of
+   *   a reference cycle).
    */
   constructor(index, value = VisitDef.#SYM_notFinished) {
     super(index);
