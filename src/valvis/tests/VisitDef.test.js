@@ -96,8 +96,20 @@ ${'finishWithValue'} | ${'florp'}
 });
 
 describe('.toJSON()', () => {
-  test('returns the expected replacement', () => {
-    const def = new VisitDef(2, 'bongo');
-    expect(def.toJSON()).toStrictEqual({ '@def': [2, 'bongo'] });
+  test('returns the expected replacement for a value-bearing instance', () => {
+    const def = new VisitDef(20, 'bongo');
+    expect(def.toJSON()).toStrictEqual({ '@def': [20, 'bongo'] });
+  });
+
+  test('returns the expected replacement for an unfinished instance', () => {
+    const def = new VisitDef(21);
+    expect(def.toJSON()).toStrictEqual({ '@def': [21] });
+  });
+
+  test('returns the expected replacement for an errored instance', () => {
+    const def = new VisitDef(22);
+
+    def.finishWithError(new Error('Eek!'));
+    expect(def.toJSON()).toStrictEqual({ '@def': [22, null, 'Eek!'] });
   });
 });

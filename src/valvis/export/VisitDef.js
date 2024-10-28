@@ -135,7 +135,15 @@ export class VisitDef extends BaseDefRef {
    * @returns {*} The replacement form to encode.
    */
   toJSON(key_unused) {
-    const valueArg = this.#finished ? [this.value] : [];
+    let valueArg;
+    if (this.#finished) {
+      valueArg = this.#error
+        ? [null, this.#error.message]
+        : [this.#value];
+    } else {
+      valueArg = [];
+    }
+
     return { '@def': [this.index, ...valueArg] };
   }
 
