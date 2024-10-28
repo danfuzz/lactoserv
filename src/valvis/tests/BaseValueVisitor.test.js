@@ -511,6 +511,32 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
     ).rejects.toThrow('Nope!');
   });
 
+  // Note: This test was inspired by an observed small gap in test coverage.
+  test('throws the error which was thrown synchronously during a top-level visit to a circular reference', async () => {
+    const MSG = 'Not today, Satan!';
+
+    class TestVisitor extends BaseValueVisitor {
+      _impl_shouldRef(node_unused) {
+        return true;
+      }
+
+      _impl_visitArray(node) {
+        this._prot_visitProperties(node);
+        throw new Error(MSG);
+      }
+    }
+
+    const circle = ['circle'];
+    circle.push(circle);
+
+    await expect(doTest(circle,
+      {
+        cls:      TestVisitor,
+        runsSync: true
+      }
+    )).rejects.toThrow(MSG);
+  });
+
   if (isSync && !isAsync) {
     const MSG = 'Visit did not finish synchronously.';
 
