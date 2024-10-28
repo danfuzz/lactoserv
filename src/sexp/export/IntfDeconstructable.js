@@ -27,9 +27,13 @@ export class IntfDeconstructable {
    * ```
    *
    * @abstract
+   * @param {boolean} [forLogging] Hint which, if `true`, indicates that the
+   *   result is intended for logging (and as such might want to have a form
+   *   that includes details not strictly necessary for reconstruction).
+   *   Defaults to `false`.
    * @returns {Sexp} Reconstruction class and arguments.
    */
-  deconstruct() {
+  deconstruct(forLogging) { // eslint-disable-line no-unused-vars
     throw Methods.abstract();
   }
 }
