@@ -228,7 +228,7 @@ export class BaseValueVisitor {
 
     return entry.isFinished()
       ? entry.extractSync(true)
-      : entry.extractAsync(true);
+      : entry.extractAsync();
   }
 
   /**
@@ -239,7 +239,7 @@ export class BaseValueVisitor {
    * @throws {Error} Thrown if there was trouble with the visit.
    */
   async visitAsyncWrap() {
-    return this.#visitRoot().extractAsync(true);
+    return this.#visitRoot().extractAsync();
   }
 
   /**
@@ -631,7 +631,7 @@ export class BaseValueVisitor {
 
     return entry.isFinished()
       ? entry.extractSync(true)
-      : entry.extractAsync(true);
+      : entry.extractAsync();
   }
 
   /**
@@ -1084,27 +1084,21 @@ export class BaseValueVisitor {
 
     /**
      * Extracts the result or error of a visit, always first waiting until after
-     * the visit is finished.
+     * the visit is finished. The result is always wrapped a la
+     * {@link #visitWrap}.
      *
-     * Note: If this visit finished successfully with a promise value, and
-     * `wrapResult` is passed as `false`, this will cause the client (external
-     * caller) to ultimately receive the fulfilled (resolved/rejected) value of
-     * that promise and not the result promise per se, which is probably not
-     * what you want.
-     *
-     * @param {boolean} [wrapResult] Should a successful result be wrapped?
-     * @returns {*} The successful result of the visit, if it was indeed
-     *   successful.
+     * @returns {VisitResult} The successful result of the visit, if it was
+     *   indeed successful.
      * @throws {Error} The error resulting from the visit, if it failed.
      */
-    async extractAsync(wrapResult = false) {
+    async extractAsync() {
       if (!this.isFinished()) {
         // Wait for the visit to finish, either successfully or not. This should
         // never throw.
         await this.#promise;
       }
 
-      return this.extractSync(wrapResult);
+      return this.extractSync(true);
     }
 
     /**
