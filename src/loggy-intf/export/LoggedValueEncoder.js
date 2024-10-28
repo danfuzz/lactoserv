@@ -95,7 +95,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitInstance(node) {
     if (typeof node.deconstruct === 'function') {
-      const sexpArray    = node.deconstruct().toArray();
+      const sexpArray    = node.deconstruct(true).toArray();
       const visitedArray = this._prot_visitProperties(sexpArray);
       return new Sexp(...visitedArray);
     } else {
