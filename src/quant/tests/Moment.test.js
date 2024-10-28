@@ -263,6 +263,35 @@ ${'toString'}           | ${false}  | ${false}
   });
 });
 
+describe.each`
+method                     | isStatic
+${'justSecsStringFromSec'} | ${true}
+${'toJustSecs'}            | ${false}
+`('$method()', ({ method, isStatic }) => {
+  test.each`
+  atSec              | options                           | expected
+  ${0}               | ${undefined}                      | ${':00'}
+  ${0}               | ${{ colons: false }}              | ${'00'}
+  ${0}               | ${{ colons: true }}               | ${':00'}
+  ${0}               | ${{ decimals: 0 }}                | ${':00'}
+  ${0}               | ${{ decimals: 1 }}                | ${':00.0'}
+  ${0}               | ${{ decimals: 4 }}                | ${':00.0000'}
+  ${0}               | ${{ colons: false, decimals: 4 }} | ${'00.0000'}
+  ${1673916141.1291} | ${undefined}                      | ${':21'}
+  ${1673916141.1291} | ${{ decimals: 1 }}                | ${':21.1'}
+  ${1673916141.1291} | ${{ decimals: 2 }}                | ${':21.12'}
+  ${1673916141.1291} | ${{ decimals: 3 }}                | ${':21.129'}
+  ${1673916141.1291} | ${{ decimals: 4 }}                | ${':21.1291'}
+  ${1673916141.1291} | ${{ decimals: 4, colons: false }} | ${'21.1291'}
+  `('returns $expected given ($atSec, $options)', ({ atSec, options, expected }) => {
+    const result = isStatic
+      ? Moment[method](atSec, options)
+      : new Moment(atSec)[method](options);
+
+    expect(result).toBe(expected);
+  });
+});
+
 describe('fromMsec()', () => {
   test('produces an instance with 1/1000 the given value', () => {
     for (let atMsec = -12345; atMsec < 1999988877; atMsec += 10000017) {
