@@ -28,11 +28,11 @@ export class TextFileSink extends EventSink {
   #filePath;
 
   /**
-   * Function to convert an event into writable form.
+   * Format name.
    *
-   * @type {function(LogPayload, number): Buffer|string}
+   * @type {string}
    */
-  #formatter;
+  #format;
 
   /**
    * Has this instance ever written to the file?
@@ -52,17 +52,15 @@ export class TextFileSink extends EventSink {
    *   not to do buffering.
    */
   constructor(format, filePath, firstEvent, bufferPeriod = null) {
-    MustBe.string(format);
-    MustBe.string(filePath);
+    super((event) => this.#process(event), firstEvent);
+
+    this.#format   = MustBe.string(format);
+    this.#filePath = MustBe.string(filePath);
 
     if (!TextFileSink.isValidFormat(format)) {
       throw new Error(`Unknown log format: ${format}`);
     }
 
-    super((event) => this.#process(event), firstEvent);
-
-    this.#formatter = TextFileSink.#FORMATTERS.get(format);
-    this.#filePath  = filePath;
     this.#appender  = new FileAppender(filePath, bufferPeriod);
   }
 
@@ -78,17 +76,65 @@ export class TextFileSink extends EventSink {
   }
 
   /**
+   * Formatter which converts to human-oriented text.
+   *
+   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
+   *   a "first write" marker.
+   * @param {boolean} styled Style/colorize the result?
+   * @returns {string} Converted form.
+   */
+  #formatHuman(payload, styled) {
+    if (payload === null) {
+      // This is a "page break" written to non-console files.
+      return `\n\n${'- '.repeat(38)}-\n\n\n`;
+    }
+
+    const width = (this.#appender.columns ?? 120) - 1;
+
+    return payload.toHuman(styled, width);
+  }
+
+  /**
+   * Formatter which converts to JSON text.
+   *
+   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
+   *   a "first write" marker.
+   * @returns {?string} Converted form, or `null` if nothing is to be written.
+   */
+  #formatJson(payload) {
+    // Note: We assume here that `payload.args` is JSON-encodable, which should
+    // have been guaranteed by the time we get here.
+    return (payload === null)
+      ? null
+      : JSON.stringify(payload.toPlainObject());
+  }
+
+  /**
+   * Formats the payload according to {@link #format}.
+   *
+   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
+   *   a "first write" marker.
+   * @returns {?string} Converted form, or `null` if nothing is to be written.
+   */
+  #formatPayload(payload) {
+    switch (this.#format) {
+      case 'human':       { return this.#formatHuman(payload, false); }
+      case 'humanStyled': { return this.#formatHuman(payload, true);  }
+      case 'json':        { return this.#formatJson(payload);         }
+    }
+
+    // The constructor check should have caught this.
+    throw new Error('Shouldn\'t happen: Unknown formatter.');
+  }
+
+  /**
    * Formats and writes the indicated payload or "first write" marker.
    *
    * @param {?LogPayload} payload What to write, or `null` to write a "first
    *   write" marker.
    */
   async #writePayload(payload) {
-    const width = (this.#appender.columns ?? 120) - 1;
-
-    // `?? null` to force it to be a function call and not a method call on
-    // `this`.
-    const text = (this.#formatter ?? null)(payload, width);
+    const text = this.#formatPayload(payload);
 
     if (text !== null) {
       await this.#appender.appendText(text, true);
@@ -121,11 +167,7 @@ export class TextFileSink extends EventSink {
    *
    * @type {Map<string, function(LogPayload): Buffer|string>}
    */
-  static #FORMATTERS = new Map(Object.entries({
-    human:       (payload, width) => this.#formatHuman(payload, width, false),
-    humanStyled: (payload, width) => this.#formatHuman(payload, width, true),
-    json:        (payload, width_unused) => this.#formatJson(payload)
-  }));
+  static #FORMATTERS = new Set(['human', 'humanStyled', 'json']);
 
   /**
    * Indicates whether or not the given format name is valid.
@@ -135,38 +177,5 @@ export class TextFileSink extends EventSink {
    */
   static isValidFormat(format) {
     return this.#FORMATTERS.has(format);
-  }
-
-  /**
-   * Formatter `human`, which converts to human-oriented text.
-   *
-   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
-   *   a "first write" marker.
-   * @param {number} maxWidth Desired maximum line width.
-   * @param {boolean} styled Style/colorize the result?
-   * @returns {string} Converted form.
-   */
-  static #formatHuman(payload, maxWidth, styled) {
-    if (payload === null) {
-      // This is a "page break" written to non-console files.
-      return `\n\n${'- '.repeat(38)}-\n\n\n`;
-    }
-
-    return payload.toHuman(styled, maxWidth);
-  }
-
-  /**
-   * Formatter `json`, which converts to JSON text.
-   *
-   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
-   *   a "first write" marker.
-   * @returns {?string} Converted form, or `null` if nothing is to be written.
-   */
-  static #formatJson(payload) {
-    // Note: We assume here that `payload.args` is JSON-encodable, which should
-    // have been guaranteed by the time we get here.
-    return (payload === null)
-      ? null
-      : JSON.stringify(payload.toPlainObject());
   }
 }
