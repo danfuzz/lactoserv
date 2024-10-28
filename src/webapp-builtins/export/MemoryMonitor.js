@@ -74,8 +74,8 @@ export class MemoryMonitor extends TemplThreadComponent('MemoryThread', BaseServ
 
     // Note: Per Node docs, `external` includes the `arrayBuffers` value in it.
     const usage = {
-      heap: rawUsage.heapUsed + rawUsage.external,
-      rss:  rawUsage.rss
+      heap: new ByteCount(rawUsage.heapUsed + rawUsage.external),
+      rss:  new ByteCount(rawUsage.rss)
     };
 
     this.logger?.usage(usage);
@@ -91,8 +91,8 @@ export class MemoryMonitor extends TemplThreadComponent('MemoryThread', BaseServ
     const maxHeapBytes        = maxHeap?.byte;
     const maxRssBytes         = maxRss?.byte;
 
-    if (   (maxHeapBytes && (snapshot.heap >= maxHeapBytes))
-        || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
+    if (   (maxHeapBytes && (snapshot.heap.byte >= maxHeapBytes))
+        || (maxRssBytes  && (snapshot.rss.byte  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
         const actionAt = now.add(this.config.gracePeriod);
