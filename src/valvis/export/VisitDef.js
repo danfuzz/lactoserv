@@ -71,11 +71,6 @@ export class VisitDef extends BaseDefRef {
   }
 
   /** @override */
-  get error() {
-    return this.#error;
-  }
-
-  /** @override */
   get ref() {
     return this.#ref;
   }
