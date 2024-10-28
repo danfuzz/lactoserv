@@ -76,7 +76,7 @@ export class HumanVisitor extends BaseValueVisitor {
   _impl_visitInstance(node) {
     if (node instanceof LogPayload) {
       const { tag, when, type, args } = node;
-      const whenText = this.#maybeStyle(when.toString({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
+      const whenText = this.#maybeStyle(when.toJustSecs({ decimals: 4 }), HumanVisitor.#STYLE_WHEN);
       const tagText  = tag.toHuman(this.#styled);
       const callText = this.#visitCall(type, args, HumanVisitor.#STYLE_PAYLOAD);
 
@@ -365,5 +365,21 @@ export class HumanVisitor extends BaseValueVisitor {
     const rendered = text.render({ maxWidth });
 
     return rendered.value;
+  }
+
+  /**
+   * Gets a full-length unabbreviated string corresponding to the given
+   * instance's {@link #when}.
+   *
+   * @param {LogPayload} payload The instance in question.
+   * @param {boolean} [styled] Should the result be styled/colorized?
+   * @returns {string} The full-length when string.
+   */
+  static whenStringFrom(payload, styled) {
+    const whenText = payload.when.toString({ decimals: 4, colons: true, dashes: true, middleUnderscore: false });
+
+    return styled
+      ? HumanVisitor.#STYLE_WHEN(whenText)
+      : whenText;
   }
 }

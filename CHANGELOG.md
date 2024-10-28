@@ -17,6 +17,7 @@ Breaking changes:
 * `quant`:
   * Changed concrete classes to only add human-oriented bits to deconstructed
     results when passed `forLogging === true` (see above).
+  * Reworked the `toString()` options of `Moment`.
 * `valvis`:
   * Renamed some methods in `BaseValueVisitor`, for clarity and consistency, and
     introduced a public method `visitWrap()`, which has the same "synchronous if

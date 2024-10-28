@@ -99,7 +99,7 @@ export class AccessLogToFile extends BaseFileService {
       : ByteCount.stringFromByteCount(contentLength, { spaces: false });
 
     const requestLogLine = [
-      endTime.toString({ decimals: 4 }),
+      endTime.toString({ decimals: 4, dashes: false }),
       origin,
       protocol,
       method,

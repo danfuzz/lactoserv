@@ -85,6 +85,17 @@ export class LogPayload extends EventPayload {
   }
 
   /**
+   * Gets a full-length unabbreviated string corresponding to this instance's
+   * {@link #when}.
+   *
+   * @param {boolean} [styled] Should the result be styled/colorized?
+   * @returns {string} The full-length when string.
+   */
+  getWhenString(styled = false) {
+    return HumanVisitor.whenStringFrom(this, styled);
+  }
+
+  /**
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
@@ -110,7 +121,7 @@ export class LogPayload extends EventPayload {
   toPlainObject() {
     return {
       ...(this.#stack ? { stack: this.#stack.frames } : {}),
-      when: this.#when.toPlainObject(),
+      when: this.#when.toPlainObject({ middleUnderscore: false }),
       tag:  this.#tag.allParts,
       type: this.type,
       args: this.args

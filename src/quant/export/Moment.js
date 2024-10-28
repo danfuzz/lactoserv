@@ -195,6 +195,18 @@ export class Moment extends IntfDeconstructable {
   }
 
   /**
+   * Makes a string representing _just_ the seconds and fractional seconds of
+   * this instance.
+   *
+   * @param {object} [options] Formatting options, as with
+   *   {@link #justSecsStringFromSec}.
+   * @returns {string} The just-seconds form.
+   */
+  toJustSecs(options = {}) {
+    return Moment.justSecsStringFromSec(this.#atSec, options);
+  }
+
+  /**
    * Makes a friendly plain object representing this instance, which represents
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
@@ -282,6 +294,27 @@ export class Moment extends IntfDeconstructable {
   }
 
   /**
+   * Makes a string _just_ representing the seconds of the given time value.
+   *
+   * @param {number} atSec Time in the form of seconds since the Unix Epoch.
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.colons] Use colons to separate the time-of-day
+   *   components? In this case, it means whether to prefix the result with a
+   *   colon.
+   * @param {number} [options.decimals] Number of fractional-second digits
+   *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
+   * @returns {string} The just-seconds string.
+   */
+  static justSecsStringFromSec(atSec, options = {}) {
+    const { colons = true, decimals = 0 } = options;
+
+    const timeSep = colons ? ':' : '';
+    const sec     = Moment.#td(Math.trunc(atSec % 60));
+    const frac    = this.#fracString(atSec, decimals);
+    return `${timeSep}${sec}${frac}`;
+  }
+
+  /**
    * Makes a date-time string in a reasonably pithy and understandable form. The
    * result is a string representing the date-time in UTC.
    *
@@ -289,42 +322,68 @@ export class Moment extends IntfDeconstructable {
    * @param {object} [options] Formatting options.
    * @param {boolean} [options.colons] Use colons to separate the time-of-day
    *   components?
+   * @param {boolean} [options.dashes] Use dashes to separate the year-and-day
+   *   components?
    * @param {number} [options.decimals] Number of fractional-second digits
    *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
+   * @param {boolean} [options.middleUnderscore] Use an underscore between the
+   *    year-and-day and the time-of-day components? If `false`, a space will be
+   *    used.
    * @returns {string} The friendly time string.
    */
   static stringFromSec(atSec, options = {}) {
-    const { colons = true, decimals = 0 } = options;
-
-    // Formats a number as *t*wo *d*igits.
-    const td = (num) => {
-      return (num < 10) ? `0${num}` : `${num}`;
-    };
-
-    // Creates the fractional seconds part of the string.
-    const makeFrac = () => {
-      // Non-obvious: If you take `atSec % 1` and then operate on the remaining
-      // fraction, you can end up with a string representation that's off by 1,
-      // because of floating point (im)precision. That's why we _don't_ do that.
-      const tenPower = 10 ** decimals;
-      const frac     = Math.floor(atSec * tenPower % tenPower);
-      const result   = frac.toString().padStart(decimals, '0');
-
-      return `.${result}`;
-    };
+    const {
+      colons = true,
+      dashes = true,
+      decimals = 0,
+      middleUnderscore = true
+    } = options;
 
     const when    = new Date(atSec * 1000);
-    const date    = when.getUTCDate();
-    const month   = when.getUTCMonth();
+    const date    = this.#td(when.getUTCDate());
+    const month   = this.#td(when.getUTCMonth() + 1);
     const year    = when.getUTCFullYear();
-    const hour    = when.getUTCHours();
-    const min     = when.getUTCMinutes();
-    const sec     = when.getUTCSeconds();
+    const hour    = this.#td(when.getUTCHours());
+    const min     = this.#td(when.getUTCMinutes());
+    const sec     = this.#td(when.getUTCSeconds());
+    const frac    = this.#fracString(atSec, decimals);
     const timeSep = colons ? ':' : '';
-    const frac    = (decimals === 0) ? '' : makeFrac();
+    const dateSep = dashes ? '-' : '';
+    const mainSep = middleUnderscore ? '_' : ' ';
 
-    return '' +
-      `${year}${td(month + 1)}${td(date)}-` +
-      `${td(hour)}${timeSep}${td(min)}${timeSep}${td(sec)}${frac}`;
+    return `${year}${dateSep}${month}${dateSep}${date}${mainSep}${hour}${timeSep}${min}${timeSep}${sec}${frac}`;
+  }
+
+  /**
+   * Makes a fractional seconds part of a string result.
+   *
+   * @param {number} atSec Unix Epoch seconds time.
+   * @param {number} decimals Number of decimal places.
+   * @returns {string} The corresponding string.
+   */
+  static #fracString(atSec, decimals) {
+    if (decimals === 0) {
+      return '';
+    }
+
+    // Non-obvious: If you take `atSec % 1` and then operate on the remaining
+    // fraction, you can end up with a string representation that's off by 1,
+    // because of floating point (im)precision. That's why we _don't_ do that.
+
+    const tenPower = 10 ** decimals;
+    const frac     = Math.floor(atSec * tenPower % tenPower);
+    const result   = frac.toString().padStart(decimals, '0');
+
+    return `.${result}`;
+  }
+
+  /**
+   * Formats a number as *t*wo *d*igits.
+   *
+   * @param {number} num The number.
+   * @returns {string} The corresponding string.
+   */
+  static #td(num) {
+    return (num < 10) ? `0${num}` : `${num}`;
   }
 }
