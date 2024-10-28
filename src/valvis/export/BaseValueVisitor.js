@@ -763,6 +763,18 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Is the given value a def or ref that was produced by this instance?
+   *
+   * @param {*} value The value in question.
+   * @returns {boolean} `true` iff `value` is a def or ref that was produced by
+   *   this instance.
+   */
+  #isAssociatedDefOrRef(value) {
+    return (value instanceof BaseDefRef)
+      && value.isAssociatedWith(this);
+  }
+
+  /**
    * Is the given value a proxy which should be detected as such? This checks
    * proxyness, but only if the instance is configured to do so.
    *
@@ -830,7 +842,7 @@ export class BaseValueVisitor {
       } else {
         // This is a revisit of a value for which `_impl_shouldRef()` returned
         // `false`.
-        if (!((node instanceof BaseDefRef) && node.isAssociatedWith(this))) {
+        if (!this.#isAssociatedDefOrRef(node)) {
           // Only call `revisit()` if it's not a self-associated ref/def.
           this._impl_revisit(node, already.extractSync(), false, null);
         }
@@ -900,11 +912,10 @@ export class BaseValueVisitor {
           return this._impl_visitArray(node);
         } else if (AskIf.plainObject(node)) {
           return this._impl_visitPlainObject(node);
-        } else if ((node instanceof BaseDefRef) && node.isAssociatedWith(this)) {
-          // Any defs or refs that are from this visit are just returned as-is.
-          // (But if they're associated with a different visitor, they're
-          // treated as regular instances, due to the `isAssociatedWith()` check
-          // above.)
+        } else if (this.#isAssociatedDefOrRef(node)) {
+          // This is a def or ref constructed by this instance, so they are just
+          // returned as-is. (But if they're defs or refs associated with a
+          // different visitor, they're treated as regular instances.)
           return node;
         } else if (node instanceof Error) {
           return this._impl_visitError(node);
@@ -1173,23 +1184,23 @@ export class BaseValueVisitor {
      */
     shouldRef() {
       if (this.#shouldRef === null) {
-        const node   = this.#node;
-        let   result = false;
+        const visitor = this.#visitor;
+        const node    = this.#node;
+        let   result  = false;
 
         switch (typeof node) {
           case 'bigint':
           case 'function':
           case 'string':
           case 'symbol': {
-            result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
 
             break;
           }
 
           case 'object': {
-            if (   (node !== null)
-                && !((node instanceof VisitRef) && (node.isAssociatedWith(this.#visitor)))) {
-              result = this.#visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            if ((node !== null) && !visitor.#isAssociatedDefOrRef(node)) {
+              result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
             }
             break;
           }
