@@ -99,14 +99,6 @@ export class BaseDefRef {
   }
 
   /**
-   * @returns {*} The original value (not the visit result) which this
-   * instance is a reference to.
-   */
-  get originalValue() {
-    return this.#entry?.originalValue ?? null;
-  }
-
-  /**
    * @returns {*} The result value of the visit.
    * @throws {Error} Thrown if the visit was unsuccessful or is still in
    *   progress.

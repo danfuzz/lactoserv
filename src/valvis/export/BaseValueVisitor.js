@@ -1027,14 +1027,6 @@ export class BaseValueVisitor {
     }
 
     /**
-     * @returns {*} The original value (not the visit result) which this
-     * instance is a reference to.
-     */
-    get originalValue() {
-      return this.#node;
-    }
-
-    /**
      * @returns {Promise} A promise for `this`, which resolves once the visit
      * has been finished (whether or not successful).
      */
