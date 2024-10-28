@@ -96,6 +96,29 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Gets the visit result corresponding to a value that was encountered during
+   * the visit. This works for either the original {@link #rootValue} or any
+   * value it refers to and was visited.
+   *
+   * @param {*} value The value that was visited (either the main visit or a
+   *   sub-visit).
+   * @returns {*} The result of the visit.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started, _or_ if `value` was never visited.
+   */
+  getVisitResult(value) {
+    this.#throwIfNotFinished();
+
+    const entry = this.#visitEntries.get(value);
+
+    if (!entry) {
+      throw new Error('Value was not visited.');
+    }
+
+    return entry.extractSync();
+  }
+
+  /**
    * Indicates whether or not the visit represented by this instance resulted in
    * the creation of any refs.
    *

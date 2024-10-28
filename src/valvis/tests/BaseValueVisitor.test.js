@@ -96,6 +96,62 @@ describe('.rootValue', () => {
   });
 });
 
+describe('getVisitResult()', () => {
+  test('throws if given a value that was not visited', () => {
+    const vv = new BaseValueVisitor(123);
+
+    vv.visitSync();
+    expect(() => vv.getVisitResult('florp')).toThrow(/was not visited/);
+  });
+
+  test('throws before the visit completes, but then works afterwards', async () => {
+    class TestVisitor extends BaseValueVisitor {
+      async _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 34.21;
+    const vv    = new TestVisitor(value);
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/not yet started/);
+    expect(() => vv.getVisitResult(value)).toThrow(/not yet started/);
+
+    const got = vv.visitAsyncWrap();
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/not yet finished/);
+    expect(() => vv.getVisitResult(value)).toThrow(/not yet finished/);
+
+    await got;
+
+    expect(() => vv.getVisitResult('florp')).toThrow(/was not visited/);
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+
+  test('finds the root value', () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 12.34;
+    const vv    = new TestVisitor(value);
+
+    vv.visitSync();
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+
+  test('finds a sub-visit value', () => {
+    class TestVisitor extends BaseValueVisitor {
+      _impl_visitArray(node) { return this._prot_visitProperties(node); }
+      _impl_visitNumber(node) { return `${node}`; }
+    }
+
+    const value = 12.34;
+    const vv = new TestVisitor([value]);
+
+    vv.visitSync();
+    expect(vv.getVisitResult(value)).toBe(`${value}`);
+  });
+});
+
 describe('hasRefs()', () => {
   test('returns `false` after a visit where no refs were created', () => {
     const vv  = new BaseValueVisitor(123);
@@ -226,7 +282,7 @@ ${'visitSync'}      | ${false} | ${true}  | ${false}
 ${'visitWrap'}      | ${true}  | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
-  const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference.';
+  const CIRCULAR_MSG = 'Visit is deadlocked due to circular reference';
 
   async function doTest(value, options = {}) {
     const {
