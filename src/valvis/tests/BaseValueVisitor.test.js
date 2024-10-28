@@ -988,7 +988,7 @@ describe('_impl_visitInstance()', () => {
   }
 
   test('gets called on an instance of `VisitRef` that was not created by the visitor-in-progress', () => {
-    const ref = new VisitRef(10, null);
+    const ref = new VisitRef(new VisitDef(10, null));
     const vv  = new VisitInstanceCheckVisitor([ref]);
 
     expect(vv.visitSync()).toStrictEqual(['yes-sir']);

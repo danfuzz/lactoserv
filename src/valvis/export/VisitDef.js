@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseDefRef } from '#x/BaseDefRef';
+import { VisitRef } from '#x/VisitRef';
 
 
 /**
@@ -18,11 +19,33 @@ import { BaseDefRef } from '#x/BaseDefRef';
  * overall visit result.
  */
 export class VisitDef extends BaseDefRef {
-  // @defaultConstructor
+  /**
+   * This instance's corresponding ref.
+   *
+   * @type {VisitRef}
+   */
+  #ref;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {number} index The reference index number.
+   * @param {...*} rest Other arguments for the superclass constructor.
+   */
+  constructor(index, ...rest) {
+    super(index, ...rest);
+
+    this.#ref = new VisitRef(this);
+  }
 
   /** @override */
   get def() {
     return this;
+  }
+
+  /** @override */
+  get ref() {
+    return this.#ref;
   }
 
   /**

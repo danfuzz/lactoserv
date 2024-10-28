@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Methods } from '@this/typey';
+
 /**
  * Forward declaration of this class, because `import`ing it would cause a
  * circular dependency while loading.
@@ -47,13 +49,6 @@ export class BaseDefRef {
   #index;
 
   /**
-   * The entry which is being referred to.
-   *
-   * @type {VisitEntry}
-   */
-  #entry;
-
-  /**
    * The value being referred to, or `null` if not yet known.
    *
    * @type {*} value
@@ -82,16 +77,15 @@ export class BaseDefRef {
    * constructor isn't usable publicly.
    *
    * @param {number} index The reference index number.
-   * @param {?VisitEntry} entry The visit-in-progress entry representing the
-   *   original visit, or `null` if there is no associated entry. (The latter
-   *   case is mostly intended for testing scenarios.)
+   * @param {?VisitEntry} entry_ignored The visit-in-progress entry representing
+   *   the original visit, or `null` if there is no associated entry. (The
+   *   latter case is mostly intended for testing scenarios.)
    * @param {*} [value] The already-known associated value. If not passed, the
    *   value is treated as not yet known, which relatedly means that the
    *   associated (sub-)visit is not yet finished.
    */
-  constructor(index, entry, value = BaseDefRef.#SYM_notFinished) {
+  constructor(index, entry_ignored, value = BaseDefRef.#SYM_notFinished) {
     this.#index = index;
-    this.#entry = entry;
     this.#error = null;
 
     if (value === BaseDefRef.#SYM_notFinished) {
@@ -104,25 +98,21 @@ export class BaseDefRef {
   }
 
   /**
+   * @abstract
    * @returns {?VisitDef} The def corresponding to this instance. This is `this`
    * if this instance is in fact a def.
-   *
-   * **Note:** This is only ever `null` when the instance was constructed with
-   * `entry === null`.
    */
   get def() {
-    return this.#entry?.def ?? null;
+    throw Methods.abstract();
   }
 
   /**
+   * @abstract
    * @returns {?VisitRef} The ref corresponding to this instance. This is `this`
    * if this instance is in fact a ref.
-   *
-   * **Note:** This is only ever `null` when the instance was constructed with
-   * `entry === null`.
    */
   get ref() {
-    return this.#entry?.ref ?? null;
+    throw Methods.abstract();
   }
 
   /**

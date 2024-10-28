@@ -3,6 +3,14 @@
 
 import { BaseDefRef } from '#x/BaseDefRef';
 
+/**
+ * Forward declaration of this class, because `import`ing it would cause a
+ * circular dependency while loading.
+ *
+ * @typedef VisitDef
+ * @type {object}
+ */
+
 
 /**
  * Forward declaration of this class, because `import`ing it would cause a
@@ -23,11 +31,43 @@ import { BaseDefRef } from '#x/BaseDefRef';
  * more details.
  */
 export class VisitRef extends BaseDefRef {
-  // @defaultConstructor
+  /**
+   * This instance's corresponding def.
+   *
+   * @type {VisitDef}
+   */
+  #def;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {VisitDef} def The corresponding def.
+   */
+  constructor(def) {
+    const valueArg = def.isFinished() ? [def.value] : [];
+    super(def.index, ...valueArg);
+
+    this.#def = def;
+  }
+
+  /** @override */
+  get def() {
+    return this.#def;
+  }
 
   /** @override */
   get ref() {
     return this;
+  }
+
+  /** @override */
+  get value() {
+    return this.#def.value;
+  }
+
+  /** @override */
+  isFinished() {
+    return this.#def.isFinished();
   }
 
   /**
