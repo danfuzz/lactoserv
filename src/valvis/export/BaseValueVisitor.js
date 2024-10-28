@@ -771,7 +771,7 @@ export class BaseValueVisitor {
    */
   #isAssociatedDefOrRef(value) {
     return (value instanceof BaseDefRef)
-      && value.isAssociatedWith(this);
+      && (value[BaseValueVisitor.#SYM_associatedVisitor] === this);
   }
 
   /**
@@ -953,6 +953,14 @@ export class BaseValueVisitor {
   //
   // Static members
   //
+
+  /**
+   * Uninterned symbol used for "secret" property on defs and refs which stores
+   * the associated visitor instance.
+   *
+   * @type {symbol}
+   */
+  static #SYM_associatedVisitor = Symbol('BaseValueVisitor.associatedVisitor');
 
   /**
    * Entry in a {@link #visitEntries} map.
@@ -1169,6 +1177,11 @@ export class BaseValueVisitor {
 
       this.#def = new VisitDef(index, this, ...valueArg);
       this.#ref = new VisitRef(index, this, ...valueArg);
+
+      Object.defineProperty(this.#def, BaseValueVisitor.#SYM_associatedVisitor,
+        { value: this.#visitor });
+      Object.defineProperty(this.#ref, BaseValueVisitor.#SYM_associatedVisitor,
+        { value: this.#visitor });
     }
 
     /**
@@ -1247,7 +1260,7 @@ export class BaseValueVisitor {
         return this;
       })();
     }
-    
+
     /**
      * Sets the visit result to be an error value. This indicates that the visit
      * has in fact finished with `ok === false`.
