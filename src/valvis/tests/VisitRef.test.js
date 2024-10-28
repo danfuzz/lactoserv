@@ -6,13 +6,13 @@ import { VisitDef, VisitRef } from '@this/valvis';
 
 describe('constructor()', () => {
   test('doesn\'t throw given a def', () => {
-    expect(() => new VisitRef(new VisitDef(0, null, 999))).not.toThrow();
+    expect(() => new VisitRef(new VisitDef(0))).not.toThrow();
   });
 });
 
 describe('.def', () => {
   test('returns the `def` passed in the constructor', () => {
-    const def = new VisitDef(22, null, 987);
+    const def = new VisitDef(22);
     const ref = new VisitRef(def);
     expect(ref.def).toBe(def);
   });
