@@ -731,9 +731,9 @@ export class BaseValueVisitor {
   }
 
   /**
-   * @returns {?VisitEntry} The entry corresponding to {@link #rootValue}, or
-   * `null` if it hasn't yet been created (which means that the visit hasn't
-   * started yet).
+   * @returns {?BaseValueVisitor#VisitEntry} The entry corresponding to
+   * {@link #rootValue}, or `null` if it hasn't yet been created (which means
+   * that the visit hasn't started yet).
    */
   get #rootEntry() {
     return this.#visitEntries.get(this.#rootValue);
