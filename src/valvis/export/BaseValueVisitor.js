@@ -1247,6 +1247,25 @@ export class BaseValueVisitor {
         return this;
       })();
     }
+    
+    /**
+     * Sets the visit result to be an error value. This indicates that the visit
+     * has in fact finished with `ok === false`.
+     *
+     * @param {Error} error The visit error.
+     */
+    #finishWithError(error) {
+      this.#ok    = false;
+      this.#error = error;
+
+      if (this.#def && !this.#def.isFinished()) {
+        this.#def.finishWithValue(error);
+      }
+
+      if (this.#ref && !this.#ref.isFinished()) {
+        this.#ref.finishWithError(error);
+      }
+    }
 
     /**
      * Sets the visit result to be a non-error value. This indicates that the
@@ -1267,25 +1286,6 @@ export class BaseValueVisitor {
 
       if (this.#ref && !this.#ref.isFinished()) {
         this.#ref.finishWithValue(this.#value);
-      }
-    }
-
-    /**
-     * Sets the visit result to be an error value. This indicates that the visit
-     * has in fact finished with `ok === false`.
-     *
-     * @param {Error} error The visit error.
-     */
-    #finishWithError(error) {
-      this.#ok    = false;
-      this.#error = error;
-
-      if (this.#def && !this.#def.isFinished()) {
-        this.#def.finishWithValue(error);
-      }
-
-      if (this.#ref && !this.#ref.isFinished()) {
-        this.#ref.finishWithError(error);
       }
     }
   };
