@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { Sexp } from '@this/decon';
+import { Sexp } from '@this/sexp';
 
 
 describe('constructor()', () => {

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Sexp } from '@this/decon';
+import { Sexp } from '@this/sexp';
 import { AskIf } from '@this/typey';
 import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/valvis';
 
@@ -95,7 +95,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitInstance(node) {
     if (typeof node.deconstruct === 'function') {
-      const sexpArray    = node.deconstruct().toArray();
+      const sexpArray    = node.deconstruct(true).toArray();
       const visitedArray = this._prot_visitProperties(sexpArray);
       return new Sexp(...visitedArray);
     } else {

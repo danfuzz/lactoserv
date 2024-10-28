@@ -1,7 +1,7 @@
-@this/decon
-===========
+@this/sexp
+==========
 
-Interface and container class in support of the concept of object
+Interface and associated `Sexp` class in support of the concept of object
 "deconstruction."
 
 - - - - - - - - - -

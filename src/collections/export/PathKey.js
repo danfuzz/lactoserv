@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { IntfDeconstructable, Sexp } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
 import { TreeMap } from '#x/TreeMap';
@@ -102,7 +102,7 @@ export class PathKey extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
+  deconstruct(forLogging_unused) {
     return new Sexp(PathKey, this.#path, this.#wildcard);
   }
 

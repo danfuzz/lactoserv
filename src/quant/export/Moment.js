@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfDeconstructable, Sexp } from '@this/decon';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
 import { Duration } from '#x/Duration';
@@ -221,13 +221,9 @@ export class Moment extends IntfDeconstructable {
   }
 
   /** @override */
-  deconstruct() {
-    // Note: This string is included for the convenience of humans who happen to
-    // be looking at logs (etc.), but is not actually used when reconstructing
-    // an instance.
-    const str = this.toString({ decimals: 6 });
-
-    return new Sexp(Moment, this.#atSec, str);
+  deconstruct(forLogging) {
+    const extraArgs = forLogging ? [this.toString({ decimals: 6 })] : [];
+    return new Sexp(Moment, this.#atSec, ...extraArgs);
   }
 
 

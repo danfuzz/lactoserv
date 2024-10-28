@@ -11,6 +11,12 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `sexp` (was `decon`):
+  * Renamed module to `sexp`. The old name arguably had the wrong emphasis.
+  * Added `forLogging` argument to `IntfDeconstructable.deconstruct()`.
+* `quant`:
+  * Changed concrete classes to only add human-oriented bits to deconstructed
+    results when passed `forLogging === true` (see above).
 * `valvis`:
   * Renamed some methods in `BaseValueVisitor`, for clarity and consistency, and
     introduced a public method `visitWrap()`, which has the same "synchronous if

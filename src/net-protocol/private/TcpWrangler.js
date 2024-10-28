@@ -6,6 +6,7 @@ import { Socket } from 'node:net';
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { ByteCount } from '@this/quant';
 import { Methods } from '@this/typey';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
@@ -196,7 +197,7 @@ export class TcpWrangler extends ProtocolWrangler {
       if (!loggedClose) {
         // Only log this once. (That is, don't re-log it if there's a second
         // call to this function, for whatever reason.)
-        connLogger.totalBytesWritten(socket.bytesWritten);
+        connLogger.totalWritten(new ByteCount(socket.bytesWritten));
       }
 
       if (args.length === 0) {
