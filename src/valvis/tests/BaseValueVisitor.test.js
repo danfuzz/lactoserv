@@ -222,8 +222,8 @@ describe('refFromResultValue()', () => {
 
     // The actual test.
     expect(vv.refFromResultValue(got)).toBe(gotRef);
-    expect(gotRef.originalValue).toBe(value);
     expect(gotRef.value).toBe(got);
+    expect(vv.getVisitResult(value)).toBe(got);
   });
 
   test('finds a sub-visit result reference', () => {
@@ -243,8 +243,8 @@ describe('refFromResultValue()', () => {
 
     // The actual test.
     expect(vv.refFromResultValue(gotInner)).toBe(gotRef);
-    expect(gotRef.originalValue).toBe(inner);
     expect(gotRef.value).toBe(gotInner);
+    expect(vv.getVisitResult(inner)).toBe(gotRef.value);
   });
 
   test('returns `null` given any argument if there were no refs created', () => {
@@ -711,8 +711,8 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
           expect(ref).toBe(got[2]);
-          expect(ref.originalValue).toBe(shared);
           expect(ref.value).toBe(got[1][1]);
+          expect(visitor.getVisitResult(shared)).toBe(ref.value);
           expect(wasFinished).toBeTrue();
         }
       });
@@ -731,8 +731,8 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(visitor.refs).toBeArrayOfSize(1);
           const { ref, wasFinished } = visitor.refs[0];
           expect(ref).toBe(got[2]);
-          expect(ref.originalValue).toBe(selfRef);
           expect(ref.value).toBe(got[1][1]);
+          expect(visitor.getVisitResult(selfRef)).toBe(ref.value);
           expect(ref).toBe(ref.value[2]);
           expect(wasFinished).toBeFalse();
         }
