@@ -131,13 +131,16 @@ describe('hasRefs()', () => {
     expect(vv.hasRefs()).toBeTrue();
   });
 
-  test('returns `null` if the visit is still in progress, then works after the visit is done', async () => {
-    const value   = { x: 123 };
-    const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visitAsyncWrap();
+  test('throws if the visit has not yet finished, then works after the visit is done', async () => {
+    const value = { x: 123 };
+    const vv    = new RefMakingVisitor(value);
 
+    expect(() => vv.hasRefs()).toThrow(/not yet started/);
+
+    const gotProm = vv.visitAsyncWrap();
     expect(PromiseState.isPending(gotProm)); // Baseline.
-    expect(vv.hasRefs()).toBeNull();
+
+    expect(() => vv.hasRefs()).toThrow(/not yet finished/);
 
     // Make sure the call didn't mess up the post-visit behavior.
     await gotProm;
@@ -197,14 +200,18 @@ describe('refFromResultValue()', () => {
     expect(vv.refFromResultValue('boop')).toBeNull();
   });
 
-  test('returns `null` given any argument if the visit is still in progress, then works after the visit is done', async () => {
-    const inner   = { b: { c: 123 } };
-    const value   = { a1: inner, a2: inner };
-    const vv      = new RefMakingVisitor(value);
-    const gotProm = vv.visitAsyncWrap();
+  test('throws if the visit is still in progress, then works after the visit is done', async () => {
+    const inner = { b: { c: 123 } };
+    const value = { a1: inner, a2: inner };
+    const vv    = new RefMakingVisitor(value);
 
+    expect(() => vv.refFromResultValue('bonk')).toThrow(/not yet started/);
+
+    const gotProm = vv.visitAsyncWrap();
     expect(PromiseState.isPending(gotProm)); // Baseline.
-    expect(vv.refFromResultValue('bonk')).toBeNull();
+
+    expect(() => vv.hasRefs()).toThrow(/not yet finished/);
+    expect(() => vv.refFromResultValue('bonk')).toThrow(/not yet finished/);
 
     // Make sure the call didn't mess up the post-visit behavior.
     const got = await gotProm;

@@ -99,13 +99,13 @@ export class BaseValueVisitor {
    * Indicates whether or not the visit represented by this instance resulted in
    * the creation of any refs.
    *
-   * @returns {?boolean} `true` if the visit caused refs to be created, `false`
-   *   if not, or `null` if the visit is still in-progress.
+   * @returns {boolean} `true` if the visit caused refs to be created, or
+   *  `false` if not.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started.
    */
   hasRefs() {
-    if (!this.isFinished()) {
-      return null;
-    }
+    this.#throwIfNotFinished();
 
     const allRefs = this.#allRefs;
 
@@ -150,6 +150,8 @@ export class BaseValueVisitor {
    * @param {*} value The result value to look up.
    * @returns {?VisitRef} The corresponding ref, or `null` if there is no ref
    *   for `value`.
+   * @throws {Error} Thrown if the visit is still in progress or has not yet
+   *   started.
    */
   refFromResultValue(value) {
     // Note: The first call to `hasRefs()` after a visit finishes will cause
@@ -746,6 +748,18 @@ export class BaseValueVisitor {
    */
   #isProxy(value) {
     return this.#proxyAware && types.isProxy(value);
+  }
+
+  /**
+   * Throws an error indicating that the visit either hasn't started yet or
+   * hasn't finished yet, if either of those are the case. If the visit has
+   * finished, then this does nothing.
+   */
+  #throwIfNotFinished() {
+    if (!this.isFinished()) {
+      const verb = this.#rootEntry ? 'finished' : 'started';
+      throw new Error(`Visit has not yet ${verb}. (Call a \`visit*()\` method.)`);
+    }
   }
 
   /**
