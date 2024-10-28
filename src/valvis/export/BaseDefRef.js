@@ -181,17 +181,6 @@ export class BaseDefRef {
   }
 
   /**
-   * Is this instance associated with the given visitor?
-   *
-   * @param {BaseValueVisitor} visitor The visitor in question.
-   * @returns {boolean} `true` if this instance's associated visitor is in fact
-   *   `visitor`.
-   */
-  isAssociatedWith(visitor) {
-    return this.#entry?.isAssociatedWith(visitor) ?? false;
-  }
-
-  /**
    * Indicates whether or not the visit of the referenced value is finished and
    * has a result value or error.
    *
