@@ -21,6 +21,13 @@ describe('.def', () => {
   });
 });
 
+describe('.index', () => {
+  test('is the `index` from the constructor', () => {
+    const def = new VisitDef(998);
+    expect(def.index).toBe(998);
+  });
+});
+
 describe('.ref', () => {
   test('returns a ref with the same index', () => {
     const def = new VisitDef(199);

@@ -18,6 +18,14 @@ describe('.def', () => {
   });
 });
 
+describe('.index', () => {
+  test('is the `index` of the corresponding def', () => {
+    const def = new VisitDef(585);
+    const ref = new VisitRef(def);
+    expect(ref.index).toBe(585);
+  });
+});
+
 describe('.ref', () => {
   test('returns `this`', () => {
     const ref = new VisitRef(new VisitDef(1, null));
