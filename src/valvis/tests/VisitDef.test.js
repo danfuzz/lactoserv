@@ -36,6 +36,35 @@ describe('.ref', () => {
   });
 });
 
+describe('.value', () => {
+  test('is the value from the constructor, if constructed with a value', () => {
+    const value = 'bloop';
+    const def = new VisitDef(1, value);
+    expect(def.value).toBe(value);
+  });
+
+  test('is the value from the call to `finishWithValue()`', () => {
+    const value = 'bleep';
+    const def = new VisitDef(2);
+
+    def.finishWithValue(value);
+    expect(def.value).toBe(value);
+  });
+
+  test('throws if constructed without a value, and no `finish*()` call was made', () => {
+    const def = new VisitDef(2);
+    expect(() => def.value).toThrow(/Not yet finished./);
+  });
+
+  test('throws the error set by `finishWithError()`', () => {
+    const def = new VisitDef(3);
+    const err = new Error('Nope!');
+
+    def.finishWithError(err);
+    expect(() => def.value).toThrow(err);
+  });
+});
+
 describe('.toJSON()', () => {
   test('returns the expected replacement', () => {
     const def = new VisitDef(2, 'bongo');
