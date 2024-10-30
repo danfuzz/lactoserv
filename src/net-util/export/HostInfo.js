@@ -141,6 +141,22 @@ export class HostInfo {
     return this.#nameIsIp;
   }
 
+  /**
+   * Gets an instance of this class which is identical to `this` but with the
+   * name lowercased. If this instance's name is already all-lowercase, then
+   * this method returns `this`.
+   *
+   * @returns {HostInfo} The lowercased version.
+   */
+  toLowerCase() {
+    const name      = this.#nameString;
+    const lowerName = name.toLowerCase();
+
+    return (name === lowerName)
+      ? this
+      : new HostInfo(lowerName, this.#portNumber);
+  }
+
 
   //
   // Static members
