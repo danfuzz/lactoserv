@@ -105,6 +105,17 @@ export class HostRouter extends BaseApplication {
 
         return Object.freeze(result);
       }
+
+      /**
+       * Should the case of hostnames be ignored (specifically, folded to
+       * lowercase)?
+       *
+       * @param {boolean} [value] Proposed configuration value.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_ignoreCase(value = true) {
+        return MustBe.boolean(value);
+      }
     };
   }
 }

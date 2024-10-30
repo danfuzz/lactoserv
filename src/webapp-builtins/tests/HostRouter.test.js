@@ -17,6 +17,13 @@ describe('constructor', () => {
     })).not.toThrow();
   });
 
+  test('accepts a valid minimal configuration with `ignoreCase`', () => {
+    expect(() => new HostRouter({
+      hosts:      {},
+      ignoreCase: false,
+    })).not.toThrow();
+  });
+
   test('accepts a valid configuration with several non-wildcard hosts', () => {
     expect(() => new HostRouter({
       hosts: {
