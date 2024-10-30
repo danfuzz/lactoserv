@@ -58,7 +58,9 @@ export class HostInfo {
    *   se or a string.
    */
   constructor(nameString, portNumber) {
-    this.#nameString = MustBe.string(nameString, /./);
+    // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
+    this.#nameString = MustBe.string(nameString, /^[-_.:\[\]a-zA-Z0-9]+$/);
+
     this.#portNumber = AskIf.string(portNumber)
       ? Number(MustBe.string(portNumber, /^[0-9]+$/))
       : MustBe.number(portNumber);
