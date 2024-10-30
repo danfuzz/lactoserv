@@ -48,6 +48,13 @@ export class HostInfo {
   #nameKey = null;
 
   /**
+   * The result of {@link #toLowerCase}, or `null` if not yet calculated.
+   *
+   * @type {HostInfo}
+   */
+  #lowercaseVersion = null;
+
+  /**
    * Constructs an instance.
    *
    * **Note:** You are probably better off constructing an instance using one of
@@ -149,12 +156,16 @@ export class HostInfo {
    * @returns {HostInfo} The lowercased version.
    */
   toLowerCase() {
-    const name      = this.#nameString;
-    const lowerName = name.toLowerCase();
+    if (this.#lowercaseVersion === null) {
+      const name      = this.#nameString;
+      const lowerName = name.toLowerCase();
 
-    return (name === lowerName)
-      ? this
-      : new HostInfo(lowerName, this.#portNumber);
+      this.#lowercaseVersion = (name === lowerName)
+        ? this
+        : new HostInfo(lowerName, this.#portNumber);
+    }
+
+    return this.#lowercaseVersion;
   }
 
 
