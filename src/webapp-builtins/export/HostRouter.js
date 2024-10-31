@@ -26,14 +26,12 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    const host  = request.host;
-    const found = this.#routeTree.find(host.nameKey);
+    const host        = request.host;
+    const application = this.#applicationFromHost(host);
 
-    if (!found) {
+    if (!application) {
       return null;
     }
-
-    const application = found.value;
 
     dispatch.logger?.dispatchingHost({
       application: application.name,
@@ -72,6 +70,23 @@ export class HostRouter extends BaseApplication {
     this.#routeTree = routeTree;
 
     await super._impl_start();
+  }
+
+  /**
+   * Finds the application for the given host, if any.
+   *
+   * @param {HostInfo} host Host info.
+   * @returns {?BaseApplication} The application, or `null` if there was no
+   *   match.
+   */
+  #applicationFromHost(host) {
+    const found = this.#routeTree.find(host.nameKey);
+
+    if (!found) {
+      return null;
+    }
+
+    return found.value;
   }
 
 
