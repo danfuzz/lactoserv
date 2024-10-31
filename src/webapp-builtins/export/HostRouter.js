@@ -3,7 +3,7 @@
 
 import { TreeMap } from '@this/collections';
 import { Names } from '@this/compy';
-import { HostUtil, IntfRequestHandler } from '@this/net-util';
+import { HostInfo, HostUtil, IntfRequestHandler } from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
@@ -13,6 +13,13 @@ import { BaseApplication } from '@this/webapp-core';
  * equivalent). See docs for configuration object details.
  */
 export class HostRouter extends BaseApplication {
+  /**
+   * Same value as in the config object.
+   *
+   * @type {boolean}
+   */
+  #ignoreCase = null;
+
   /**
    * Map which goes from a host prefix to a handler (typically a
    * {@link BaseApplication}) which should handle that prefix. Gets set in
@@ -26,14 +33,12 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    const host  = request.host;
-    const found = this.#routeTree.find(host.nameKey);
+    const host        = request.host;
+    const application = this.#applicationFromHost(host);
 
-    if (!found) {
+    if (!application) {
       return null;
     }
-
-    const application = found.value;
 
     dispatch.logger?.dispatchingHost({
       application: application.name,
@@ -61,17 +66,34 @@ export class HostRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
+    const { hosts, ignoreCase } = this.config;
+
     const appManager = this.root.applicationManager;
     const routeTree  = new TreeMap();
 
-    for (const [host, name] of this.config.hosts) {
+    for (const [host, name] of hosts) {
       const app = appManager.get(name);
       routeTree.add(host, app);
     }
 
-    this.#routeTree = routeTree;
+    this.#ignoreCase = ignoreCase;
+    this.#routeTree  = routeTree;
 
     await super._impl_start();
+  }
+
+  /**
+   * Finds the application for the given host, if any.
+   *
+   * @param {HostInfo} host Host info.
+   * @returns {?BaseApplication} The application, or `null` if there was no
+   *   match.
+   */
+  #applicationFromHost(host) {
+    const key   = this.#ignoreCase ? host.toLowerCase().nameKey : host.nameKey;
+    const found = this.#routeTree.find(key);
+
+    return found?.value ?? null;
   }
 
 
@@ -95,15 +117,41 @@ export class HostRouter extends BaseApplication {
       _config_hosts(value) {
         MustBe.plainObject(value);
 
-        const result = new TreeMap();
-
         for (const [host, name] of Object.entries(value)) {
           Names.checkName(name);
-          const key = HostUtil.parseHostname(host, true);
-          result.add(key, name);
+          HostUtil.checkHostname(host, true);
         }
 
-        return Object.freeze(result);
+        return value;
+      }
+
+      /**
+       * Should the case of hostnames be ignored (specifically, folded to
+       * lowercase)?
+       *
+       * @param {boolean} [value] Proposed configuration value.
+       * @returns {boolean} Accepted configuration value.
+       */
+      _config_ignoreCase(value = true) {
+        return MustBe.boolean(value);
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        // We can (and do) only create the `hosts` map here, after we know the
+        // value for `ignoreCase`.
+
+        const { hosts: hostsObj, ignoreCase } = config;
+        const hosts                           = new TreeMap();
+
+        for (const [host, name] of Object.entries(hostsObj)) {
+          const keyString = ignoreCase ? host.toLowerCase() : host;
+          const key       = HostUtil.parseHostname(keyString, true);
+          hosts.add(key, name);
+        }
+        Object.freeze(hosts);
+
+        return { ...config, hosts };
       }
     };
   }

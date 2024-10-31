@@ -28,6 +28,10 @@ Breaking changes:
   * Changed "human" logs to just emit a "seconds-only" timestamp on each logged
     event, while adding a full timestamp as a header of sorts once per minute.
     This makes for more width for the logged payloads, so easier to read.
+* `webapp-builtins`:
+  * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
+    is a breaking change, because it never used to ignore case, which was
+    surprising.)
 
 Other notable changes:
 * None.

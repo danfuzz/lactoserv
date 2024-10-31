@@ -48,6 +48,13 @@ export class HostInfo {
   #nameKey = null;
 
   /**
+   * The result of {@link #toLowerCase}, or `null` if not yet calculated.
+   *
+   * @type {HostInfo}
+   */
+  #lowercaseVersion = null;
+
+  /**
    * Constructs an instance.
    *
    * **Note:** You are probably better off constructing an instance using one of
@@ -58,7 +65,9 @@ export class HostInfo {
    *   se or a string.
    */
   constructor(nameString, portNumber) {
-    this.#nameString = MustBe.string(nameString, /./);
+    // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
+    this.#nameString = MustBe.string(nameString, /^[-_.:[\]a-zA-Z0-9]+$/);
+
     this.#portNumber = AskIf.string(portNumber)
       ? Number(MustBe.string(portNumber, /^[0-9]+$/))
       : MustBe.number(portNumber);
@@ -137,6 +146,26 @@ export class HostInfo {
     }
 
     return this.#nameIsIp;
+  }
+
+  /**
+   * Gets an instance of this class which is identical to `this` but with the
+   * name lowercased. If this instance's name is already all-lowercase, then
+   * this method returns `this`.
+   *
+   * @returns {HostInfo} The lowercased version.
+   */
+  toLowerCase() {
+    if (this.#lowercaseVersion === null) {
+      const name      = this.#nameString;
+      const lowerName = name.toLowerCase();
+
+      this.#lowercaseVersion = (name === lowerName)
+        ? this
+        : new HostInfo(lowerName, this.#portNumber);
+    }
+
+    return this.#lowercaseVersion;
   }
 
 

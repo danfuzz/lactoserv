@@ -163,6 +163,31 @@ describe('nameIsIpAddress()', () => {
   });
 });
 
+describe('toLowerCase()', () => {
+  test('returns `this` if the name is already all-lowercase', () => {
+    const hi = new HostInfo('fleep.florp', 123);
+    expect(hi.toLowerCase()).toBe(hi);
+  });
+
+  test('returns a correct new instance if the name needs to be lowercased', () => {
+    const hi  = new HostInfo('fleEP.florp', 123);
+    const got = hi.toLowerCase();
+
+    expect(got).not.toBe(hi);
+    expect(got.portNumber).toBe(123);
+    expect(got.nameString).toBe('fleep.florp');
+  });
+
+  test('returns the same not-`this` result on subsequent calls', () => {
+    const hi   = new HostInfo('fleep.florP', 123);
+    const got1 = hi.toLowerCase();
+    const got2 = hi.toLowerCase();
+
+    expect(got1).not.toBe(hi);
+    expect(got2).toBe(got1);
+  });
+});
+
 describe('localhostInstance()', () => {
   describe.each`
   port
