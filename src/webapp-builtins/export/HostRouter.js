@@ -14,6 +14,13 @@ import { BaseApplication } from '@this/webapp-core';
  */
 export class HostRouter extends BaseApplication {
   /**
+   * Same value as in the config object.
+   *
+   * @type {boolean}
+   */
+  #ignoreCase = null;
+
+  /**
    * Map which goes from a host prefix to a handler (typically a
    * {@link BaseApplication}) which should handle that prefix. Gets set in
    * {@link #_impl_start}.
@@ -59,15 +66,18 @@ export class HostRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
+    const { hosts, ignoreCase } = this.config;
+
     const appManager = this.root.applicationManager;
     const routeTree  = new TreeMap();
 
-    for (const [host, name] of this.config.hosts) {
+    for (const [host, name] of hosts) {
       const app = appManager.get(name);
       routeTree.add(host, app);
     }
 
-    this.#routeTree = routeTree;
+    this.#ignoreCase = ignoreCase;
+    this.#routeTree  = routeTree;
 
     await super._impl_start();
   }
@@ -80,13 +90,10 @@ export class HostRouter extends BaseApplication {
    *   match.
    */
   #applicationFromHost(host) {
-    const found = this.#routeTree.find(host.nameKey);
+    const key   = this.#ignoreCase ? host.toLowerCase().nameKey : host.nameKey;
+    const found = this.#routeTree.find(key);
 
-    if (!found) {
-      return null;
-    }
-
-    return found.value;
+    return found?.value ?? null;
   }
 
 
