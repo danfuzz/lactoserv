@@ -3,7 +3,7 @@
 
 import { TreeMap } from '@this/collections';
 import { Names } from '@this/compy';
-import { HostUtil, IntfRequestHandler } from '@this/net-util';
+import { HostInfo, HostUtil, IntfRequestHandler } from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
