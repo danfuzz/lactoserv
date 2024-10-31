@@ -20,7 +20,7 @@ describe('constructor', () => {
   test('accepts a valid minimal configuration with `ignoreCase`', () => {
     expect(() => new HostRouter({
       hosts:      {},
-      ignoreCase: false,
+      ignoreCase: false
     })).not.toThrow();
   });
 
