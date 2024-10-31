@@ -25,9 +25,10 @@ Breaking changes:
   * Reworked `VisitDef` and `VisitRef` to not assume an associated visitor
     instance.
 * `loggy`:
-  * Changed "human" logs to just emit a "seconds-only" timestamp on each logged
-    event, while adding a full timestamp as a header of sorts once per minute.
-    This makes for more width for the logged payloads, so easier to read.
+  * Changed "human" (non-JSON) logs to just emit a "seconds-only" timestamp on
+    each logged event, while adding a full timestamp as a header of sorts once
+    per minute. This makes for more available console width for the logged
+    payloads, making it much easier to read them.
 * `webapp-builtins`:
   * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
     is a breaking change because it never used to ignore case, which was
