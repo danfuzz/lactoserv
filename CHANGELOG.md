@@ -23,7 +23,7 @@ Breaking changes:
   * New method `BaseValueVisitor.visitWrap()`, which has the same "synchronous
     if possible but async if not" behavior that is used internally.
   * Reworked `VisitDef` and `VisitRef` to not assume an associated visitor
-    instance.
+    instance. This makes them usable in more situations.
 * `loggy`:
   * Changed "human" (non-JSON) logs to just emit a "seconds-only" timestamp on
     each logged event, while adding a full timestamp as a header of sorts once
