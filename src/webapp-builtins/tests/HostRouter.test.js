@@ -60,6 +60,42 @@ describe('constructor', () => {
     })).not.toThrow();
   });
 
+  test.only('does not allow two names that differ only in case when `ignoreCase === true`', () => {
+    expect(() => new HostRouter({
+      ignoreCase: true,
+      hosts: {
+        'Boop.bop': 'app1',
+        'booP.bop': 'app2'
+      }
+    })).toThrow();
+
+    expect(() => new HostRouter({
+      ignoreCase: true,
+      hosts: {
+        '*.ZONK': 'app1',
+        '*.ZoNK': 'app2'
+      }
+    })).toThrow();
+  });
+
+  test('allows two names that differ only in case when `ignoreCase === false`', () => {
+    expect(() => new HostRouter({
+      ignoreCase: false,
+      hosts: {
+        'Boop.bop': 'app1',
+        'booP.bop': 'app2'
+      }
+    })).not.toThrow();
+
+    expect(() => new HostRouter({
+      ignoreCase: false,
+      hosts: {
+        '*.ZONK': 'app1',
+        '*.ZoNK': 'app2'
+      }
+    })).toThrow();
+  });
+
   test.each`
   name
   ${undefined}
@@ -230,6 +266,37 @@ describe('_impl_handleRequest()', () => {
     );
 
     await expectApp(hr, 'zorch.splat', 'mockApp1');
+  });
+
+  test('routes to a case-folded DNS name when `ignoreCase === true`', async () => {
+    const hr = await makeInstance(
+      {
+        ignoreCase: true,
+        hosts: {
+          'splat':             'mockApp2',
+          'ZORCH.splat':       'mockApp1',
+          'blurp.zorch.splat': 'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, 'zorch.SPLAT', 'mockApp1');
+  });
+
+  test('routes to a case-matched DNS name when `ignoreCase === false`', async () => {
+    const hr = await makeInstance(
+      {
+        ignoreCase: false,
+        hosts: {
+          'ZORCH.splat': 'mockApp1',
+          'zorch.SPLAT': 'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, 'zorch.SPLAT', 'mockApp2');
   });
 
   test('does not route to an exact-match DNS name as if it were a wildcard', async () => {

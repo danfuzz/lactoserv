@@ -95,15 +95,12 @@ export class HostRouter extends BaseApplication {
       _config_hosts(value) {
         MustBe.plainObject(value);
 
-        const result = new TreeMap();
-
         for (const [host, name] of Object.entries(value)) {
           Names.checkName(name);
-          const key = HostUtil.parseHostname(host, true);
-          result.add(key, name);
+          HostUtil.checkHostname(host, true);
         }
 
-        return Object.freeze(result);
+        return value;
       }
 
       /**
@@ -115,6 +112,24 @@ export class HostRouter extends BaseApplication {
        */
       _config_ignoreCase(value = true) {
         return MustBe.boolean(value);
+      }
+
+      /** @override */
+      _impl_validate(config) {
+        // We can (and do) only create the `hosts` map here, after we know the
+        // value for `ignoreCase`.
+
+        const { hosts: hostsObj, ignoreCase } = config;
+        const hosts                           = new TreeMap();
+
+        for (const [host, name] of Object.entries(hostsObj)) {
+          const keyString = ignoreCase ? host.toLowerCase() : host;
+          const key       = HostUtil.parseHostname(keyString, true);
+          hosts.add(key, name);
+        }
+        Object.freeze(hosts);
+
+        return { ...config, hosts };
       }
     };
   }
