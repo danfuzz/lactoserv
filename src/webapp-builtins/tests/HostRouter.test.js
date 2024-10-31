@@ -60,7 +60,7 @@ describe('constructor', () => {
     })).not.toThrow();
   });
 
-  test.only('does not allow two names that differ only in case when `ignoreCase === true`', () => {
+  test('does not allow two names that differ only in case when `ignoreCase === true`', () => {
     expect(() => new HostRouter({
       ignoreCase: true,
       hosts: {
@@ -93,7 +93,7 @@ describe('constructor', () => {
         '*.ZONK': 'app1',
         '*.ZoNK': 'app2'
       }
-    })).toThrow();
+    })).not.toThrow();
   });
 
   test.each`
