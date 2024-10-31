@@ -24,11 +24,13 @@ Breaking changes:
     if possible but async if not" behavior that is used internally.
   * Reworked `VisitDef` and `VisitRef` to not assume an associated visitor
     instance. This makes them usable in more situations.
-* `loggy`:
+* `loggy-intf` / `loggy`:
   * Changed "human" (non-JSON) logs to just emit a "seconds-only" timestamp on
     each logged event, while adding a full timestamp as a header of sorts once
     per minute. This makes for more available console width for the logged
     payloads, making it much easier to read them.
+  * Started passing `forLogging` as `true` when calling
+    `IntfDeconstructable.deconstruct()` (see above).
 * `webapp-builtins`:
   * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
     is a breaking change because it never used to ignore case, which was
