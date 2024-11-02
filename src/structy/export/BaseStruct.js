@@ -38,7 +38,7 @@ export class BaseStruct {
    *   surrounded by underscores).
    */
   _impl_propertyPrefix() {
-    return 'struct';
+    return 'prop';
   }
 
   /**
@@ -59,8 +59,8 @@ export class BaseStruct {
 
   /**
    * Fills in a property on `this` for each property that is covered by a
-   * property-checker method (prefix `_struct_` by default) defined by the
-   * actual (concrete) class of `this`. If the given `rawObject` doesn't have a
+   * property-checker method (prefix `_prop_` by default) defined by the actual
+   * (concrete) class of `this`. If the given `rawObject` doesn't have a
    * property for any given checker method, that method is called with no
    * argument, to give it a chance to use a default value or simply reject it
    * for not being filled in. After making all such calls, this method then

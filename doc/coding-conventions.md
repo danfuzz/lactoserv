@@ -102,14 +102,14 @@ use the following comment in place of an intentionally omitted constructor:
   defining base class (not even subclasses). These are more or less `protected`
   and methods declared by a base class, often (but not always) also `abstract`.
 
-* `_prot_<name>` &mdash; Defined in base classes and _not_ to be overridden. To
-  be called by subclasses; _not_ supposed to be used outside of the class. These
-  are more or less `protected final` methods defined by a base class.
-
-* `_struct_<name>` &mdash; Method defined by struct classes which are (direct or
+* `_prop_<name>` &mdash; Method defined by struct classes which are (direct or
   indirect) subclasses of `structy.BaseStruct`. Each such method is
   responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
+
+* `_prot_<name>` &mdash; Defined in base classes and _not_ to be overridden. To
+  be called by subclasses; _not_ supposed to be used outside of the class. These
+  are more or less `protected final` methods defined by a base class.
 
 * `_testing_<name>` &mdash; Methods whose sole purpose is to do instance
   introspection (and generally, break encapsulation) in order to make unit

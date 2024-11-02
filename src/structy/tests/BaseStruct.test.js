@@ -73,10 +73,10 @@ describe('using the (base) class directly', () => {
   });
 
   describe('_impl_propertyPrefix', () => {
-    test('is `struct`', () => {
+    test('is `prop`', () => {
       const instance = new BaseStruct();
 
-      expect(instance._impl_propertyPrefix()).toBe('struct');
+      expect(instance._impl_propertyPrefix()).toBe('prop');
     });
   });
 
@@ -160,11 +160,11 @@ describe('using a subclass', () => {
   class SomeStruct extends BaseStruct {
     // @defaultConstructor
 
-    _struct_abc(value = 'xyz') {
+    _prop_abc(value = 'xyz') {
       return value;
     }
 
-    _struct_florp(value) {
+    _prop_florp(value) {
       if (value === 'return-undefined') {
         return undefined;
       } else if (typeof value !== 'number') {

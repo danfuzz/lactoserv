@@ -31,6 +31,9 @@ Breaking changes:
     payloads, making it much easier to read them.
   * Started passing `forLogging` as `true` when calling
     `IntfDeconstructable.deconstruct()` (see above).
+* `structy`:
+  * Changed the default property-checker method prefix from `_prop_` to
+    `_prop_`.
 * `webapp-builtins`:
   * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
     is a breaking change because it never used to ignore case, which was
