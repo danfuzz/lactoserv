@@ -284,6 +284,23 @@ describe('_impl_handleRequest()', () => {
     await expectApp(hr, 'zorch.SPLAT', 'mockApp1');
   });
 
+  test('routes to a case-folded name and not a wildcard, when `ignoreCase === true`', async () => {
+    const hr = await makeInstance(
+      {
+        ignoreCase: true,
+        hosts: {
+          'splat':       'mockApp2',
+          'ZORCH.splat': 'mockApp1',
+          '*.splat':     'mockApp2',
+          '*':           'mockApp2'
+        }
+      },
+      { appCount: 2 }
+    );
+
+    await expectApp(hr, 'zorCH.splAT', 'mockApp1');
+  })
+
   test('routes to a case-matched DNS name when `ignoreCase === false`', async () => {
     const hr = await makeInstance(
       {
