@@ -299,7 +299,7 @@ describe('_impl_handleRequest()', () => {
     );
 
     await expectApp(hr, 'zorCH.splAT', 'mockApp1');
-  })
+  });
 
   test('routes to a case-matched DNS name when `ignoreCase === false`', async () => {
     const hr = await makeInstance(
