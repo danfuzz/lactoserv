@@ -252,7 +252,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
     const maybeSpace = spaceBrackets ? [ComboText.SPACE] : [];
     const result = new ComboText(
-      open, ...maybeSpace,
+      open, ...maybeSpace, ComboText.BREAK,
       ComboText.INDENT, ...parts, ComboText.OUTDENT,
       ComboText.BREAK, ...maybeSpace, close);
 
