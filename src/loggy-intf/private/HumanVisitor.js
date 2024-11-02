@@ -226,18 +226,20 @@ export class HumanVisitor extends BaseValueVisitor {
 
       maybeComma();
 
+      let impliedKey = false;
       if (inProps) {
         parts.push(ComboText.BREAK, this.#renderKey(k), ComboText.SPACE);
       } else if (k === `${arrayIdx}`) {
         // We got the expected (non-sparse) array index.
         arrayIdx++;
+        impliedKey = true;
       } else {
         // We just skipped over some indexes in a sparse array.
         parts.push(`[${k}]:`, ComboText.SPACE);
         arrayIdx = Number.parseInt(k) + 1;
       }
 
-      if (v[HumanVisitor.#SYM_isIndentedValue]) {
+      if (impliedKey || v[HumanVisitor.#SYM_isIndentedValue]) {
         parts.push(v);
       } else {
         // What's going on: The rendered value we're about to append _isn't_ a

@@ -37,7 +37,8 @@ Breaking changes:
     surprising.)
 
 Other notable changes:
-* None.
+* `loggy-intf` / `loggy`:
+  * Improved "human" rendering of arrays.
 
 ### v0.8.2 -- 2024-10-25
 
