@@ -219,8 +219,8 @@ export class BaseStruct {
 
     let finalObj = rawObject; // Might get replaced by a modified copy.
 
-    const defaultProp = (k, v, force = false) => {
-      if (force || !Reflect.has(finalObj, k)) {
+    const defaultProp = (k, v) => {
+      if (!Reflect.has(finalObj, k)) {
         if (finalObj === rawObject) {
           finalObj = { ...rawObject };
         }
