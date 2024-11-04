@@ -179,12 +179,14 @@ export class BaseStruct {
   //
 
   /**
-   * "Evaluate" a raw object that was passed to the constructor of a struct
-   * class. This is where the usual rules (e.g. as described by the
-   * `BaseComponent` constructor) are actually implemented. This method is
-   * expected to be called on a concrete subclass of this (base) class, and the
-   * actual called class is used to drive the salient portion of the error
-   * checking.
+   * "Evaluate" a raw object to produce an instance of this class. This is meant
+   * as a way to help classes accept "duck-type compatible" objects and convert
+   * them to actual struct instances, while also transparently just accepting
+   * actual instances.
+   *
+   * This method is expected to be called on a concrete subclass of this (base)
+   * class, and the actual called class is used to drive the salient portion of
+   * the error checking and other processing.
    *
    * @param {?object} rawObject Raw object, including allowing `null` to be
    *   equivalent to `{}`, and accepting an instance of this class.

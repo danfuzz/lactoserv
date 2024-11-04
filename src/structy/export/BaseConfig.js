@@ -17,11 +17,12 @@ export class BaseConfig extends BaseStruct {
   // @defaultConstructor
 
   /**
-   * The concrete class of the component to create, or `null` if the class is
-   * (going to be) implied by context (such as by passing an instance directly
-   * to the corresponding component constructor). This property isn't required
-   * in general, but it _is_ required if the configuration instance gets used in
-   * a context where the concrete component class is not in fact implied.
+   * The concrete class which is to be constructed by this instance, or `null`
+   * if the class is (going to be) implied by context (such as by passing an
+   * instance directly to the corresponding component constructor). This
+   * property isn't required in general, but it _is_ required if the
+   * configuration instance gets used in a context where the concrete component
+   * class is not in fact implied.
    *
    * @param {?function(new:object)} [value] Proposed configuration value.
    *   Default `null`;
@@ -44,20 +45,19 @@ export class BaseConfig extends BaseStruct {
   //
 
   /**
-   * "Evaluate" a configuration argument that was passed to the constructor of a
-   * configurable class. This is where the usual rules (e.g. as described by the
-   * `BaseComponent` constructor) are actually implemented. This method is
-   * expected to be called on a concrete subclass of this (base) class, and the
-   * actual called class is used to drive the salient portion of the error
-   * checking.
+   * Similar to {@link BaseStruct#eval}, except specifically for configuration
+   * objects. This is particularly useful when used to process a configuration
+   * argument to a constructor. (See, for example, `compy.BaseComponent`.)
    *
    * @param {?object} rawConfig Raw configuration object, including allowing
    *   `null` to be equivalent to `{}`, and accepting an instance of this class.
    * @param {object} options Evaluation options.
    * @param {object} [options.defaults] Default values when evaluating a plain
    *   object. Defaults to `{}`.
-   * @param {function(new:*)} options.targetClass The class that `rawConfig` is
-   *   supposed to be constructing.
+   * @param {?function(new:*)} options.targetClass The class that `rawConfig` is
+   *   supposed to be constructing, or `null` if the class-to-be-constructed is
+   *   ultimately going to be implied by context. This becomes the `class`
+   *   property of the constructed instance of _this_ (concrete) class.
    * @returns {BaseConfig} Instance of the concrete class that this method was
    *   called on.
    */
