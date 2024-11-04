@@ -270,7 +270,8 @@ describe('using a subclass', () => {
       test('does not modify `rawObject`', () => {
         const rawObject = { florp: 999 };
         const origRaw   = { ...rawObject };
-        const instance  = SomeStruct.eval(rawObject);
+
+        SomeStruct.eval(rawObject);
         expect(rawObject).toStrictEqual(origRaw);
       });
     });
