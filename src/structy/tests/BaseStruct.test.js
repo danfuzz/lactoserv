@@ -266,6 +266,14 @@ describe('using a subclass', () => {
         const defaults = { zonk: 4321 };
         expect(() => SomeStruct.eval(props, { defaults })).toThrow();
       });
+
+      test('does not modify `rawObject`', () => {
+        const rawObject = { florp: 999 };
+        const origRaw   = { ...rawObject };
+
+        SomeStruct.eval(rawObject);
+        expect(rawObject).toStrictEqual(origRaw);
+      });
     });
   });
 });

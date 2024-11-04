@@ -60,7 +60,7 @@ export class BaseComponent {
    * doing so, the constructor is passed the given `rawConfig` augmented with
    * the additional binding of `class` to the concrete class being constructed
    * (that is, the concrete subclass of this class whose constructor call landed
-   * here).
+   * here). See {@link BaseConfig#eval} for more details.
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance. It must either be an instance
@@ -73,7 +73,8 @@ export class BaseComponent {
    *   other instance.
    */
   constructor(rawConfig = null, rootContext = null) {
-    this.#config = new.target.CONFIG_CLASS.eval(rawConfig, { targetClass: new.target });
+    const targetClass = new.target;
+    this.#config = targetClass.CONFIG_CLASS.eval(rawConfig, { targetClass });
 
     const name = this.#config?.name;
     if (name) {
