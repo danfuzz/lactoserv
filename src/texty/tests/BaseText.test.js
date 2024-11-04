@@ -1,13 +1,66 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseText } from '@this/texty';
+import { BaseText, StringText } from '@this/texty';
 
 
 describe('.length', () => {
   test('throws', () => {
     const text = new BaseText();
     expect(() => text.length).toThrow();
+  });
+});
+
+describe('render()', () => {
+  class TestText extends StringText {
+    calledMulti = false;
+
+    _impl_renderMultiline(options) {
+      this.calledMulti = true;
+      return super._impl_renderMultiline(options);
+    }
+  }
+
+  test('handles the case where a single-line render fits at the start of a line with no indentation', () => {
+    const text = new TestText('this will fit!');
+    const got  = text.render({ maxWidth: 50 });
+    expect(got).toStrictEqual({ endColumn: 14, value: 'this will fit!' });
+    expect(text.calledMulti).toBeFalse();
+  });
+
+  test('handles the case where a single-line render fits at the start of a line with some indentation', () => {
+    const text = new TestText('this will fit!');
+    const got  = text.render({ maxWidth: 50, indentLevel: 2, indentWidth: 3 });
+    expect(got).toStrictEqual({ endColumn: 20, value: '      this will fit!' });
+    expect(text.calledMulti).toBeFalse();
+  });
+
+  test('handles the case where a single-line render fits at the end of a line-in-progress', () => {
+    const text = new TestText('yeppers!');
+    const got  = text.render({ atColumn: 30, maxWidth: 50, indentLevel: 2, indentWidth: 3 });
+    expect(got).toStrictEqual({ endColumn: 38, value: 'yeppers!' });
+    expect(text.calledMulti).toBeFalse();
+  });
+
+  test('handles the case where a single-line render will not fit at the end of a line-in-progress', () => {
+    const text = new TestText('another line please!');
+    const got  = text.render({ atColumn: 40, maxWidth: 50, indentLevel: 4, indentWidth: 2 });
+    expect(got).toStrictEqual({ endColumn: 28, value: '\n        another line please!' });
+    expect(text.calledMulti).toBeFalse();
+  });
+
+  test('handles the case where a multi-line render is required, at the start of a line', () => {
+    const text = new TestText('too wide today.');
+    const got  = text.render({ maxWidth: 14 });
+    expect(got).toStrictEqual({ endColumn: 15, value: 'too wide today.' });
+    expect(text.calledMulti).toBeTrue();
+  });
+
+  test('handles the case where a multi-line render is required, with a line already in progress', () => {
+    const text = new TestText('too wide today. so very wide!!');
+    const got  = text.render({ atColumn: 10, maxWidth: 20, indentLevel: 1, indentWidth: 2 });
+    expect(got).toStrictEqual({ endColumn: 32, value: '\n  too wide today. so very wide!!' });
+    expect(text.calledMulti).toBeTrue();
   });
 });
 
