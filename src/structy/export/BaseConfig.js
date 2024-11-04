@@ -67,6 +67,10 @@ export class BaseConfig extends BaseStruct {
    *   called on.
    */
   static eval(rawConfig, { defaults = {}, targetClass }) {
+    if (targetClass !== null) {
+      MustBe.constructorFunction(targetClass);
+    }
+
     const configObj = super.eval(rawConfig, {
       defaults: { ...defaults, class: targetClass }
     });
@@ -74,11 +78,9 @@ export class BaseConfig extends BaseStruct {
     const configTargetClass = configObj.class;
 
     if (configTargetClass !== targetClass) {
-      if (!AskIf.constructorFunction(configTargetClass)) {
-        throw new Error('Expected class (constructor function) for `rawConfig.class`.');
-      } else {
-        throw new Error(`Mismatch on \`rawConfig.class\`: expected ${targetClass.name}, got ${configTargetClass.name}`);
-      }
+      const expectedName = (targetClass === null) ? 'null' : targetClass.name;
+      const gotName      = (configTargetClass === null) ? 'null' : configTargetClass.name;
+      throw new Error(`Mismatch on \`rawConfig.class\`: expected ${expectedName}, got ${gotName}`);
     }
 
     return configObj;
