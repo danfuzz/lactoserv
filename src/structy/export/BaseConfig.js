@@ -12,6 +12,11 @@ import { BaseStruct } from '#x/BaseStruct';
  * for parsing by the base class. This (base) class defines just one property,
  * `class`, and it is up to each subclass to define other bindings specific to
  * the things-they-are-configuring.
+ *
+ * Instances of concrete subclasses of this class are meant to be associated
+ * with classes to be configured, and specifically for those classes to accept
+ * instances of this class in their constructor. See {@link #eval} for more
+ * info.
  */
 export class BaseConfig extends BaseStruct {
   // @defaultConstructor
