@@ -62,6 +62,18 @@ describe('render()', () => {
     expect(got).toStrictEqual({ endColumn: 32, value: '\n  too wide today. so very wide!!' });
     expect(text.calledMulti).toBeTrue();
   });
+
+  test.each`
+  label                         | options
+  ${'a missing `maxWidth`'}     | ${{}}
+  ${'`maxWidth === null`'}      | ${{ maxWidth: null }}
+  ${'`maxWidth === undefined`'} | ${{ maxWidth: undefined }}
+  `('treats $label as meaning unlimited width', ({ options }) => {
+    const INF  = Number.POSITIVE_INFINITY;
+    const text = new TestText('zorp.');
+    const got  = text.render({ atColumn: INF, ...options });
+    expect(got).toStrictEqual({ endColumn: INF, value: 'zorp.' });
+  });
 });
 
 describe('.toString()', () => {
