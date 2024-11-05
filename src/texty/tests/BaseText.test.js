@@ -95,7 +95,7 @@ describe('_impl_renderMultiline()', () => {
 
   describe('when `allowBreak === false`', () => {
     test('just returns the result of `toString()` if not at the start of a line', () => {
-      const str  = 'florp fleep flop plop pleep gleep glorp.'
+      const str  = 'florp fleep flop plop pleep gleep glorp.';
       const text = new StringText(str);
       const got  = text._impl_renderMultiline({
         atColumn:    100,
@@ -108,7 +108,7 @@ describe('_impl_renderMultiline()', () => {
     });
 
     test('includes indentation if at the start of a line', () => {
-      const str  = 'zibbity zubbity zoobity.'
+      const str  = 'zibbity zubbity zoobity.';
       const text = new StringText(str);
       const got  = text._impl_renderMultiline({
         atColumn:    -1,
@@ -136,7 +136,7 @@ describe('_impl_renderMultiline()', () => {
     });
 
     test('includes indentation if at the start of a line', () => {
-      const str  = 'gnip gnop gnoop.'
+      const str  = 'gnip gnop gnoop.';
       const text = new StringText(str);
       const got  = text._impl_renderMultiline({
         atColumn:    -1,
