@@ -71,6 +71,73 @@ describe('.toString()', () => {
   });
 });
 
+describe('_impl_renderMultiline()', () => {
+  test('is not overridden by `StringText`', () => {
+    // If this fails, then the rest of the tests for this method are invalid,
+    // as they'd be calling the wrong method.
+    const method1 = new BaseText()._impl_renderMultiline;
+    const method2 = new StringText('x')._impl_renderMultiline;
+
+    expect(method1).toBe(method2);
+  });
+
+  describe('when `allowBreak === false`', () => {
+    test('just returns the result of `toString()` if not at the start of a line', () => {
+      const str  = 'florp fleep flop plop pleep gleep glorp.'
+      const text = new StringText(str);
+      const got  = text._impl_renderMultiline({
+        atColumn:    100,
+        allowBreak:  false,
+        indentWidth: 3,
+        indentLevel: 5
+      });
+
+      expect(got).toStrictEqual({ endColumn: 140, value: str });
+    });
+
+    test('includes indentation if at the start of a line', () => {
+      const str  = 'zibbity zubbity zoobity.'
+      const text = new StringText(str);
+      const got  = text._impl_renderMultiline({
+        atColumn:    -1,
+        allowBreak:  false,
+        indentWidth: 2,
+        indentLevel: 3
+      });
+
+      expect(got).toStrictEqual({ endColumn: 30, value: `      ${str}` });
+    });
+  });
+
+  describe('when `allowBreak === true`', () => {
+    test('includes a newline and indentation if not at the start of a line', () => {
+      const str  = 'chirp chorp.';
+      const text = new StringText(str);
+      const got  = text._impl_renderMultiline({
+        atColumn:    1,
+        allowBreak:  true,
+        indentWidth: 1,
+        indentLevel: 3
+      });
+
+      expect(got).toStrictEqual({ endColumn: 15, value: `\n   ${str}` });
+    });
+
+    test('includes indentation if at the start of a line', () => {
+      const str  = 'gnip gnop gnoop.'
+      const text = new StringText(str);
+      const got  = text._impl_renderMultiline({
+        atColumn:    -1,
+        allowBreak:  true,
+        indentWidth: 3,
+        indentLevel: 2
+      });
+
+      expect(got).toStrictEqual({ endColumn: 22, value: `      ${str}` });
+    });
+  });
+});
+
 
 //
 // Static members
