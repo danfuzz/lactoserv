@@ -95,7 +95,14 @@ export class HumanVisitor extends BaseValueVisitor {
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
       const { functorName, args } = node;
-      return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+      switch (functorName) {
+        case 'Undefined': {
+          return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
+        }
+        default: {
+          return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+        }
+      }
     } else {
       throw this.#shouldntHappen();
     }
@@ -345,6 +352,13 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #STYLE_STRING = chalk.green;
+
+  /**
+   * Styling function to use for the value `undefined`.
+   *
+   * @type {Function}
+   */
+  static #STYLE_UNDEFINED = chalk.ansi256(240).bold;
 
   /**
    * Styling function to use for `payload.when`.
