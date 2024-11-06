@@ -110,7 +110,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNull() {
-    return 'null';
+    return this.#maybeStyle('null', HumanVisitor.#STYLE_NULL);
   }
 
   /** @override */
@@ -324,6 +324,13 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #STYLE_DEF_REF = chalk.magenta.bold;
+
+  /**
+   * Styling function to use for the value `null`.
+   *
+   * @type {Function}
+   */
+  static #STYLE_NULL = chalk.ansi256(240).bold;
 
   /**
    * Styling function to use for numbers.
