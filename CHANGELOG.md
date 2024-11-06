@@ -41,7 +41,8 @@ Breaking changes:
 
 Other notable changes:
 * `loggy-intf` / `loggy`:
-  * Improved "human" (non-JSON) rendering of arrays.
+  * Improved "human" (non-JSON) rendering of arrays, symbols, bigints,
+    `undefined`, and `null`.
 
 ### v0.8.2 -- 2024-10-25
 

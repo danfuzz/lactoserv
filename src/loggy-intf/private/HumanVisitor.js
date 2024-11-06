@@ -95,7 +95,21 @@ export class HumanVisitor extends BaseValueVisitor {
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
       const { functorName, args } = node;
-      return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+      switch (functorName) {
+        case 'BigInt': {
+          const str = `${args[0]}n`;
+          return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
+        }
+        case 'Symbol': {
+          return this.#visitCall('Symbol', args);
+        }
+        case 'Undefined': {
+          return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
+        }
+        default: {
+          return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+        }
+      }
     } else {
       throw this.#shouldntHappen();
     }
@@ -103,7 +117,7 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /** @override */
   _impl_visitNull() {
-    return 'null';
+    return this.#maybeStyle('null', HumanVisitor.#STYLE_NULL);
   }
 
   /** @override */
@@ -139,14 +153,15 @@ export class HumanVisitor extends BaseValueVisitor {
 
   /**
    * Styles the given text, but only if this instance has been told to be
-   * styled.
+   * styled _and_ the given style function is passed as non-`null`.
    *
    * @param {string} text The text in question.
-   * @param {Function} func The colorizer function.
+   * @param {?Function} func The style/colorizer function, or `null` if no style
+   *   should be applied.
    * @returns {string} The styled-or-not result.
    */
   #maybeStyle(text, func) {
-    return this.#styled
+    return (func && this.#styled)
       ? new StyledText(func(text), text.length)
       : text;
   }
@@ -267,11 +282,11 @@ export class HumanVisitor extends BaseValueVisitor {
    * @param {string} funcString The string form of the functor or functor-like
    *   thing.
    * @param {Array} args The arguments.
-   * @param {?Function} claddingStyle The styler for the "cladding" (name and
+   * @param {?Function} [claddingStyle] The styler for the "cladding" (name and
    *   parens), or `null` if none.
    * @returns {TypeText} The rendered form.
    */
-  #visitCall(funcString, args, claddingStyle) {
+  #visitCall(funcString, args, claddingStyle = null) {
     if (args.length === 0) {
       // Avoid extra work in the easy zero-args case.
       const text = `${funcString}()`;
@@ -319,7 +334,14 @@ export class HumanVisitor extends BaseValueVisitor {
   static #STYLE_DEF_REF = chalk.magenta.bold;
 
   /**
-   * Styling function to use for numbers.
+   * Styling function to use for the value `null`.
+   *
+   * @type {Function}
+   */
+  static #STYLE_NULL = chalk.ansi256(240).bold;
+
+  /**
+   * Styling function to use for numbers (including bigints).
    *
    * @type {Function}
    */
@@ -345,6 +367,13 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #STYLE_STRING = chalk.green;
+
+  /**
+   * Styling function to use for the value `undefined`.
+   *
+   * @type {Function}
+   */
+  static #STYLE_UNDEFINED = chalk.ansi256(240).bold;
 
   /**
    * Styling function to use for `payload.when`.
