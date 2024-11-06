@@ -96,6 +96,10 @@ export class HumanVisitor extends BaseValueVisitor {
     } else if (node instanceof Sexp) {
       const { functorName, args } = node;
       switch (functorName) {
+        case 'BigInt': {
+          const str = `${args[0]}n`;
+          return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
+        }
         case 'Undefined': {
           return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
         }
@@ -333,7 +337,7 @@ export class HumanVisitor extends BaseValueVisitor {
   static #STYLE_NULL = chalk.ansi256(240).bold;
 
   /**
-   * Styling function to use for numbers.
+   * Styling function to use for numbers (including bigints).
    *
    * @type {Function}
    */

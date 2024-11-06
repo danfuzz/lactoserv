@@ -55,7 +55,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitBigInt(node) {
     // Bigints aren't JSON-encodable.
-    return { '@BigInt': `${node}` };
+    return new Sexp('BigInt', `${node}`);
   }
 
   /** @override */
