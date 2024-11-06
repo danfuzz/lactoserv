@@ -101,7 +101,9 @@ export class HumanVisitor extends BaseValueVisitor {
           return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
         }
         case 'Symbol': {
-          return this.#visitCall('Symbol', args);
+          const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
+          const symArgs = (args[0] === null) ? [] : [args[0]];
+          return this.#visitCall(funcStr, symArgs);
         }
         case 'Undefined': {
           return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);

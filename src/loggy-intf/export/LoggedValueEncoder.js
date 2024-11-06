@@ -116,7 +116,16 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitSymbol(node) {
     // Symbols aren't JSON-encodable.
-    return new Sexp('Symbol', node.description);
+
+    const description = node.description ?? null;
+
+    // Note: Symbols without a description can't possibly be interned.
+    const interned =
+      (description !== null) && (node === Symbol.for(description));
+
+    return interned
+      ? new Sexp('Symbol', description, true)
+      : new Sexp('Symbol', description);
   }
 
   /** @override */
