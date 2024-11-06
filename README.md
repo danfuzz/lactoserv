@@ -67,8 +67,8 @@ It is actively run in production on a small number of public-facing websites.
   * Only sparingly uses external module dependencies (via `npm`).
   * Notably, does _not_ depend on any other web application framework (Express,
     Fastify, etc.).
-* Built to be installed as a normal POSIX-ish service (though _without_ Node
-  bundled into the installation).
+* Designed to be installed straightforwardly as a normal POSIX-ish service or
+  via `systemd` (though _without_ Node bundled into the installation).
 * Developed using automated unit and integration tests. (As of this writing,
   test coverage stats indicate _decent_ but not _outstanding_ coverage.)
 
