@@ -37,7 +37,7 @@ Breaking changes:
   * Started passing `forLogging` as `true` when calling
     `IntfDeconstructable.deconstruct()` (see above).
 * `structy`:
-  * Changed the default property-checker method prefix from `_prop_` to
+  * Changed the default property-checker method prefix from `_struct_` to
     `_prop_`.
 * `webapp-builtins`:
   * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
