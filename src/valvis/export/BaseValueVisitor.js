@@ -613,6 +613,20 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Like {@link #_prot_visitWrap}, except only ever synchronously visits the
+   * given value, throwing an error if that turned out not to be possible.
+   *
+   * @param {*} node Value to visit.
+   * @returns {*} The visit result.
+   * @throws {Error} Thrown if there was trouble with the visit which could be
+   *   determined synchronously, _or_ if the visit could not be completed
+   *   synchronously.
+   */
+  _prot_visitSync(node) {
+    return this.#visitNode(node).extractSync(false);
+  }
+
+  /**
    * Visits the given value as a "sub-visit" of the main visit. This can be used
    * in concrete subclasses, for example, to visit the various pieces of
    * instances, where a simple object property visit wouldn't suffice.

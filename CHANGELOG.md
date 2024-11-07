@@ -19,9 +19,14 @@ Breaking changes:
     results when passed `forLogging === true` (see above).
   * Reworked the `toString()` options of `Moment`.
 * `valvis`:
-  * Renamed some methods in `BaseValueVisitor`, for clarity and consistency.
-  * New method `BaseValueVisitor.visitWrap()`, which has the same "synchronous
-    if possible but async if not" behavior that is used internally.
+  * `BaseValueVisitor`:
+    * Renamed some methods, for clarity and consistency.
+    * New method `visitWrap()`, which has the same "synchronous if possible but
+      async if not" behavior that is used internally.
+    * Reworked (the renamed) `_prot_visitWrap()` to have more consistent
+      behavior.
+    * New method `_prot_visitSync()` to parallel the analogous public method
+      `visitSync()`.
   * Reworked `VisitDef` and `VisitRef` to not assume an associated visitor
     instance. This makes them usable in more situations.
 * `loggy-intf` / `loggy`:

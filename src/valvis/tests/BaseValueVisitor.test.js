@@ -1132,7 +1132,26 @@ ${'_prot_nameFromValue'}  | ${'expectedName'}
   });
 });
 
-describe('_prot_visitWrap()', () => {
+// Tests for the `_prot_visit*()` methods.
+describe.each`
+methodName           | isAsync  | wraps
+${'_prot_visitSync'} | ${false} | ${false}
+${'_prot_visitWrap'} | ${true}  | ${true}
+`('$methodName()', ({ methodName, isAsync, wraps }) => {
+  function checkResult(got, expected) {
+    if (wraps) {
+      expect(got).toBeInstanceOf(VisitResult);
+      got = got.value;
+    }
+
+    expect(got).toBe(expected);
+  }
+
+  async function checkResultPromise(got, expected) {
+    expect(got).toBeInstanceOf(Promise);
+    checkResult(await got, expected);
+  }
+
   test('works synchronously when possible', () => {
     class VisitCheckVisitor extends BaseValueVisitor {
       _impl_visitNumber(node) {
@@ -1140,9 +1159,8 @@ describe('_prot_visitWrap()', () => {
       }
 
       _impl_visitString(node_unused) {
-        const got = this._prot_visitWrap(9999);
-        expect(got).toBeInstanceOf(VisitResult);
-        expect(got.value).toBe('9999!');
+        const got = this[methodName](9999);
+        checkResult(got, '9999!');
         return 'yep';
       }
     }
@@ -1151,24 +1169,40 @@ describe('_prot_visitWrap()', () => {
     expect(got).toBe('yep');
   });
 
-  test('works asynchronously when necessary', async () => {
-    class VisitCheckVisitor extends BaseValueVisitor {
-      async _impl_visitNumber(node) {
-        return `${node}!`;
+  if (isAsync) {
+    test('works asynchronously when necessary', async () => {
+      class VisitCheckVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node) {
+          return `${node}!`;
+        }
+
+        async _impl_visitString(node_unused) {
+          const got = this[methodName](98765);
+          await checkResultPromise(got, '98765!');
+          return 'yep';
+        }
       }
 
-      async _impl_visitString(node_unused) {
-        const got = this._prot_visitWrap(98765);
-        expect(got).toBeInstanceOf(Promise);
-        expect(await got).toBeInstanceOf(VisitResult);
-        expect((await got).value).toBe('98765!');
-        return 'yep';
-      }
-    }
+      const got = await new VisitCheckVisitor('boop').visitAsyncWrap();
+      expect((await got).value).toBe('yep');
+    });
+  } else {
+    test('throws an error when not able to complete synchronously', async () => {
+      class VisitCheckVisitor extends BaseValueVisitor {
+        async _impl_visitNumber(node) {
+          return `${node}!`;
+        }
 
-    const got = await new VisitCheckVisitor('boop').visitAsyncWrap();
-    expect((await got).value).toBe('yep');
-  });
+        async _impl_visitString(node_unused) {
+          expect(() => this[methodName](112233)).toThrow(/Visit did not finish/);
+          return 'yep';
+        }
+      }
+
+      const got = await new VisitCheckVisitor('boop').visitAsyncWrap();
+      expect((await got).value).toBe('yep');
+    });
+  }
 });
 
 describe('_prot_visitProperties()', () => {

@@ -90,7 +90,7 @@ export class HumanVisitor extends BaseValueVisitor {
         result.push(
           this.#maybeStyle(' = ', style),
           ComboText.INDENT,
-          this._prot_visitWrap(node.value).value);
+          this._prot_visitSync(node.value));
       }
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
@@ -300,7 +300,7 @@ export class HumanVisitor extends BaseValueVisitor {
     const parts = [open, ComboText.INDENT];
 
     for (let at = 0; at < args.length; at++) {
-      const arg    = this._prot_visitWrap(args[at]).value;
+      const arg    = this._prot_visitSync(args[at]);
       const isLast = (at === (args.length - 1));
       if (at !== 0) {
         parts.push(ComboText.SPACE);
