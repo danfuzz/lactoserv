@@ -42,7 +42,7 @@ Breaking changes:
 * `webapp-builtins`:
   * Added `ignoreCase` option to `HostRouter`, which defaults to `true`. (This
     is a breaking change because it never used to ignore case, which was
-    surprising.)
+    surprising in terms of usual webserver expectations.)
 
 Other notable changes:
 * `loggy-intf` / `loggy`:
