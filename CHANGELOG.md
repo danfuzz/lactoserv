@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.3 -- 2024-11-07
+
+Breaking changes:
 * `sexp` (was `decon`):
   * Renamed module to `sexp`. The old name arguably had the wrong emphasis.
   * Added `forLogging` argument to `IntfDeconstructable.deconstruct()`.
