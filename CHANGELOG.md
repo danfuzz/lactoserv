@@ -31,9 +31,9 @@ Breaking changes:
     instance. This makes them usable in more situations.
 * `loggy-intf` / `loggy`:
   * Changed "human" (non-JSON) logs to just emit a "seconds-only" timestamp on
-    each logged event, while adding a full timestamp as a header of sorts once
-    per minute. This makes for more available console width for the logged
-    payloads, making it much easier to read them.
+    each logged event, while adding a full timestamp as a header of sorts no
+    more than once per minute. This makes for more available console width for
+    the logged payloads, aiding log readability.
   * Started passing `forLogging` as `true` when calling
     `IntfDeconstructable.deconstruct()` (see above).
 * `structy`:
