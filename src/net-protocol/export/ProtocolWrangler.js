@@ -338,6 +338,16 @@ export class ProtocolWrangler {
       return;
     }
 
+    // Temporary code to try to diagnose why `context.remoteInfo` is sometimes
+    // invalid. Issue #432. TODO: Remove this once the issue is resolved.
+    {
+      const remoteInfo = context.remoteInfo;
+      if (typeof remoteInfo.address !== 'string') {
+        logger?.issue432(remoteInfo);
+        throw new Error(`Issue #432: ${inspect(remoteInfo)}`);
+      }
+    }
+
     const requestContext = new RequestContext(this.interface, context.remoteInfo);
     let   request        = null;
 
