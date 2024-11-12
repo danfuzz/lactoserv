@@ -256,8 +256,10 @@ export class HumanVisitor extends BaseValueVisitor {
         arrayIdx = Number.parseInt(k) + 1;
       }
 
-      if (impliedKey || v[HumanVisitor.#SYM_isIndentedValue]) {
+      if (impliedKey) {
         parts.push(v);
+      } else if (v[HumanVisitor.#SYM_isIndentedValue]) {
+        parts.push(ComboText.NO_BREAK, v);
       } else {
         // What's going on: The rendered value we're about to append _isn't_ a
         // complex indented value (object, sexp, etc.), and if it won't fit on
