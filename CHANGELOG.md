@@ -14,7 +14,11 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `loggy-intf` / `loggy`:
+  * Minor tweaks to "human" (non-JSON) log rendering.
+* `webapp-builtins`:
+  * Simplified naming scheme for preserved log files: Names now always include
+    a `-<num>` suffix after the date.
 
 ### v0.8.3 -- 2024-11-07
 
