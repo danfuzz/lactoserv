@@ -324,7 +324,7 @@ export class BaseFilePreserver {
   async #targetPath(stats) {
     const dateStr = BaseFilePreserver.#makeInfix(stats.birthtime);
     const resolve = (count) => {
-      const infix = BaseFilePreserver.#makeInfix(dateStr, (count > 0) ? count : null);
+      const infix = BaseFilePreserver.#makeInfix(dateStr, count);
       return this.#infixPath(`-${infix}`);
     };
 
@@ -344,7 +344,7 @@ export class BaseFilePreserver {
     // question.
 
     const files = await this.#findFiles({ dateStr });
-    let   count = -1;
+    let   count = 0;
     for (const f of files) {
       const oneCount = f.count ?? 0;
       if (oneCount > count) {
