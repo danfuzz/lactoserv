@@ -15,21 +15,21 @@ See also:
 
 - - - - - - - - - -
 
-**Lactoserv is a standalone "batteries included" web application server, which 
-can serve requests based on configured components (applications and services).
-It comes bundled with a set of built-in components covering many common use
-cases, making it possible to be used productively "out of the box" without any
-programming beyond defining a configuration file. And it includes a toolkit for
-defining new components.**
+**Lactoserv is a standalone "batteries included" web application server written
+in JavaScript using Node, and first published in 2023. It serves requests based
+on configured components (applications and services), a bunch of which are
+bundled with it in order to cover many common use cases. It also includes a
+toolkit for defining new components. Because of the rich set of bundled
+components, it can be used productively "out of the box" without any programming
+beyond defining a configuration file.**
 
-Lactoserv is also intended as a solid foundation for prototyping high-level OS
-system services.
+Lactoserv is also intended as a foundation for prototyping high-level operating
+system services. <i>Watch this space!</i>
 
 And, though not the main point of it, Lactoserv is a deployable experiment to
 see just how far one can go in terms of directly serving network traffic
-(specifically HTTP-ish protocols) in Node, with minimal intermediation.
-
-It is actively run in production on a small number of public-facing websites.
+(specifically HTTP-ish protocols) in Node, with minimal intermediation. It is
+actively run in production on a small number of public-facing websites.
 
 
 ### Features
