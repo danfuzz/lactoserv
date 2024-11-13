@@ -15,11 +15,12 @@ See also:
 
 - - - - - - - - - -
 
-**Lactoserv is a standalone "batteries included" web server, which knows how to
-serve requests based on configured components &mdash; applications and services
-&mdash; along with a toolkit for defining those components. It comes bundled
-with a set of built-in components, making it possible to be used productively
-"out of the box" without any programming beyond defining a configuration file.**
+**Lactoserv is a standalone "batteries included" web application server, which 
+can serve requests based on configured components (applications and services).
+It comes bundled with a set of built-in components covering many common use
+cases, making it possible to be used productively "out of the box" without any
+programming beyond defining a configuration file. And it includes a toolkit for
+defining new components.**
 
 Lactoserv is also intended as a solid foundation for prototyping high-level OS
 system services.
