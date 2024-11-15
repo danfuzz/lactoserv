@@ -78,7 +78,7 @@ describe('using the (base) class directly', () => {
       };
 
       expect(() => new BaseStruct(obj)).toThrow(/Extra property:/);
-    })
+    });
   });
 
   describe('_impl_propertyPrefix', () => {
@@ -199,21 +199,29 @@ describe('using a subclass with one defaultable property and one required proper
     ${[]}
     ${[null]}
     `('throws given `$args` (because there is a required property)', ({ args }) => {
-      expect(() => new SomeStruct(...args)).toThrow(/florp/);
+      expect(() => new SomeStruct(...args)).toThrow(/Missing.*florp/);
     });
 
-    test.each('accepts the required property via a plain object', () => {
+    test('accepts the required property via a plain object', () => {
       const arg = { florp: 987 };
       const got = new SomeStruct(arg);
       expect(got.florp).toBe(987);
     });
 
-    test.each('accepts the required property via a non-plain object', () => {
+    test('accepts the required property via a non-plain object', () => {
       const arg = {
         get florp() { return 789; }
       };
       const got = new SomeStruct(arg);
       expect(got.florp).toBe(789);
+    });
+
+    test('throws given an extra property in a non-plain object', () => {
+      const arg = {
+        get florp() { return 789; },
+        get fleep() { return 'eep'; }
+      };
+      expect(() => new SomeStruct(arg)).toThrow(/Extra.*fleep/);
     });
   });
 
