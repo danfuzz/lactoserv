@@ -152,7 +152,7 @@ export class BaseStruct {
       const keys = Reflect.ownKeys(target);
 
       for (const k of keys) {
-        if ((typeof k !== 'string') || !k.startsWith(prefix)) {
+        if (!((typeof k === 'string') && k.startsWith(prefix))) {
           continue;
         }
 
