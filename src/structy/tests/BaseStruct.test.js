@@ -61,7 +61,6 @@ describe('using the (base) class directly', () => {
     ${123}
     ${'abc'}
     ${[1]}
-    ${new Map()}
     `('throws given invalid argument $arg', ({ arg }) => {
       expect(() => new BaseStruct(arg)).toThrow();
     });
@@ -69,6 +68,16 @@ describe('using the (base) class directly', () => {
     test('throws given a non-empty plain object', () => {
       // ...because the base class doesn't define any properties.
       expect(() => new BaseStruct({ what: 'nope' })).toThrow(/Extra property:/);
+    });
+
+    test('throws given a non-empty (non-plain) object', () => {
+      // ...because the base class doesn't define any properties.
+
+      const obj = {
+        get florp() { return 'like'; }
+      };
+
+      expect(() => new BaseStruct(obj)).toThrow(/Extra property:/);
     });
   });
 
@@ -156,7 +165,7 @@ describe('using the (base) class directly', () => {
   });
 });
 
-describe('using a subclass', () => {
+describe('using a subclass with one defaultable property and one required property', () => {
   class SomeStruct extends BaseStruct {
     // @defaultConstructor
 
@@ -183,6 +192,45 @@ describe('using a subclass', () => {
       }
     }
   }
+
+  describe('constructor()', () => {
+    test.each`
+    args
+    ${[]}
+    ${[null]}
+    `('throws given `$args` (because there is a required property)', ({ args }) => {
+      expect(() => new SomeStruct(...args)).toThrow(/Missing.*florp/);
+    });
+
+    test('accepts the required property via a plain object', () => {
+      const arg = { florp: 987 };
+      const got = new SomeStruct(arg);
+      expect(got.florp).toBe(987);
+    });
+
+    test('accepts the required property via a non-plain object', () => {
+      const arg = {
+        get florp() { return 789; }
+      };
+      const got = new SomeStruct(arg);
+      expect(got.florp).toBe(789);
+    });
+
+    test('accepts an instance of itself', () => {
+      const arg = new SomeStruct({ abc: 'yes', florp: 999 });
+      const got = new SomeStruct(arg);
+      expect(got.abc).toBe(arg.abc);
+      expect(got.florp).toBe(arg.florp);
+    });
+
+    test('throws given an extra property in a non-plain object', () => {
+      const arg = {
+        get florp() { return 789; },
+        get fleep() { return 'eep'; }
+      };
+      expect(() => new SomeStruct(arg)).toThrow(/Extra.*fleep/);
+    });
+  });
 
   describe('eval()', () => {
     describe('with no `defaults`', () => {
