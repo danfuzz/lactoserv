@@ -221,7 +221,7 @@ describe('using a subclass with one defaultable property and one required proper
       const got = new SomeStruct(arg);
       expect(got.abc).toBe(arg.abc);
       expect(got.florp).toBe(arg.florp);
-    })
+    });
 
     test('throws given an extra property in a non-plain object', () => {
       const arg = {
