@@ -16,6 +16,9 @@ Breaking changes:
 Other notable changes:
 * `loggy-intf` / `loggy`:
   * Minor tweaks to "human" (non-JSON) log rendering.
+* `structy`:
+  * Started allowing any object (plain or not) to be used as the argument to the
+    `BaseStruct` constructor.
 * `webapp-builtins`:
   * Simplified naming scheme for preserved log files: Names now always include
     a `-<num>` suffix after the date.
