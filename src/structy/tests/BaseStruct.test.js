@@ -61,7 +61,6 @@ describe('using the (base) class directly', () => {
     ${123}
     ${'abc'}
     ${[1]}
-    ${new Map()}
     `('throws given invalid argument $arg', ({ arg }) => {
       expect(() => new BaseStruct(arg)).toThrow();
     });
@@ -70,6 +69,16 @@ describe('using the (base) class directly', () => {
       // ...because the base class doesn't define any properties.
       expect(() => new BaseStruct({ what: 'nope' })).toThrow(/Extra property:/);
     });
+
+    test('throws given a non-empty (non-plain) object', () => {
+      // ...because the base class doesn't define any properties.
+
+      const obj = {
+        get florp() { return 'like'; }
+      };
+
+      expect(() => new BaseStruct(obj)).toThrow(/Extra property:/);
+    })
   });
 
   describe('_impl_propertyPrefix', () => {
@@ -156,7 +165,7 @@ describe('using the (base) class directly', () => {
   });
 });
 
-describe('using a subclass', () => {
+describe('using a subclass with one defaultable property and one required property', () => {
   class SomeStruct extends BaseStruct {
     // @defaultConstructor
 
@@ -183,6 +192,30 @@ describe('using a subclass', () => {
       }
     }
   }
+
+  describe('constructor()', () => {
+    test.each`
+    args
+    ${[]}
+    ${[null]}
+    `('throws given `$args` (because there is a required property)', ({ args }) => {
+      expect(() => new SomeStruct(...args)).toThrow(/florp/);
+    });
+
+    test.each('accepts the required property via a plain object', () => {
+      const arg = { florp: 987 };
+      const got = new SomeStruct(arg);
+      expect(got.florp).toBe(987);
+    });
+
+    test.each('accepts the required property via a non-plain object', () => {
+      const arg = {
+        get florp() { return 789; }
+      };
+      const got = new SomeStruct(arg);
+      expect(got.florp).toBe(789);
+    });
+  });
 
   describe('eval()', () => {
     describe('with no `defaults`', () => {

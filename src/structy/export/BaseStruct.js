@@ -6,24 +6,27 @@ import { AskIf, MustBe } from '@this/typey';
 
 /**
  * Base class for type-checked "structures." Each concrete subclass is expected
- * to pass a plain object in its `super()` constructor call (or pass nothing or
+ * to pass an object in its `super()` constructor call (or pass nothing or
  * `null` for an all-default construction) which is suitable for parsing by this
- * (base) class. This class defines the mechanism by which a plain object gets
- * mapped into properties on the constructed instance, including running
- * validation on each property and a final overall validation.
+ * (base) class. This class defines the mechanism by which an object gets mapped
+ * into properties on the constructed instance, including running validation on
+ * each property and a final overall validation.
  *
  * Instances of this class are always frozen.
  */
 export class BaseStruct {
   /**
-   * Constructs an instance.
+   * Constructs an instance. The argument, if non-`null`, is taken to be a
+   * "plain-like" object, in that its own enumerable string-keyed properties are
+   * what matter. Instances of (concrete subclasses of) this class can be used
+   * as arguments.
    *
-   * @param {?object} [rawObject] Raw object to parse. This is expected to be
-   *   either a plain object, or `null` to have all default values. The latter
-   *   is equivalent to passing `{}` (an empty object).
+   * @param {?object} [rawObject] Raw object to parse, or `null` to have all
+   *   default values. Passing `null` is equivalent to passing `{}` (an empty
+   *   plain object).
    */
   constructor(rawObject = null) {
-    rawObject = (rawObject === null) ? {} : MustBe.plainObject(rawObject);
+    rawObject = (rawObject === null) ? {} : MustBe.object(rawObject);
 
     this.#fillInObject(rawObject);
     Object.freeze(this);
