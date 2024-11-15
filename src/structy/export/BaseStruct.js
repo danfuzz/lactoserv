@@ -88,7 +88,7 @@ export class BaseStruct {
 
     for (const name of sortedNames) {
       const checker = checkers.get(name);
-      const hasName = name in rawObject;
+      const hasName = leftovers.has(name);
 
       try {
         const value = hasName
