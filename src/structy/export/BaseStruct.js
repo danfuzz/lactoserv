@@ -96,7 +96,7 @@ export class BaseStruct {
           : this[checker]();
 
         if (value === undefined) {
-          throw new Error(`Checker \`${checker}()\` did not return a value. Maybe missing a \`return\`?`);
+          throw new Error(`Property checker \`${checker}()\` did not return a value. Maybe missing a \`return\`?`);
         }
 
         props[name] = value;
