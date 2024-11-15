@@ -216,6 +216,13 @@ describe('using a subclass with one defaultable property and one required proper
       expect(got.florp).toBe(789);
     });
 
+    test('accepts an instance of itself', () => {
+      const arg = new SomeStruct({ abc: 'yes', florp: 999 });
+      const got = new SomeStruct(arg);
+      expect(got.abc).toBe(arg.abc);
+      expect(got.florp).toBe(arg.florp);
+    })
+
     test('throws given an extra property in a non-plain object', () => {
       const arg = {
         get florp() { return 789; },
