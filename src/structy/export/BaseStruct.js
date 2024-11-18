@@ -33,9 +33,39 @@ export class BaseStruct {
   }
 
   /**
+   * Checks to see if a property name is allowed. This is called by the base
+   * class for any encountered property which doesn't have a corresponding
+   * `_prop_*()` method. If it returns `true`, then the property-value pair is
+   * passed to {@link #_impl_extraProperty} for further processing. The default
+   * (base class) implementation always returns `false`.
+   *
+   * @param {string} name Property name.
+   * @returns {boolean} `true` if `name` is allowed on the instance, or `false`
+   *   if not.
+   */
+  _impl_allowExtraProperty(name) { // eslint-disable-line no-unused-vars
+    return false;
+  }
+
+  /**
+   * Like a `_prop_*()` (etc.) method, but called for any property whose name
+   * does not have a corresponding `_prop_*()` method and for which
+   * {@link #allowExtraProperty} returned `true`. It gets passed both the
+   * property name _and_ the value. The default (base class) implementation
+   * always returns the given value.
+   *
+   * @param {string} name Property name.
+   * @param {*} value Proposed property value.
+   * @returns {*} Accepted property value.
+   */
+  _impl_extraProperty(name, value) { // eslint-disable-line no-unused-vars
+    return value;
+  }
+
+  /**
    * Gets the prefix used on instance members of the class which are to be
-   * treated as property-checker methods. This is `struct` by default.
-   * Subclasses should override this as appropriate for their context.
+   * treated as property-checker methods. This is `prop` by default. Subclasses
+   * should override this as appropriate for their context.
    *
    * @returns {string} The property-checker prefix, as a plain word (not
    *   surrounded by underscores).
@@ -114,9 +144,25 @@ export class BaseStruct {
     }
 
     if (leftovers.size !== 0) {
-      const names = [...leftovers].join(', ');
-      const word  = (leftovers.size === 1) ? 'property' : 'properties';
-      throw new Error(`Extra ${word}: \`${names}\``);
+      const disallowed = [];
+
+      for (const name of leftovers) {
+        if (this._impl_allowExtraProperty(name)) {
+          const value = this._impl_extraProperty(name, rawObject[name]);
+          if (value === undefined) {
+            throw new Error(`Extra property checker \`_impl_extraProperty()\` did not return a value. Maybe missing a \`return\`?`);
+          }
+          props[name] = value;
+        } else {
+          disallowed.push(name);
+        }
+      }
+
+      if (disallowed.length !== 0) {
+        const names = disallowed.join(', ');
+        const word  = (disallowed.length === 1) ? 'property' : 'properties';
+        throw new Error(`Extra ${word}: \`${names}\``);
+      }
     }
 
     const finalProps = this._impl_validate(props);
