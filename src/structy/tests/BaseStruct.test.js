@@ -330,6 +330,10 @@ describe('using a subclass which allows extra properties', () => {
   class SomeStruct extends BaseStruct {
     // @defaultConstructor
 
+    get yesNo() {
+      return 'maybe';
+    }
+
     _impl_allowExtraProperty(name) {
       return name.startsWith('yes');
     }
@@ -369,6 +373,11 @@ describe('using a subclass which allows extra properties', () => {
     test('throws given an extra property whose call to `_impl_extraProperty()` fails to return a value', () => {
       const arg = { yesUndefined: 123 };
       expect(() => new SomeStruct(arg)).toThrow(/did not return/);
+    });
+
+    test('throws given an extra property which would shadow a pre-existing property', () => {
+      const arg = { yesNo: 12345 };
+      expect(() => new SomeStruct(arg)).toThrow(/would shadow/);
     });
   });
 });

@@ -147,7 +147,9 @@ export class BaseStruct {
       const disallowed = [];
 
       for (const name of leftovers) {
-        if (this._impl_allowExtraProperty(name)) {
+        if (Reflect.has(this, name)) {
+          throw new Error(`Extra property would shadow pre-existing property: ${name}`);
+        } else if (this._impl_allowExtraProperty(name)) {
           const value = this._impl_extraProperty(name, rawObject[name]);
           if (value === undefined) {
             throw new Error(`Extra property checker \`_impl_extraProperty()\` did not return a value. Maybe missing a \`return\`?`);
