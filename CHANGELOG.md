@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* general:
+  * Allow node version 23.
 * `loggy-intf` / `loggy`:
   * Minor tweaks to "human" (non-JSON) log rendering.
 * `structy`:
