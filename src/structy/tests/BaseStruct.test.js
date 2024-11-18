@@ -287,7 +287,7 @@ describe('using a subclass with one defaultable property and one required proper
       });
 
       test('throws if a property-specific validation returns `undefined`', () => {
-        expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow();
+        expect(() => SomeStruct.eval({ florp: 'return-undefined' })).toThrow(/did not return/);
       });
 
       test('throws if `_impl_validate()` returns `undefined`', () => {
@@ -322,6 +322,53 @@ describe('using a subclass with one defaultable property and one required proper
         SomeStruct.eval(rawObject);
         expect(rawObject).toStrictEqual(origRaw);
       });
+    });
+  });
+});
+
+describe('using a subclass which allows extra properties', () => {
+  class SomeStruct extends BaseStruct {
+    // @defaultConstructor
+
+    _impl_allowExtraProperty(name) {
+      return name.startsWith('yes');
+    }
+
+    _impl_extraProperty(name, value) {
+      switch (name) {
+        case 'yesUndefined': return undefined;
+        case 'yesYes':       return `${value}-${value}`;
+        default:             return value;
+      }
+    }
+  }
+
+  describe('constructor()', () => {
+    test('accepts an allowed extra property', () => {
+      const arg = { yes: 987 };
+      const got = new SomeStruct(arg);
+      expect(got.yes).toBe(987);
+    });
+
+    test('processes an allowed extra property via `_impl_extraProperty()`', () => {
+      const arg = { yesYes: 'super' };
+      const got = new SomeStruct(arg);
+      expect(got.yesYes).toBe('super-super');
+    });
+
+    test('throws given a disallowed extra property', () => {
+      const arg = { nope: 123 };
+      expect(() => new SomeStruct(arg)).toThrow(/Extra.*property.*nope/);
+    });
+
+    test('throws given two disallowed extra properties', () => {
+      const arg = { no: 123, way: 234 };
+      expect(() => new SomeStruct(arg)).toThrow(/Extra.*properties.*no, way/);
+    });
+
+    test('throws given an extra property whose call to `_impl_extraProperty()` fails to return a value', () => {
+      const arg = { yesUndefined: 123 };
+      expect(() => new SomeStruct(arg)).toThrow(/did not return/);
     });
   });
 });
