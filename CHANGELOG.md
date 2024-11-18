@@ -19,6 +19,8 @@ Other notable changes:
 * `structy`:
   * Started allowing any object (plain or not) to be used as the argument to the
     `BaseStruct` constructor.
+  * Added the option to allow undeclared properties to be allowed and
+    dynamically vetted, via two additional `_impl*` methods.
 * `webapp-builtins`:
   * Simplified naming scheme for preserved log files: Names now always include
     a `-<num>` suffix after the date.
