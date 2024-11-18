@@ -35,9 +35,10 @@ export class BaseStruct {
   /**
    * Checks to see if a property name is allowed. This is called by the base
    * class for any encountered property which doesn't have a corresponding
-   * `_prop_*()` method. If it returns `true`, then the property-value pair is
-   * passed to {@link #_impl_extraProperty} for further processing. The default
-   * (base class) implementation always returns `false`.
+   * `_prop_*()` method and which doesn't already exist in the class (shadowing
+   * a pre-existing property isn't allowed). If it returns `true`, then the
+   * property-value pair is passed to {@link #_impl_extraProperty} for further
+   * processing. The default (base class) implementation always returns `false`.
    *
    * @param {string} name Property name.
    * @returns {boolean} `true` if `name` is allowed on the instance, or `false`
