@@ -66,7 +66,7 @@ describe('encode()', () => {
 
   const someFunc = () => null;
 
-  // Stuff that isn't JSON-encodable should end up in the form of a sexp.
+  // Most stuff that isn't JSON-encodable should end up in the form of a sexp.
   test.each`
   value                  | expected
   ${undefined}           | ${sexp('Undefined')}}
@@ -83,6 +83,17 @@ describe('encode()', () => {
   `('($#) correctly encodes $value', ({ value, expected }) => {
     const got = LoggedValueEncoder.encode(value);
     expect(got).toStrictEqual(expected);
+  });
+
+  test('encodes a function as its name', () => {
+    const value = someFunc;
+    const name  = value.name;
+
+    const got1 = LoggedValueEncoder.encode(value);
+    expect(got1).toBe(name);
+
+    const got2 = LoggedValueEncoder.encode([value, value, value]);
+    expect(got2).toStrictEqual([name, name, name]);
   });
 
   test('does not def-ref a small-enough array', () => {
