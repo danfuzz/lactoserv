@@ -197,7 +197,19 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
     /** @override */
     _impl_visitInstance(node) {
-      return this.#makeDefIfAppropriate(node, node);
+      const topResult = this.#makeDefIfAppropriate(node, node);
+
+      if (topResult !== node) {
+        // The instance itself is a shared reference.
+        return topResult;
+      } else if (node instanceof Sexp) {
+        // We have to crack open the sexp to wrap any def sites that it has in
+        // it (directly or indirectly).
+        const funcArgs = this._prot_visitProperties([...node]);
+        return new Sexp(...funcArgs);
+      } else {
+        return node;
+      }
     }
 
     /** @override */

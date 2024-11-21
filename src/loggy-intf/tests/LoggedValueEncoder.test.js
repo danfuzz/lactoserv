@@ -155,4 +155,28 @@ describe('encode()', () => {
     expect(gotValue[1]).toBeInstanceOf(VisitRef);
     expect(gotValue[1].def).toBe(got);
   });
+
+  test('finds defs and refs inside instances', () => {
+    class TestClass {
+      #args;
+
+      constructor(...args) {
+        this.#args = args;
+      }
+
+      deconstruct() {
+        return new Sexp(this.constructor, ...this.#args);
+      }
+    }
+
+    const inner = new TestClass('boop');
+    const outer = new TestClass(inner, inner);
+    const got = LoggedValueEncoder.encode(outer);
+
+    const exInner = new Sexp('TestClass', 'boop');
+    const def     = new VisitDef(0, exInner);
+    const ref     = def.ref;
+    const exOuter = new Sexp('TestClass', def, ref);
+    expect(got).toStrictEqual(exOuter);
+  });
 });
