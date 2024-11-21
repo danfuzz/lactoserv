@@ -66,7 +66,7 @@ describe('encode()', () => {
 
   const someFunc = () => null;
 
-  // Stuff that isn't JSON-encodable should end up in the form of a sexp.
+  // Most stuff that isn't JSON-encodable should end up in the form of a sexp.
   test.each`
   value                  | expected
   ${undefined}           | ${sexp('Undefined')}}
@@ -83,6 +83,17 @@ describe('encode()', () => {
   `('($#) correctly encodes $value', ({ value, expected }) => {
     const got = LoggedValueEncoder.encode(value);
     expect(got).toStrictEqual(expected);
+  });
+
+  test('encodes a function as its name', () => {
+    const value = someFunc;
+    const name  = value.name;
+
+    const got1 = LoggedValueEncoder.encode(value);
+    expect(got1).toBe(name);
+
+    const got2 = LoggedValueEncoder.encode([value, value, value]);
+    expect(got2).toStrictEqual([name, name, name]);
   });
 
   test('does not def-ref a small-enough array', () => {
@@ -143,5 +154,29 @@ describe('encode()', () => {
     expect(gotValue[0]).toBe(123);
     expect(gotValue[1]).toBeInstanceOf(VisitRef);
     expect(gotValue[1].def).toBe(got);
+  });
+
+  test('finds defs and refs inside instances', () => {
+    class TestClass {
+      #args;
+
+      constructor(...args) {
+        this.#args = args;
+      }
+
+      deconstruct() {
+        return new Sexp(this.constructor, ...this.#args);
+      }
+    }
+
+    const inner = new TestClass('boop');
+    const outer = new TestClass(inner, inner);
+    const got = LoggedValueEncoder.encode(outer);
+
+    const exInner = new Sexp('TestClass', 'boop');
+    const def     = new VisitDef(0, exInner);
+    const ref     = def.ref;
+    const exOuter = new Sexp('TestClass', def, ref);
+    expect(got).toStrictEqual(exOuter);
   });
 });
