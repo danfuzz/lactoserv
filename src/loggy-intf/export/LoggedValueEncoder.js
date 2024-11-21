@@ -33,17 +33,27 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   }
 
   /** @override */
-  _impl_shouldRef(value) {
-    if (typeof value === 'object') {
-      if (Array.isArray(value)) {
-        return (value.length > 10);
-      } else if (AskIf.plainObject(value)) {
-        return (Object.entries(value).length > 10);
-      } else {
+  _impl_shouldRef(value, isCycleHead) {
+    switch (typeof value) {
+      case 'function': {
         return true;
       }
-    } else {
-      return false;
+
+      case 'object': {
+        if (isCycleHead) {
+          return true;
+        } else if (Array.isArray(value)) {
+          return (value.length > 10);
+        } else if (AskIf.plainObject(value)) {
+          return (Object.entries(value).length > 10);
+        } else {
+          return true;
+        }
+      }
+
+      default: {
+        return false;
+      }
     }
   }
 

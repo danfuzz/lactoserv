@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { inspect } from 'node:util';
+
 import { Duration } from '@this/quant';
 import { LoggedValueEncoder } from '@this/loggy-intf';
 import { Sexp } from '@this/sexp';
@@ -123,5 +125,24 @@ describe('encode()', () => {
     const expected = [def, new VisitRef(def)];
     const got      = LoggedValueEncoder.encode([value, value]);
     expect(got).toStrictEqual(expected);
+  });
+
+  test('def-refs an array with a self-reference', () => {
+    const value = [123];
+    value.push(value);
+
+    const got = LoggedValueEncoder.encode(value);
+
+    // Jest can't compare self-referential structures (it recurses forever), so
+    // we have to do it "manually."
+
+    expect(got).toBeInstanceOf(VisitDef);
+    expect(got.index).toBe(0);
+
+    const gotValue = got.value;
+    expect(gotValue).toBeArrayOfSize(2);
+    expect(gotValue[0]).toBe(123);
+    expect(gotValue[1]).toBeInstanceOf(VisitRef);
+    expect(gotValue[1].def).toBe(got);
   });
 });
