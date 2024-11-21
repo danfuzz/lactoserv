@@ -1,10 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration } from '@this/quant';
 import { LoggedValueEncoder } from '@this/loggy-intf';
+import { Duration } from '@this/quant';
 import { Sexp } from '@this/sexp';
 import { VisitDef, VisitRef } from '@this/valvis';
+
 
 function withNullObjectProtos(value) {
   if (!(value && (typeof value === 'object'))) {

@@ -4,6 +4,7 @@
 import { IntfDeconstructable } from '@this/sexp';
 import { Methods } from '@this/typey';
 
+
 /**
  * Forward declaration of this class, because `import`ing it would cause a
  * circular dependency while loading.
