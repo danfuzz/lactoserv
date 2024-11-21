@@ -23,6 +23,8 @@ Other notable changes:
     `BaseStruct` constructor.
   * Added the option to allow undeclared properties to be allowed and
     dynamically vetted, via two additional `_impl*` methods.
+* `valvis`:
+  * Simplified detection of reference cycles.
 * `webapp-builtins`:
   * Simplified naming scheme for preserved log files: Names now always include
     a `-<num>` suffix after the date.

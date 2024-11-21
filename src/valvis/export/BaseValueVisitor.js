@@ -69,14 +69,6 @@ export class BaseValueVisitor {
   #allRefs = [];
 
   /**
-   * The set of visit entries that are actively being visited. This is used to
-   * detect attempts to visit a value containing a circular reference.
-   *
-   * @type {Set<BaseValueVisitor#VisitEntry>}
-   */
-  #activeVisits = new Set();
-
-  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
@@ -826,13 +818,13 @@ export class BaseValueVisitor {
     const already = this.#visitEntries.get(node);
 
     if (already) {
-      let ref = already.ref;
+      const isCycleHead = !already.isFinished();
+      let   ref         = already.ref;
 
       if (ref || already.shouldRef()) {
         // We either already have a ref, or we are supposed to make a ref.
 
-        const isCycleHead = !already.isFinished();
-        const result      = isCycleHead ? null : already.extractSync(false);
+        const result = isCycleHead ? null : already.extractSync(false);
 
         if (!ref) {
           already.setDefRef(this.#allRefs.length);
@@ -843,7 +835,7 @@ export class BaseValueVisitor {
 
         this._impl_revisit(node, result, isCycleHead, ref);
         return this.#visitNode(ref);
-      } else if (this.#activeVisits.has(already)) {
+      } else if (isCycleHead) {
         // We have encountered the head of a reference cycle that was _not_
         // handled by making a "ref" object for the back-reference.
 
@@ -1224,7 +1216,6 @@ export class BaseValueVisitor {
       // about circular references.
       this.#promise = (async () => {
         const visitor = this.#visitor;
-        visitor.#activeVisits.add(this);
 
         try {
           let result = visitor.#visitNode0(this.#node);
@@ -1243,8 +1234,6 @@ export class BaseValueVisitor {
         } catch (e) {
           this.#finishWithError(e);
         }
-
-        visitor.#activeVisits.delete(this);
 
         return this;
       })();
