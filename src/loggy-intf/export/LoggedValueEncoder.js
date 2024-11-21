@@ -35,10 +35,6 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_shouldRef(value, isCycleHead) {
     switch (typeof value) {
-      case 'function': {
-        return true;
-      }
-
       case 'object': {
         if (isCycleHead) {
           return true;
