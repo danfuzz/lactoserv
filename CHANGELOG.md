@@ -24,7 +24,10 @@ Other notable changes:
   * Added the option to allow undeclared properties to be allowed and
     dynamically vetted, via two additional `_impl*` methods.
 * `valvis`:
-  * Simplified detection of reference cycles.
+  * `BaseValueVisitor`:
+    * Simplified detection of reference cycles.
+    * Added argument `isCycleHead` to `_impl_shouldRef()`, so client code can
+      choose to be more cycle-aware.
 * `webapp-builtins`:
   * Simplified naming scheme for preserved log files: Names now always include
     a `-<num>` suffix after the date.
