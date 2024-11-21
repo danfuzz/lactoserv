@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/sexp';
+
 import { BaseDefRef } from '#x/BaseDefRef';
 import { VisitRef } from '#x/VisitRef';
 
@@ -84,6 +86,28 @@ export class VisitDef extends BaseDefRef {
     } else {
       return this.#value;
     }
+  }
+
+  /** @override */
+  deconstruct(forLogging) {
+    let valueArgs;
+
+    if (this.#finished) {
+      if (this.#error) {
+        if (!forLogging) {
+          // Can't deconstruct an errored def when _not_ logging, as there's no
+          // way to construct such a one.
+          this.value; // This will throw.
+        }
+        valueArgs = ['error', this.#error];
+      } else {
+        valueArgs = [this.#value];
+      }
+    } else {
+      valueArgs = [];
+    }
+
+    return new Sexp(this.constructor, this.index, ...valueArgs);
   }
 
   /**

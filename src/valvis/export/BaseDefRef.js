@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { IntfDeconstructable } from '@this/sexp';
 import { Methods } from '@this/typey';
 
 /**
@@ -25,8 +26,9 @@ import { Methods } from '@this/typey';
  * implementation details.
  *
  * @abstract
+ * @implements {IntfDeconstructable}
  */
-export class BaseDefRef {
+export class BaseDefRef extends IntfDeconstructable {
   /**
    * The reference index number.
    *
@@ -40,6 +42,7 @@ export class BaseDefRef {
    * @param {number} index The reference index number.
    */
   constructor(index) {
+    super();
     this.#index = index;
   }
 

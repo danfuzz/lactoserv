@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/sexp';
 import { VisitDef, VisitRef } from '@this/valvis';
 
 
@@ -30,6 +31,29 @@ describe('.ref', () => {
   test('returns `this`', () => {
     const ref = new VisitRef(new VisitDef(1, null));
     expect(ref.ref).toBe(ref);
+  });
+});
+
+describe('deconstruct()', () => {
+  test('returns the `def` from the constructor', () => {
+    const def      = new VisitDef(456, 'floop');
+    const ref      = new VisitRef(def);
+    const expected = new Sexp(VisitRef, def);
+    expect(ref.deconstruct()).toStrictEqual(expected);
+  });
+});
+
+describe('isFinished()', () => {
+  test('is `false` when the associated `def` is unfinished', () => {
+    const def = new VisitDef(901);
+    const ref = new VisitRef(def);
+    expect(ref.isFinished()).toBeFalse();
+  });
+
+  test('is `true` when the associated `def` is finished', () => {
+    const def = new VisitDef(902, 'bloop');
+    const ref = new VisitRef(def);
+    expect(ref.isFinished()).toBeTrue();
   });
 });
 
