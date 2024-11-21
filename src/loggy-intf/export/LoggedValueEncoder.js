@@ -99,7 +99,10 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       const visitedArray = this._prot_visitProperties(sexpArray);
       return new Sexp(...visitedArray);
     } else {
-      return this._prot_labelFromValue(node);
+      const constructor = Reflect.getPrototypeOf(node).constructor;
+      return constructor
+        ? new Sexp(this._prot_nameFromValue(constructor), '...')
+        : new Sexp('Object', this._prot_labelFromValue(node), '...');
     }
   }
 
@@ -110,7 +113,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitProxy(node, isFunction_unused) {
-    return this._prot_labelFromValue(node);
+    return new Sexp('Proxy', this._prot_nameFromValue(node));
   }
 
   /** @override */
@@ -190,6 +193,11 @@ export class LoggedValueEncoder extends BaseValueVisitor {
     _impl_visitPlainObject(node) {
       const result = this._prot_visitProperties(node);
       return this.#makeDefIfAppropriate(node, result);
+    }
+
+    /** @override */
+    _impl_visitString(node) {
+      return this.#makeDefIfAppropriate(node, node);
     }
 
     /**
