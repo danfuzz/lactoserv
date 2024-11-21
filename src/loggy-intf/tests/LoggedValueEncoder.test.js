@@ -107,9 +107,13 @@ describe('encode()', () => {
 
   test('def-refs a large-enough plain object', () => {
     const value    = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11 };
-    const def      = new VisitDef(0, value);
+    const def      = new VisitDef(0, withNullObjectProtos(value));
     const expected = [def, new VisitRef(def)];
     const got      = LoggedValueEncoder.encode([value, value]);
+
+    expect(got).toBeArrayOfSize(2);
+    expect(got[0]).toStrictEqual(expected[0]);
+    expect(got[1]).toStrictEqual(expected[1]);
     expect(got).toStrictEqual(expected);
   });
 
