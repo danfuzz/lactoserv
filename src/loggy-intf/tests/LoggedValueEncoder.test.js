@@ -114,6 +114,10 @@ describe('encode()', () => {
   });
 
   test('def-refs the sexp from an instance', () => {
-
+    const value    = new Map();
+    const def      = new VisitDef(0, sexp('Map', '...'));
+    const expected = [def, new VisitRef(def)];
+    const got      = LoggedValueEncoder.encode([value, value]);
+    expect(got).toStrictEqual(expected);
   });
 });

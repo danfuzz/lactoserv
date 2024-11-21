@@ -190,6 +190,11 @@ export class LoggedValueEncoder extends BaseValueVisitor {
     }
 
     /** @override */
+    _impl_visitInstance(node) {
+      return this.#makeDefIfAppropriate(node, node);
+    }
+
+    /** @override */
     _impl_visitPlainObject(node) {
       const result = this._prot_visitProperties(node);
       return this.#makeDefIfAppropriate(node, result);
