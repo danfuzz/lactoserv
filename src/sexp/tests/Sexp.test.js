@@ -181,3 +181,27 @@ describe('.toArray()', () => {
     expect(sexp.toArray()).toStrictEqual(expected);
   });
 });
+
+// This validates that it's safe to use `expect(sexp).toStrictEqual(otherSexp)`
+// in test cases throughout the system.
+describe('validating Jest usage', () => {
+  test('can use `expect().toStrictEqual()` to check `functor`', () => {
+    const sexp1a = new Sexp('x', 1, 2, 3);
+    const sexp1b = new Sexp('x', 1, 2, 3);
+    const sexp2  = new Sexp('y', 1, 2, 3);
+
+    expect(sexp1a).toStrictEqual(sexp1a);
+    expect(sexp1a).toStrictEqual(sexp1b);
+    expect(sexp1a).not.toStrictEqual(sexp2);
+  });
+
+  test('can use `expect().toStrictEqual()` to check `args`', () => {
+    const sexp1a = new Sexp('x', 1, 2, 3);
+    const sexp1b = new Sexp('x', 1, 2, 3);
+    const sexp2  = new Sexp('x', 1, 2, 3, 'floop');
+
+    expect(sexp1a).toStrictEqual(sexp1a);
+    expect(sexp1a).toStrictEqual(sexp1b);
+    expect(sexp1a).not.toStrictEqual(sexp2);
+  });
+});

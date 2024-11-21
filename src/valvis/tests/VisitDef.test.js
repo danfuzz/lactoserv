@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Sexp } from '@this/sexp';
 import { VisitDef, VisitRef } from '@this/valvis';
 
 
@@ -101,6 +102,59 @@ ${'finishWithValue'} | ${'florp'}
   });
 });
 
+describe('deconstruct()', () => {
+  test('works on an unfinished instance', () => {
+    const def      = new VisitDef(1);
+    const expected = new Sexp(VisitDef, 1);
+    expect(def.deconstruct()).toStrictEqual(expected);
+  });
+
+  test('works on a (non-error) finished instance', () => {
+    const def      = new VisitDef(2, 'beep');
+    const expected = new Sexp(VisitDef, 2, 'beep');
+    expect(def.deconstruct()).toStrictEqual(expected);
+  });
+
+  test('works on an error-finished instance when given `forLogging === true`', () => {
+    const def      = new VisitDef(3);
+    const error    = new Error('eeeek!');
+    const expected = new Sexp(VisitDef, 3, 'error', error);
+    def.finishWithError(error);
+    expect(def.deconstruct(true)).toStrictEqual(expected);
+  });
+
+  test('throws on an error-finished instance when given `forLogging === false`', () => {
+    const def   = new VisitDef(4);
+    const error = new Error('eeeek!');
+    def.finishWithError(error);
+    expect(() => def.deconstruct()).toThrow();
+  });
+});
+
+describe('isFinished()', () => {
+  test('is `false` on an instance constructed without a value', () => {
+    const def = new VisitDef(901);
+    expect(def.isFinished()).toBeFalse();
+  });
+
+  test('is `true` on an instance constructed with a value', () => {
+    const def = new VisitDef(902, 'bloop');
+    expect(def.isFinished()).toBeTrue();
+  });
+
+  test('is `true` on an instance which became finished via `finishWithValue()`', () => {
+    const def = new VisitDef(903);
+    def.finishWithValue('bleep');
+    expect(def.isFinished()).toBeTrue();
+  });
+
+  test('is `true` on an instance which became finished via `finishWithError()`', () => {
+    const def = new VisitDef(904);
+    def.finishWithError(new Error('oy!'));
+    expect(def.isFinished()).toBeTrue();
+  });
+});
+
 describe('.toJSON()', () => {
   test('returns the expected replacement for a value-bearing instance', () => {
     const def = new VisitDef(20, 'bongo');
@@ -117,5 +171,48 @@ describe('.toJSON()', () => {
 
     def.finishWithError(new Error('Eek!'));
     expect(def.toJSON()).toStrictEqual({ '@def': [22, null, 'Eek!'] });
+  });
+});
+
+// This validates that it's safe to use `expect(def).toStrictEqual(def)`
+// in test cases throughout the system.
+describe('validating Jest usage', () => {
+  test('can use `expect().toStrictEqual()` to check `index`es', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(2, 'boop');
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+  });
+
+  test('can use `expect().toStrictEqual()` to check finished `value`s', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(1, 'zonkers');
+    const def3  = new VisitDef(1);
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+    expect(def1a).not.toStrictEqual(def3);
+  });
+
+  test('can use `expect().toStrictEqual()` to check finished `error`s', () => {
+    const def1a = new VisitDef(1);
+    const def1b = new VisitDef(1);
+    const def2  = new VisitDef(1);
+    const def3  = new VisitDef(1, 'good');
+
+    const error1 = new Error('oy 1');
+    def1a.finishWithError(error1);
+    def1b.finishWithError(error1);
+    def2.finishWithError(new Error('oy 2'));
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+    expect(def1a).not.toStrictEqual(def3);
   });
 });

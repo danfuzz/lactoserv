@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { IntfLogger } from '@this/loggy-intf';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
 import { IncomingRequest } from '#x/IncomingRequest';

@@ -67,7 +67,7 @@ class ProxyAwareVisitor extends BaseValueVisitor {
  * Visitor subclass, which is set up to use refs for duplicate objects.
  */
 class RefMakingVisitor extends BaseValueVisitor {
-  _impl_shouldRef(value) {
+  _impl_shouldRef(value, isCycleHead_unused) {
     return (typeof value === 'object');
   }
 
@@ -516,7 +516,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
     const MSG = 'Not today, Satan!';
 
     class TestVisitor extends BaseValueVisitor {
-      _impl_shouldRef(node_unused) {
+      _impl_shouldRef(node_unused, isCycleHead_unused) {
         return true;
       }
 
@@ -699,7 +699,7 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
     class TestVisitor extends BaseValueVisitor {
       calledOn = [];
 
-      _impl_shouldRef(node) {
+      _impl_shouldRef(node, isCycleHead_unused) {
         this.calledOn.push(node);
         return false;
       }
@@ -747,7 +747,16 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
 
   describe('when `_impl_shouldRef()` can return `true`', () => {
     class TestVisitor extends RefMakingVisitor {
-      refs = [];
+      cycleHeads = [];
+      refs       = [];
+
+      _impl_shouldRef(node, isCycleHead) {
+        if (isCycleHead) {
+          this.cycleHeads.push(node);
+        }
+
+        return super._impl_shouldRef(node, isCycleHead);
+      }
 
       _impl_newRef(ref) {
         this.refs.push({ ref, wasFinished: ref.isFinished() });
@@ -768,6 +777,8 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(ref.value).toBe(got[1][1]);
           expect(visitor.getVisitResult(shared)).toBe(ref.value);
           expect(wasFinished).toBeTrue();
+
+          expect(visitor.cycleHeads).toBeArrayOfSize(0);
         }
       });
     });
@@ -789,6 +800,9 @@ ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
           expect(visitor.getVisitResult(selfRef)).toBe(ref.value);
           expect(ref).toBe(ref.value[2]);
           expect(wasFinished).toBeFalse();
+
+          expect(visitor.cycleHeads).toBeArrayOfSize(1);
+          expect(visitor.cycleHeads[0]).toBe(selfRef);
         }
       });
     });
@@ -819,7 +833,7 @@ describe('_impl_revisit()', () => {
       this.#doRefs = doRefs;
     }
 
-    _impl_shouldRef(node) {
+    _impl_shouldRef(node, isCycleHead_unused) {
       return this.#doRefs && (typeof node === 'object');
     }
 

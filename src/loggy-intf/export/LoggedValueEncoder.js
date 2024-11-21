@@ -33,17 +33,27 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   }
 
   /** @override */
-  _impl_shouldRef(value) {
-    if (typeof value === 'object') {
-      if (Array.isArray(value)) {
-        return (value.length > 10);
-      } else if (AskIf.plainObject(value)) {
-        return (Object.entries(value).length > 10);
-      } else {
+  _impl_shouldRef(value, isCycleHead) {
+    switch (typeof value) {
+      case 'function': {
         return true;
       }
-    } else {
-      return false;
+
+      case 'object': {
+        if (isCycleHead) {
+          return true;
+        } else if (Array.isArray(value)) {
+          return (value.length > 10);
+        } else if (AskIf.plainObject(value)) {
+          return (Object.entries(value).length > 10);
+        } else {
+          return true;
+        }
+      }
+
+      default: {
+        return false;
+      }
     }
   }
 
@@ -99,7 +109,10 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       const visitedArray = this._prot_visitProperties(sexpArray);
       return new Sexp(...visitedArray);
     } else {
-      return this._prot_labelFromValue(node);
+      const constructor = Reflect.getPrototypeOf(node).constructor;
+      return constructor
+        ? new Sexp(this._prot_nameFromValue(constructor), '...')
+        : new Sexp('Object', this._prot_labelFromValue(node), '...');
     }
   }
 
@@ -110,7 +123,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitProxy(node, isFunction_unused) {
-    return this._prot_labelFromValue(node);
+    return new Sexp('Proxy', this._prot_nameFromValue(node));
   }
 
   /** @override */
@@ -187,9 +200,19 @@ export class LoggedValueEncoder extends BaseValueVisitor {
     }
 
     /** @override */
+    _impl_visitInstance(node) {
+      return this.#makeDefIfAppropriate(node, node);
+    }
+
+    /** @override */
     _impl_visitPlainObject(node) {
       const result = this._prot_visitProperties(node);
       return this.#makeDefIfAppropriate(node, result);
+    }
+
+    /** @override */
+    _impl_visitString(node) {
+      return this.#makeDefIfAppropriate(node, node);
     }
 
     /**

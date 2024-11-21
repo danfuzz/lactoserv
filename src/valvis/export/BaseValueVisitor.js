@@ -69,14 +69,6 @@ export class BaseValueVisitor {
   #allRefs = [];
 
   /**
-   * The set of visit entries that are actively being visited. This is used to
-   * detect attempts to visit a value containing a circular reference.
-   *
-   * @type {Set<BaseValueVisitor#VisitEntry>}
-   */
-  #activeVisits = new Set();
-
-  /**
    * Constructs an instance whose purpose in life is to visit the indicated
    * value.
    *
@@ -335,10 +327,12 @@ export class BaseValueVisitor {
    * `false` for everything else.
    *
    * @param {*} value The value to check.
+   * @param {boolean} isCycleHead Was `value` just detected as the head of a
+   *   reference cyle?
    * @returns {boolean} `true` if `value` should be converted into a reference.
    *   or `false` if not.
    */
-  _impl_shouldRef(value) { // eslint-disable-line no-unused-vars
+  _impl_shouldRef(value, isCycleHead) { // eslint-disable-line no-unused-vars
     return false;
   }
 
@@ -826,13 +820,13 @@ export class BaseValueVisitor {
     const already = this.#visitEntries.get(node);
 
     if (already) {
-      let ref = already.ref;
+      const isCycleHead = !already.isFinished();
+      let   ref         = already.ref;
 
-      if (ref || already.shouldRef()) {
+      if (ref || already.shouldRef(isCycleHead)) {
         // We either already have a ref, or we are supposed to make a ref.
 
-        const isCycleHead = !already.isFinished();
-        const result      = isCycleHead ? null : already.extractSync(false);
+        const result = isCycleHead ? null : already.extractSync(false);
 
         if (!ref) {
           already.setDefRef(this.#allRefs.length);
@@ -843,7 +837,7 @@ export class BaseValueVisitor {
 
         this._impl_revisit(node, result, isCycleHead, ref);
         return this.#visitNode(ref);
-      } else if (this.#activeVisits.has(already)) {
+      } else if (isCycleHead) {
         // We have encountered the head of a reference cycle that was _not_
         // handled by making a "ref" object for the back-reference.
 
@@ -1181,10 +1175,12 @@ export class BaseValueVisitor {
      * {@link #_impl_shouldRef} is never called more than once per original
      * value.
      *
+     * @param {boolean} isCycleHead Was this entry's value just detected as the
+     *   head of a reference cyle?
      * @returns {boolean} `true` iff repeat visits to this instance should
      *   result in a ref to this instance's result.
      */
-    shouldRef() {
+    shouldRef(isCycleHead) {
       if (this.#shouldRef === null) {
         const visitor = this.#visitor;
         const node    = this.#node;
@@ -1195,20 +1191,29 @@ export class BaseValueVisitor {
           case 'function':
           case 'string':
           case 'symbol': {
-            result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+            result = visitor._impl_shouldRef(node, isCycleHead); // eslint-disable-line no-restricted-syntax
 
             break;
           }
 
           case 'object': {
             if ((node !== null) && !visitor.#isAssociatedDefOrRef(node)) {
-              result = visitor._impl_shouldRef(node); // eslint-disable-line no-restricted-syntax
+              result = visitor._impl_shouldRef(node, isCycleHead); // eslint-disable-line no-restricted-syntax
             }
             break;
           }
         }
 
         this.#shouldRef = result;
+      } else if (isCycleHead) {
+        /* c8 ignore start */
+        // Shouldn't happen: By construction, the moment a second reference to a
+        // cycle head is encountered, this method should end up getting called
+        // with `isCycleHead === true`, and if the `_impl` declined to make a
+        // ref, the whole visit should end up erroring out with an error along
+        // the lines of "can't visit circular reference."
+        throw new Error('Shouldn\'t happen: Cycle head detected too late.');
+        /* c8 ignore stop */
       }
 
       return this.#shouldRef;
@@ -1224,7 +1229,6 @@ export class BaseValueVisitor {
       // about circular references.
       this.#promise = (async () => {
         const visitor = this.#visitor;
-        visitor.#activeVisits.add(this);
 
         try {
           let result = visitor.#visitNode0(this.#node);
@@ -1243,8 +1247,6 @@ export class BaseValueVisitor {
         } catch (e) {
           this.#finishWithError(e);
         }
-
-        visitor.#activeVisits.delete(this);
 
         return this;
       })();

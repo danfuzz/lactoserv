@@ -3,8 +3,8 @@
 
 import stripAnsi from 'strip-ansi';
 
-import { Sexp } from '@this/sexp';
 import { LogTag } from '@this/loggy-intf';
+import { Sexp } from '@this/sexp';
 import { StyledText } from '@this/texty';
 
 

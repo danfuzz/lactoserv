@@ -17,12 +17,18 @@ Other notable changes:
 * general:
   * Allow node version 23.
 * `loggy-intf` / `loggy`:
-  * Minor tweaks to "human" (non-JSON) log rendering.
+  * Made several improvements to "human" (non-JSON) log rendering, including
+    fixing it to be able to log values with reference cycles.
 * `structy`:
   * Started allowing any object (plain or not) to be used as the argument to the
     `BaseStruct` constructor.
   * Added the option to allow undeclared properties to be allowed and
     dynamically vetted, via two additional `_impl*` methods.
+* `valvis`:
+  * `BaseValueVisitor`:
+    * Simplified detection of reference cycles.
+    * Added argument `isCycleHead` to `_impl_shouldRef()`, so client code can
+      choose to be more cycle-aware.
 * `webapp-builtins`:
   * Simplified naming scheme for preserved log files: Names now always include
     a `-<num>` suffix after the date.
