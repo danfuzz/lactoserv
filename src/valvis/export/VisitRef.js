@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { BaseDefRef } from '#x/BaseDefRef';
 import { VisitDef } from '#x/VisitDef';
 
@@ -28,6 +30,8 @@ export class VisitRef extends BaseDefRef {
    * @param {VisitDef} def The corresponding def.
    */
   constructor(def) {
+    MustBe.instanceOf(def, VisitDef);
+
     const valueArg = def.isFinished() ? [def.value] : [];
     super(def.index, ...valueArg);
 
