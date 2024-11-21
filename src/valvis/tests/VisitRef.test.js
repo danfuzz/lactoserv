@@ -63,3 +63,33 @@ describe('.toJSON()', () => {
     expect(ref.toJSON()).toStrictEqual({ '@ref': [2] });
   });
 });
+
+// This validates that it's safe to use `expect(ref).toStrictEqual(ref)`
+// in test cases throughout the system.
+describe('validating Jest usage', () => {
+  test('can use `expect().toStrictEqual()` to check the defs\' `index`', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(2, 'boop');
+    const ref1a = new VisitRef(def1a);
+    const ref1b = new VisitRef(def1b);
+    const ref2  = new VisitRef(def2);
+
+    expect(ref1a).toStrictEqual(ref1a);
+    expect(ref1a).toStrictEqual(ref1b);
+    expect(ref1a).not.toStrictEqual(ref2);
+  });
+
+  test('can use `expect().toStrictEqual()` to check the defs\' `value`', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(1, 'zonkers');
+    const ref1a = new VisitRef(def1a);
+    const ref1b = new VisitRef(def1b);
+    const ref2  = new VisitRef(def2);
+
+    expect(ref1a).toStrictEqual(ref1a);
+    expect(ref1a).toStrictEqual(ref1b);
+    expect(ref1a).not.toStrictEqual(ref2);
+  });
+});

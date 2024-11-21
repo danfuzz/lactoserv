@@ -173,3 +173,46 @@ describe('.toJSON()', () => {
     expect(def.toJSON()).toStrictEqual({ '@def': [22, null, 'Eek!'] });
   });
 });
+
+// This validates that it's safe to use `expect(def).toStrictEqual(def)`
+// in test cases throughout the system.
+describe('validating Jest usage', () => {
+  test('can use `expect().toStrictEqual()` to check `index`es', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(2, 'boop');
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+  });
+
+  test('can use `expect().toStrictEqual()` to check finished `value`s', () => {
+    const def1a = new VisitDef(1, 'boop');
+    const def1b = new VisitDef(1, 'boop');
+    const def2  = new VisitDef(1, 'zonkers');
+    const def3  = new VisitDef(1);
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+    expect(def1a).not.toStrictEqual(def3);
+  });
+
+  test('can use `expect().toStrictEqual()` to check finished `error`s', () => {
+    const def1a = new VisitDef(1);
+    const def1b = new VisitDef(1);
+    const def2  = new VisitDef(1);
+    const def3  = new VisitDef(1, 'good');
+
+    const error1 = new Error('oy 1');
+    def1a.finishWithError(error1);
+    def1b.finishWithError(error1);
+    def2.finishWithError(new Error('oy 2'));
+
+    expect(def1a).toStrictEqual(def1a);
+    expect(def1a).toStrictEqual(def1b);
+    expect(def1a).not.toStrictEqual(def2);
+    expect(def1a).not.toStrictEqual(def3);
+  });
+});
