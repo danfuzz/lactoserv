@@ -11,16 +11,19 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
-
-Other notable changes:
-* general:
-  * Allow node version 23.
 * `loggy-intf` / `loggy`:
   * Improved the data model used to encode logged items, including:
     * Representing functions and classes as structured objects instead of just
       strings.
     * Making it possible to encode values with reference cycles.
+* `webapp-builtins`:
+  * Simplified naming scheme for preserved log files: Names now always include
+    a `-<num>` suffix after the date.
+
+Other notable changes:
+* general:
+  * Allow node version 23.
+* `loggy-intf` / `loggy`:
   * Improved "human" (non-JSON) log rendering, including:
     * Correctly rendering shared references.
     * Tweaking the styling for readability.
@@ -34,9 +37,6 @@ Other notable changes:
     * Simplified detection of reference cycles.
     * Added argument `isCycleHead` to `_impl_shouldRef()`, so client code can
       choose to be more cycle-aware.
-* `webapp-builtins`:
-  * Simplified naming scheme for preserved log files: Names now always include
-    a `-<num>` suffix after the date.
 
 ### v0.8.3 -- 2024-11-07
 
