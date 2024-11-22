@@ -50,6 +50,7 @@ export class ProductInfo {
   static init() {
     this.#extractInfo();
     ThisModule.logger?.productInfo(this.#info);
+    ThisModule.logger?.HELLO_THERE({ abc: 'boop', 'cd-ef': 'floop', 97: 'zoop', [-123]: 'doop' });
   }
 
   /**
