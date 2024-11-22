@@ -31,6 +31,14 @@ function sexp(type, ...args) {
   return new Sexp(type, ...args);
 }
 
+function sexpClass(type) {
+  return new Sexp('Class', type);
+}
+
+function sexpFunc(type) {
+  return new Sexp('Function', type);
+}
+
 describe('encode()', () => {
   // Cases where the result should be equal to the input.
   test.each`
@@ -66,7 +74,7 @@ describe('encode()', () => {
 
   const someFunc = () => null;
 
-  // Most stuff that isn't JSON-encodable should end up in the form of a sexp.
+  // Stuff that isn't JSON-encodable should end up in the form of a sexp.
   test.each`
   value                  | expected
   ${undefined}           | ${sexp('Undefined')}}
@@ -74,8 +82,13 @@ describe('encode()', () => {
   ${321123n}             | ${sexp('BigInt', '321123')}}
   ${Symbol('xyz')}       | ${sexp('Symbol', 'xyz')}}
   ${Symbol.for('blorp')} | ${sexp('Symbol', 'blorp', true)}}
-  ${new Duration(12.34)} | ${sexp('Duration', 12.34, '12.340 sec')}
-  ${new Map()}           | ${sexp('Map', sexp('Elided'))}
+  ${new Duration(12.34)} | ${sexp(sexpClass('Duration'), 12.34, '12.340 sec')}
+  ${new Map()}           | ${sexp(sexpFunc('Map'), sexp('Elided'))}
+  ${Map}                 | ${sexp('Function', 'Map')}
+  ${someFunc}            | ${sexp('Function', 'someFunc')}
+  ${() => null}          | ${sexp('Function')}
+  ${SomeClass}           | ${sexp('Class', 'SomeClass')}
+  ${class {}}            | ${sexp('Class')}
   ${new Proxy({}, {})}   | ${sexp('Proxy', '<anonymous>')}
   ${new Proxy([], {})}   | ${sexp('Proxy', '<anonymous>')}
   ${new Proxy(new SomeClass(), {})} | ${sexp('Proxy', '<anonymous>')}
@@ -83,17 +96,6 @@ describe('encode()', () => {
   `('($#) correctly encodes $value', ({ value, expected }) => {
     const got = LoggedValueEncoder.encode(value);
     expect(got).toStrictEqual(expected);
-  });
-
-  test('encodes a function as its name', () => {
-    const value = someFunc;
-    const name  = value.name;
-
-    const got1 = LoggedValueEncoder.encode(value);
-    expect(got1).toBe(name);
-
-    const got2 = LoggedValueEncoder.encode([value, value, value]);
-    expect(got2).toStrictEqual([name, name, name]);
   });
 
   test('does not def-ref a small-enough array', () => {
@@ -131,7 +133,7 @@ describe('encode()', () => {
 
   test('def-refs the sexp from an instance', () => {
     const value    = new Map();
-    const def      = new VisitDef(0, sexp('Map', sexp('Elided')));
+    const def      = new VisitDef(0, sexp(sexpFunc('Map'), sexp('Elided')));
     const expected = [def, new VisitRef(def)];
     const got      = LoggedValueEncoder.encode([value, value]);
     expect(got).toStrictEqual(expected);
@@ -173,10 +175,10 @@ describe('encode()', () => {
     const outer = new TestClass(inner, inner);
     const got = LoggedValueEncoder.encode(outer);
 
-    const exInner = new Sexp('TestClass', 'boop');
+    const exInner = new Sexp(sexpClass('TestClass'), 'boop');
     const def     = new VisitDef(0, exInner);
     const ref     = def.ref;
-    const exOuter = new Sexp('TestClass', def, ref);
+    const exOuter = new Sexp(sexpClass('TestClass'), def, ref);
     expect(got).toStrictEqual(exOuter);
   });
 });

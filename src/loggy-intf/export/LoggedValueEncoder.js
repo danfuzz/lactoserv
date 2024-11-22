@@ -66,7 +66,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitClass(node) {
-    return this._prot_nameFromValue(node);
+    return this.#visitFunctionOrClass(node, true);
   }
 
   /** @override */
@@ -95,7 +95,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitFunction(node) {
-    return this._prot_nameFromValue(node);
+    return this.#visitFunctionOrClass(node, false);
   }
 
   /** @override */
@@ -108,7 +108,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       const constructor = Reflect.getPrototypeOf(node).constructor;
       const ELIDED      = LoggedValueEncoder.#SEXP_ELIDED;
       return constructor
-        ? new Sexp(this._prot_nameFromValue(constructor), ELIDED)
+        ? new Sexp(this._prot_visitSync(constructor), ELIDED)
         : new Sexp('Object', this._prot_labelFromValue(node), ELIDED);
     }
   }
@@ -142,6 +142,22 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   _impl_visitUndefined(node_unused) {
     // `undefined` isn't JSON-encodable.
     return new Sexp('Undefined');
+  }
+
+  /**
+   * Transforms a function or class into the corresponding {@link Sexp} form.
+   *
+   * @param {function()} node Function or class to convert.
+   * @param {boolean} isClass Is it considered a class (that is, only usable as
+   *   a constructor)?
+   * @returns {Sexp} The converted form.
+   */
+  #visitFunctionOrClass(node, isClass) {
+    const name      = node.name;
+    const anonymous = !(name && (name !== ''));
+    const nameArgs  = anonymous ? [] : [name];
+
+    return new Sexp(isClass ? 'Class' : 'Function', ...nameArgs);
   }
 
   //
