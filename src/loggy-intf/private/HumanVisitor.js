@@ -178,11 +178,24 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered form.
    */
   #renderKey(key) {
-    if ((typeof key === 'string') && /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(key)) {
-      // It doesn't have to be quoted.
-      return `${key}:`;
+    if (typeof key === 'string') {
+      if (/^([$_a-zA-Z][$_a-zA-Z0-9]*|[1-9][0-9]{0,15}|0)$/.test(key)) {
+        // It doesn't have to be quoted.
+        return `${key}:`;
+      } else if (/^-[1-9][0-9]{0,15}$/.test(key)) {
+        // It can be treated like a negative numeric literal.
+        return `[${key}]:`;
+      } else {
+        // It needs to be quoted.
+        return `${util.inspect(key)}:`;
+      }
     } else {
-      return new ComboText(this._impl_visitString(key), ':');
+      // A non-string, perhaps a symbol, however as of this writing this case
+      // isn't used.
+      return new ComboText(
+        '[', ComboText.NO_BREAK,
+        this._prot_visitSync(key),
+        ComboText.NO_BREAK, ']:');
     }
   }
 
