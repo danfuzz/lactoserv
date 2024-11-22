@@ -97,7 +97,7 @@ export class Sexp {
     switch (typeof functor) {
       case 'function':
       case 'object': {
-        if ((functor === null) || (functor === '')) {
+        if (functor === null) {
           break;
         }
 
@@ -158,10 +158,15 @@ export class Sexp {
    * @returns {*} The replacement form to encode.
    */
   toJSON(key_unused) {
-    const name      = this.functorName;
-    const finalName = (name === '<anonymous>') ? '@' : `@${name}`;
+    const { functor } = this;
 
-    return { [finalName]: this.#args };
+    if (typeof functor === 'string') {
+      const name      = this.functorName;
+      const finalName = (name === '<anonymous>') ? '@' : `@${name}`;
+      return { [finalName]: this.#args };
+    } else {
+      return { '@Sexp': this.toArray() };
+    }
   }
 
   /**
