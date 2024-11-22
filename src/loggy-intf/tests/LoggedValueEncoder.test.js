@@ -75,7 +75,7 @@ describe('encode()', () => {
   ${Symbol('xyz')}       | ${sexp('Symbol', 'xyz')}}
   ${Symbol.for('blorp')} | ${sexp('Symbol', 'blorp', true)}}
   ${new Duration(12.34)} | ${sexp('Duration', 12.34, '12.340 sec')}
-  ${new Map()}           | ${sexp('Map', '...')}
+  ${new Map()}           | ${sexp('Map', sexp('Elided'))}
   ${new Proxy({}, {})}   | ${sexp('Proxy', '<anonymous>')}
   ${new Proxy([], {})}   | ${sexp('Proxy', '<anonymous>')}
   ${new Proxy(new SomeClass(), {})} | ${sexp('Proxy', '<anonymous>')}
@@ -131,7 +131,7 @@ describe('encode()', () => {
 
   test('def-refs the sexp from an instance', () => {
     const value    = new Map();
-    const def      = new VisitDef(0, sexp('Map', '...'));
+    const def      = new VisitDef(0, sexp('Map', sexp('Elided')));
     const expected = [def, new VisitRef(def)];
     const got      = LoggedValueEncoder.encode([value, value]);
     expect(got).toStrictEqual(expected);
