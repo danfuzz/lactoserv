@@ -17,8 +17,13 @@ Other notable changes:
 * general:
   * Allow node version 23.
 * `loggy-intf` / `loggy`:
-  * Made several improvements to "human" (non-JSON) log rendering, including
-    fixing it to be able to log values with reference cycles.
+  * Improved the data model used to encode logged items, including:
+    * Representing functions and classes as structured objects instead of just
+      strings.
+    * Making it possible to encode values with reference cycles.
+  * Improved "human" (non-JSON) log rendering, including:
+    * Correctly rendering shared references.
+    * Tweaking the styling for readability.
 * `structy`:
   * Started allowing any object (plain or not) to be used as the argument to the
     `BaseStruct` constructor.
