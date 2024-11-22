@@ -27,8 +27,8 @@ Other notable changes:
 * `structy`:
   * Started allowing any object (plain or not) to be used as the argument to the
     `BaseStruct` constructor.
-  * Added the option to allow undeclared properties to be allowed and
-    dynamically vetted, via two additional `_impl*` methods.
+  * Added the option to allow undeclared properties to be dynamically vetted
+    instead of always getting rejected, via two additional `_impl*` methods.
 * `valvis`:
   * `BaseValueVisitor`:
     * Simplified detection of reference cycles.
