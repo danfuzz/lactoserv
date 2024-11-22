@@ -152,6 +152,26 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /**
+   * Renders a sexp representing a function or class object.
+   *
+   * @param {Sexp} sexp The instance to render.
+   * @param {boolean} isClass Is this a class?
+   * @returns {TypeText} The rendered form.
+   */
+  #renderFunctionOrClass(sexp, isClass) {
+    const name     = sexp.args[0];
+    const style    = isClass ? HumanVisitor.#STYLE_CLASS : HumanVisitor.#STYLE_FUNCTION;
+    const label    = isClass ? 'class' : 'function';
+    const fullName = name ? `${label} ${name}` : label;
+
+    return [
+      this.#maybeStyle(`${fullName}`, style),
+      ' ',
+      this.#maybeStyle('{...}', HumanVisitor.#STYLE_ELIDED)
+    ].join('');
+  }
+
+  /**
    * Renders an object key, quoting and colorizing as appropriate.
    *
    * @param {*} key The key.
@@ -173,27 +193,48 @@ export class HumanVisitor extends BaseValueVisitor {
    * @returns {TypeText} The rendered form.
    */
   #renderSexp(sexp) {
-    const { functorName, args } = node;
-    switch (functorName) {
-      case 'BigInt': {
-        const str = `${args[0]}n`;
-        return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
+    const { functor, args } = sexp;
+    let   name              = functor;
+
+    if (functor instanceof Sexp) {
+      switch (functor.functor) {
+        case 'Class':
+        case 'Function': {
+          name = functor.args[0];
+          break;
+        }
+        default: {
+          name = functor.functorName;
+          break;
+        }
       }
-      case 'Elided': {
-        return this.#maybeStyle('...', HumanVisitor.#STYLE_ELIDED);
-      }
-      case 'Symbol': {
-        const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
-        const symArgs = (args[0] === null) ? [] : [args[0]];
-        return this.#visitCall(funcStr, symArgs);
-      }
-      case 'Undefined': {
-        return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
-      }
-      default: {
-        return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+    } else if (typeof functor === 'string') {
+      switch (functor) {
+        case 'BigInt': {
+          const str = `${args[0]}n`;
+          return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
+        }
+        case 'Class': {
+          return this.#renderFunctionOrClass(sexp, true);
+        }
+        case 'Elided': {
+          return this.#maybeStyle('...', HumanVisitor.#STYLE_ELIDED);
+        }
+        case 'Function': {
+          return this.#renderFunctionOrClass(sexp, false);
+        }
+        case 'Symbol': {
+          const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
+          const symArgs = (args[0] === null) ? [] : [args[0]];
+          return this.#visitCall(funcStr, symArgs);
+        }
+        case 'Undefined': {
+          return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
+        }
       }
     }
+
+    return this.#visitCall(`@${name}`, args, HumanVisitor.#STYLE_SEXP);
   }
 
   /**
@@ -351,11 +392,25 @@ export class HumanVisitor extends BaseValueVisitor {
   static #STYLE_DEF_REF = chalk.magenta.bold;
 
   /**
+   * Styling function to use for class objects.
+   *
+   * @type {Function}
+   */
+  static #STYLE_CLASS = chalk.blue.bold;
+
+  /**
    * Styling function to use for the "elided" value, rendered as `...`.
    *
    * @type {Function}
    */
   static #STYLE_ELIDED = chalk.dim;
+
+  /**
+   * Styling function to use for functions.
+   *
+   * @type {Function}
+   */
+  static #STYLE_FUNCTION = chalk.blue.bold;
 
   /**
    * Styling function to use for the value `null`.
