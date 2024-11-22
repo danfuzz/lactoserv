@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.4 -- 2024-11-22
+
+Breaking changes:
 * `loggy-intf`:
   * Improved the data model used to encode logged items, including:
     * Representing functions and classes as structured objects instead of just
