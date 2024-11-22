@@ -11,7 +11,7 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* `loggy-intf` / `loggy`:
+* `loggy-intf`:
   * Improved the data model used to encode logged items, including:
     * Representing functions and classes as structured objects instead of just
       strings.
@@ -23,7 +23,7 @@ Breaking changes:
 Other notable changes:
 * general:
   * Allow node version 23.
-* `loggy-intf` / `loggy`:
+* `loggy-intf`:
   * Improved "human" (non-JSON) log rendering, including:
     * Correctly rendering shared references.
     * Tweaking the styling for readability.
