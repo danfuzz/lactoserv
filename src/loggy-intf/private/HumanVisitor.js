@@ -94,27 +94,7 @@ export class HumanVisitor extends BaseValueVisitor {
       }
       return new ComboText(...result);
     } else if (node instanceof Sexp) {
-      const { functorName, args } = node;
-      switch (functorName) {
-        case 'BigInt': {
-          const str = `${args[0]}n`;
-          return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
-        }
-        case 'Elided': {
-          return this.#maybeStyle('...', HumanVisitor.#STYLE_ELIDED);
-        }
-        case 'Symbol': {
-          const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
-          const symArgs = (args[0] === null) ? [] : [args[0]];
-          return this.#visitCall(funcStr, symArgs);
-        }
-        case 'Undefined': {
-          return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
-        }
-        default: {
-          return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
-        }
-      }
+      return this.#renderSexp(node);
     } else {
       throw this.#shouldntHappen();
     }
@@ -183,6 +163,36 @@ export class HumanVisitor extends BaseValueVisitor {
       return `${key}:`;
     } else {
       return new ComboText(this._impl_visitString(key), ':');
+    }
+  }
+
+  /**
+   * Renders a {@link Sexp}.
+   *
+   * @param {Sexp} sexp The instance to render.
+   * @returns {TypeText} The rendered form.
+   */
+  #renderSexp(sexp) {
+    const { functorName, args } = node;
+    switch (functorName) {
+      case 'BigInt': {
+        const str = `${args[0]}n`;
+        return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
+      }
+      case 'Elided': {
+        return this.#maybeStyle('...', HumanVisitor.#STYLE_ELIDED);
+      }
+      case 'Symbol': {
+        const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
+        const symArgs = (args[0] === null) ? [] : [args[0]];
+        return this.#visitCall(funcStr, symArgs);
+      }
+      case 'Undefined': {
+        return this.#maybeStyle('undefined', HumanVisitor.#STYLE_UNDEFINED);
+      }
+      default: {
+        return this.#visitCall(`@${functorName}`, args, HumanVisitor.#STYLE_SEXP);
+      }
     }
   }
 
