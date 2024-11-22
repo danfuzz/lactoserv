@@ -108,7 +108,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       const constructor = Reflect.getPrototypeOf(node).constructor;
       const ELIDED      = LoggedValueEncoder.#SEXP_ELIDED;
       return constructor
-        ? new Sexp(this._prot_nameFromValue(constructor), ELIDED)
+        ? new Sexp(constructor, ELIDED)
         : new Sexp('Object', this._prot_labelFromValue(node), ELIDED);
     }
   }
