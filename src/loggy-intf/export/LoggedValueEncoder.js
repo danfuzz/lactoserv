@@ -106,9 +106,10 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       return new Sexp(...visitedArray);
     } else {
       const constructor = Reflect.getPrototypeOf(node).constructor;
+      const ELIDED      = LoggedValueEncoder.#SEXP_ELIDED;
       return constructor
-        ? new Sexp(this._prot_nameFromValue(constructor), '...')
-        : new Sexp('Object', this._prot_labelFromValue(node), '...');
+        ? new Sexp(this._prot_nameFromValue(constructor), ELIDED)
+        : new Sexp('Object', this._prot_labelFromValue(node), ELIDED);
     }
   }
 
@@ -146,6 +147,12 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   //
   // Static members
   //
+
+  /**
+   * Standard "elided" sexp. This gets rendered as plain-text `...` when logged
+   * in "human" form.
+   */
+  static #SEXP_ELIDED = new Sexp('Elided');
 
   /**
    * Encodes an arbitrary value for use as logged data.

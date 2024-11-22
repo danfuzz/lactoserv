@@ -100,6 +100,9 @@ export class HumanVisitor extends BaseValueVisitor {
           const str = `${args[0]}n`;
           return this.#maybeStyle(str, HumanVisitor.#STYLE_NUMBER);
         }
+        case 'Elided': {
+          return this.#maybeStyle('...', HumanVisitor.#STYLE_ELIDED);
+        }
         case 'Symbol': {
           const funcStr = args[1] ? 'Symbol.for' : 'Symbol';
           const symArgs = (args[0] === null) ? [] : [args[0]];
@@ -336,6 +339,13 @@ export class HumanVisitor extends BaseValueVisitor {
    * @type {Function}
    */
   static #STYLE_DEF_REF = chalk.magenta.bold;
+
+  /**
+   * Styling function to use for the "elided" value, rendered as `...`.
+   *
+   * @type {Function}
+   */
+  static #STYLE_ELIDED = chalk.dim;
 
   /**
    * Styling function to use for the value `null`.
