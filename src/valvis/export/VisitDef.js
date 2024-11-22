@@ -152,7 +152,8 @@ export class VisitDef extends BaseDefRef {
    *
    * **Note:** This is not intended for high-fidelity data encoding, in that the
    * result is ambiguous with plain objects that happen to have the same shape
-   * as this method's results. The main intended use case for this is logging.
+   * as this method's results. The main use for this is that this is what Jest
+   * uses when printing out equality errors in test cases.
    *
    * @param {?string} key_unused The property name / stringified index where the
    *   instance was fetched from.
