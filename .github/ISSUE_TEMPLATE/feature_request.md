@@ -7,18 +7,18 @@ assignees: ''
 
 ---
 
-**What is the crux of the problem you are trying to solve?.**
+### What is the crux of the problem you are trying to solve?
 
 A clear and concise description of what the problem is.
 
-**What is the shape of the solution?**
+### What is the shape of the solution?
 
 A clear and concise description of what you want to happen.
 
-**Is there a workaround?**
+### Is there a workaround?
 
 Is there something you can do to work around the problem, in the meantime?
 
-**Additional context**
+### Additional context
 
 Add any other context about the feature request here.
