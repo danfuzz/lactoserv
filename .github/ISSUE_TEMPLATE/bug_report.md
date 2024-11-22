@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a problem with the system-as-designed.
 title: ''
 labels: 'bug'
 assignees: ''
