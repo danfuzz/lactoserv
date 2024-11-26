@@ -19,6 +19,7 @@
     "@this/host": "*",
     "@this/loggy-intf": "*",
     "@this/net-util": "*",
+    "@this/quant": "*",
     "@this/typey": "*"
   }
 }

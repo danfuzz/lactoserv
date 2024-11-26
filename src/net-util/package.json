@@ -16,10 +16,10 @@
   "dependencies": {
     "@this/async": "*",
     "@this/collections": "*",
-    "@this/sexp": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
     "@this/quant": "*",
+    "@this/sexp": "*",
     "@this/typey": "*",
     "@this/valvis": "*",
     "mime": "^4.0.1",
