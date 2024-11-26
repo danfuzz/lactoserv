@@ -91,9 +91,9 @@ function do-fix {
     local fileDir="${filePath%/*}"
 
     local packageName="${fileDir}"
-    if [[ ${packageName} =~ /@(.*)$ ]]; then
+    if [[ ${packageName} =~ /(@[^@/]+/[^@/]+)$ ]]; then
         # The directory structure has the form `@<project>/<name>`.
-        packageName="${BASH_REMATCH[2]}"
+        packageName="${BASH_REMATCH[1]}"
     else
         # No `@<project>`, so just use the final directory name, and assume it's
         # in `@this`.
