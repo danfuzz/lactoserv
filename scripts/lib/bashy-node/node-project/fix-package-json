@@ -90,6 +90,16 @@ function do-fix {
     local filePath="$1"
     local fileDir="${filePath%/*}"
 
+    local packageName="${fileDir}"
+    if [[ ${packageName} =~ /@(.*)$ ]]; then
+        # The directory structure has the form `@<project>/<name>`.
+        packageName="${BASH_REMATCH[2]}"
+    else
+        # No `@<project>`, so just use the final directory name, and assume it's
+        # in `@this`.
+        packageName="@this/${packageName##*/}"
+    fi
+
     local oldDeps
     oldDeps="$(jval <"${filePath}" --input=read '.dependencies // {}')" \
     || return "$?"
@@ -124,11 +134,12 @@ function do-fix {
         hasExportTesting:json="${hasExportTesting}" \
         hasPrivateDir:json="${hasPrivateDir}" \
         hasTestsDir:json="${hasTestsDir}" \
+        packageName="${packageName}" \
         deps:json="${finalDeps}" '
     (.scripts // {}) as $scripts
     |
     {
-        name:    .name,
+        name:    $packageName,
         version: .version,
         type:    "module",
         private: true,
