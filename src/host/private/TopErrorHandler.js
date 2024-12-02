@@ -32,7 +32,7 @@ export class TopErrorHandler {
    *
    * @type {?IntfLogger}
    */
-  static #logger = ThisModule.logger?.topError;
+  static #logger = ThisModule.logger?.topError ?? null;
 
   /**
    * Initialized?

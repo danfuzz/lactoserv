@@ -94,7 +94,7 @@ export class Http2Wrangler extends TcpWrangler {
 
     const connectionCtx    = WranglerContext.currentInstance;
     const connectionLogger = connectionCtx.connectionLogger;
-    const sessionLogger    = this.logger?.sess.$newId;
+    const sessionLogger    = this.logger?.sess.$newId ?? null;
     const sessionCtx       = WranglerContext.forSession(connectionCtx, session, sessionLogger);
     const sessions         = this.#sessions;
 
@@ -206,7 +206,7 @@ export class Http2Wrangler extends TcpWrangler {
       allClosed = true;
       for (const s of this.#sessions) {
         const ctx    = WranglerContext.get(s);
-        const logger = ctx?.logger ?? this.logger?.['unknown-session'];
+        const logger = ctx?.logger ?? this.logger?.['unknown-session'] ?? null;
 
         if (s.closed) {
           logger?.alreadyClosed(op);

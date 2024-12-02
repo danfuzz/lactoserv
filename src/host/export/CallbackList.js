@@ -48,7 +48,7 @@ export class CallbackList {
    * @param {number} maxRunMsec Maximum time for running all callbacks, in msec.
    */
   constructor(name, maxRunMsec) {
-    this.#logger     = ThisModule.logger?.callback[name];
+    this.#logger     = ThisModule.logger?.callback[name] ?? null;
     this.#maxRunMsec = maxRunMsec;
   }
 

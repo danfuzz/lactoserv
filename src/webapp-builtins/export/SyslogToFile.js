@@ -86,7 +86,7 @@ export class SyslogToFile extends BaseFileService {
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
     const tracker       = new EventTracker(earliestEvent);
-    const tagToFind     = this.logger?.$meta.tag;
+    const tagToFind     = this.logger?.$meta.tag ?? null;
 
     if (!tagToFind) {
       // This service doesn't itself have a logger, so there's no previous-last

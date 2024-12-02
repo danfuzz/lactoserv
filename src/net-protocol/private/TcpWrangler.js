@@ -258,7 +258,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * @param {?IntfLogger} logger Logger to use, if any.
    */
   async #handleTimeout(socket, logger) {
-    logger = logger?.socketTimeout;
+    logger = logger?.socketTimeout ?? null;
 
     if (socket.destroyed) {
       logger?.alreadyDestroyed();

@@ -29,7 +29,7 @@ export class SignalHandler {
    *
    * @type {?IntfLogger}
    */
-  static #logger = ThisModule.logger?.signal;
+  static #logger = ThisModule.logger?.signal ?? null;
 
   /**
    * Initialized?

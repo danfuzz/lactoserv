@@ -53,7 +53,7 @@ export class BaseDispatched extends BaseComponent {
   get #dispatchLogger() {
     if (this.#dispatchLoggerObj === false) {
       this.#dispatchLoggerObj = this.config.dispatchLogging
-        ? this.logger?.dispatch
+        ? this.logger?.dispatch ?? null
         : null;
     }
 

@@ -43,7 +43,7 @@ export class ShutdownHandler {
    *
    * @type {?IntfLogger}
    */
-  static #logger = ThisModule.logger?.shutdown;
+  static #logger = ThisModule.logger?.shutdown ?? null;
 
   /**
    * Callbacks to invoke before shutting down.

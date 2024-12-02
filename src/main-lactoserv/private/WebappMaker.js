@@ -30,7 +30,7 @@ export class WebappMaker {
    *
    * @type {?IntfLogger}
    */
-  #logger = ThisModule.logger?.system;
+  #logger = ThisModule.logger?.system ?? null;
 
   /**
    * Constructs an instance.

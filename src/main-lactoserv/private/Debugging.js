@@ -22,7 +22,7 @@ export class Debugging {
    *
    * @type {?IntfLogger}
    */
-  static #logger = ThisModule.logger?.debug;
+  static #logger = ThisModule.logger?.debug ?? null;
 
   /**
    * Processes the debugging-related arguments / options, if any.

@@ -74,7 +74,7 @@ export class RateLimitedStream {
   constructor(bucket, stream, logger, verboseLogging) {
     this.#bucket        = MustBe.instanceOf(bucket, TokenBucket);
     this.#innerStream   = MustBe.instanceOf(stream, Writable);
-    this.#logger        = logger?.dataRateLimiter;
+    this.#logger        = logger?.dataRateLimiter ?? null;
     this.#verboseLogger = MustBe.boolean(verboseLogging) ? this.#logger : null;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {
