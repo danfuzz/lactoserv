@@ -127,7 +127,7 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /** @override */
-  _impl_visitSymbol(node_unused) {
+  _impl_visitSymbol(node_unused, isInterned_unused) {
     throw this.#shouldntHappen();
   }
 

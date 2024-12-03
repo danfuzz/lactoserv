@@ -491,10 +491,12 @@ export class BaseValueVisitor {
    * Visits a value of type `symbol`. The base implementation returns the given
    * `node` as-is.
    *
-   * @param {number} node The node to visit.
+   * @param {symbol} node The node to visit.
+   * @param {boolean} isInterned Is `node` an interned symbol? That is, was it
+   *   produced by `Symbol.for()`?
    * @returns {*} Arbitrary result of visiting.
    */
-  _impl_visitSymbol(node) {
+  _impl_visitSymbol(node, isInterned) { // eslint-disable-line no-unused-vars
     return node;
   }
 
@@ -894,7 +896,10 @@ export class BaseValueVisitor {
       }
 
       case 'symbol': {
-        return this._impl_visitSymbol(node);
+        // Note: Symbols without a description can't possibly be interned.
+        const desc       = node.description;
+        const isInterned = (desc !== undefined) && (node === Symbol.for(desc));
+        return this._impl_visitSymbol(node, isInterned);
       }
 
       case 'undefined': {
@@ -1181,6 +1186,17 @@ export class BaseValueVisitor {
      *   result in a ref to this instance's result.
      */
     shouldRef(isCycleHead) {
+      /* c8 ignore start */
+      if (isCycleHead && (this.#shouldRef !== null)) {
+        // Shouldn't happen: By construction, the moment a second reference to a
+        // cycle head is encountered, this method should end up getting called
+        // with `isCycleHead === true`, and if the `_impl` declined to make a
+        // ref, the whole visit should end up erroring out with an error along
+        // the lines of "can't visit circular reference."
+        throw new Error('Shouldn\'t happen: Cycle head detected too late.');
+      }
+      /* c8 ignore stop */
+
       if (this.#shouldRef === null) {
         const visitor = this.#visitor;
         const node    = this.#node;
@@ -1205,15 +1221,6 @@ export class BaseValueVisitor {
         }
 
         this.#shouldRef = result;
-      } else if (isCycleHead) {
-        /* c8 ignore start */
-        // Shouldn't happen: By construction, the moment a second reference to a
-        // cycle head is encountered, this method should end up getting called
-        // with `isCycleHead === true`, and if the `_impl` declined to make a
-        // ref, the whole visit should end up erroring out with an error along
-        // the lines of "can't visit circular reference."
-        throw new Error('Shouldn\'t happen: Cycle head detected too late.');
-        /* c8 ignore stop */
       }
 
       return this.#shouldRef;
