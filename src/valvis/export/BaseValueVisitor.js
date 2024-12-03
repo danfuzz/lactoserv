@@ -491,10 +491,12 @@ export class BaseValueVisitor {
    * Visits a value of type `symbol`. The base implementation returns the given
    * `node` as-is.
    *
-   * @param {number} node The node to visit.
+   * @param {symbol} node The node to visit.
+   * @param {boolean} isInterned Is `node` an interned symbol? That is, was it
+   *   produced by `Symbol.for()`?
    * @returns {*} Arbitrary result of visiting.
    */
-  _impl_visitSymbol(node) {
+  _impl_visitSymbol(node, isInterned) { // eslint-disable-line no-unused-vars
     return node;
   }
 
@@ -894,7 +896,10 @@ export class BaseValueVisitor {
       }
 
       case 'symbol': {
-        return this._impl_visitSymbol(node);
+        // Note: Symbols without a description can't possibly be interned.
+        const desc       = node.description;
+        const isInterned = (desc !== undefined) && (node === Symbol.for(desc));
+        return this._impl_visitSymbol(node, isInterned);
       }
 
       case 'undefined': {
