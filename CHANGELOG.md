@@ -14,7 +14,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `valvis`:
+  * `BaseValueVisitor`:
+    * Added `isInterned` argument to `_impl_visitSymbol()`.
 
 ### v0.8.4 -- 2024-11-22
 
