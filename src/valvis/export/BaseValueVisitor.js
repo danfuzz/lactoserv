@@ -1186,6 +1186,17 @@ export class BaseValueVisitor {
      *   result in a ref to this instance's result.
      */
     shouldRef(isCycleHead) {
+      /* c8 ignore start */
+      if (isCycleHead && (this.#shouldRef !== null)) {
+        // Shouldn't happen: By construction, the moment a second reference to a
+        // cycle head is encountered, this method should end up getting called
+        // with `isCycleHead === true`, and if the `_impl` declined to make a
+        // ref, the whole visit should end up erroring out with an error along
+        // the lines of "can't visit circular reference."
+        throw new Error('Shouldn\'t happen: Cycle head detected too late.');
+      }
+      /* c8 ignore stop */
+
       if (this.#shouldRef === null) {
         const visitor = this.#visitor;
         const node    = this.#node;
@@ -1210,15 +1221,6 @@ export class BaseValueVisitor {
         }
 
         this.#shouldRef = result;
-      } else if (isCycleHead) {
-        /* c8 ignore start */
-        // Shouldn't happen: By construction, the moment a second reference to a
-        // cycle head is encountered, this method should end up getting called
-        // with `isCycleHead === true`, and if the `_impl` declined to make a
-        // ref, the whole visit should end up erroring out with an error along
-        // the lines of "can't visit circular reference."
-        throw new Error('Shouldn\'t happen: Cycle head detected too late.');
-        /* c8 ignore stop */
       }
 
       return this.#shouldRef;
