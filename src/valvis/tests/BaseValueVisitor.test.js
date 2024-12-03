@@ -897,17 +897,18 @@ describe('_impl_revisit()', () => {
   });
 
   test.each`
-  label               | value
-  ${'null'}           | ${null}
-  ${'undefined'}      | ${undefined}
-  ${'a boolean'}      | ${true}
-  ${'a number'}       | ${12345}
-  ${'a bigint'}       | ${123987n}
-  ${'a string'}       | ${'stringy-string'}
-  ${'a symbol'}       | ${Symbol('blort')}
-  ${'an array'}       | ${[4, 5, 9]}
-  ${'a plain object'} | ${{ x: 'boop' }}
-  ${'an instance'}    | ${new Set('foo', 'bar')}
+  label                     | value
+  ${'null'}                 | ${null}
+  ${'undefined'}            | ${undefined}
+  ${'a boolean'}            | ${true}
+  ${'a number'}             | ${12345}
+  ${'a bigint'}             | ${123987n}
+  ${'a string'}             | ${'stringy-string'}
+  ${'an uninterned symbol'} | ${Symbol('blort')}
+  ${'an interned symbol'}   | ${Symbol.for('zorch')}
+  ${'an array'}             | ${[4, 5, 9]}
+  ${'a plain object'}       | ${{ x: 'boop' }}
+  ${'an instance'}          | ${new Set('foo', 'bar')}
   `('can get called for $label', ({ value }) => {
     const vv  = new RevisitCheckVisitor([value, value], false);
     const got = vv.visitSync();
@@ -989,6 +990,7 @@ ${'_impl_visitUndefined'}   | ${false} | ${true}   | ${undefined}
   }
 });
 
+// Extra tests beyond the baseline above.
 describe('_impl_visitError()', () => {
   test('calls through to `_impl_visitInstance()` (when not overridden)', () => {
     const vv = new BaseValueVisitor(new Error('woo'));
@@ -1044,6 +1046,7 @@ describe('_impl_visitInstance()', () => {
   });
 });
 
+// Extra tests beyond the baseline above.
 describe('_impl_visitProxy()', () => {
   describe.each`
   type          | value
@@ -1064,6 +1067,25 @@ describe('_impl_visitProxy()', () => {
 
       expect(vv.visitSync()).toBe(expected);
     });
+  });
+});
+
+// Extra tests beyond the baseline above.
+describe('_impl_visitSymbol()', () => {
+  class TestVisitor extends BaseValueVisitor {
+    _impl_visitSymbol(node, isInterned) {
+      return `${node.description}-${isInterned}`;
+    }
+  }
+
+  test('given an uninterned symbol, gets passed `isInterned === false`', () => {
+    const vv = new TestVisitor(Symbol('zonk'));
+    expect(vv.visitSync()).toStrictEqual('zonk-false');
+  });
+
+  test('given an interned symbol, gets passed `isInterned === true`', () => {
+    const vv = new TestVisitor(Symbol.for('bleep'));
+    expect(vv.visitSync()).toStrictEqual('bleep-true');
   });
 });
 
