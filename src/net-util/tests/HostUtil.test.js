@@ -370,17 +370,17 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'IPv6 address with a port'}        | ${'[12::34]:80'}
   ${'IPv4 "any" address'}              | ${'0.0.0.0'}
   ${'IPv6 "any" address'}              | ${'::'}
-  ${'Too-short IPv4 address'}          | ${'123'}
-  ${'Too-short IPv4 address'}          | ${'1.234'}
-  ${'Too-short IPv4 address'}          | ${'1.23.45'}
-  ${'Too-short IPv6 address'}          | ${'1:2'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6:7'}
-  ${'Too-long IPv6 address'}           | ${'1:2:3:4:5:6:7:8:9'}
-  ${'Too-long IPv6 address with `::`'} | ${'1:2:3:4:5::6:7:8'}
+  ${'too-short IPv4 address'}          | ${'123'}
+  ${'too-short IPv4 address'}          | ${'1.234'}
+  ${'too-short IPv4 address'}          | ${'1.23.45'}
+  ${'too-short IPv6 address'}          | ${'1:2'}
+  ${'too-short IPv6 address'}          | ${'1:2:3'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5:6'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5:6:7'}
+  ${'too-long IPv6 address'}           | ${'1:2:3:4:5:6:7:8:9'}
+  ${'too-long IPv6 address with `::`'} | ${'1:2:3:4:5::6:7:8'}
   `('fails for $label', ({ hostname }) => {
     if (throws) {
       expect(() => HostUtil[method](hostname, false)).toThrow();
@@ -392,7 +392,10 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   });
 
   const checkAnswer = (hostname, got) => {
+    expect(got).not.toBeNull();
+
     const canonicalIp = HostUtil.checkIpAddressOrNull(hostname, false);
+
     if (returns === 'string') {
       if (canonicalIp) {
         // Expect IP addresses to be canonicalized.
