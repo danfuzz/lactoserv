@@ -64,11 +64,6 @@ describe('constructor', () => {
     expect(() => new OriginAddress('127.0.0.1', 1)).not.toThrow();
     expect(() => new OriginAddress('127.0.0.1', 65535)).not.toThrow();
   });
-
-  test('produces a frozen instance', () => {
-    const oa = new OriginAddress('1.2.3.4', 5);
-    expect(oa).toBeFrozen();
-  });
 });
 
 describe('.address', () => {
@@ -105,4 +100,27 @@ describe('.portNumber', () => {
 
     expect(oa.portNumber).toBeNull();
   });
+});
+
+describe('toString()', () => {
+  test.each`
+  args                         | expected
+  ${[null, null]}              | ${'<unknown>'}
+  ${[null, 123]}               | ${'<unknown>:123'}
+  ${['1.2.3.4', null]}         | ${'1.2.3.4'}
+  ${['111::fff', null]}        | ${'[111::fff]'}
+  ${['44.33.22.11', 789]}      | ${'44.33.22.11:789'}
+  ${['abcd:ef::43:210', 7654]} | ${'[abcd:ef::43:210]:7654'}
+  `('given $args returns `$expected`', ({ args, expected }) => {
+    const oa = new OriginAddress(...args);
+    expect(oa.toString()).toBe(expected);
+  });
+
+  test('works on a second call (checks caching behavior)', () => {
+    const oa       = new OriginAddress('55.5.55.5', 555);
+    const expected = '55.5.55.5:555';
+
+    expect(oa.toString()).toBe(expected);
+    expect(oa.toString()).toBe(expected);
+  })
 });
