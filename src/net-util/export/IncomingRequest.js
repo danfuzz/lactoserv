@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpUtil } from '#x/HttpUtil';
+import { OriginAddress } from '#x/OriginAddress';
 import { RequestContext } from '#x/RequestContext';
 import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
@@ -273,7 +274,7 @@ export class IncomingRequest {
       const { cookies, method, origin, urlForLog } = this;
 
       const result = {
-        origin:   FormatUtils.addressPortString(origin.address, origin.port),
+        origin:   origin.toString(),
         protocol: this.protocolName,
         method,
         url:      urlForLog,
@@ -309,8 +310,8 @@ export class IncomingRequest {
   }
 
   /**
-   * @returns {{ address: string, port: number }} The IP address and port of
-   * the origin (remote side) of the request.
+   * @returns {OriginAddress} Address of the origin (remote side) of the
+   * request.
    */
   get origin() {
     return this.#requestContext.origin;
