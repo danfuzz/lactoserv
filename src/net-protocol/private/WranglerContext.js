@@ -60,11 +60,11 @@ export class WranglerContext {
   #sessionLogger = null;
 
   /**
-   * Result of {@link #remoteInfo}, or `null` if not yet calculated.
+   * Cached result for {@link #origin}, or `null` if not yet calculated.
    *
    * @type {?object}
    */
-  #remoteInfo = null;
+  #origin = null;
 
   /**
    * Constructs an instance.
@@ -117,11 +117,11 @@ export class WranglerContext {
    * @returns {object} Object representing the remote address/port of the
    * {@link #socket}. It is always a frozen object.
    */
-  get remoteInfo() {
-    if (!this.#remoteInfo) {
+  get origin() {
+    if (!this.#origin) {
       const socket = this.#socket;
       if (socket) {
-        this.#remoteInfo = {
+        this.#origin = {
           address: socket.remoteAddress,
           port:    socket.remotePort
         };
@@ -129,13 +129,13 @@ export class WranglerContext {
         // Shouldn't happen in practice, but doing this is probably better than
         // throwing an error.
         this.logger?.unknownRemote(socket);
-        this.#remoteInfo = { address: '<unknown>', port: 0 };
+        this.#origin = { address: '<unknown>', port: 0 };
       }
 
-      Object.freeze(this.#remoteInfo);
+      Object.freeze(this.#origin);
     }
 
-    return this.#remoteInfo;
+    return this.#origin;
   }
 
   /** @returns {?string} ID of a session. */

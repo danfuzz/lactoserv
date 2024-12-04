@@ -338,17 +338,17 @@ export class ProtocolWrangler {
       return;
     }
 
-    // Temporary code to try to diagnose why `context.remoteInfo` is sometimes
+    // Temporary code to try to diagnose why `context.origin` is sometimes
     // invalid. Issue #432. TODO: Remove this once the issue is resolved.
     {
-      const remoteInfo = context.remoteInfo;
-      if (typeof remoteInfo.address !== 'string') {
-        logger?.issue432(remoteInfo);
-        throw new Error(`Issue #432: ${inspect(remoteInfo)}`);
+      const origin = context.origin;
+      if (typeof origin.address !== 'string') {
+        logger?.issue432(origin);
+        throw new Error(`Issue #432: ${inspect(origin)}`);
       }
     }
 
-    const requestContext = new RequestContext(this.interface, context.remoteInfo);
+    const requestContext = new RequestContext(this.interface, context.origin);
     let   request        = null;
 
     // Responds to a problematic request with an error status of some sort,
