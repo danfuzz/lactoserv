@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `net-util`:
+  * New class `OriginAddress` which replaces use of ad-hoc plain objects.
 * `valvis`:
   * `BaseValueVisitor`:
     * Added `isInterned` argument to `_impl_visitSymbol()`.
