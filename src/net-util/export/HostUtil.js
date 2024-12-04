@@ -36,39 +36,6 @@ export class HostUtil {
   })();
 
   /**
-   * @returns {RegExp} Regex which matches an IP address (v4 or v6), anchored so
-   * that it matches a complete string.
-   *
-   * This pattern allows but does not requires IPv6 addresses to be enclosed in
-   * square brackets.
-   */
-  static #IP_ADDRESS_REGEX = (() => {
-    // IPv4 address.
-    const ipv4Address =
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address (without brackets).
-    const ipv6Address =
-      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){9})' +      // No more than eight colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    const body = `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
-
-    return new RegExp(`^${body}$`);
-  })();
-
-  /**
    * Checks that a given string can be used as a hostname, including non-"any"
    * IP addresses.
    *
