@@ -500,9 +500,20 @@ export class HostUtil {
       return null;
     }
 
-    if ((parts[0] === '0')  && (parts[1] === '0') && (parts[2] === '0')
-      && (parts[3] === '0')&& (parts[4] === '0')&& (parts[5] === 'ffff')
-      && (parts[6] !== 'v4')) {
+    // This is `true` if the first six parts are indicative of IPv4 wrapping.
+    const hasV4Prefix =
+      (parts[0] === '0') && (parts[1] === '0') && (parts[2] === '0') &&
+      (parts[3] === '0') && (parts[4] === '0') && (parts[5] === 'ffff');
+
+    if (parts[6] === 'v4') {
+      if (!hasV4Prefix) {
+        // The original input used the IPv4 wrapping syntax for the last parts,
+        // but the prefix isn't actually right.
+        return null;
+      }
+      parts[6] = parts[7];
+      parts.pop();
+    } else if (hasV4Prefix) {
       // This is a wrapped v4 address, but not already in wrapped form. Convert
       // it.
       const hex6     = parseInt(parts[6], 16);
@@ -512,18 +523,18 @@ export class HostUtil {
       const byte3    = hex7 >> 8;
       const byte4    = hex7 & 0xff;
       const v4String = `${byte1}.${byte2}.${byte3}.${byte4}`;
-      parts[6] = 'v4';
-      parts[7] = v4String;
+      parts.pop();
+      parts[6] = v4String;
     }
 
     // Find the longest run of zeros, for `::` replacement (if appropriate).
 
     let zerosAt    = -1;
     let zerosCount = 0;
-    for (let n = 0; n < 8; n++) {
+    for (let n = 0; n < parts.length; n++) {
       if (parts[n] === '0') {
         let endAt = n + 1;
-        while ((endAt < 8) && (parts[endAt] === '0')) {
+        while ((endAt < parts.length) && (parts[endAt] === '0')) {
           endAt++;
         }
         if ((endAt - n) > zerosCount) {
