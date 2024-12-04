@@ -115,8 +115,8 @@ export class WranglerContext {
   }
 
   /**
-   * @returns {EndpointAddress} Object representing the remote address/port of the
-   * {@link #socket}.
+   * @returns {EndpointAddress} Object representing the remote address/port of
+   * the {@link #socket}.
    */
   get origin() {
     if (!this.#origin) {

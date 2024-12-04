@@ -30,8 +30,8 @@ export class RequestContext {
    * @param {{ address: ?string, port: ?number, fd: ?number }} iface Information
    *   about the interface that was `listen()`ed on. Must be a frozen object
    *   with expected properties.
-   * @param {EndpointAddress} origin Information about the origin (remote side) of
-   *   the connection.
+   * @param {EndpointAddress} origin Information about the origin (remote side)
+   *   of the connection.
    */
   constructor(iface, origin) {
     {
@@ -68,8 +68,8 @@ export class RequestContext {
   }
 
   /**
-   * @returns {EndpointAddress} Information about the origin (remote side) of the
-   * connection.
+   * @returns {EndpointAddress} Information about the origin (remote side) of
+   * the connection.
    */
   get origin() {
     return this.#origin;
