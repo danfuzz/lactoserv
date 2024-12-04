@@ -7,7 +7,8 @@
  */
 export class FormatUtils {
   /**
-   * Makes a human-friendly network address/port string.
+   * Makes a human-friendly network address/port string. This uses the bracketed
+   * form for IPv6 addresses, to make it clear where the port number is.
    *
    * @param {?string} address The address, or `null` if not known. If passed as
    *   `null`, the literal string `<unknown>` is returned in place of the
