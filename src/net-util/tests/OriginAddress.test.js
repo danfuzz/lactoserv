@@ -122,5 +122,5 @@ describe('toString()', () => {
 
     expect(oa.toString()).toBe(expected);
     expect(oa.toString()).toBe(expected);
-  })
+  });
 });
