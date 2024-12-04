@@ -179,6 +179,8 @@ export class HostUtil {
    *     required.)
    *   * downcasing hex digits.
    *   * including `0` values and `::` in the proper positions.
+   *   * representing the IPv4-in-v6 wrapped form as such (and not as a "pure"
+   *     v6 address).
    *
    * @param {*} value Value in question.
    * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
@@ -210,86 +212,8 @@ export class HostUtil {
   static checkIpAddressOrNull(value, allowAny = false) {
     MustBe.string(value);
 
-    if (!AskIf.string(value, this.#IP_ADDRESS_REGEX)) {
-      return null;
-    }
-
-    function dropBrackets(v) {
-      return v.replaceAll(/\[|\]/g, '');
-    }
-
-    function dropLeadingZeros(v) {
-      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9a-f])/g, '');
-    }
-
-    if (/[.]/.test(value)) {
-      // IPv4.
-      value = dropLeadingZeros(value);
-
-      if ((!allowAny) && (value === '0.0.0.0')) {
-        return null;
-      }
-
-      return value;
-    }
-
-    // IPv6.
-
-    // Downcase and drop brackets and leading zeros.
-    value = value.toLowerCase();
-    value = dropLeadingZeros(dropBrackets(value));
-
-    // Split into parts, and expand `::` (if any).
-
-    const needsExpansion = /::/.test(value);
-    const parts = value
-      .replace(/::/, ':x:')
-      .split(':')
-      .filter((part) => part !== '');
-
-    if (needsExpansion) {
-      const expandAt = parts.indexOf('x');
-      const zeros    = new Array(8 - parts.length + 1).fill('0');
-
-      if (zeros.length === 0) {
-        // It is a `::`-bearing address except it already has eight components.
-        return null;
-      }
-
-      parts.splice(expandAt, 1, ...zeros);
-    }
-
-    // Find the longest run of zeros, for `::` replacement (if appropriate).
-
-    let zerosAt    = -1;
-    let zerosCount = 0;
-    for (let n = 0; n < 8; n++) {
-      if (parts[n] === '0') {
-        let endAt = n + 1;
-        while ((endAt < 8) && (parts[endAt] === '0')) {
-          endAt++;
-        }
-        if ((endAt - n) > zerosCount) {
-          zerosCount = endAt - n;
-          zerosAt    = n;
-        }
-        n = endAt - 1;
-      }
-    }
-
-    if (zerosAt < 0) {
-      return parts.join(':');
-    } else if (zerosCount === 8) {
-      if (!allowAny) {
-        return null;
-      }
-      return '::';
-    } else {
-      // A `::` in a middle part will end up being `:::` after the `join()`,
-      // hence the `replace(...)`.
-      parts.splice(zerosAt, zerosCount, ':');
-      return parts.join(':').replace(/:::/, '::');
-    }
+    return this.#canonicalizeAddressV4(value, allowAny)
+      ?? this.#canonicalizeAddressV6(value, allowAny);
   }
 
   /**
@@ -450,5 +374,178 @@ export class HostUtil {
     }
 
     return { address, port };
+  }
+
+  /**
+   * Canonicalizes an IPv4 address, returning `null` if it turns out not to be a
+   * valid address.
+   *
+   * @param {string} value The address to canonicalize.
+   * @param {boolean} allowAny Allow "any" addresses (`0.0.0.0`)?
+   * @returns {?string} The canonical form, or `null` if it could not be parsed.
+   */
+  static #canonicalizeAddressV4(value, allowAny) {
+    if (!/^[.0-9]{7,15}$/.test(value)) {
+      // It doesn't pass a syntactic "sniff test."
+      return null;
+    }
+
+    const parts = value.split('.');
+    if (parts.length !== 4) {
+      return null;
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const p = parts[i];
+      if ((p.length === 0) || (p.length > 3)) {
+        return null;
+      }
+      const num = parseInt(p, 10);
+      if (num > 255) {
+        return null;
+      }
+      parts[i] = `${num}`;
+    }
+
+    const result = parts.join('.');
+
+    if ((!allowAny) && (result === '0.0.0.0')) {
+      return null;
+    }
+
+    return result;
+  }
+
+  /**
+   * Canonicalizes an IPv6 address, returning `null` if it turns out not to be a
+   * valid address.
+   *
+   * @param {string} value The address to canonicalize.
+   * @param {boolean} allowAny Allow "any" addresses (`::`)?
+   * @returns {?string} The canonical form, or `null` if it could not be parsed.
+   */
+  static #canonicalizeAddressV6(value, allowAny) {
+    if (!/^\[?[:.0-9a-fA-F]{2,50}\]?$/.test(value)) {
+      // It doesn't pass a syntactic "sniff test."
+      return null;
+    }
+
+    if (value.startsWith('[')) {
+      if (!value.endsWith(']')) {
+        // Mismatched brackets.
+        return null;
+      }
+
+      // Trim off brackets.
+      value = value.slice(1, value.length - 1);
+    } else if (value.endsWith(']')) {
+      // Mismatched brackets.
+      return null;
+    }
+
+    value = value.toLowerCase();
+
+    // Replace `::` with a literal `x` in place of the component.
+    if (value === '::') {
+      // Skip all the hard work for this edge case.
+      return allowAny ? '::' : null;
+    } else if (value.startsWith('::')) {
+      value = `x${value.slice(1)}`;
+    } else if (value.endsWith('::')) {
+      value = `${value.slice(0, value.length - 1)}x`;
+    } else {
+      value = value.replace(/::/, ':x:');
+    }
+
+    // Split into parts, and validate / canonicalize each.
+
+    const origParts = value.split(':');
+    const lastPart  = origParts[origParts.length - 1];
+
+    if (/[.]/.test(lastPart)) {
+      // The final part looks like a wrapped IPv4 address. Validate it.
+      const v4Part = this.#canonicalizeAddressV4(lastPart);
+      if (!v4Part) {
+        return null;
+      }
+      // Add an extra part as both a marker and to keep the part count correct,
+      // keeping `::` compression (below) simpler.
+      origParts.pop();
+      origParts.push('v4', v4Part);
+    }
+
+    const parts = [];
+    for (const p of origParts) {
+      if (p === 'x') {
+        const extraPartCount = 9 - origParts.length;
+        if (extraPartCount <= 0) {
+          return null;
+        }
+        for (let n = 0; n < extraPartCount; n++) {
+          parts.push('0');
+        }
+      } else if (p === 'v4') {
+        parts.push(p, origParts[origParts.length - 1]);
+        break;
+      } else {
+        if (!/^[0-9a-f]{1,4}$/.test(p)) {
+          return null;
+        }
+        parts.push(p.replace(/^0+(?=.)/, '')); // Drop leading zeroes.
+      }
+    }
+
+    if (parts.length !== 8) {
+      // Too few or too many parts.
+      return null;
+    }
+
+    if ((parts[0] === '0')  && (parts[1] === '0') && (parts[2] === '0')
+      && (parts[3] === '0')&& (parts[4] === '0')&& (parts[5] === 'ffff')
+      && (parts[6] !== 'v4')) {
+      // This is a wrapped v4 address, but not already in wrapped form. Convert
+      // it.
+      const hex6     = parseInt(parts[6], 16);
+      const hex7     = parseInt(parts[7], 16);
+      const byte1    = hex6 >> 8;
+      const byte2    = hex6 & 0xff;
+      const byte3    = hex7 >> 8;
+      const byte4    = hex7 & 0xff;
+      const v4String = `${byte1}.${byte2}.${byte3}.${byte4}`;
+      parts[6] = 'v4';
+      parts[7] = v4String;
+    }
+
+    // Find the longest run of zeros, for `::` replacement (if appropriate).
+
+    let zerosAt    = -1;
+    let zerosCount = 0;
+    for (let n = 0; n < 8; n++) {
+      if (parts[n] === '0') {
+        let endAt = n + 1;
+        while ((endAt < 8) && (parts[endAt] === '0')) {
+          endAt++;
+        }
+        if ((endAt - n) > zerosCount) {
+          zerosCount = endAt - n;
+          zerosAt    = n;
+        }
+        n = endAt - 1;
+      }
+    }
+
+    if (zerosAt < 0) {
+      return parts.join(':');
+    } else if (zerosCount === 8) {
+      if (!allowAny) {
+        return null;
+      }
+      return '::';
+    } else {
+      // A `::` in a middle part will end up being `:::` after the `join()`,
+      // hence the `replace(...)`.
+      parts.splice(zerosAt, zerosCount, ':');
+      return parts.join(':').replace(/:::/, '::');
+    }
   }
 }
