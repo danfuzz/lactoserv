@@ -6,6 +6,7 @@ export * from '#x/BaseResponse';
 export * from '#x/CertUtil';
 export * from '#x/Cookies';
 export * from '#x/DispatchInfo';
+export * from '#x/EndpointAddress';
 export * from '#x/EtagGenerator';
 export * from '#x/FullResponse';
 export * from '#x/HostInfo';

@@ -49,6 +49,7 @@ describe('checkInterfaceAddress()', () => {
   ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
   ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
+  ${'IPv4-in-v6 but with wrong prefix'}    | ${'1234::78:10.20.30.40'}
   `('fails for $label', ({ iface }) => {
     expect(() => HostUtil.checkInterfaceAddress(iface)).toThrow();
   });
@@ -74,6 +75,7 @@ describe('checkInterfaceAddress()', () => {
   ${'123::4567:89ab'}
   ${'123::4567'}
   ${'::abcd'}
+  ${'::ffff:11.22.33.44'} // IPv4-in-v6 wrapped form
   ${LONGEST_COMPONENT}
   ${`${LONGEST_COMPONENT}.boop`}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
@@ -95,7 +97,8 @@ describe('checkInterfaceAddress()', () => {
   ${'[1::1]'}             | ${'1::1'}
   ${'[1:2:3:4:5:6:7:8]'}  | ${'1:2:3:4:5:6:7:8'}
   ${'[12:Ab::34:cD]'}     | ${'12:ab::34:cd'}
-  `('succeeds for $iface', ({ iface, expected }) => {
+  ${'::ffff:102:304'}     | ${'::ffff:1.2.3.4'} // IPv4-in-v6 wrapped form
+  `('returns `$expected` given `$iface`', ({ iface, expected }) => {
     const got = HostUtil.checkInterfaceAddress(iface);
     expect(got).toBe(expected);
   });
@@ -157,6 +160,7 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
   ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
+  ${'IPv4-in-v6 but with wrong prefix'}    | ${'1234::78:10.20.30.40'}
   `('fails for $label', ({ addr }) => {
     if (throws) {
       expect(() => HostUtil[method](addr, false)).toThrow();
@@ -185,6 +189,7 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'123::4567'}
   ${'abcd::ef'}
   ${'::abcd'}
+  ${'::ffff:11.22.33.44'} // IPv4-in-v6 wrapped form
   `('succeeds for $addr', ({ addr }) => {
     expect(HostUtil[method](addr, false)).toBe(addr);
     expect(HostUtil[method](addr, true)).toBe(addr);
@@ -225,7 +230,9 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'[1:2:3:4:0005:6:7:8]'}                    | ${'1:2:3:4:5:6:7:8'}
   ${'[1234::]'}                                | ${'1234::'}
   ${'[12:ab::34:cd]'}                          | ${'12:ab::34:cd'}
-  `('succeeds for $addr', ({ addr, expected }) => {
+  ${'::ffff:102:304'}                          | ${'::ffff:1.2.3.4'} // IPv4-in-v6 wrapped form
+  ${'0:0::ffff:1.2.3.4'}                       | ${'::ffff:1.2.3.4'} // Same.
+  `('returns `$expected` given `$addr`', ({ addr, expected }) => {
     expect(HostUtil[method](addr, false)).toBe(expected);
     expect(HostUtil[method](addr, true)).toBe(expected);
   });
@@ -370,17 +377,17 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'IPv6 address with a port'}        | ${'[12::34]:80'}
   ${'IPv4 "any" address'}              | ${'0.0.0.0'}
   ${'IPv6 "any" address'}              | ${'::'}
-  ${'Too-short IPv4 address'}          | ${'123'}
-  ${'Too-short IPv4 address'}          | ${'1.234'}
-  ${'Too-short IPv4 address'}          | ${'1.23.45'}
-  ${'Too-short IPv6 address'}          | ${'1:2'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6'}
-  ${'Too-short IPv6 address'}          | ${'1:2:3:4:5:6:7'}
-  ${'Too-long IPv6 address'}           | ${'1:2:3:4:5:6:7:8:9'}
-  ${'Too-long IPv6 address with `::`'} | ${'1:2:3:4:5::6:7:8'}
+  ${'too-short IPv4 address'}          | ${'123'}
+  ${'too-short IPv4 address'}          | ${'1.234'}
+  ${'too-short IPv4 address'}          | ${'1.23.45'}
+  ${'too-short IPv6 address'}          | ${'1:2'}
+  ${'too-short IPv6 address'}          | ${'1:2:3'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5:6'}
+  ${'too-short IPv6 address'}          | ${'1:2:3:4:5:6:7'}
+  ${'too-long IPv6 address'}           | ${'1:2:3:4:5:6:7:8:9'}
+  ${'too-long IPv6 address with `::`'} | ${'1:2:3:4:5::6:7:8'}
   `('fails for $label', ({ hostname }) => {
     if (throws) {
       expect(() => HostUtil[method](hostname, false)).toThrow();
@@ -392,7 +399,10 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   });
 
   const checkAnswer = (hostname, got) => {
+    expect(got).not.toBeNull();
+
     const canonicalIp = HostUtil.checkIpAddressOrNull(hostname, false);
+
     if (returns === 'string') {
       if (canonicalIp) {
         // Expect IP addresses to be canonicalized.

@@ -11,9 +11,12 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `loggy-intf`:
+  * Moved `FormatUtils` contents to `net-util.EndpointAddress` (see below).
 
 Other notable changes:
+* `net-util`:
+  * New class `EndpointAddress` which replaces use of ad-hoc plain objects.
 * `valvis`:
   * `BaseValueVisitor`:
     * Added `isInterned` argument to `_impl_visitSymbol()`.

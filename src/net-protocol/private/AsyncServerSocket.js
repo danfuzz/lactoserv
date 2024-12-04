@@ -6,8 +6,8 @@ import { Server, createServer as netCreateServer } from 'node:net';
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocky';
-import { FormatUtils } from '@this/loggy-intf';
 import { IntfLogger } from '@this/loggy-intf';
+import { EndpointAddress } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 
@@ -85,13 +85,13 @@ export class AsyncServerSocket {
    */
   get infoForLog() {
     const address = this.#serverSocket?.address();
-    const iface   = FormatUtils.networkInterfaceString(this.#interface);
+    const iface   = EndpointAddress.networkInterfaceString(this.#interface);
 
     return {
       protocol:  this.#protocol,
       interface: iface,
       ...(address
-        ? { listening: FormatUtils.networkInterfaceString(address) }
+        ? { listening: EndpointAddress.networkInterfaceString(address) }
         : {})
     };
   }

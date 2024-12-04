@@ -8,6 +8,7 @@ import * as net from 'node:net';
 import * as stream from 'node:stream';
 
 import { IntfLogger } from '@this/loggy-intf';
+import { EndpointAddress } from '@this/net-util';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
@@ -60,11 +61,11 @@ export class WranglerContext {
   #sessionLogger = null;
 
   /**
-   * Result of {@link #remoteInfo}, or `null` if not yet calculated.
+   * Cached result for {@link #origin}, or `null` if not yet calculated.
    *
    * @type {?object}
    */
-  #remoteInfo = null;
+  #origin = null;
 
   /**
    * Constructs an instance.
@@ -114,28 +115,24 @@ export class WranglerContext {
   }
 
   /**
-   * @returns {object} Object representing the remote address/port of the
-   * {@link #socket}. It is always a frozen object.
+   * @returns {EndpointAddress} Object representing the remote address/port of
+   * the {@link #socket}.
    */
-  get remoteInfo() {
-    if (!this.#remoteInfo) {
-      const socket = this.#socket;
-      if (socket) {
-        this.#remoteInfo = {
-          address: socket.remoteAddress,
-          port:    socket.remotePort
-        };
-      } else {
-        // Shouldn't happen in practice, but doing this is probably better than
-        // throwing an error.
-        this.logger?.unknownRemote(socket);
-        this.#remoteInfo = { address: '<unknown>', port: 0 };
+  get origin() {
+    if (!this.#origin) {
+      const { remoteAddress = null, remotePort = null } = this.#socket ?? {};
+      try {
+        this.#origin = new EndpointAddress(remoteAddress, remotePort);
+      } catch {
+        // Presumably one of `remoteAddress` or `remotePort` was invalid. Make
+        // this into an "unknown" instance, and log the fact (which is better
+        // than just crashing).
+        this.logger?.invalidSocketRemote({ remoteAddress, remotePort }, this.#socket);
+        this.#origin = new EndpointAddress(null, null);
       }
-
-      Object.freeze(this.#remoteInfo);
     }
 
-    return this.#remoteInfo;
+    return this.#origin;
   }
 
   /** @returns {?string} ID of a session. */

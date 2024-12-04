@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { FullResponse, HttpHeaders, IncomingRequest, RequestContext,
-  StatusResponse }
+import { FullResponse, HttpHeaders, IncomingRequest, EndpointAddress,
+  RequestContext, StatusResponse }
   from '@this/net-util';
 
 
@@ -16,7 +16,7 @@ import { FullResponse, HttpHeaders, IncomingRequest, RequestContext,
 function makeRequest(authority, path) {
   const context = new RequestContext(
     Object.freeze({}),
-    Object.freeze({ address: '10.0.0.1', port: 65432 }));
+    new EndpointAddress('10.0.0.1', 10321));
 
   return new IncomingRequest({
     context,

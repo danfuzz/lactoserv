@@ -5,7 +5,8 @@ import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocky';
-import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { IntfLogger } from '@this/loggy-intf';
+import { EndpointAddress } from '@this/net-util';
 import { ByteCount } from '@this/quant';
 import { Methods } from '@this/typey';
 
@@ -326,8 +327,8 @@ export class TcpWrangler extends ProtocolWrangler {
         connLogger.weirdConnectionEvent(socket, ...rest);
       }
       connLogger.opened({
-        local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
-        remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
+        local:  EndpointAddress.endpointString(socket.localAddress, socket.localPort),
+        remote: EndpointAddress.endpointString(socket.remoteAddress, socket.remotePort)
       });
     } catch (e) {
       // Shouldn't happen. Almost certainly indicative of a bug in this

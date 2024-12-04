@@ -3,11 +3,11 @@
 
 import { PathKey } from '@this/collections';
 import { Names } from '@this/compy';
-import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
-import { BaseResponse, DispatchInfo, HostUtil, IntfRequestHandler }
+import { BaseResponse, DispatchInfo, EndpointAddress, HostUtil,
+  IntfRequestHandler }
   from '@this/net-util';
 import { ByteCount } from '@this/quant';
 import { StringUtil } from '@this/typey';
@@ -89,7 +89,7 @@ export class NetworkEndpoint extends BaseDispatched {
 
     this.logger?.routing({
       protocol,
-      interface: FormatUtils.networkInterfaceString(iface),
+      interface: EndpointAddress.networkInterfaceString(iface),
       application
     });
 
