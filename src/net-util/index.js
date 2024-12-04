@@ -17,6 +17,7 @@ export * from '#x/HttpUtil';
 export * from '#x/IncomingRequest';
 export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
+export * from '#x/OriginAddress';
 export * from '#x/RequestContext';
 export * from '#x/StatusResponse';
 export * from '#x/TypeNodeRequest';
