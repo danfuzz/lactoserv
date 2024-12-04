@@ -15,7 +15,7 @@ Breaking changes:
 
 Other notable changes:
 * `net-util`:
-  * New class `OriginAddress` which replaces use of ad-hoc plain objects.
+  * New class `EndpointAddress` which replaces use of ad-hoc plain objects.
 * `valvis`:
   * `BaseValueVisitor`:
     * Added `isInterned` argument to `_impl_visitSymbol()`.

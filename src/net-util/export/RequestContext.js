@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { OriginAddress } from '#x/OriginAddress';
+import { EndpointAddress } from '#x/EndpointAddress';
 
 /**
  * Information about an HTTP-ish request that is not available through the
@@ -20,7 +20,7 @@ export class RequestContext {
   /**
    * Information about the origin (remote side) of the connection.
    *
-   * @type {OriginAddress}
+   * @type {EndpointAddress}
    */
   #origin;
 
@@ -30,7 +30,7 @@ export class RequestContext {
    * @param {{ address: ?string, port: ?number, fd: ?number }} iface Information
    *   about the interface that was `listen()`ed on. Must be a frozen object
    *   with expected properties.
-   * @param {OriginAddress} origin Information about the origin (remote side) of
+   * @param {EndpointAddress} origin Information about the origin (remote side) of
    *   the connection.
    */
   constructor(iface, origin) {
@@ -56,7 +56,7 @@ export class RequestContext {
     }
 
     this.#interface = iface;
-    this.#origin    = MustBe.instanceOf(origin, OriginAddress);
+    this.#origin    = MustBe.instanceOf(origin, EndpointAddress);
   }
 
   /**
@@ -68,7 +68,7 @@ export class RequestContext {
   }
 
   /**
-   * @returns {OriginAddress} Information about the origin (remote side) of the
+   * @returns {EndpointAddress} Information about the origin (remote side) of the
    * connection.
    */
   get origin() {

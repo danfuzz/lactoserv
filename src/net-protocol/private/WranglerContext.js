@@ -8,7 +8,7 @@ import * as net from 'node:net';
 import * as stream from 'node:stream';
 
 import { IntfLogger } from '@this/loggy-intf';
-import { OriginAddress } from '@this/net-util';
+import { EndpointAddress } from '@this/net-util';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
@@ -115,20 +115,20 @@ export class WranglerContext {
   }
 
   /**
-   * @returns {OriginAddress} Object representing the remote address/port of the
+   * @returns {EndpointAddress} Object representing the remote address/port of the
    * {@link #socket}.
    */
   get origin() {
     if (!this.#origin) {
       const { remoteAddress = null, remotePort = null } = this.#socket ?? {};
       try {
-        this.#origin = new OriginAddress(remoteAddress, remotePort);
+        this.#origin = new EndpointAddress(remoteAddress, remotePort);
       } catch {
         // Presumably one of `remoteAddress` or `remotePort` was invalid. Make
         // this into an "unknown" instance, and log the fact (which is better
         // than just crashing).
         this.logger?.invalidSocketRemote({ remoteAddress, remotePort }, this.#socket);
-        this.#origin = new OriginAddress(null, null);
+        this.#origin = new EndpointAddress(null, null);
       }
     }
 

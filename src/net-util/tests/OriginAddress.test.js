@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { OriginAddress } from '@this/net-util';
+import { EndpointAddress } from '@this/net-util';
 
 
 describe('constructor', () => {
@@ -19,7 +19,7 @@ describe('constructor', () => {
   ${'[127.0.0.1]'}
   ${'z::1234'}
   `('fails when passing address as $arg', ({ arg }) => {
-    expect(() => new OriginAddress(arg, 1)).toThrow();
+    expect(() => new EndpointAddress(arg, 1)).toThrow();
   });
 
   // Failure cases for port argument.
@@ -37,32 +37,32 @@ describe('constructor', () => {
   ${65535.9}
   ${65536}
   `('fails when passing portNumber as $arg', ({ arg }) => {
-    expect(() => new OriginAddress('127.0.0.1', arg)).toThrow();
+    expect(() => new EndpointAddress('127.0.0.1', arg)).toThrow();
   });
 
   test('accepts `null` for `address`', () => {
-    expect(() => new OriginAddress(null, 1)).not.toThrow();
+    expect(() => new EndpointAddress(null, 1)).not.toThrow();
   });
 
   test('accepts a valid IPv4 address', () => {
-    expect(() => new OriginAddress('10.0.0.255', 1)).not.toThrow();
+    expect(() => new EndpointAddress('10.0.0.255', 1)).not.toThrow();
   });
 
   test('accepts a valid IPv6 address without brackets', () => {
-    expect(() => new OriginAddress('1234:abcd::99:f', 1)).not.toThrow();
+    expect(() => new EndpointAddress('1234:abcd::99:f', 1)).not.toThrow();
   });
 
   test('accepts a valid IPv6 address with brackets', () => {
-    expect(() => new OriginAddress('1::2:3:cba9', 1)).not.toThrow();
+    expect(() => new EndpointAddress('1::2:3:cba9', 1)).not.toThrow();
   });
 
   test('accepts `null` for `portNumber`', () => {
-    expect(() => new OriginAddress('123.42.1.0', null)).not.toThrow();
+    expect(() => new EndpointAddress('123.42.1.0', null)).not.toThrow();
   });
 
   test('accepts valid port numbers', () => {
-    expect(() => new OriginAddress('127.0.0.1', 1)).not.toThrow();
-    expect(() => new OriginAddress('127.0.0.1', 65535)).not.toThrow();
+    expect(() => new EndpointAddress('127.0.0.1', 1)).not.toThrow();
+    expect(() => new EndpointAddress('127.0.0.1', 65535)).not.toThrow();
   });
 });
 
@@ -81,22 +81,22 @@ describe('.address', () => {
   ${'01:2:0::3:04'}                            | ${'1:2::3:4'}
   ${'abcd:1234:5678:fedc:9876:5432:2222:1111'} | ${'abcd:1234:5678:fedc:9876:5432:2222:1111'}
   `('is `$expected` when constructed with `$address`)', ({ address, expected }) => {
-    const oa = new OriginAddress(address, 1);
+    const oa = new EndpointAddress(address, 1);
     expect(oa.address).toBe(expected);
   });
 });
 
 describe('.portNumber', () => {
   test('is the number passed in the constructor', () => {
-    const oa1 = new OriginAddress('4.3.2.1', 1);
-    const oa2 = new OriginAddress('4.3.2.1', 9876);
+    const oa1 = new EndpointAddress('4.3.2.1', 1);
+    const oa2 = new EndpointAddress('4.3.2.1', 9876);
 
     expect(oa1.portNumber).toBe(1);
     expect(oa2.portNumber).toBe(9876);
   });
 
   test('is `null` if constructed with `portNumber === null`', () => {
-    const oa = new OriginAddress('4.3.2.1', null);
+    const oa = new EndpointAddress('4.3.2.1', null);
 
     expect(oa.portNumber).toBeNull();
   });
@@ -112,12 +112,12 @@ describe('toString()', () => {
   ${['44.33.22.11', 789]}      | ${'44.33.22.11:789'}
   ${['abcd:ef::43:210', 7654]} | ${'[abcd:ef::43:210]:7654'}
   `('given $args returns `$expected`', ({ args, expected }) => {
-    const oa = new OriginAddress(...args);
+    const oa = new EndpointAddress(...args);
     expect(oa.toString()).toBe(expected);
   });
 
   test('works on a second call (checks caching behavior)', () => {
-    const oa       = new OriginAddress('55.5.55.5', 555);
+    const oa       = new EndpointAddress('55.5.55.5', 555);
     const expected = '55.5.55.5:555';
 
     expect(oa.toString()).toBe(expected);

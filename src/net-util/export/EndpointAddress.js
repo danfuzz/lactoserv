@@ -9,8 +9,9 @@ import { HostUtil } from '#x/HostUtil';
 
 
 /**
- * Information about the origin (remote side) of a network connection. Instances
- * of this class are immutable.
+ * The address of a network endpoint, consisting of an IP address and port.
+ * This can be used for either the local or origin (remote) side of a network
+ * connection. Instances of this class are immutable.
  *
  * **Note:** This class allows the details of instances to be "unknown." This is
  * unusual in practice, though it _can_ happen. Specifically, Node will report
@@ -20,7 +21,7 @@ import { HostUtil } from '#x/HostUtil';
  *
  * @implements {IntfDeconstructable}
  */
-export class OriginAddress extends IntfDeconstructable {
+export class EndpointAddress extends IntfDeconstructable {
   /**
    * IP address. May be `null` to indicate "unknown."
    *

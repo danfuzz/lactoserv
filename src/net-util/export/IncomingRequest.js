@@ -9,7 +9,7 @@ import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpUtil } from '#x/HttpUtil';
-import { OriginAddress } from '#x/OriginAddress';
+import { EndpointAddress } from '#x/EndpointAddress';
 import { RequestContext } from '#x/RequestContext';
 import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
@@ -310,7 +310,7 @@ export class IncomingRequest {
   }
 
   /**
-   * @returns {OriginAddress} Address of the origin (remote side) of the
+   * @returns {EndpointAddress} Address of the origin (remote side) of the
    * request.
    */
   get origin() {

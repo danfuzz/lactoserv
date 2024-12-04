@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpHeaders, IncomingRequest, OriginAddress, RequestContext }
+import { HttpHeaders, IncomingRequest, EndpointAddress, RequestContext }
   from '@this/net-util';
 
 
@@ -19,7 +19,7 @@ function makeWithHeaders(headers) {
         address: '127.0.0.1',
         port:    123
       }),
-      new OriginAddress('10.0.0.1', 10321)),
+      new EndpointAddress('10.0.0.1', 10321)),
     headers: new HttpHeaders(headers),
     logger: null,
     protocolName: 'http-2',
