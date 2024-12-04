@@ -338,16 +338,6 @@ export class ProtocolWrangler {
       return;
     }
 
-    // Temporary code to try to diagnose why `context.origin` is sometimes
-    // invalid. Issue #432. TODO: Remove this once the issue is resolved.
-    {
-      const origin = context.origin;
-      if (typeof origin.address !== 'string') {
-        logger?.issue432(origin);
-        throw new Error(`Issue #432: ${inspect(origin)}`);
-      }
-    }
-
     const requestContext = new RequestContext(this.interface, context.origin);
     let   request        = null;
 
