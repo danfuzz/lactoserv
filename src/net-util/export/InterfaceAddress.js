@@ -210,13 +210,17 @@ export class InterfaceAddress extends IntfDeconstructable {
   /** @override */
   deconstruct(forLogging_unused) {
     const { address, fd, portNumber } = this;
-    const arg = address ? { address } : { fd };
+    const args = [address ? { address } : { fd }];
 
     if (portNumber) {
-      arg.portNumber = portNumber;
+      args[0].portNumber = portNumber;
     }
 
-    return new Sexp(this.constructor, arg);
+    if (!this.#hasDefaultNodeOptions()) {
+      args[1] = this.#nodeOptions;
+    }
+
+    return new Sexp(this.constructor, ...args);
   }
 
   /**
@@ -283,10 +287,26 @@ export class InterfaceAddress extends IntfDeconstructable {
     return this.#string;
   }
 
+  /**
+   * Is {@link #nodeOptions} the default value?
+   *
+   * @returns {boolean} The answer.
+   */
+  #hasDefaultNodeOptions() {
+    return this.#nodeOptions === InterfaceAddress.#DEFAULT_NODE_OPTIONS;
+  }
+
 
   //
   // Static members
   //
+
+  /**
+   * The default value for {@link #nodeOptions}.
+   *
+   * @type {object}
+   */
+  static #DEFAULT_NODE_OPTIONS = Object.freeze({ allowHalfOpen: true });
 
   /**
    * Checks that a given value is a string which can be used as a network
@@ -446,7 +466,9 @@ export class InterfaceAddress extends IntfDeconstructable {
    * @throws {Error} Thrown if there was trouble.
    */
   static #fixNodeOptions(nodeServerOptions) {
-    const result = { allowHalfOpen: true };
+    const DEFAULT   = this.#DEFAULT_NODE_OPTIONS;
+    const result    = { ...DEFAULT };
+    let   isDefault = true;
 
     for (const [k, v] of Object.entries(nodeServerOptions ?? {})) {
       switch (k) {
@@ -455,17 +477,17 @@ export class InterfaceAddress extends IntfDeconstructable {
         case 'keepAlive':
         case 'noDelay':
         case 'pauseOnConnect': {
-          result[k] = MustBe.boolean(v);
+          MustBe.boolean(v);
           break;
         }
 
         case 'backlog': {
-          result[k] = MustBe.number(v, { safeInteger: true, minInclusive: 0 });
+          MustBe.number(v, { safeInteger: true, minInclusive: 0 });
           break;
         }
 
         case 'keepAliveInitialDelay': {
-          result[k] = MustBe.number(v, { minInclusive: 0 });
+          MustBe.number(v, { minInclusive: 0 });
           break;
         }
 
@@ -473,8 +495,15 @@ export class InterfaceAddress extends IntfDeconstructable {
           throw new Error(`Unrecognized option: ${k}`);
         }
       }
+
+      if (v !== result[k]) {
+        if (isDefault) {
+          isDefault = false;
+        }
+        result[k] = v;
+      }
     }
 
-    return Object.freeze(result);
+    return isDefault ? DEFAULT : Object.freeze(result);
   }
 }

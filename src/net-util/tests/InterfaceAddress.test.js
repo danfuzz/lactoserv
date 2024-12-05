@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { InterfaceAddress } from '@this/net-util';
+import { Sexp } from '@this/sexp';
 
 
 const ALL_NODE_OPTS_EXAMPLE = {
@@ -265,6 +266,27 @@ describe('.portNumber', () => {
 
     expect(ia1.portNumber).toBeNull();
     expect(ia2.portNumber).toBeNull();
+  });
+});
+
+describe('deconstruct()', () => {
+  test('produces a reasonable result, given default extra options', () => {
+    const ia       = new InterfaceAddress('x:123');
+    const expected = new Sexp(InterfaceAddress, { address: 'x', portNumber: 123 });
+
+    expect(ia.deconstruct()).toStrictEqual(expected);
+  });
+
+  test('produces a reasonable result, given non-default extra options', () => {
+    const opts       = { backlog: 987 };
+    const expectOpts = { ...opts, allowHalfOpen: true };
+    const ia         = new InterfaceAddress('/dev/fd/4:909', opts);
+    const expected   = new Sexp(InterfaceAddress, { fd: 4, portNumber: 909 }, expectOpts);
+    const got        = ia.deconstruct();
+
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.functor).toBe(expected.functor);
+    expect(got.args).toStrictEqual(expected.args);
   });
 });
 
