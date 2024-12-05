@@ -93,6 +93,31 @@ describe('constructor', () => {
     expect(() => new InterfaceAddress('/dev/fd/777:654')).not.toThrow();
     expect(() => new InterfaceAddress({ fd: 777, portNumber: 654 })).not.toThrow();
   });
+
+  test('accepts all valid extra Node options', () => {
+    const opts = {
+      allowHalfOpen: true,
+      backlog: 100,
+      exclusive: true,
+      keepAlive: true,
+      keepAliveInitialDelay: 1234.56,
+      noDelay: true,
+      pauseOnConnect: true
+    };
+
+    expect(() => new InterfaceAddress('1.2.3.4:56', opts)).not.toThrow();
+  });
+
+  test.each`
+  opts
+  ${{ address: '10.20.30.40' }}
+  ${{ fd: 99 }}
+  ${{ port: 123 }}
+  ${{ portNumber: 123 }}
+  ${{ zorp: false }}
+  `('rejects extra node options `$opts`', ({ opts }) => {
+    expect(() => new InterfaceAddress('1.2.3.4:56', opts)).toThrow();
+  });
 });
 
 describe('.address', () => {
@@ -163,6 +188,36 @@ describe('.fd', () => {
   });
 });
 
+describe('.nodeServerOptions', () => {
+  test('has `allowHalfOpen: true` by default', () => {
+    const ia = new InterfaceAddress('a.b:3');
+
+    expect(ia.nodeServerOptions).toStrictEqual({ allowHalfOpen: true });
+  });
+
+  test('is frozen', () => {
+    const ia = new InterfaceAddress('a.b:3');
+
+    expect(ia.nodeServerOptions).toBeFrozen();
+  });
+
+  test('is equal to but not the same object as the one passed in the constructor', () => {
+    const opts = { allowHalfOpen: false, backlog: 123 };
+    const ia   = new InterfaceAddress('a.b:3', opts);
+
+    expect(ia.nodeServerOptions).toStrictEqual(opts);
+    expect(ia.nodeServerOptions).not.toBe(opts);
+  });
+
+  test('is `null` if constructed with no `fd`', () => {
+    const ia1 = new InterfaceAddress('1.3.4.1:99');
+    const ia2 = new InterfaceAddress({ address: '[99::aa]', portNumber: 986 });
+
+    expect(ia1.fd).toBeNull();
+    expect(ia2.fd).toBeNull();
+  });
+});
+
 describe('.portNumber', () => {
   test('is the number passed in the constructor', () => {
     const ia1 = new InterfaceAddress('12.34.56.78:999');
@@ -199,9 +254,23 @@ describe('equals()', () => {
     expect(ia1.equals(ia2)).toBeTrue();
   });
 
-  test('returns `false` when compared to a differently-constructed instance', () => {
+  test('returns `false` when compared to a differently-constructed main instance', () => {
     const ia1 = new InterfaceAddress('1.2.3.4:567');
     const ia2 = new InterfaceAddress('4.3.2.1:987');
+    expect(ia1.equals(ia2)).toBeFalse();
+  });
+
+  test('returns `true` when extra Node options match', () => {
+    const opts = { allowHalfOpen: true, keepAlive: true, keepAliveInitialDelay: 99 };
+    const ia1 = new InterfaceAddress('x:9', opts);
+    const ia2 = new InterfaceAddress('x:9', opts);
+    expect(ia1.equals(ia2)).toBeTrue();
+  });
+
+  test('returns `false` when extra Node options do not match', () => {
+    const opts = { allowHalfOpen: true, keepAlive: true, keepAliveInitialDelay: 99 };
+    const ia1 = new InterfaceAddress('x:9', opts);
+    const ia2 = new InterfaceAddress('x:9', { ...opts, allowHalfOpen: false });
     expect(ia1.equals(ia2)).toBeFalse();
   });
 

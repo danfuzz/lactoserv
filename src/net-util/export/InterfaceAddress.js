@@ -41,6 +41,13 @@ export class InterfaceAddress extends IntfDeconstructable {
   #fd;
 
   /**
+   * Extra options to use when interacting with Node's {@link Server} API.
+   *
+   * @type {object}
+   */
+  #nodeOptions;
+
+  /**
    * Result for {@link #toString}, or `null` if not yet calculated.
    *
    * @type {?string}
@@ -64,10 +71,17 @@ export class InterfaceAddress extends IntfDeconstructable {
    *   be informational only) when passing `fd`. When non-`null`, it must be an
    *   integer in the range `1..65535`.
    *
+   * **Note:** With regards to `nodeServerOptions`, `allowHalfOpen: true` is
+   * included by default, even though that isn't Node's default, because it is
+   * arguably a better default to have.
+   *
    * @param {string|object} fullAddress The full address, in one of the forms
    *   mentioned above.
+   * @param {?object} nodeServerOptions Extra options to use when constructing
+   *   a Node {@link Server} object or calling `listen()` on one; or `null` not
+   *   to have extra options beyond the defaults.
    */
-  constructor(fullAddress) {
+  constructor(fullAddress, nodeServerOptions = null) {
     super();
 
     let needCanonicalization;
@@ -111,9 +125,10 @@ export class InterfaceAddress extends IntfDeconstructable {
       }
     }
 
-    this.#address    = address;
-    this.#portNumber = portNumber;
-    this.#fd         = fd;
+    this.#address     = address;
+    this.#portNumber  = portNumber;
+    this.#fd          = fd;
+    this.#nodeOptions = InterfaceAddress.#fixNodeOptions(nodeServerOptions);
   }
 
   /**
@@ -131,6 +146,14 @@ export class InterfaceAddress extends IntfDeconstructable {
    */
   get fd() {
     return this.#fd;
+  }
+
+  /**
+   * @returns {object} Frozen plain object with any extra options that are to be
+   * used when configuring a Node {@link Server} object.
+   */
+  get nodeServerOptions() {
+    return this.#nodeOptions;
   }
 
   /**
@@ -170,7 +193,26 @@ export class InterfaceAddress extends IntfDeconstructable {
     const { address: a1, fd: fd1, portNumber: pn1 } = this;
     const { address: a2, fd: fd2, portNumber: pn2 } = other;
 
-    return (a1 === a2) && (fd1 === fd2) && (pn1 === pn2);
+    if (!((a1 === a2) && (fd1 === fd2) && (pn1 === pn2))) {
+      return false;
+    }
+
+    const ns1   = this.nodeServerOptions;
+    const ns2   = other.nodeServerOptions;
+    const keys1 = Object.getOwnPropertyNames(ns1);
+    const keys2 = Object.getOwnPropertyNames(ns2);
+
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+
+    for (const k of keys1) {
+      if (ns1[k] !== ns2[k]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -304,5 +346,45 @@ export class InterfaceAddress extends IntfDeconstructable {
     }
 
     throw new Error(`Not a port number: ${portNumber}`);
+  }
+
+  /**
+   * Validates and "Fixes" a `nodeServerOptions` argument.
+   *
+   * @param {*} nodeServerOptions Argument to fix.
+   * @returns {object} The fixed version.
+   * @throws {Error} Thrown if there was trouble.
+   */
+  static #fixNodeOptions(nodeServerOptions) {
+    const result = { allowHalfOpen: true };
+
+    for (const [k, v] of Object.entries(nodeServerOptions ?? {})) {
+      switch (k) {
+        case 'allowHalfOpen':
+        case 'exclusive':
+        case 'keepAlive':
+        case 'noDelay':
+        case 'pauseOnConnect': {
+          result[k] = MustBe.boolean(v);
+          break;
+        }
+
+        case 'backlog': {
+          result[k] = MustBe.number(v, { safeInteger: true, minInclusive: 0 });
+          break;
+        }
+
+        case 'keepAliveInitialDelay': {
+          result[k] = MustBe.number(v, { minInclusive: 0 });
+          break;
+        }
+
+        default: {
+          throw new Error(`Unrecognized option: ${k}`);
+        }
+      }
+    }
+
+    return Object.freeze(result);
   }
 }
