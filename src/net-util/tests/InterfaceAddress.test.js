@@ -99,17 +99,25 @@ describe('.address', () => {
   test('is the constructed IP address if it was already canonical', () => {
     const ia1 = new InterfaceAddress('121.134.56.78:999');
     const ia2 = new InterfaceAddress({ address: '12.34.56.78', portNumber: 999 });
+    const ia3 = new InterfaceAddress('[aa::bb]:999');
+    const ia4 = new InterfaceAddress({ address: 'cc::dd', portNumber: 999 });
 
     expect(ia1.address).toBe('121.134.56.78');
     expect(ia2.address).toBe('12.34.56.78');
+    expect(ia3.address).toBe('aa::bb');
+    expect(ia4.address).toBe('cc::dd');
   });
 
   test('is the canonicalized form of the IP address if it was not canonical', () => {
     const ia1 = new InterfaceAddress('001.034.006.078:999');
     const ia2 = new InterfaceAddress({ address: '012.034.056.078', portNumber: 999 });
+    const ia3 = new InterfaceAddress('[aa:0000::bb]:999');
+    const ia4 = new InterfaceAddress({ address: '[cc::dd]', portNumber: 999 });
 
     expect(ia1.address).toBe('1.34.6.78');
     expect(ia2.address).toBe('12.34.56.78');
+    expect(ia3.address).toBe('aa::bb');
+    expect(ia4.address).toBe('cc::dd');
   });
 
   test('is the constructed hostname if it was constructed with a hostname', () => {
@@ -178,22 +186,39 @@ describe('toString()', () => {
   test.each`
   address
   ${'10.0.0.1:123'}
-  // ... TODO ...
+  ${'[aa:bb::ff]:1'}
+  ${'a.b.c:333'}
+  ${'/dev/fd/98'}
+  ${'/dev/fd/98:765'}
   `('succeeds for $address', ({ address }) => {
     const ia = new InterfaceAddress(address);
     expect(ia.toString()).toBe(address);
   });
 
-  // Success cases that are given in canonical plain-object form.
+  // Success cases that are given in canonical plain-object form. Note that in
+  // plain-object form, the non-bracketed IPv6 syntax is canonical, even though
+  // the bracketed syntax is required in the full-string form. (Yes, a little
+  // confusing.)
   test.each`
-  address          | fd      | portNumber
-  ${'10.0.0.1'}    | ${null} | ${77}
-  // ... TODO ...
+  address                  | fd      | portNumber
+  ${'10.0.0.1'}            | ${null} | ${77}
+  ${'123:456:789::abcd'}   | ${null} | ${55}
+  ${'foo.zonk'}            | ${null} | ${44}
+  ${null}                  | ${123}  | ${33}
+  ${null}                  | ${321}  | ${null}
   `('succeeds for ($address, $fd, $portNumber)', ({ address, fd, portNumber }) => {
     const ia = new InterfaceAddress({ address, fd, portNumber });
-    const expected =
-      (address ?? `/dev/fd${portNumber}`) +
-      ((portNumber === null) ? '' : `:${portNumber}`);
+
+    if (/:/.test(address)) {
+      // See comment at top of test case.
+      address = `[${address}]`;
+    }
+
+    const portStr  = portNumber ? `:${portNumber}` : '';
+    const expected = address
+      ? `${address}${portStr}`
+      : `/dev/fd/${fd}${portStr}`;
+
     expect(ia.toString()).toBe(expected);
   });
 
@@ -201,7 +226,10 @@ describe('toString()', () => {
   test.each`
   address                          | expected
   ${'010.0.0.1:09'}                | ${'10.0.0.1:9'}
-  // ... TODO ...
+  ${'[0aa:0bb:00:0::0:cdef]:012'}  | ${'[aa:bb::cdef]:12'}
+  ${'bip.bop.blorp:00003'}         | ${'bip.bop.blorp:3'}
+  ${'/dev/fd/099:00021'}           | ${'/dev/fd/99:21'}
+  ${'/dev/fd/0071'}                | ${'/dev/fd/71'}
   `('returns `$expected` given `$address`', ({ address, expected }) => {
     const ia = new InterfaceAddress(address);
     expect(ia.toString()).toBe(expected);
@@ -210,10 +238,13 @@ describe('toString()', () => {
   // Success cases that are given in non-canonical plain-object form. (We only
   // need to check things where `address` is non-canonical, because in the
   // plain-object form, `portNumber` and `fd` can't possibly be non-canonical.)
+  // In re IPv6 bracketing, the somewhat-surprising test case here is because
+  // while the plain-object form treats non-bracketed as canonical, the end
+  // result of `toString()` still should end up with brackets.
   test.each`
-  address                       | expected
-  ${'010.0.0.1'}                | ${'10.0.0.1'}
-  // ... TODO ...
+  address                  | expected
+  ${'010.0.0.1'}           | ${'10.0.0.1'}
+  ${'[123:456:789::abcd]'} | ${'[123:456:789::abcd]'}
   `('returns `$expected` given `$address`', ({ address, expected }) => {
     const ia = new InterfaceAddress({ address, portNumber: 8877 });
     expect(ia.toString()).toBe(`${expected}:8877`);

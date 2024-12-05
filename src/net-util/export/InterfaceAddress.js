@@ -106,7 +106,8 @@ export class InterfaceAddress extends IntfDeconstructable {
 
   /**
    * @returns {?string} The IP address, hostname, `*` to indicate a wildcard,
-   * or `null` if this instance has an {@link #fd}.
+   * or `null` if this instance has an {@link #fd}. If an IP address, this is
+   * always the canonical form, and _without_ brackets when an IPv6 address.
    */
   get address() {
     return this.#address;
@@ -149,11 +150,17 @@ export class InterfaceAddress extends IntfDeconstructable {
   toString() {
     if (!this.#string) {
       const { address, fd, portNumber } = this;
-      const addressOrFd = address ?? `/dev/fd/${fd}`;
 
-      this.#string = portNumber
-        ? `${addressOrFd}:${portNumber}`
-        : addressOrFd;
+      let prefix;
+      if (address) {
+        prefix = /:/.test(address) ? `[${address}]` : address;
+      } else {
+        prefix = `/dev/fd/${fd}`;
+      }
+
+      this.#string = (portNumber === null)
+        ? prefix
+        : `${prefix}:${portNumber}`;
     }
 
     return this.#string;
