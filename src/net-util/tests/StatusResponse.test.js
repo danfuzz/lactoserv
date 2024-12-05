@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FullResponse, HttpHeaders, IncomingRequest, EndpointAddress,
-  RequestContext, StatusResponse }
+  InterfaceAddress, RequestContext, StatusResponse }
   from '@this/net-util';
 
 
@@ -15,7 +15,7 @@ import { FullResponse, HttpHeaders, IncomingRequest, EndpointAddress,
  */
 function makeRequest(authority, path) {
   const context = new RequestContext(
-    Object.freeze({}),
+    new InterfaceAddress('1.2.3.4:999'),
     new EndpointAddress('10.0.0.1', 10321));
 
   return new IncomingRequest({
