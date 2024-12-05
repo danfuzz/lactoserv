@@ -308,10 +308,10 @@ export class ProtocolWrangler {
     // off to our main `async` request handler.
 
     const { socket, stream, url } = req;
-    const context                 = WranglerContext.get(socket, stream?.session);
-    const logger                  = context?.logger ?? this.#logger;
+    const wranglerContext         = WranglerContext.get(socket, stream?.session);
+    const logger                  = wranglerContext?.logger ?? this.#logger;
 
-    if (context === null) {
+    if (wranglerContext === null) {
       // Shouldn't happen: We have no record of the socket.
       logger?.incomingRequest(url, {});
       logger?.apparentlyLostSocket(url);
@@ -322,7 +322,7 @@ export class ProtocolWrangler {
       return;
     }
 
-    const requestContext = new RequestContext(this.interface, context.origin);
+    const requestContext = new RequestContext(this.interface, wranglerContext.origin);
     let   request        = null;
 
     // Responds to a problematic request with an error status of some sort,
@@ -330,7 +330,7 @@ export class ProtocolWrangler {
     // situation.
     const errorResponse = (e, status, message = e.message) => {
       logger?.errorDuringIncomingRequest({
-        ...context.ids,
+        ...wranglerContext.ids,
         requestId: request?.id ?? '<unknown>',
         url:       request?.urlForLog ?? url,
         socketState: {
@@ -370,15 +370,15 @@ export class ProtocolWrangler {
 
     try {
       logger?.incomingRequest({
-        ...context.ids,
+        ...wranglerContext.ids,
         requestId: request.id,
         url:       request.urlForLog
       });
 
       if (this.#accessLog) {
-        this.#logAndRespondToRequest(request, context, res);
+        this.#logAndRespondToRequest(request, wranglerContext, res);
       } else {
-        this.#respondToRequest(request, context, res);
+        this.#respondToRequest(request, wranglerContext, res);
       }
     } catch (e) {
       // This probably indicates a bug in this project. That is, our goal is for
