@@ -139,33 +139,6 @@ export class HostUtil {
   }
 
   /**
-   * Checks that a given value is a valid non-wildcard port number, optionally
-   * also allowing `*` to specify the wildcard port. Accepts both values of type
-   * `number` _and_ strings of decimal digits.
-   *
-   * @param {*} value Value in question.
-   * @param {boolean} allowWildcard Is `*` allowed?
-   * @returns {number} `value` if it is a valid non-wildcard port number. If
-   *  `allowWildcard === true` and `value === '*'`, then the result is `0`.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkPort(value, allowWildcard) {
-    if (typeof value === 'string') {
-      if (allowWildcard && (value === '*')) {
-        return 0;
-      } else if (/^[0-9]+$/.test(value)) {
-        // Convert to number, and fall through for range check.
-        value = parseInt(value);
-      } else {
-        throw new Error('Must be a port number.');
-      }
-    }
-
-    return MustBe.number(value,
-      { safeInteger: true,  minInclusive: 1, maxInclusive: 65535 });
-  }
-
-  /**
    * Gets the string form of a {@link PathKey}, interpreted as a hostname, where
    * the TLD is the initial path component. That is, the result renders the key
    * in reverse.

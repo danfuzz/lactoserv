@@ -4,7 +4,7 @@
 import { Server } from 'node:net';
 
 import { IntfDeconstructable, Sexp } from '@this/sexp';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { HostUtil } from '#x/HostUtil';
 
@@ -107,9 +107,7 @@ export class InterfaceAddress extends IntfDeconstructable {
       }
 
       if (portNumber) {
-        // `checkPort()` accepts strings, but we only accept numbers here.
-        MustBe.number(portNumber);
-        HostUtil.checkPort(portNumber, false);
+        InterfaceAddress.#checkPortNumber(portNumber);
       }
     }
 
@@ -251,7 +249,7 @@ export class InterfaceAddress extends IntfDeconstructable {
     MustBe.string(iface);
 
     const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
-    const port    = portStr ? HostUtil.checkPort(portStr, false) : null;
+    const port    = portStr ? this.#checkPortNumber(portStr, true) : null;
 
     const addressStr = portStr
       ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
@@ -282,5 +280,29 @@ export class InterfaceAddress extends IntfDeconstructable {
     }
 
     return { address, port };
+  }
+
+  /**
+   * Checks a port number for validity.
+   *
+   * @param {number|string} portNumber The port number in question.
+   * @param {boolean} [allowString] Parse strings? If `false`, `portNumber` must
+   *   be a number per se.
+   * @returns {number} `portNumber` if it is valid.
+   * @throws {Error} Thrown if `portNumber` is invalid.
+   */
+  static #checkPortNumber(portNumber, allowString = false) {
+    if (allowString && (typeof portNumber === 'string')) {
+      if (/^[0-9]{1,5}$/.test(portNumber)) {
+        portNumber = parseInt(portNumber, 10);
+      }
+    }
+
+    if (AskIf.number(portNumber,
+      { safeInteger: true,  minInclusive: 1, maxInclusive: 65535 })) {
+      return portNumber;
+    }
+
+    throw new Error(`Not a port number: ${portNumber}`);
   }
 }
