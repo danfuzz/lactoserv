@@ -149,7 +149,50 @@ export class InterfaceAddress extends IntfDeconstructable {
   }
 
   /**
-   * @returns {object} Frozen plain object with any extra options that are to be
+   * @returns {object} Plain object with all options that are to be used when
+   * constructing a Node {@link Server} object.
+   */
+  get nodeServerCreateOptions() {
+    const opts   = this.#nodeOptions;
+    const result = {};
+
+    const keys = [
+      'allowHalfOpen', 'keepAlive', 'keepAliveInitialDelay', 'noDelay',
+      'pauseOnConnect'];
+    for (const k of keys) {
+      const v = opts[k];
+      if (v !== undefined) {
+        result[k] = v;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * @returns {object} Plain object with all options that are to be used when
+   * calling `listen()` on a Node {@link Server} object.
+   */
+  get nodeServerListenOptions() {
+    const opts    = this.#nodeOptions;
+    const address = (this.#address === '*') ? '::' : this.#address;
+    const result  = address
+      ? { address, port: this.#portNumber }
+      : { fd: this.#fd };
+
+    const keys = ['backlog', 'exclusive'];
+    for (const k of keys) {
+      const v = opts[k];
+      if (v !== undefined) {
+        result[k] = v;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * @returns {object} Frozen plain object with all extra options that are to be
    * used when configuring a Node {@link Server} object.
    */
   get nodeServerOptions() {

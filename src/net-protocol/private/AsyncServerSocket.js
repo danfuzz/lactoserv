@@ -155,7 +155,7 @@ export class AsyncServerSocket {
       // Either this isn't a reload, or it's a reload with an endpoint that
       // isn't configured the same way as one of the pre-reload ones, or it's a
       // reload but the found instance didn't actually have a socket.
-      this.#serverSocket = netCreateServer(this.#extractConstructorOptions());
+      this.#serverSocket = netCreateServer(this.#interface.nodeServerCreateOptions);
     }
 
     const onConnection = (...args) => {
@@ -253,27 +253,6 @@ export class AsyncServerSocket {
   }
 
   /**
-   * Gets the options for a `Server` constructor(ish) call, based on
-   * {@link #interface}.
-   *
-   * @returns {object} The constructor-specific options.
-   */
-  #extractConstructorOptions() {
-    return AsyncServerSocket.#fixOptions(
-      this.#interface, AsyncServerSocket.#CREATE_PROTO);
-  }
-
-  /**
-   * Gets the options for a `listen()` call, based on {@link #interface}.
-   *
-   * @returns {object} The `listen()`-specific options.
-   */
-  #extractListenOptions() {
-    return AsyncServerSocket.#fixOptions(
-      this.#interface, AsyncServerSocket.#LISTEN_PROTO);
-  }
-
-  /**
    * Performs a `listen()` on the underlying {@link Server}, if not already
    * done. This method async-returns once the server is actually listening.
    */
@@ -311,7 +290,7 @@ export class AsyncServerSocket {
       serverSocket.on('listening', handleListening);
       serverSocket.on('error',     handleError);
 
-      serverSocket.listen(this.#extractListenOptions());
+      serverSocket.listen(this.#interface.nodeServerListenOptions);
     });
   }
 
@@ -319,34 +298,6 @@ export class AsyncServerSocket {
   //
   // Static members
   //
-
-  /**
-   * "Prototype" of server socket creation options. See `ProtocolWrangler` class
-   * doc for details.
-   *
-   * @type {object}
-   */
-  static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         { default: true },
-    keepAlive:             null,
-    keepAliveInitialDelay: null,
-    noDelay:               null,
-    pauseOnConnect:        null
-  });
-
-  /**
-   * "Prototype" of server listen options. See `ProtocolWrangler` class doc for
-   * details.
-   *
-   * @type {object}
-   */
-  static #LISTEN_PROTO = Object.freeze({
-    address:    { map: (v) => ({ host: (v === '*') ? '::' : v }) },
-    backlog:    null,
-    exclusive:  null,
-    fd:         null,
-    portNumber: { map: (v) => ({ port: v }) }
-  });
 
   /**
    * How long in msec to allow a stashed instance to remain stashed.
@@ -362,34 +313,6 @@ export class AsyncServerSocket {
    * @type {Set<AsyncServerSocket>}
    */
   static #stashedInstances = new Set();
-
-  /**
-   * Trims down and "fixes" `options` using the given prototype. This is used to
-   * convert from our incoming `interface` form to what's expected by Node's
-   * `Server` construction and `listen()` methods.
-   *
-   * @param {object} options Original options.
-   * @param {object} proto The "prototype" for what bindings to keep.
-   * @returns {object} Pared down version.
-   */
-  static #fixOptions(options, proto) {
-    const result = {};
-
-    for (const [name, mod] of Object.entries(proto)) {
-      const value = options[name];
-      if (value === undefined) {
-        if (mod?.default !== undefined) {
-          result[name] = mod.default;
-        }
-      } else if (mod?.map) {
-        Object.assign(result, (mod.map)(options[name]));
-      } else {
-        result[name] = options[name];
-      }
-    }
-
-    return result;
-  }
 
   /**
    * Stashes an instance for possible reuse during a reload.
