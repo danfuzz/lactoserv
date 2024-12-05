@@ -7,7 +7,7 @@ import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
-import { EndpointAddress, InterfaceAddress } from '@this/net-util';
+import { InterfaceAddress } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 
@@ -155,8 +155,7 @@ export class AsyncServerSocket {
       // Either this isn't a reload, or it's a reload with an endpoint that
       // isn't configured the same way as one of the pre-reload ones, or it's a
       // reload but the found instance didn't actually have a socket.
-      this.#serverSocket = netCreateServer(
-        AsyncServerSocket.#extractConstructorOptions(this.#interface));
+      this.#serverSocket = netCreateServer(this.#extractConstructorOptions());
     }
 
     const onConnection = (...args) => {
@@ -254,6 +253,27 @@ export class AsyncServerSocket {
   }
 
   /**
+   * Gets the options for a `Server` constructor(ish) call, based on
+   * {@link #interface}.
+   *
+   * @returns {object} The constructor-specific options.
+   */
+  #extractConstructorOptions() {
+    return AsyncServerSocket.#fixOptions(
+      this.#interface, AsyncServerSocket.#CREATE_PROTO);
+  }
+
+  /**
+   * Gets the options for a `listen()` call, based on {@link #interface}.
+   *
+   * @returns {object} The `listen()`-specific options.
+   */
+  #extractListenOptions() {
+    return AsyncServerSocket.#fixOptions(
+      this.#interface, AsyncServerSocket.#LISTEN_PROTO);
+  }
+
+  /**
    * Performs a `listen()` on the underlying {@link Server}, if not already
    * done. This method async-returns once the server is actually listening.
    */
@@ -291,9 +311,10 @@ export class AsyncServerSocket {
       serverSocket.on('listening', handleListening);
       serverSocket.on('error',     handleError);
 
-      serverSocket.listen(AsyncServerSocket.#extractListenOptions(this.#interface));
+      serverSocket.listen(this.#extractListenOptions());
     });
   }
+
 
   //
   // Static members
@@ -343,28 +364,6 @@ export class AsyncServerSocket {
   static #stashedInstances = new Set();
 
   /**
-   * Gets the options for a `Server` constructor(ish) call, given the full
-   * server socket `interface` options.
-   *
-   * @param {object} options The interface options.
-   * @returns {object} The constructor-specific options.
-   */
-  static #extractConstructorOptions(options) {
-    return this.#fixOptions(options, this.#CREATE_PROTO);
-  }
-
-  /**
-   * Gets the options for a `listen()` call, given the full server socket
-   * `interface` options.
-   *
-   * @param {object} options The interface options.
-   * @returns {object} The `listen()`-specific options.
-   */
-  static #extractListenOptions(options) {
-    return this.#fixOptions(options, this.#LISTEN_PROTO);
-  }
-
-  /**
    * Trims down and "fixes" `options` using the given prototype. This is used to
    * convert from our incoming `interface` form to what's expected by Node's
    * `Server` construction and `listen()` methods.
@@ -393,38 +392,6 @@ export class AsyncServerSocket {
   }
 
   /**
-   * Checks to see if two "interface" specification objects are the same. This
-   * is just a shallow `isEqual()`ish check of the two objects, with `===` for
-   * value comparison.
-   *
-   * @param {object} iface1 Interface specification to compare.
-   * @param {object} iface2 Interface specification to compare.
-   * @returns {boolean} `true` if they represent the same interface, or `false`
-   *   if not.
-   */
-  static #sameInterface(iface1, iface2) {
-    let entries1 = Object.entries(iface1);
-    let entries2 = Object.entries(iface2);
-
-    if (entries1.length !== entries2.length) {
-      return false;
-    }
-
-    entries1 = entries1.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
-    entries2 = entries2.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
-
-    for (let i = 0; i < entries1.length; i++) {
-      const [key1, value1] = entries1[i];
-      const [key2, value2] = entries2[i];
-      if ((key1 !== key2) || (value1 !== value2)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Stashes an instance for possible reuse during a reload.
    *
    * @param {AsyncServerSocket} instance The instance to stash.
@@ -435,7 +402,7 @@ export class AsyncServerSocket {
     this.#unstashInstance(instance.#interface);
 
     this.#stashedInstances.add(instance);
-    instance.#logger?.stashed();
+    instance.#logger?.stashed(instance.#interface);
 
     (async () => {
       await WallClock.waitForMsec(this.#STASH_TIMEOUT_MSEC);
@@ -450,13 +417,13 @@ export class AsyncServerSocket {
    * Finds a matching instance of this class, if any, which was stashed away
    * during a reload. If found, it is removed from the stash.
    *
-   * @param {object} iface The interface specification for the instance.
+   * @param {InterfaceAddress} iface The interface to look for.
    * @returns {?AsyncServerSocket} The found instance, if any.
    */
   static #unstashInstance(iface) {
     let found = null;
     for (const si of this.#stashedInstances) {
-      if (this.#sameInterface(iface, si.#interface)) {
+      if (iface.equals(si.#interface)) {
         found = si;
         break;
       }
