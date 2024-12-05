@@ -49,7 +49,7 @@ export class HostUtil {
    */
   static checkHostname(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.checkIpAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -75,7 +75,7 @@ export class HostUtil {
    */
   static checkHostnameOrNull(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.checkIpAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -101,7 +101,7 @@ export class HostUtil {
    * * The special "name" `*` to represent the "any" address.
    *
    * The return value is the same as the given one, except that IP addresses are
-   * canonicalized (see {@link EndpointAddress#checkIpAddress}).
+   * canonicalized (see {@link EndpointAddress#canonicalizeAddress}).
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the stated
@@ -109,7 +109,7 @@ export class HostUtil {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkInterfaceAddress(value) {
-    const canonicalIp = EndpointAddress.checkIpAddressOrNull(value, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(value, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -221,7 +221,7 @@ export class HostUtil {
     MustBe.string(name);
 
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.checkIpAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
     if (canonicalIp) {
       return new PathKey([canonicalIp], false);
     }

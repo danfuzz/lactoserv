@@ -234,7 +234,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   const checkAnswer = (hostname, got) => {
     expect(got).not.toBeNull();
 
-    const canonicalIp = EndpointAddress.checkIpAddressOrNull(hostname, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(hostname, false);
 
     if (returns === 'string') {
       if (canonicalIp) {

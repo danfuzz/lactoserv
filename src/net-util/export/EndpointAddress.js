@@ -8,7 +8,8 @@ import { MustBe } from '@this/typey';
 /**
  * The address of a network endpoint, consisting of an IP address and port.
  * This can be used for either the local or origin (remote) side of a network
- * connection. Instances of this class are immutable.
+ * connection. This class only accepts numerical IP addresses, not hostnames.
+ * Instances of this class are immutable.
  *
  * **Note:** This class allows the details of instances to be "unknown." This is
  * unusual in practice, though it _can_ happen. Specifically, Node will report
@@ -53,7 +54,7 @@ export class EndpointAddress extends IntfDeconstructable {
 
     this.#address = (address === null)
       ? null
-      : EndpointAddress.checkIpAddress(address);
+      : EndpointAddress.canonicalizeAddress(address);
 
     this.#portNumber = (portNumber === null)
       ? null
@@ -107,7 +108,7 @@ export class EndpointAddress extends IntfDeconstructable {
   //
 
   /**
-   * Checks that a given value is a valid IP address, either v4 or v6. This
+   * Checks that a given value is a valid IP address, either v4 or v6, and
    * returns the canonicalized form of the address. Canonicalization includes:
    *
    * * dropping irrelevant zero digits (IPv4 and IPv6).
@@ -125,8 +126,8 @@ export class EndpointAddress extends IntfDeconstructable {
    * @throws {Error} Thrown if `value` does not match the pattern for an IP
    *   address.
    */
-  static checkIpAddress(value, allowAny = false) {
-    const result = this.checkIpAddressOrNull(value, allowAny);
+  static canonicalizeAddress(value, allowAny = false) {
+    const result = this.canonicalizeAddressOrNull(value, allowAny);
 
     if (result) {
       return result;
@@ -137,8 +138,8 @@ export class EndpointAddress extends IntfDeconstructable {
   }
 
   /**
-   * Like {@link #checkIpAddress}, execpt returns `null` to indicate a parsing
-   * error.
+   * Like {@link #canonicalizeAddress}, execpt returns `null` to indicate a
+   * parsing error.
    *
    * @param {*} value Value in question.
    * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
@@ -146,7 +147,7 @@ export class EndpointAddress extends IntfDeconstructable {
    *   could not be parsed.
    * @throws {Error} Thrown if `value` is not a string.
    */
-  static checkIpAddressOrNull(value, allowAny = false) {
+  static canonicalizeAddressOrNull(value, allowAny = false) {
     MustBe.string(value);
 
     return this.#canonicalizeAddressV4(value, allowAny)
