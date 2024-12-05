@@ -86,7 +86,7 @@ export class InterfaceAddress extends IntfDeconstructable {
     if (needCanonicalization) {
       if (Object.entries(rest).length !== 0) {
         const extraNames = Object.getOwnPropertyNames(rest).join(', ');
-        throw new Error(`Extra properties: ${extraNames}`)
+        throw new Error(`Extra properties: ${extraNames}`);
       }
 
       if ((address === null) && (fd === null)) {
