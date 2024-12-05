@@ -274,7 +274,7 @@ export class IncomingRequest {
       const { cookies, method, origin, urlForLog } = this;
 
       const result = {
-        origin:   origin.toString(),
+        origin,
         protocol: this.protocolName,
         method,
         url:      urlForLog,
