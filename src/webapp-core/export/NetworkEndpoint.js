@@ -7,7 +7,7 @@ import { IntfAccessLog, IntfConnectionRateLimiter, IntfDataRateLimiter,
   ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
 import { BaseResponse, DispatchInfo, EndpointAddress, HostUtil,
-  IntfRequestHandler }
+  InterfaceAddress, IntfRequestHandler }
   from '@this/net-util';
 import { ByteCount } from '@this/quant';
 import { StringUtil } from '@this/typey';
@@ -208,14 +208,13 @@ export class NetworkEndpoint extends BaseDispatched {
 
       /**
        * Interface to listen on. When passed in, this is expected to be a string
-       * which can be parsed by {@link HostUtil#parseInterface}.
+       * or object which can be passed to {@link InterfaceAddress#constructor}.
        *
-       * @param {string} value Proposed configuration value.
-       * @returns {object} Accepted configuration value, as parsed by
-       *   {@link HostUtil#parseInterface}.
+       * @param {string|object} value Proposed configuration value.
+       * @returns {object} Accepted configuration value.
        */
       _config_interface(value) {
-        return Object.freeze(HostUtil.parseInterface(value));
+        return Object.freeze(InterfaceAddress.parseInterface(value));
       }
 
       /**

@@ -48,7 +48,19 @@ export class InterfaceAddress extends IntfDeconstructable {
   /**
    * Constructs an instance. This accepts _either_ a plain(-like) object with
    * bindings for `{ address, portNumber, fd }` _or_ a string which can be
-   * parsed into those as if by {@link HostUtil#parseInterface}.
+   * parsed into those as if by {@link #parseInterface} (see which). In the
+   * object form:
+   *
+   * * `address`: A string consisting of an IP address, hostname, or the
+   *   wildcard indicator `*`; or `null` (or omitted) if `fd` is being passed.
+   * * `fd`: A number indicating a file descriptor which is used as the
+   *   interface, or `null` (or omitted) if `address` is being passed. When
+   *   non-`null`, it must be an integer in the range `0..65535`.
+   * * `portNumber`: A number indicating the local port of the interface, or
+   *   `null` (or omitted) to indicate that the port is unknown or irrelevant.
+   *   It _must_ be passed when passing `address`; it is optional (and meant to
+   *   be informational only) when passing `fd`. When non-`null`, it must be an
+   *   integer in the range `1..65535`.
    *
    * @param {string|object} fullAddress The full address, in one of the forms
    *   mentioned above.
@@ -58,7 +70,7 @@ export class InterfaceAddress extends IntfDeconstructable {
 
     let needCanonicalization;
     if (typeof fullAddress === 'string') {
-      fullAddress = HostUtil.parseInterface(fullAddress);
+      fullAddress = InterfaceAddress.parseInterface(fullAddress);
       // `parseInterface()` expects `port` not `portNumber`. TODO: Fix it to be
       // consistent with this class (not the other way around).
       fullAddress.portNumber = fullAddress.port;
@@ -164,5 +176,64 @@ export class InterfaceAddress extends IntfDeconstructable {
     }
 
     return this.#string;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Parses a network interface spec into its components. Accepts the two forms
+   * `<address>:<port>` or `/dev/fd/<fd-num>:<port>` (with the port optional in
+   * the latter form). Returns an object with bindings for `address` (a string),
+   * `port` (a number), and/or `fd` (a number), depending on the input.
+   *
+   * For the purposes of this method, `fd` values are allowed to be in the range
+   * `0` to `65535` (even though many systems are more restrictive).
+   *
+   * **Note:** The optional `port` associated with an `fd` is meant for logging
+   * purposes, e.g. to indicate that a request came in on a particular port.
+   * But, due to the nature of a FD not having a generally-discoverable listen
+   * port, users of this system might want to provide it more directly.
+   *
+   * @param {string} iface Interface spec to parse.
+   * @returns {{address: ?string, fd: ?number, port: ?number}} The parsed form.
+   */
+  static parseInterface(iface) {
+    MustBe.string(iface);
+
+    const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
+    const port    = portStr ? HostUtil.checkPort(portStr, false) : null;
+
+    const addressStr = portStr
+      ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
+      : iface;
+
+    const addressOrFd = addressStr
+      .match(/^(?:(?:[/]dev[/]fd[/](?<fd>[0-9]{1,5}))|(?<address>[^/].*))$/)?.groups;
+
+    if (!addressOrFd) {
+      throw new Error(`Invalid network interface: ${iface}`);
+    }
+
+    if (addressOrFd.fd) {
+      const fd = MustBe.number(parseInt(addressOrFd.fd),
+        { safeInteger: true,  minInclusive: 0, maxInclusive: 65535 });
+      return (port === null) ? { fd } : { fd, port };
+    }
+
+    const address = HostUtil.checkInterfaceAddress(addressOrFd.address);
+
+    if (/^(?!\[).*:.*:/.test(iface)) {
+      // If we managed to parse and made it here, then we are necessarily
+      // looking at an IPv6 address without brackets.
+      throw new Error(`Invalid network interface (missing brackets): ${iface}`);
+    } else if (port === null) {
+      // Must specify port at this point. (It's optional with the FD form).
+      throw new Error(`Invalid network interface (missing port): ${iface}`);
+    }
+
+    return { address, port };
   }
 }
