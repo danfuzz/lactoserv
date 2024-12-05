@@ -13,10 +13,13 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * `loggy-intf`:
   * Moved `FormatUtils` contents to `net-util.EndpointAddress` (see below).
+* `net-util`:
+  * New classes `EndpointAddress` and `InterfaceAddress` which replace use of
+    ad-hoc plain objects. Use sites updated across all modules.
+  * Moved IP-address-related bits from `HostUtil` into `EndpointAddress`.
+  * Moved interface-related bits from `HostUtil` into `InterfaceAddress`.
 
 Other notable changes:
-* `net-util`:
-  * New class `EndpointAddress` which replaces use of ad-hoc plain objects.
 * `valvis`:
   * `BaseValueVisitor`:
     * Added `isInterned` argument to `_impl_visitSymbol()`.

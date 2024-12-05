@@ -234,7 +234,7 @@ naming and configuring one of them. Each element has the following bindings:
   in the same form as accepted in the `hosts` section of the configuration.
   Defaults to `['*']`, which should suffice in most cases.
 * `interface` &mdash; The network interface to listen on. This is a string which
-  can take one of two forms:
+  can take one of three forms:
   * `<address>:<port>` &mdash; Specifies a normal network-attached interface.
     `<address>` is a DNS name, an IPv4 address, a _bracketed_ IPv6 address, or
     the wildcard value `*`. `<port>` is a non-zero (decimal) port number.
@@ -243,7 +243,11 @@ naming and configuring one of them. Each element has the following bindings:
   * `/dev/fd/<fd-num>` &mdash; Specifies a file descriptor which is expected to
     already correspond to an open server socket (e.g. set up by `systemd`).
     `<fd-num>` is an arbitrary (decimal) number in the range of valid file
-    descriptors.
+    descriptors. This form can optionally include a `:<port>` suffix, which is
+    used for informational (logging) purposes only.
+  * an instance of `net-util.InterfaceAddress` &mdash; Same as above, but in the
+    form of a proper class instance, which may be preferable when using this
+    system as a programmatic framework.
 * `maxRequestBodySize` &mdash; Optional limit on the size of a request body,
     specified as a byte count as described in
     [`ByteCount`](./2-common-configuration.md#bytecount), or `null` not to have

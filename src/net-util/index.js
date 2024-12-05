@@ -16,6 +16,7 @@ export * from '#x/HttpHeaders';
 export * from '#x/HttpRange';
 export * from '#x/HttpUtil';
 export * from '#x/IncomingRequest';
+export * from '#x/InterfaceAddress';
 export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
 export * from '#x/RequestContext';

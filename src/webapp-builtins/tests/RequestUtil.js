@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpHeaders, IncomingRequest, EndpointAddress, RequestContext }
+import { EndpointAddress, HttpHeaders, IncomingRequest, InterfaceAddress,
+  RequestContext }
   from '@this/net-util';
 
 
@@ -38,7 +39,7 @@ export class RequestUtil {
 
     return new IncomingRequest({
       context: new RequestContext(
-        Object.freeze({ address: 'localhost', port: 12345 }),
+        new InterfaceAddress('localhost:12345'),
         new EndpointAddress('99.88.77.66', 54321 )),
       headers: new HttpHeaders({
         'some-header': 'something'

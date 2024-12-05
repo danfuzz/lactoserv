@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpHeaders, IncomingRequest, EndpointAddress, RequestContext }
+import { EndpointAddress, HttpHeaders, IncomingRequest, InterfaceAddress,
+  RequestContext }
   from '@this/net-util';
 
 
@@ -15,10 +16,7 @@ import { HttpHeaders, IncomingRequest, EndpointAddress, RequestContext }
 function makeWithHeaders(headers) {
   const config = {
     context: new RequestContext(
-      Object.freeze({
-        address: '127.0.0.1',
-        port:    123
-      }),
+      new InterfaceAddress('127.0.0.1:123'),
       new EndpointAddress('10.0.0.1', 10321)),
     headers: new HttpHeaders(headers),
     logger: null,

@@ -6,10 +6,10 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
+import { EndpointAddress } from '#x/EndpointAddress';
 import { HostInfo } from '#x/HostInfo';
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpUtil } from '#x/HttpUtil';
-import { EndpointAddress } from '#x/EndpointAddress';
 import { RequestContext } from '#x/RequestContext';
 import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
@@ -238,7 +238,7 @@ export class IncomingRequest {
         case 'http':  { fallbackPort = 80;  break; }
         case 'https': { fallbackPort = 443; break; }
         default: {
-          fallbackPort = this.#requestContext.interface.port;
+          fallbackPort = this.#requestContext.interface.portNumber;
           break;
         }
       }

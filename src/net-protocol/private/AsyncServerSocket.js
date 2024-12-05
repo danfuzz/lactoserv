@@ -7,7 +7,7 @@ import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
-import { EndpointAddress } from '@this/net-util';
+import { InterfaceAddress } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 
@@ -24,9 +24,9 @@ export class AsyncServerSocket {
   #logger;
 
   /**
-   * Parsed server socket `interface` specification.
+   * Address of the interface to listen on.
    *
-   * @type {object}
+   * @type {InterfaceAddress}
    */
   #interface;
 
@@ -68,13 +68,13 @@ export class AsyncServerSocket {
   /**
    * Constructs an instance.
    *
-   * @param {object} iface Parsed server socket `interface` specification.
+   * @param {InterfaceAddress} iface Address of the interface to listen on.
    * @param {string} protocol The protocol name; just used for logging.
    * @param {?IntfLogger} logger Logger to use, if any.
    */
   constructor(iface, protocol, logger) {
     // Note: `interface` is a reserved word.
-    this.#interface = MustBe.plainObject(iface);
+    this.#interface = MustBe.instanceOf(iface, InterfaceAddress);
     this.#protocol  = MustBe.string(protocol);
     this.#logger    = logger;
   }
@@ -84,15 +84,12 @@ export class AsyncServerSocket {
    * address and current-listening info.
    */
   get infoForLog() {
-    const address = this.#serverSocket?.address();
-    const iface   = EndpointAddress.networkInterfaceString(this.#interface);
+    const address = InterfaceAddress.fromNodeServerOrNull(this.#serverSocket);
 
     return {
       protocol:  this.#protocol,
-      interface: iface,
-      ...(address
-        ? { listening: EndpointAddress.networkInterfaceString(address) }
-        : {})
+      interface: this.#interface,
+      ...(address ? { listening: address } : {})
     };
   }
 
@@ -158,8 +155,7 @@ export class AsyncServerSocket {
       // Either this isn't a reload, or it's a reload with an endpoint that
       // isn't configured the same way as one of the pre-reload ones, or it's a
       // reload but the found instance didn't actually have a socket.
-      this.#serverSocket = netCreateServer(
-        AsyncServerSocket.#extractConstructorOptions(this.#interface));
+      this.#serverSocket = netCreateServer(this.#interface.nodeServerCreateOptions);
     }
 
     const onConnection = (...args) => {
@@ -294,41 +290,14 @@ export class AsyncServerSocket {
       serverSocket.on('listening', handleListening);
       serverSocket.on('error',     handleError);
 
-      serverSocket.listen(AsyncServerSocket.#extractListenOptions(this.#interface));
+      serverSocket.listen(this.#interface.nodeServerListenOptions);
     });
   }
+
 
   //
   // Static members
   //
-
-  /**
-   * "Prototype" of server socket creation options. See `ProtocolWrangler` class
-   * doc for details.
-   *
-   * @type {object}
-   */
-  static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         { default: true },
-    keepAlive:             null,
-    keepAliveInitialDelay: null,
-    noDelay:               null,
-    pauseOnConnect:        null
-  });
-
-  /**
-   * "Prototype" of server listen options. See `ProtocolWrangler` class doc for
-   * details.
-   *
-   * @type {object}
-   */
-  static #LISTEN_PROTO = Object.freeze({
-    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
-    backlog:   null,
-    exclusive: null,
-    fd:        null,
-    port:      null
-  });
 
   /**
    * How long in msec to allow a stashed instance to remain stashed.
@@ -346,88 +315,6 @@ export class AsyncServerSocket {
   static #stashedInstances = new Set();
 
   /**
-   * Gets the options for a `Server` constructor(ish) call, given the full
-   * server socket `interface` options.
-   *
-   * @param {object} options The interface options.
-   * @returns {object} The constructor-specific options.
-   */
-  static #extractConstructorOptions(options) {
-    return this.#fixOptions(options, this.#CREATE_PROTO);
-  }
-
-  /**
-   * Gets the options for a `listen()` call, given the full server socket
-   * `interface` options.
-   *
-   * @param {object} options The interface options.
-   * @returns {object} The `listen()`-specific options.
-   */
-  static #extractListenOptions(options) {
-    return this.#fixOptions(options, this.#LISTEN_PROTO);
-  }
-
-  /**
-   * Trims down and "fixes" `options` using the given prototype. This is used to
-   * convert from our incoming `interface` form to what's expected by Node's
-   * `Server` construction and `listen()` methods.
-   *
-   * @param {object} options Original options.
-   * @param {object} proto The "prototype" for what bindings to keep.
-   * @returns {object} Pared down version.
-   */
-  static #fixOptions(options, proto) {
-    const result = {};
-
-    for (const [name, mod] of Object.entries(proto)) {
-      const value = options[name];
-      if (value === undefined) {
-        if (mod?.default !== undefined) {
-          result[name] = mod.default;
-        }
-      } else if (mod?.map) {
-        Object.assign(result, (mod.map)(options[name]));
-      } else {
-        result[name] = options[name];
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Checks to see if two "interface" specification objects are the same. This
-   * is just a shallow `isEqual()`ish check of the two objects, with `===` for
-   * value comparison.
-   *
-   * @param {object} iface1 Interface specification to compare.
-   * @param {object} iface2 Interface specification to compare.
-   * @returns {boolean} `true` if they represent the same interface, or `false`
-   *   if not.
-   */
-  static #sameInterface(iface1, iface2) {
-    let entries1 = Object.entries(iface1);
-    let entries2 = Object.entries(iface2);
-
-    if (entries1.length !== entries2.length) {
-      return false;
-    }
-
-    entries1 = entries1.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
-    entries2 = entries2.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
-
-    for (let i = 0; i < entries1.length; i++) {
-      const [key1, value1] = entries1[i];
-      const [key2, value2] = entries2[i];
-      if ((key1 !== key2) || (value1 !== value2)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Stashes an instance for possible reuse during a reload.
    *
    * @param {AsyncServerSocket} instance The instance to stash.
@@ -438,7 +325,7 @@ export class AsyncServerSocket {
     this.#unstashInstance(instance.#interface);
 
     this.#stashedInstances.add(instance);
-    instance.#logger?.stashed();
+    instance.#logger?.stashed(instance.#interface);
 
     (async () => {
       await WallClock.waitForMsec(this.#STASH_TIMEOUT_MSEC);
@@ -453,13 +340,13 @@ export class AsyncServerSocket {
    * Finds a matching instance of this class, if any, which was stashed away
    * during a reload. If found, it is removed from the stash.
    *
-   * @param {object} iface The interface specification for the instance.
+   * @param {InterfaceAddress} iface The interface to look for.
    * @returns {?AsyncServerSocket} The found instance, if any.
    */
   static #unstashInstance(iface) {
     let found = null;
     for (const si of this.#stashedInstances) {
-      if (this.#sameInterface(iface, si.#interface)) {
+      if (iface.equals(si.#interface)) {
         found = si;
         break;
       }
