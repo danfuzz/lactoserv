@@ -7,7 +7,7 @@ import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocky';
 import { IntfLogger } from '@this/loggy-intf';
-import { EndpointAddress } from '@this/net-util';
+import { EndpointAddress, InterfaceAddress } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 
@@ -24,9 +24,9 @@ export class AsyncServerSocket {
   #logger;
 
   /**
-   * Parsed server socket `interface` specification.
+   * Address of the interface to listen on.
    *
-   * @type {object}
+   * @type {InterfaceAddress}
    */
   #interface;
 
@@ -68,13 +68,13 @@ export class AsyncServerSocket {
   /**
    * Constructs an instance.
    *
-   * @param {object} iface Parsed server socket `interface` specification.
+   * @param {InterfaceAddress} iface Address of the interface to listen on.
    * @param {string} protocol The protocol name; just used for logging.
    * @param {?IntfLogger} logger Logger to use, if any.
    */
   constructor(iface, protocol, logger) {
     // Note: `interface` is a reserved word.
-    this.#interface = MustBe.plainObject(iface);
+    this.#interface = MustBe.instanceOf(iface, InterfaceAddress);
     this.#protocol  = MustBe.string(protocol);
     this.#logger    = logger;
   }
@@ -85,7 +85,7 @@ export class AsyncServerSocket {
    */
   get infoForLog() {
     const address = this.#serverSocket?.address();
-    const iface   = EndpointAddress.networkInterfaceString(this.#interface);
+    const iface   = this.#interface.toString();
 
     return {
       protocol:  this.#protocol,
@@ -323,11 +323,11 @@ export class AsyncServerSocket {
    * @type {object}
    */
   static #LISTEN_PROTO = Object.freeze({
-    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
-    backlog:   null,
-    exclusive: null,
-    fd:        null,
-    port:      null
+    address:    { map: (v) => ({ host: (v === '*') ? '::' : v }) },
+    backlog:    null,
+    exclusive:  null,
+    fd:         null,
+    portNumber: { map: (v) => ({ port: v }) }
   });
 
   /**

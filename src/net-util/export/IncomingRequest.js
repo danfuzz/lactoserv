@@ -238,7 +238,7 @@ export class IncomingRequest {
         case 'http':  { fallbackPort = 80;  break; }
         case 'https': { fallbackPort = 443; break; }
         default: {
-          fallbackPort = this.#requestContext.interface.port;
+          fallbackPort = this.#requestContext.interface.portNumber;
           break;
         }
       }

@@ -6,8 +6,8 @@ import { inspect } from 'node:util';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { FullResponse, IncomingRequest, IntfRequestHandler, RequestContext,
-  StatusResponse, TypeNodeRequest, TypeNodeResponse }
+import { FullResponse, IncomingRequest, InterfaceAddress, IntfRequestHandler,
+  RequestContext, StatusResponse, TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -73,11 +73,11 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * Return value for {@link #interface}.
+   * Address of the interface to listen on.
    *
-   * @type {object}
+   * @type {InterfaceAddress}
    */
-  #interfaceObject;
+  #interface;
 
   /**
    * Maximum request body allowed, in bytes, or `null` if there is no limit.
@@ -127,15 +127,8 @@ export class ProtocolWrangler {
    *   use. If not specified, the instance won't do data rate limiting.
    * @param {object} options.hostManager Host manager to use. Ignored for
    *   instances which don't do need to do host-based security (certs, etc.).
-   * @param {object} options.interface Options to use for creation of and/or
-   *   listening on the low-level server socket. See docs for
-   *   `net.createServer()` and `net.Server.listen()` for details on all the
-   *   available options, though with the following exceptions (done in order to
-   *   harmonize with the rest of this system):
-   *   * `address` is the address of the interface instead of `host`.
-   *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
-   *   * The default for `allowHalfOpen` is `true`, which is required in
-   *     practice for HTTP2 (and is at least _useful_ in other contexts).
+   * @param {InterfaceAddress} options.interface Address of the interface to
+   *   listen on.
    * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
    *   request body, in bytes, or `null` not to have a limit. Note that not
    *   having a limit is often ill-advised. If non-`null`, must be a
@@ -152,21 +145,16 @@ export class ProtocolWrangler {
     const {
       accessLog,
       hostManager,
-      interface: interfaceConfig,
+      interface: iface,
       maxRequestBodyBytes = null,
       requestHandler
     } = options;
 
     this.#accessLog      = accessLog ?? null;
     this.#hostManager    = hostManager ?? null;
+    this.#interface      = MustBe.instanceOf(iface, InterfaceAddress);
     this.#requestHandler = MustBe.object(requestHandler);
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
-
-    this.#interfaceObject = Object.freeze({
-      address: interfaceConfig.address ?? null,
-      fd:      interfaceConfig.fd      ?? null,
-      port:    interfaceConfig.port    ?? null
-    });
 
     this.#maxRequestBodyBytes = (maxRequestBodyBytes === null)
       ? null
@@ -174,14 +162,10 @@ export class ProtocolWrangler {
   }
 
   /**
-   * @returns {{ address: ?string, port: ?number, fd: ?number }} The IP address
-   * and port of the interface, _or_ the file descriptor, which this instance
-   * listens on. In the case of a file descriptor, `port` might be defined, in
-   * which case it is the "declared port" to report to clients, e.g. for
-   * logging.
+   * @returns {InterfaceAddress} Address which this instance listens on.
    */
   get interface() {
-    return this.#interfaceObject;
+    return this.#interface;
   }
 
   /** @returns {?IntfLogger} The logger for this instance. */
