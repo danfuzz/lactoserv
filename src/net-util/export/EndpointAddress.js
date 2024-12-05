@@ -4,8 +4,6 @@
 import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
-import { HostUtil } from '#x/HostUtil';
-
 
 /**
  * The address of a network endpoint, consisting of an IP address and port.
@@ -55,7 +53,7 @@ export class EndpointAddress extends IntfDeconstructable {
 
     this.#address = (address === null)
       ? null
-      : HostUtil.checkIpAddress(address);
+      : EndpointAddress.checkIpAddress(address);
 
     this.#portNumber = (portNumber === null)
       ? null
@@ -109,6 +107,53 @@ export class EndpointAddress extends IntfDeconstructable {
   //
 
   /**
+   * Checks that a given value is a valid IP address, either v4 or v6. This
+   * returns the canonicalized form of the address. Canonicalization includes:
+   *
+   * * dropping irrelevant zero digits (IPv4 and IPv6).
+   * * for IPv6:
+   *   * removing square brackets, if present. (These are allowed but not
+   *     required.)
+   *   * downcasing hex digits.
+   *   * including `0` values and `::` in the proper positions.
+   *   * representing the IPv4-in-v6 wrapped form as such (and not as a "pure"
+   *     v6 address).
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {string} The canonicalized version of `value`.
+   * @throws {Error} Thrown if `value` does not match the pattern for an IP
+   *   address.
+   */
+  static checkIpAddress(value, allowAny = false) {
+    const result = this.checkIpAddressOrNull(value, allowAny);
+
+    if (result) {
+      return result;
+    }
+
+    const addendum = allowAny ? '' : ' ("any" not allowed)';
+    throw new Error(`Not an IP address${addendum}: ${value}`);
+  }
+
+  /**
+   * Like {@link #checkIpAddress}, execpt returns `null` to indicate a parsing
+   * error.
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {?string} The canonicalized version of `value`, or `null` if it
+   *   could not be parsed.
+   * @throws {Error} Thrown if `value` is not a string.
+   */
+  static checkIpAddressOrNull(value, allowAny = false) {
+    MustBe.string(value);
+
+    return this.#canonicalizeAddressV4(value, allowAny)
+      ?? this.#canonicalizeAddressV6(value, allowAny);
+  }
+
+  /**
    * Makes a human-friendly network address/port string. This is equivalent to
    * calling `new EndpointAddress(address, portNumber).toString()`, except that
    * the arguments aren't validated or canonicalized.
@@ -157,5 +202,189 @@ export class EndpointAddress extends IntfDeconstructable {
     return (Object.hasOwn(iface, 'fd'))
       ? `/dev/fd/${iface.fd}`
       : this.endpointString(iface.address, iface.port);
+  }
+
+  /**
+   * Canonicalizes an IPv4 address, returning `null` if it turns out not to be a
+   * valid address.
+   *
+   * @param {string} value The address to canonicalize.
+   * @param {boolean} allowAny Allow "any" addresses (`0.0.0.0`)?
+   * @returns {?string} The canonical form, or `null` if it could not be parsed.
+   */
+  static #canonicalizeAddressV4(value, allowAny) {
+    if (!/^[.0-9]{7,15}$/.test(value)) {
+      // It doesn't pass a syntactic "sniff test."
+      return null;
+    }
+
+    const parts = value.split('.');
+    if (parts.length !== 4) {
+      return null;
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const p = parts[i];
+      if ((p.length === 0) || (p.length > 3)) {
+        return null;
+      }
+      const num = parseInt(p, 10);
+      if (num > 255) {
+        return null;
+      }
+      parts[i] = `${num}`;
+    }
+
+    const result = parts.join('.');
+
+    if ((!allowAny) && (result === '0.0.0.0')) {
+      return null;
+    }
+
+    return result;
+  }
+
+  /**
+   * Canonicalizes an IPv6 address, returning `null` if it turns out not to be a
+   * valid address.
+   *
+   * @param {string} value The address to canonicalize.
+   * @param {boolean} allowAny Allow "any" addresses (`::`)?
+   * @returns {?string} The canonical form, or `null` if it could not be parsed.
+   */
+  static #canonicalizeAddressV6(value, allowAny) {
+    if (!/^\[?[:.0-9a-fA-F]{2,50}\]?$/.test(value)) {
+      // It doesn't pass a syntactic "sniff test."
+      return null;
+    }
+
+    if (value.startsWith('[')) {
+      if (!value.endsWith(']')) {
+        // Mismatched brackets.
+        return null;
+      }
+
+      // Trim off brackets.
+      value = value.slice(1, value.length - 1);
+    } else if (value.endsWith(']')) {
+      // Mismatched brackets.
+      return null;
+    }
+
+    value = value.toLowerCase();
+
+    // Replace `::` with a literal `x` in place of the component.
+    if (value === '::') {
+      // Skip all the hard work for this edge case.
+      return allowAny ? '::' : null;
+    } else if (value.startsWith('::')) {
+      value = `x${value.slice(1)}`;
+    } else if (value.endsWith('::')) {
+      value = `${value.slice(0, value.length - 1)}x`;
+    } else {
+      value = value.replace(/::/, ':x:');
+    }
+
+    // Split into parts, and validate / canonicalize each.
+
+    const origParts = value.split(':');
+    const lastPart  = origParts[origParts.length - 1];
+
+    if (/[.]/.test(lastPart)) {
+      // The final part looks like a wrapped IPv4 address. Validate it.
+      const v4Part = this.#canonicalizeAddressV4(lastPart);
+      if (!v4Part) {
+        return null;
+      }
+      // Add an extra part as both a marker and to keep the part count correct,
+      // keeping `::` compression (below) simpler.
+      origParts.pop();
+      origParts.push('v4', v4Part);
+    }
+
+    const parts = [];
+    for (const p of origParts) {
+      if (p === 'x') {
+        const extraPartCount = 9 - origParts.length;
+        if (extraPartCount <= 0) {
+          return null;
+        }
+        for (let n = 0; n < extraPartCount; n++) {
+          parts.push('0');
+        }
+      } else if (p === 'v4') {
+        parts.push(p, origParts[origParts.length - 1]);
+        break;
+      } else {
+        if (!/^[0-9a-f]{1,4}$/.test(p)) {
+          return null;
+        }
+        parts.push(p.replace(/^0+(?=.)/, '')); // Drop leading zeroes.
+      }
+    }
+
+    if (parts.length !== 8) {
+      // Too few or too many parts.
+      return null;
+    }
+
+    // This is `true` if the first six parts are indicative of IPv4 wrapping.
+    const hasV4Prefix =
+      (parts[0] === '0') && (parts[1] === '0') && (parts[2] === '0') &&
+      (parts[3] === '0') && (parts[4] === '0') && (parts[5] === 'ffff');
+
+    if (parts[6] === 'v4') {
+      if (!hasV4Prefix) {
+        // The original input used the IPv4 wrapping syntax for the last parts,
+        // but the prefix isn't actually right.
+        return null;
+      }
+      parts[6] = parts[7];
+      parts.pop();
+    } else if (hasV4Prefix) {
+      // This is a wrapped v4 address, but not already in wrapped form. Convert
+      // it.
+      const hex6     = parseInt(parts[6], 16);
+      const hex7     = parseInt(parts[7], 16);
+      const byte1    = hex6 >> 8;
+      const byte2    = hex6 & 0xff;
+      const byte3    = hex7 >> 8;
+      const byte4    = hex7 & 0xff;
+      const v4String = `${byte1}.${byte2}.${byte3}.${byte4}`;
+      parts.pop();
+      parts[6] = v4String;
+    }
+
+    // Find the longest run of zeros, for `::` replacement (if appropriate).
+
+    let zerosAt    = -1;
+    let zerosCount = 0;
+    for (let n = 0; n < parts.length; n++) {
+      if (parts[n] === '0') {
+        let endAt = n + 1;
+        while ((endAt < parts.length) && (parts[endAt] === '0')) {
+          endAt++;
+        }
+        if ((endAt - n) > zerosCount) {
+          zerosCount = endAt - n;
+          zerosAt    = n;
+        }
+        n = endAt - 1;
+      }
+    }
+
+    if (zerosAt < 0) {
+      return parts.join(':');
+    } else if (zerosCount === 8) {
+      if (!allowAny) {
+        return null;
+      }
+      return '::';
+    } else {
+      // A `::` in a middle part will end up being `:::` after the `join()`,
+      // hence the `replace(...)`.
+      parts.splice(zerosAt, zerosCount, ':');
+      return parts.join(':').replace(/:::/, '::');
+    }
   }
 }

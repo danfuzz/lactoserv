@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
-import { HostUtil } from '@this/net-util';
+import { EndpointAddress, HostUtil } from '@this/net-util';
 
 
 const LONGEST_COMPONENT = 'x'.repeat(63);
@@ -101,173 +101,6 @@ describe('checkInterfaceAddress()', () => {
   `('returns `$expected` given `$iface`', ({ iface, expected }) => {
     const got = HostUtil.checkInterfaceAddress(iface);
     expect(got).toBe(expected);
-  });
-});
-
-describe.each`
-method                    | throws
-${'checkIpAddress'}       | ${true}
-${'checkIpAddressOrNull'} | ${false}
-`('$method()', ({ method, throws }) => {
-  // Failures from passing non-strings. These are always supposed to throw.
-  test.each`
-  addr
-  ${null}
-  ${undefined}
-  ${false}
-  ${true}
-  ${123}
-  ${Symbol('boop')}
-  ${['a', 'b']}
-  ${{ a: 'florp' }}
-  `('throws for $addr', ({ addr }) => {
-    expect(() => HostUtil[method](addr, false)).toThrow();
-    expect(() => HostUtil[method](addr, true)).toThrow();
-  });
-
-  // Failure cases.
-  test.each`
-  label                                    | addr
-  ${'empty string'}                        | ${''}
-  ${'complete wildcard'}                   | ${'*'}
-  ${'wildcard IPv4-ish address'}           | ${'*.23'}
-  ${'wildcard IPv4-ish address'}           | ${'*.23.45'}
-  ${'wildcard IPv4-ish address'}           | ${'*.2.3.4'}
-  ${'wildcard IPv4-ish address'}           | ${'*.2.3.4.56'}
-  ${'wildcard IPv6-ish address'}           | ${'*:10::5'}
-  ${'DNS name (1 component)'}              | ${'foo'}
-  ${'DNS name (2 components)'}             | ${'foo.bar'}
-  ${'DNS name (3 components)'}             | ${'foo.bar.baz'}
-  ${'wildcard DNS name'}                   | ${'*.foo.bar'}
-  ${'DNS-like but with numeric component'} | ${'123.foo'}
-  ${'too many IPv6 double colons'}         | ${'123::45::67'}
-  ${'IPv6 triple colon'}                   | ${'123:::45:67'}
-  ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
-  ${'invalid IPv6 digit'}                  | ${'123::g:456'}
-  ${'too-long IPv6 component'}             | ${'123::45678:9'}
-  ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
-  ${'too many IPv6 components, with `::`'} | ${'1:2::3:4:5:6:7:8'}
-  ${'too many IPv6 components, with `::`'} | ${'1:2::3:4:5:6:7:8:9'}
-  ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
-  ${'too-large IPv4 component'}            | ${'10.256.0.1'}
-  ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
-  ${'IPv4 with extra char at start'}       | ${'@1.2.3.45'}
-  ${'IPv4 with extra char at end'}         | ${'1.2.3.45#'}
-  ${'IPv4 with extra dot at start'}        | ${'.12.2.3.45'}
-  ${'IPv4 with extra dot at end'}          | ${'14.25.37.24.'}
-  ${'DNS name in brackets'}                | ${'[foo.bar]'}
-  ${'IPv6 missing open bracket'}           | ${'1:2:3::4]'}
-  ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
-  ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
-  ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
-  ${'IPv4-in-v6 but with wrong prefix'}    | ${'1234::78:10.20.30.40'}
-  `('fails for $label', ({ addr }) => {
-    if (throws) {
-      expect(() => HostUtil[method](addr, false)).toThrow();
-      expect(() => HostUtil[method](addr, true)).toThrow();
-    } else {
-      expect(HostUtil[method](addr, false)).toBeNull();
-      expect(HostUtil[method](addr, true)).toBeNull();
-    }
-  });
-
-  // Success cases that are given in canonical form.
-  test.each`
-  addr
-  ${'10.0.0.1'}
-  ${'255.255.255.255'}
-  ${'199.199.199.199'}
-  ${'99.99.99.99'}
-  ${'::a'}
-  ${'1::'}
-  ${'123:4567:89ab:cdef:123:4567:89ab:cdef'}
-  ${'123:4567:89ab::123:4567:89ab:cdef'}
-  ${'123:4567::1230:4567:89ab:cdef'}
-  ${'123:4567::4567:89ab:cdef'}
-  ${'123::4567:89ab:cdef'}
-  ${'123::4567:89ab'}
-  ${'123::4567'}
-  ${'abcd::ef'}
-  ${'::abcd'}
-  ${'::ffff:11.22.33.44'} // IPv4-in-v6 wrapped form
-  `('succeeds for $addr', ({ addr }) => {
-    expect(HostUtil[method](addr, false)).toBe(addr);
-    expect(HostUtil[method](addr, true)).toBe(addr);
-  });
-
-  // Success cases that are given in non-canonical form.
-  test.each`
-  addr                                         | expected
-  ${'010.0.0.1'}                               | ${'10.0.0.1'}
-  ${'10.02.0.1'}                               | ${'10.2.0.1'}
-  ${'10.0.004.1'}                              | ${'10.0.4.1'}
-  ${'123.0.0.09'}                              | ${'123.0.0.9'}
-  ${'123.0.0.009'}                             | ${'123.0.0.9'}
-  ${'123.0.09.1'}                              | ${'123.0.9.1'}
-  ${'123.0.009.1'}                             | ${'123.0.9.1'}
-  ${'0:0:0:0:0:0:0:a'}                         | ${'::a'}
-  ${'1:0:0:0:0:0:0:0'}                         | ${'1::'}
-  ${'3:0:0:0:0:0:0:4'}                         | ${'3::4'}
-  ${'00:00:00:00:00:00:00:a'}                  | ${'::a'}
-  ${'1:00:00:00:00:00:00:00'}                  | ${'1::'}
-  ${'3:00:00:00:00:00:00:4'}                   | ${'3::4'}
-  ${'0000::1'}                                 | ${'::1'}
-  ${'f::0000'}                                 | ${'f::'}
-  ${'aa:bb:0::cc:dd:ee:ff'}                    | ${'aa:bb::cc:dd:ee:ff'}
-  ${'0:0:0:0:12:34:56::'}                      | ${'::12:34:56:0'}
-  ${'::1:2:0:0:0:3'}                           | ${'0:0:1:2::3'}
-  ${'0001:0002:0003:0004:0005:0006:0007:0008'} | ${'1:2:3:4:5:6:7:8'}
-  ${'0034::0:0:00ab:cd'}                       | ${'34::ab:cd'}
-  ${'ABCD::EF'}                                | ${'abcd::ef'}
-  ${'[::abcd]'}                                | ${'::abcd'}
-  ${'[::abc]'}                                 | ${'::abc'}
-  ${'[::ab]'}                                  | ${'::ab'}
-  ${'[::a]'}                                   | ${'::a'}
-  ${'[1::1]'}                                  | ${'1::1'}
-  ${'[1:2::12]'}                               | ${'1:2::12'}
-  ${'[1:2:3::123]'}                            | ${'1:2:3::123'}
-  ${'[1:2:3:4::1234]'}                         | ${'1:2:3:4::1234'}
-  ${'[1:2:3:4:0005:6:7:8]'}                    | ${'1:2:3:4:5:6:7:8'}
-  ${'[1234::]'}                                | ${'1234::'}
-  ${'[12:ab::34:cd]'}                          | ${'12:ab::34:cd'}
-  ${'::ffff:102:304'}                          | ${'::ffff:1.2.3.4'} // IPv4-in-v6 wrapped form
-  ${'0:0::ffff:1.2.3.4'}                       | ${'::ffff:1.2.3.4'} // Same.
-  `('returns `$expected` given `$addr`', ({ addr, expected }) => {
-    expect(HostUtil[method](addr, false)).toBe(expected);
-    expect(HostUtil[method](addr, true)).toBe(expected);
-  });
-
-  // Tests for "any" addresses. These should succeed if `allowAny === true` and
-  // fail for `allowAny === false`.
-  describe.each`
-  allowAny
-  ${true}
-  ${false}
-  `('with `allowAny === $allowAny`', ({ allowAny }) => {
-    const verb = allowAny ? 'succeeds' : 'fails';
-    test.each`
-    addr                 | expected
-    ${'::'}              | ${'::'}
-    ${'[::]'}            | ${'::'}
-    ${'0::'}             | ${'::'}
-    ${'[0::]'}           | ${'::'}
-    ${'0:0:0:0:0:0:0:0'} | ${'::'}
-    ${'0::0'}            | ${'::'}
-    ${'0000::'}          | ${'::'}
-    ${'::0000'}          | ${'::'}
-    ${'0.0.0.0'}         | ${'0.0.0.0'}
-    ${'0.00.0.0'}        | ${'0.0.0.0'}
-    ${'000.000.000.000'} | ${'0.0.0.0'}
-    `(`${verb} for $addr`, ({ addr, expected }) => {
-      if (allowAny) {
-        const got = HostUtil[method](addr, true);
-        expect(got).toBe(expected);
-      } else if (throws) {
-        expect(() => HostUtil[method](addr, false)).toThrow();
-      } else {
-        expect(HostUtil[method](addr, false)).toBeNull();
-      }
-    });
   });
 });
 
@@ -401,7 +234,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   const checkAnswer = (hostname, got) => {
     expect(got).not.toBeNull();
 
-    const canonicalIp = HostUtil.checkIpAddressOrNull(hostname, false);
+    const canonicalIp = EndpointAddress.checkIpAddressOrNull(hostname, false);
 
     if (returns === 'string') {
       if (canonicalIp) {

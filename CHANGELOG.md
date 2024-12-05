@@ -16,6 +16,7 @@ Breaking changes:
 * `net-util`:
   * New class `EndpointAddress` which replaces use of ad-hoc plain objects.
     Use sites updated across all modules.
+  * Moved IP-address-related bits from `HostUtil` into `EndpointAddress`.
 
 Other notable changes:
 * `valvis`:
