@@ -156,6 +156,26 @@ export class InterfaceAddress extends IntfDeconstructable {
   }
 
   /**
+   * Indicates whether or not this instance represents the same interface as
+   * the given object. This only returns `true` if `other` is also an instance
+   * of this class.
+   *
+   * @param {*} other Object to compare to.
+   * @returns {boolean} `true` if `this` and `other` represent the same
+   *   interface.
+   */
+  equals(other) {
+    if (!(other instanceof InterfaceAddress)) {
+      return false;
+    }
+
+    const { address: a1, fd: fd1, portNumber: pn1 } = this;
+    const { address: a2, fd: fd2, portNumber: pn2 } = other;
+
+    return (a1 === a2) && (fd1 === fd2) && (pn1 === pn2);
+  }
+
+  /**
    * Gets a friendly string form of this instance. This is the same form as is
    * accepted in the constructor.
    *

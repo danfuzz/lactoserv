@@ -181,6 +181,44 @@ describe('.portNumber', () => {
   });
 });
 
+describe('equals()', () => {
+  test('returns `true` when compared to itself', () => {
+    const ia = new InterfaceAddress('boop:99');
+    expect(ia.equals(ia)).toBeTrue();
+  });
+
+  test('returns `true` when compared to an equivalently-constructed address-bearing instance', () => {
+    const ia1 = new InterfaceAddress('boop:99');
+    const ia2 = new InterfaceAddress({ address: 'boop', portNumber: 99 });
+    expect(ia1.equals(ia2)).toBeTrue();
+  });
+
+  test('returns `true` when compared to an equivalently-constructed fd-bearing instance', () => {
+    const ia1 = new InterfaceAddress('/dev/fd/1:23');
+    const ia2 = new InterfaceAddress({ fd: 1, portNumber: 23 });
+    expect(ia1.equals(ia2)).toBeTrue();
+  });
+
+  test('returns `false` when compared to a differently-constructed instance', () => {
+    const ia1 = new InterfaceAddress('1.2.3.4:567');
+    const ia2 = new InterfaceAddress('4.3.2.1:987');
+    expect(ia1.equals(ia2)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${null}
+  ${undefined}
+  ${{ address: 'boop', portNumber: 99 }} // Doesn't try to compare with a plain object.
+  ${'boop:99'}                           // Doesn't try to parse strings.
+  ${12345}
+  ${new Map()}
+  `('returns `false` when compared to $arg', ({ arg }) => {
+    const ia = new InterfaceAddress('boop:99');
+    expect(ia.equals(arg)).toBeFalse();
+  });
+});
+
 describe('toString()', () => {
   // Success cases that are given in canonical string form.
   test.each`
