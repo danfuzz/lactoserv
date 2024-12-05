@@ -112,7 +112,7 @@ export class InterfaceAddress extends IntfDeconstructable {
       }
 
       if (address) {
-        address = InterfaceAddress.checkInterfaceAddress(address);
+        address = InterfaceAddress.canonicalizeAddress(address);
         if (portNumber === null) {
           throw new Error('Must pass `portNumber` when using `address`.');
         }
@@ -305,7 +305,7 @@ export class InterfaceAddress extends IntfDeconstructable {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkInterfaceAddress(value) {
+  static canonicalizeAddress(value) {
     const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(value, false);
     if (canonicalIp) {
       return canonicalIp;
@@ -400,7 +400,7 @@ export class InterfaceAddress extends IntfDeconstructable {
       return (port === null) ? { fd } : { fd, port };
     }
 
-    const address = InterfaceAddress.checkInterfaceAddress(addressOrFd.address);
+    const address = InterfaceAddress.canonicalizeAddress(addressOrFd.address);
 
     if (/^(?!\[).*:.*:/.test(iface)) {
       // If we managed to parse and made it here, then we are necessarily

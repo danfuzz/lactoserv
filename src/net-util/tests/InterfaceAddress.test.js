@@ -363,7 +363,7 @@ describe('toString()', () => {
 // Static members
 //
 
-describe('checkInterfaceAddress()', () => {
+describe('canonicalizeAddress()', () => {
   const LONGEST_COMPONENT = 'x'.repeat(63);
   const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
 
@@ -409,7 +409,7 @@ describe('checkInterfaceAddress()', () => {
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
   ${'IPv4-in-v6 but with wrong prefix'}    | ${'1234::78:10.20.30.40'}
   `('fails for $label', ({ iface }) => {
-    expect(() => InterfaceAddress.checkInterfaceAddress(iface)).toThrow();
+    expect(() => InterfaceAddress.canonicalizeAddress(iface)).toThrow();
   });
 
   // Success cases that are given in canonical form.
@@ -439,7 +439,7 @@ describe('checkInterfaceAddress()', () => {
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $iface', ({ iface }) => {
-    const got      = InterfaceAddress.checkInterfaceAddress(iface);
+    const got      = InterfaceAddress.canonicalizeAddress(iface);
     const expected = iface.replace(/\[|\]/g, '');
     expect(got).toBe(expected);
   });
@@ -457,7 +457,7 @@ describe('checkInterfaceAddress()', () => {
   ${'[12:Ab::34:cD]'}     | ${'12:ab::34:cd'}
   ${'::ffff:102:304'}     | ${'::ffff:1.2.3.4'} // IPv4-in-v6 wrapped form
   `('returns `$expected` given `$iface`', ({ iface, expected }) => {
-    const got = InterfaceAddress.checkInterfaceAddress(iface);
+    const got = InterfaceAddress.canonicalizeAddress(iface);
     expect(got).toBe(expected);
   });
 });
