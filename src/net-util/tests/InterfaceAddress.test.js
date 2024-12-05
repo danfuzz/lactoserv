@@ -4,6 +4,16 @@
 import { InterfaceAddress } from '@this/net-util';
 
 
+const ALL_NODE_OPTS_EXAMPLE = {
+  allowHalfOpen: true,
+  backlog: 100,
+  exclusive: true,
+  keepAlive: true,
+  keepAliveInitialDelay: 1234.56,
+  noDelay: true,
+  pauseOnConnect: true
+};
+
 describe('constructor', () => {
   // Failure cases for address argument.
   test.each`
@@ -95,17 +105,7 @@ describe('constructor', () => {
   });
 
   test('accepts all valid extra Node options', () => {
-    const opts = {
-      allowHalfOpen: true,
-      backlog: 100,
-      exclusive: true,
-      keepAlive: true,
-      keepAliveInitialDelay: 1234.56,
-      noDelay: true,
-      pauseOnConnect: true
-    };
-
-    expect(() => new InterfaceAddress('1.2.3.4:56', opts)).not.toThrow();
+    expect(() => new InterfaceAddress('1.2.3.4:56', ALL_NODE_OPTS_EXAMPLE)).not.toThrow();
   });
 
   test.each`
@@ -185,6 +185,38 @@ describe('.fd', () => {
 
     expect(ia1.fd).toBeNull();
     expect(ia2.fd).toBeNull();
+  });
+});
+
+describe('.nodeServerCreateOptions', () => {
+  test('includes all the expected options', () => {
+    const ia = new InterfaceAddress('z:1', ALL_NODE_OPTS_EXAMPLE);
+
+    const keys = [
+      'allowHalfOpen', 'keepAlive', 'keepAliveInitialDelay', 'noDelay',
+      'pauseOnConnect'];
+    expect(ia.nodeServerCreateOptions).toContainAllKeys(keys);
+  });
+});
+
+describe('.nodeServerListenOptions', () => {
+  test('includes all the expected options', () => {
+    const ia1 = new InterfaceAddress('z:1', ALL_NODE_OPTS_EXAMPLE);
+    const ia2 = new InterfaceAddress('/dev/fd/3:12', ALL_NODE_OPTS_EXAMPLE);
+
+    const keys = ['backlog', 'exclusive'];
+    const keys1 = [...keys, 'address', 'port'];
+    const keys2 = [...keys, 'fd'];
+
+    expect(ia1.nodeServerListenOptions).toContainAllKeys(keys1);
+    expect(ia2.nodeServerListenOptions).toContainAllKeys(keys2);
+  });
+
+  test('represents the wildcard address `*` as `::` in the result', () => {
+    const ia  = new InterfaceAddress('*:1');
+    const got = ia.nodeServerListenOptions;
+
+    expect(got.address).toBe('::');
   });
 });
 
@@ -271,7 +303,9 @@ describe('equals()', () => {
     const opts = { allowHalfOpen: true, keepAlive: true, keepAliveInitialDelay: 99 };
     const ia1 = new InterfaceAddress('x:9', opts);
     const ia2 = new InterfaceAddress('x:9', { ...opts, allowHalfOpen: false });
+    const ia3 = new InterfaceAddress('x:9', { ...opts, backlog: 11 });
     expect(ia1.equals(ia2)).toBeFalse();
+    expect(ia1.equals(ia3)).toBeFalse();
   });
 
   test.each`
