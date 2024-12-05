@@ -265,7 +265,7 @@ export class HostUtil {
     MustBe.string(iface);
 
     const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
-    const port    = portStr ? this.checkPort(portStr) : null;
+    const port    = portStr ? this.checkPort(portStr, false) : null;
 
     const addressStr = portStr
       ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
