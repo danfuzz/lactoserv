@@ -92,53 +92,6 @@ export class HostUtil {
   }
 
   /**
-   * Checks that a given value is a string which can be used as a network
-   * interface address, and returns a somewhat-canonicalized form. This allows:
-   *
-   * * Normal dotted DNS names.
-   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses. IPv6
-   *   addresses are allowed to be enclosed in brackets.
-   * * The special "name" `*` to represent the "any" address.
-   *
-   * The return value is the same as the given one, except that IP addresses are
-   * canonicalized (see {@link EndpointAddress#canonicalizeAddress}).
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkInterfaceAddress(value) {
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(value, false);
-    if (canonicalIp) {
-      return canonicalIp;
-    }
-
-    // The one allowed "any" address.
-    const anyAddress = '[*]';
-
-    // Normal DNS names. See RFC1035 for details. Notes:
-    // * The maximum allowed length for a "label" (name component) is 63.
-    // * The maximum allowed total length is 255.
-    // * The spec seems to require each label to start with a letter, but in
-    //   practice that's commonly violated, e.g. there are many `<digits>.com`
-    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
-    //   So, we instead require labels not start with a dash and that there is
-    //   at least one non-digit somewhere in the entire name. This is enough to
-    //   disambiguate between a DNS name and an IPv4 address, and to cover
-    //   existing uses.
-    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const dnsName  =
-      '(?!.{256})' +                    // No more than 255 characters total.
-      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
-      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
-
-    const pattern = `^(?:${anyAddress}|${dnsName})$`;
-
-    return MustBe.string(value, pattern);
-  }
-
-  /**
    * Gets the string form of a {@link PathKey}, interpreted as a hostname, where
    * the TLD is the initial path component. That is, the result renders the key
    * in reverse.

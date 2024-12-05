@@ -5,105 +5,6 @@ import { PathKey } from '@this/collections';
 import { EndpointAddress, HostUtil } from '@this/net-util';
 
 
-const LONGEST_COMPONENT = 'x'.repeat(63);
-const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
-
-describe('checkInterfaceAddress()', () => {
-  // Failure cases.
-  test.each`
-  label                                    | iface
-  ${'null'}                                | ${null}
-  ${'non-string'}                          | ${123}
-  ${'empty string'}                        | ${''}
-  ${'too-long DNS component'}              | ${`z${LONGEST_COMPONENT}`}
-  ${'too-long DNS name'}                   | ${`z${LONGEST_NAME}`}
-  ${'first component starts with `-`'}     | ${'-foo.bar'}
-  ${'first component ends with `-`'}       | ${'foo-.bar'}
-  ${'middle component starts with `-`'}    | ${'foo.-x.bar'}
-  ${'middle component ends with `-`'}      | ${'foo.x-.bar'}
-  ${'final component starts with `-`'}     | ${'foo.-bar'}
-  ${'final component ends with `-`'}       | ${'foo.bar-'}
-  ${'invalid DNS character'}               | ${'foo!bar.baz'}
-  ${'canonical IPv6 wildcard'}             | ${'::'}
-  ${'canonical IPv6 wildcard in brackets'} | ${'[::]'}
-  ${'IPv6 wildcard'}                       | ${'0::'}
-  ${'IPv6 wildcard in brackets'}           | ${'[0::]'}
-  ${'too many IPv6 double colons'}         | ${'123::45::67'}
-  ${'IPv6 triple colon'}                   | ${'123:::45:67'}
-  ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
-  ${'invalid IPv6 digit'}                  | ${'123::g:456'}
-  ${'too-long IPv6 component'}             | ${'123::45678:9'}
-  ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
-  ${'too many IPv6 components with `::`'}  | ${'1:2:3:4:5::6:7:8:9'}
-  ${'canonical IPv4 wildcard'}             | ${'0.0.0.0'}
-  ${'IPv4 wildcard'}                       | ${'0.00.0.0'}
-  ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
-  ${'too-large IPv4 component'}            | ${'10.256.0.1'}
-  ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
-  ${'IPv4 with extra char at start'}       | ${'@1.2.3.45'}
-  ${'IPv4 with extra char at end'}         | ${'1.2.3.45#'}
-  ${'IPv4 with extra dot at start'}        | ${'.12.2.3.45'}
-  ${'IPv4 with extra dot at end'}          | ${'14.25.37.24.'}
-  ${'DNS name in brackets'}                | ${'[foo.bar]'}
-  ${'IPv6 missing open bracket'}           | ${'1:2:3::4]'}
-  ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
-  ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
-  ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
-  ${'IPv4-in-v6 but with wrong prefix'}    | ${'1234::78:10.20.30.40'}
-  `('fails for $label', ({ iface }) => {
-    expect(() => HostUtil.checkInterfaceAddress(iface)).toThrow();
-  });
-
-  // Success cases that are given in canonical form.
-  test.each`
-  iface
-  ${'*'}
-  ${'foo'}
-  ${'foo.bar'}
-  ${'foo.bar.baz'}
-  ${'10.0.0.1'}
-  ${'255.255.255.255'}
-  ${'199.199.199.199'}
-  ${'99.99.99.99'}
-  ${'::a'}
-  ${'1::'}
-  ${'123:4567:89ab:cdef:123:4567:89ab:cdef'}
-  ${'123:4567:89ab::123:4567:89ab:cdef'}
-  ${'123:4567::1230:4567:89ab:cdef'}
-  ${'123:4567::4567:89ab:cdef'}
-  ${'123::4567:89ab:cdef'}
-  ${'123::4567:89ab'}
-  ${'123::4567'}
-  ${'::abcd'}
-  ${'::ffff:11.22.33.44'} // IPv4-in-v6 wrapped form
-  ${LONGEST_COMPONENT}
-  ${`${LONGEST_COMPONENT}.boop`}
-  ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
-  ${LONGEST_NAME}
-  `('succeeds for $iface', ({ iface }) => {
-    const got      = HostUtil.checkInterfaceAddress(iface);
-    const expected = iface.replace(/\[|\]/g, '');
-    expect(got).toBe(expected);
-  });
-
-  // Success cases that are given in non-canonical form.
-  test.each`
-  iface                   | expected
-  ${'0:0:0:0:12:34:56::'} | ${'::12:34:56:0'}
-  ${'02:003:0004::'}      | ${'2:3:4::'}
-  ${'ABCD::EF'}           | ${'abcd::ef'}
-  ${'[0123::]'}           | ${'123::'}
-  ${'[::abcd]'}           | ${'::abcd'}
-  ${'[1::1]'}             | ${'1::1'}
-  ${'[1:2:3:4:5:6:7:8]'}  | ${'1:2:3:4:5:6:7:8'}
-  ${'[12:Ab::34:cD]'}     | ${'12:ab::34:cd'}
-  ${'::ffff:102:304'}     | ${'::ffff:1.2.3.4'} // IPv4-in-v6 wrapped form
-  `('returns `$expected` given `$iface`', ({ iface, expected }) => {
-    const got = HostUtil.checkInterfaceAddress(iface);
-    expect(got).toBe(expected);
-  });
-});
-
 describe.each`
 method                   | throws   | returns
 ${'checkHostname'}       | ${true}  | ${'string'}
@@ -111,6 +12,9 @@ ${'checkHostnameOrNull'} | ${false} | ${'string'}
 ${'parseHostname'}       | ${true}  | ${'path'}
 ${'parseHostnameOrNull'} | ${false} | ${'path'}
 `('$method()', ({ method, throws, returns }) => {
+  const LONGEST_COMPONENT = 'x'.repeat(63);
+  const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
+
   // Failures from passing non-strings. These are always supposed to throw.
   test.each`
   hostname
