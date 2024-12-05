@@ -85,7 +85,6 @@ export class AsyncServerSocket {
    */
   get infoForLog() {
     const address = InterfaceAddress.fromNodeServerOrNull(this.#serverSocket);
-    const iface   = this.#interface.toString();
 
     return {
       protocol:  this.#protocol,
