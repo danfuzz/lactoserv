@@ -192,20 +192,6 @@ export class EndpointAddress extends IntfDeconstructable {
   }
 
   /**
-   * Makes a human-friendly network interface specification string. The given
-   * object is expected to either bind `address` and `port` (with `port`
-   * possibly being `null` but _not_ `undefined`), _or_ bind `fd`.
-   *
-   * @param {object} iface The interface specification to convert.
-   * @returns {string} The friendly form.
-   */
-  static networkInterfaceString(iface) {
-    return (Object.hasOwn(iface, 'fd'))
-      ? `/dev/fd/${iface.fd}`
-      : this.endpointString(iface.address, iface.port);
-  }
-
-  /**
    * Canonicalizes an IPv4 address, returning `null` if it turns out not to be a
    * valid address.
    *

@@ -323,19 +323,3 @@ describe('endpointString()', () => {
     expect(EndpointAddress.endpointString(address, port)).toBe(expected);
   });
 });
-
-describe('networkInteraceString()', () => {
-  test.each`
-  iface                                     | expected
-  ${{ fd: 3 }}                              | ${'/dev/fd/3'}
-  ${{ fd: 987 }}                            | ${'/dev/fd/987'}
-  ${{ address: 'florp.biz', port: 123 }}    | ${'florp.biz:123'}
-  ${{ address: '10.28.18.0', port: 80 }}    | ${'10.28.18.0:80'}
-  ${{ address: 'a0:b::c:d9', port: 443 }}   | ${'[a0:b::c:d9]:443'}
-  ${{ address: 'like.cat', port: null }}    | ${'like.cat'}
-  ${{ address: '199.2.3.4', port: null }}   | ${'199.2.3.4'}
-  ${{ address: '123a::456:f', port: null }} | ${'[123a::456:f]'}
-  `('with ($iface)', ({ iface, expected }) => {
-    expect(EndpointAddress.networkInterfaceString(iface)).toBe(expected);
-  });
-});

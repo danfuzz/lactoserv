@@ -84,15 +84,13 @@ export class AsyncServerSocket {
    * address and current-listening info.
    */
   get infoForLog() {
-    const address = this.#serverSocket?.address();
+    const address = InterfaceAddress.fromNodeServerOrNull(this.#serverSocket);
     const iface   = this.#interface.toString();
 
     return {
       protocol:  this.#protocol,
-      interface: iface,
-      ...(address
-        ? { listening: EndpointAddress.networkInterfaceString(address) }
-        : {})
+      interface: this.#interface,
+      ...(address ? { listening: address } : {})
     };
   }
 

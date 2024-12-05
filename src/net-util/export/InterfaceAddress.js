@@ -184,6 +184,31 @@ export class InterfaceAddress extends IntfDeconstructable {
   //
 
   /**
+   * Gets an instance of this class corresponding to `server.address()` on a
+   * standard Node `Server` instance.
+   *
+   * @param {?Server} server Server object to look at, or `null` to just return
+   *  `null`.
+   * @returns {?InterfaceAddress} Instance of this class representing the
+   *   server's interface, or `null` if `server` is not currently listening.
+   */
+  static fromNodeServerOrNull(server) {
+    const nodeAddress = server?.address();
+
+    if (!nodeAddress) {
+      return null;
+    }
+
+    const { address: origAddress, port: portNumber } = nodeAddress;
+
+    const address = ((origAddress === '::') || (origAddress === '0.0.0.0'))
+      ? '*'
+      : origAddress;
+
+    return new InterfaceAddress({ address, portNumber });
+  }
+
+  /**
    * Parses a network interface spec into its components. Accepts the two forms
    * `<address>:<port>` or `/dev/fd/<fd-num>:<port>` (with the port optional in
    * the latter form). Returns an object with bindings for `address` (a string),
