@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpHeaders, IncomingRequest, EndpointAddress, InterfaceAddress,
+import { EndpointAddress, HttpHeaders, IncomingRequest, InterfaceAddress,
   RequestContext }
   from '@this/net-util';
 
