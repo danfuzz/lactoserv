@@ -68,6 +68,11 @@ describe('constructor', () => {
     expect(() => new InterfaceAddress(arg)).toThrow();
   });
 
+  test('accepts the wildcard address', () => {
+    expect(() => new InterfaceAddress('*:1')).not.toThrow();
+    expect(() => new InterfaceAddress({ address: '*', portNumber: 2 })).not.toThrow();
+  });
+
   test('accepts a valid IPv4 address', () => {
     expect(() => new InterfaceAddress('10.0.0.255:123')).not.toThrow();
     expect(() => new InterfaceAddress({ address: '10.0.0.255', portNumber: 123 })).not.toThrow();
@@ -113,6 +118,14 @@ describe('.address', () => {
 
     expect(ia1.address).toBe('bleep.bloop');
     expect(ia2.address).toBe('blop.glop.gleep');
+  });
+
+  test('is the wildcard address if it was constructed with the wildcard', () => {
+    const ia1 = new InterfaceAddress('*:333');
+    const ia2 = new InterfaceAddress({ address: '*', portNumber: 456 });
+
+    expect(ia1.address).toBe('*');
+    expect(ia2.address).toBe('*');
   });
 
   test('is `null` if constructed with no `address`', () => {

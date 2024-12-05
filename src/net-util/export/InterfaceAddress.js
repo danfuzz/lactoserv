@@ -16,7 +16,8 @@ import { HostUtil } from '#x/HostUtil';
  */
 export class InterfaceAddress extends IntfDeconstructable {
   /**
-   * IP address or host name. Will be `null` if {@link #fd} is non-`null`.
+   * IP address, host name, or `*` to indicate a wildcard. Will be `null` if
+   * {@link #fd} is non-`null`.
    *
    * @type {?string}
    */
@@ -104,8 +105,8 @@ export class InterfaceAddress extends IntfDeconstructable {
   }
 
   /**
-   * @returns {?string} The IP address or hostname, or `null` if this instance
-   * has an {@link #fd}.
+   * @returns {?string} The IP address, hostname, `*` to indicate a wildcard,
+   * or `null` if this instance has an {@link #fd}.
    */
   get address() {
     return this.#address;
