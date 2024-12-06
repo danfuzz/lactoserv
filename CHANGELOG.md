@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.5 -- 2024-12-06
+
+Breaking changes:
 * `loggy-intf`:
   * Moved `FormatUtils` contents to `net-util.EndpointAddress` (see below).
 * `net-util`:
