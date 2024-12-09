@@ -14,7 +14,7 @@ export class Saver extends BaseFilePreserver {
   /**
    * Constructs an instance.
    *
-   * @param {BaseFileService.CONFIG_CLASS} config Configuration to use.
+   * @param {BaseFileService.configClass} config Configuration to use.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {

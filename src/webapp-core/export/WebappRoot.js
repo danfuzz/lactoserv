@@ -183,7 +183,7 @@ export class WebappRoot extends BaseRootComponent {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.configClass {
       // @defaultConstructor
 
       /**

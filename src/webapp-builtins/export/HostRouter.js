@@ -103,7 +103,7 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.configClass {
       /**
        * Map which goes from a host prefix to the name of an application which
        * should handle that prefix. Each host must be a valid

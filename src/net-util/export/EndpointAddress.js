@@ -6,8 +6,8 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * The address of a network endpoint, consisting of an IP address and port.
- * This can be used for either the local or origin (remote) side of a network
+ * The address of a network endpoint, consisting of an IP address and port. This
+ * can be used for either the local or origin (remote) side of a network
  * connection. This class only accepts numerical IP addresses, not hostnames.
  * Instances of this class are immutable.
  *

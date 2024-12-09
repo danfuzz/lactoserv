@@ -31,7 +31,7 @@ export class BaseRootComponent extends BaseComponent {
     // We need to recapitulate the config parsing our superclass would have done
     // so that we can pass the parsed config to the `RootControlContext`
     // constructor.
-    const config = new.target.CONFIG_CLASS.eval(rawConfig, {
+    const config = new.target.configClass.eval(rawConfig, {
       targetClass: new.target
     });
 
@@ -47,7 +47,7 @@ export class BaseRootComponent extends BaseComponent {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.configClass {
       // @defaultConstructor
 
       /**

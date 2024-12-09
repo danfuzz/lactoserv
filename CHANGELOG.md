@@ -11,7 +11,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `compy`:
+  * `BaseComponent`: Renamed `CONFIG_CLASS` to `configClass`.
 
 Other notable changes:
 * None.
