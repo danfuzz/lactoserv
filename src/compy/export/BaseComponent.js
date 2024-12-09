@@ -25,7 +25,7 @@ export class BaseComponent {
   /**
    * Configuration for this component, or `null` if it does not have one.
    *
-   * @type {?object}
+   * @type {?BaseConfig}
    */
   #config;
 
@@ -90,8 +90,8 @@ export class BaseComponent {
   }
 
   /**
-   * @returns {?object} Configuration object for this instance, or `null` if it
-   * has no associated configuration. If non-`null`, this is an instance of
+   * @returns {?BaseConfig} Configuration object for this instance, or `null` if
+   * it has no associated configuration. If non-`null`, this is an instance of
    * {@link #CONFIG_CLASS}.
    */
   get config() {
@@ -444,9 +444,9 @@ export class BaseComponent {
   static #configClass = new Map();
 
   /**
-   * @returns {function(new:object, object)} The expected configuration class
-   * for this class. Subclasses should not override this; instead they should
-   * override {@link #_impl_configClass}.
+   * @returns {function(new:BaseConfig, object)} The expected configuration
+   * class. for this class. Subclasses should not override this; instead they
+   * should override {@link #_impl_configClass}.
    */
   static get CONFIG_CLASS() {
     const already = BaseComponent.#configClass.get(this);
@@ -535,13 +535,16 @@ export class BaseComponent {
   }
 
   /**
-   * @returns {function(new:object, object)} The expected configuration class
-   * for this class. This (base) class calls this method exactly once to get the
-   * value to return from {@link #CONFIG_CLASS}.
+   * Gets the expected configuration class for this class. This (base) class
+   * calls this method exactly once to get the value to return from {@link
+   * #CONFIG_CLASS}.
    *
    * The default value is a configuration class which adds `name` as an optional
    * configuration property, on top of (optional) `class` as defined by
    * {@link #BaseConfig}.
+   *
+   * @returns {function(new:BaseConfig, object)} The expected configuration
+   *   class.
    */
   static _impl_configClass() {
     return class Config extends BaseConfig {
