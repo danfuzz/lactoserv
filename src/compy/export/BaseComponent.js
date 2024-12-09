@@ -472,7 +472,7 @@ export class BaseComponent {
 
     if (definedOn === this) {
       result = this._impl_configClass();
-      MustBe.constructorFunction(result);
+      MustBe.subclassOf(result, BaseConfig);
     } else {
       result = definedOn.CONFIG_CLASS;
     }
