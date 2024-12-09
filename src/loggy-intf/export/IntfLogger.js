@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Methods } from '@this/typey';
+import { AskIf, Methods } from '@this/typey';
 
 import { IntfLoggingEnvironment } from '#x/IntfLoggingEnvironment';
 import { LogPayload } from '#x/LogPayload';
@@ -77,6 +77,47 @@ export class IntfLogger {
    */
   get $newId() {
     return Methods.abstract();
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Returns the given value if it is an instance of this interface. Throws an
+   * error if not.
+   *
+   * **Note:** Because of JavaScript's loosey-goosey nature, this method is, as
+   * a practical matter, overly accepting of values as instances.
+   *
+   * @param {*} logger (Alleged) logger instance.
+   * @returns {IntfLogger} `logger` if it is a logger.
+   * @throws {Error} Thrown if `logger` is not actually a logger.
+   */
+  static expectInstance(logger) {
+    if (logger instanceof IntfLogger) {
+      return logger;
+    } else if (AskIf.callableFunction(logger) && logger.$env) {
+      return logger;
+    }
+
+    throw new Error(`Not a logger: ${logger}`);
+  }
+
+  /**
+   * Returns the given value if it is an instance of this interface or is
+   * `null`. Throws an error if not either.
+   *
+   * **Note:** Because of JavaScript's loosey-goosey nature, this method is, as
+   * a practical matter, overly accepting of values as instances.
+   *
+   * @param {*} logger (Alleged) logger instance.
+   * @returns {?IntfLogger} `logger` if it is a logger or `null`.
+   * @throws {Error} Thrown if `logger` is not actually a logger or `null`.
+   */
+  static expectInstanceOrNull(logger) {
+    return (logger === null) ? null : this.expectInstance(logger);
   }
 
   /**

@@ -181,7 +181,7 @@ export class ProtocolWrangler {
    *   logging.
    */
   async init(logger) {
-    this.#logger = logger;
+    this.#logger = IntfLogger.expectInstanceOrNull(logger);
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the

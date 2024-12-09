@@ -57,7 +57,7 @@ export class DispatchInfo extends IntfDeconstructable {
 
     this.#base   = MustBe.instanceOf(base, PathKey);
     this.#extra  = MustBe.instanceOf(extra, PathKey);
-    this.#logger = (logger === null) ? null : MustBe.callableFunction(logger);
+    this.#logger = IntfLogger.expectInstanceOrNull(logger);
   }
 
   /** @override */
