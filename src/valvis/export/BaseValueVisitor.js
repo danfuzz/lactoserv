@@ -179,9 +179,9 @@ export class BaseValueVisitor {
   /**
    * Similar to {@link #visitWrap}, except (a) it will fail if the visit did not
    * finish synchronously; and (b) the result is not wrapped. Specifically with
-   * respect to (b), if a promise is returned, it is only ever
-   * because an `_impl_visit*()` method returned a promise result per se (and
-   * not because a visitor acted asynchronously).
+   * respect to (b), if a promise is returned, it is only ever because an
+   * `_impl_visit*()` method returned a promise result per se (and not because a
+   * visitor acted asynchronously).
    *
    * @returns {*} Whatever result was returned from the `_impl_*()` method which
    *   processed the original `value`.

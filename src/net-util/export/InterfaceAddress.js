@@ -77,9 +77,9 @@ export class InterfaceAddress extends IntfDeconstructable {
    *
    * @param {string|object} fullAddress The full address, in one of the forms
    *   mentioned above.
-   * @param {?object} nodeServerOptions Extra options to use when constructing
-   *   a Node {@link Server} object or calling `listen()` on one; or `null` not
-   *   to have extra options beyond the defaults.
+   * @param {?object} nodeServerOptions Extra options to use when constructing a
+   *   Node {@link Server} object or calling `listen()` on one; or `null` not to
+   *   have extra options beyond the defaults.
    */
   constructor(fullAddress, nodeServerOptions = null) {
     super();
@@ -224,9 +224,9 @@ export class InterfaceAddress extends IntfDeconstructable {
   }
 
   /**
-   * Indicates whether or not this instance represents the same interface as
-   * the given object. This only returns `true` if `other` is also an instance
-   * of this class.
+   * Indicates whether or not this instance represents the same interface as the
+   * given object. This only returns `true` if `other` is also an instance of
+   * this class.
    *
    * @param {*} other Object to compare to.
    * @returns {boolean} `true` if `this` and `other` represent the same

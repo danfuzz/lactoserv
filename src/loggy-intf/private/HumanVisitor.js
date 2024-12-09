@@ -137,8 +137,8 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /**
-   * Styles the given text, but only if this instance has been told to be
-   * styled _and_ the given style function is passed as non-`null`.
+   * Styles the given text, but only if this instance has been told to be styled
+   * _and_ the given style function is passed as non-`null`.
    *
    * @param {string} text The text in question.
    * @param {?Function} func The style/colorizer function, or `null` if no style

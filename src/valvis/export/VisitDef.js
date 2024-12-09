@@ -8,8 +8,8 @@ import { VisitRef } from '#x/VisitRef';
 
 
 /**
- * Representation of a result of a (sub-)visit which appears more than
- * once in an overall visit result.
+ * Representation of a result of a (sub-)visit which appears more than once in
+ * an overall visit result.
  */
 export class VisitDef extends BaseDefRef {
   /**
@@ -21,7 +21,7 @@ export class VisitDef extends BaseDefRef {
 
   /**
    * The error resulting from the visit, or `null` if there was none _or_ it is
-   * not yet  known.
+   * not yet known.
    *
    * @type {?Error}
    */

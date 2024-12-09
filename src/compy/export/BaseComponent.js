@@ -436,8 +436,8 @@ export class BaseComponent {
   //
 
   /**
-   * Map from each subclass to its return value for {@link #configClass},
-   * lazily filled in.
+   * Map from each subclass to its return value for {@link #configClass}, lazily
+   * filled in.
    *
    * @type {Map<function(new:BaseComponent), function(new:BaseConfig)>}
    */
@@ -482,9 +482,8 @@ export class BaseComponent {
    * The result array elements are derived as follows:
    *
    * * Instances of this class become result elements directly.
-   * * Plain objects and instances of this class's {@link #configClass} are
-   *   used to construct instances of this class, which then become result
-   *   elements.
+   * * Plain objects and instances of this class's {@link #configClass} are used
+   *   to construct instances of this class, which then become result elements.
    * * All other values are rejected, causing an `Error` to be `throw`n.
    *
    * @param {*} items Single instance or configuration, or array thereof.
@@ -527,8 +526,8 @@ export class BaseComponent {
 
   /**
    * Gets the expected configuration class for this class. This (base) class
-   * calls this method exactly once to get the value to return from {@link
-   * #configClass}.
+   * calls this method exactly once to get the value to return from
+   * {@link #configClass}.
    *
    * The default value is a configuration class which adds `name` as an optional
    * configuration property, on top of (optional) `class` as defined by
