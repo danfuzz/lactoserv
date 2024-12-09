@@ -441,7 +441,7 @@ export class BaseComponent {
    *
    * @type {Map<function(new:BaseComponent), function(new:BaseConfig)>}
    */
-  static #configClass = new Map();
+  static #configClassMap = new Map();
 
   /**
    * @returns {function(new:BaseConfig, object)} The expected configuration
@@ -449,7 +449,7 @@ export class BaseComponent {
    * should override {@link #_impl_configClass}.
    */
   static get CONFIG_CLASS() {
-    const already = BaseComponent.#configClass.get(this);
+    const already = BaseComponent.#configClassMap.get(this);
 
     if (already) {
       return already;
@@ -468,7 +468,7 @@ export class BaseComponent {
       result = superCls.CONFIG_CLASS;
     }
 
-    BaseComponent.#configClass.set(this, result);
+    BaseComponent.#configClassMap.set(this, result);
     return result;
   }
 
