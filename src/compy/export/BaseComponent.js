@@ -439,7 +439,7 @@ export class BaseComponent {
    * Map from each subclass to its return value for {@link #CONFIG_CLASS},
    * lazily filled in.
    *
-   * @type {Map<function(new:BaseComponent),?function(new:object)>}
+   * @type {Map<function(new:BaseComponent), function(new:BaseConfig)>}
    */
   static #configClass = new Map();
 
