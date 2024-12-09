@@ -54,7 +54,7 @@ export class BaseFileService extends BaseService {
 
   /** @override */
   static _impl_configClass() {
-    return class Config extends super.prototype.constructor.CONFIG_CLASS {
+    return class Config extends super.prototype.constructor.configClass {
       /**
        * Path parts, or `null` if not yet calculated.
        *

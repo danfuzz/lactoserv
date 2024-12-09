@@ -59,7 +59,7 @@ export class RequestRateLimiter extends BaseApplication {
   static _impl_configClass() {
     return TemplRateLimitConfig(
       'RequestRateLimiterConfig',
-      BaseApplication.CONFIG_CLASS,
+      BaseApplication.configClass,
       {
         countType: RequestCount,
         rateType:  RequestRate

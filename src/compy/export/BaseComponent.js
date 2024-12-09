@@ -56,7 +56,7 @@ export class BaseComponent {
    *
    * **Note:** When passing `rawConfig` as a plain object, this constructor
    * will attempt to construct the concrete class's defined
-   * {@link #CONFIG_CLASS}, and then set that as the final {@link #config}. When
+   * {@link #configClass}, and then set that as the final {@link #config}. When
    * doing so, the constructor is passed the given `rawConfig` augmented with
    * the additional binding of `class` to the concrete class being constructed
    * (that is, the concrete subclass of this class whose constructor call landed
@@ -64,7 +64,7 @@ export class BaseComponent {
    *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance. It must either be an instance
-   *   of the concrete class's {@link #CONFIG_CLASS}, or a plain object which is
+   *   of the concrete class's {@link #configClass}, or a plain object which is
    *   acceptable to the constructor of that class, or `null` (equivalent to
    *   `{}`, that is, an empty object) to have no configuration properties.
    *   Default `null`.
@@ -74,7 +74,7 @@ export class BaseComponent {
    */
   constructor(rawConfig = null, rootContext = null) {
     const targetClass = new.target;
-    this.#config = targetClass.CONFIG_CLASS.eval(rawConfig, { targetClass });
+    this.#config = targetClass.configClass.eval(rawConfig, { targetClass });
 
     const name = this.#config?.name;
     if (name) {
@@ -92,7 +92,7 @@ export class BaseComponent {
   /**
    * @returns {?BaseConfig} Configuration object for this instance, or `null` if
    * it has no associated configuration. If non-`null`, this is an instance of
-   * {@link #CONFIG_CLASS}.
+   * {@link #configClass}.
    */
   get config() {
     return this.#config;
@@ -436,7 +436,7 @@ export class BaseComponent {
   //
 
   /**
-   * Map from each subclass to its return value for {@link #CONFIG_CLASS},
+   * Map from each subclass to its return value for {@link #configClass},
    * lazily filled in.
    *
    * @type {Map<function(new:BaseComponent), function(new:BaseConfig)>}
@@ -448,7 +448,7 @@ export class BaseComponent {
    * class. for this class. Subclasses should not override this; instead they
    * should override {@link #_impl_configClass}.
    */
-  static get CONFIG_CLASS() {
+  static get configClass() {
     const already = BaseComponent.#configClassMap.get(this);
 
     if (already) {
@@ -465,7 +465,7 @@ export class BaseComponent {
       MustBe.subclassOf(result, BaseConfig);
     } else {
       const superCls = Reflect.getPrototypeOf(this);
-      result = superCls.CONFIG_CLASS;
+      result = superCls.configClass;
     }
 
     BaseComponent.#configClassMap.set(this, result);
@@ -482,7 +482,7 @@ export class BaseComponent {
    * The result array elements are derived as follows:
    *
    * * Instances of this class become result elements directly.
-   * * Plain objects and instances of this class's {@link #CONFIG_CLASS} are
+   * * Plain objects and instances of this class's {@link #configClass} are
    *   used to construct instances of this class, which then become result
    *   elements.
    * * All other values are rejected, causing an `Error` to be `throw`n.
@@ -506,7 +506,7 @@ export class BaseComponent {
         return item;
       } else if (item instanceof BaseComponent) {
         throw new Error('Item is not an instance of this class (or a subclass).');
-      } else if ((item instanceof this.CONFIG_CLASS) || AskIf.plainObject(item)) {
+      } else if ((item instanceof this.configClass) || AskIf.plainObject(item)) {
         const { class: cls } = item;
         if (AskIf.constructorFunction(cls)) {
           if (AskIf.subclassOf(cls, this)) {
@@ -528,7 +528,7 @@ export class BaseComponent {
   /**
    * Gets the expected configuration class for this class. This (base) class
    * calls this method exactly once to get the value to return from {@link
-   * #CONFIG_CLASS}.
+   * #configClass}.
    *
    * The default value is a configuration class which adds `name` as an optional
    * configuration property, on top of (optional) `class` as defined by
