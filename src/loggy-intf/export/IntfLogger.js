@@ -117,7 +117,7 @@ export class IntfLogger {
    * @throws {Error} Thrown if `logger` is not actually a logger or `null`.
    */
   static expectInstanceOrNull(logger) {
-    return (logger === null) ? logger : this.expectInstance(logger);
+    return (logger === null) ? null : this.expectInstance(logger);
   }
 
   /**

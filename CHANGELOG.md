@@ -15,7 +15,9 @@ Breaking changes:
   * `BaseComponent`: Renamed `CONFIG_CLASS` to `configClass`.
 
 Other notable changes:
-* None.
+* `loggy-intf`:
+  * `LoggyIntf`: New static methods `expectInstance()` and
+    `expectInstanceOrNull()`, to avoid more ad-hoc checks.
 
 ### v0.8.5 -- 2024-12-06
 
