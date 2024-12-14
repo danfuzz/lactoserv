@@ -42,7 +42,7 @@ const config = {
     {
       name:          'mySite',
       class:         StaticFiles,
-      siteDirectory: filePath('/usr/share/website'),
+      siteDirectory: '/usr/share/website',
       etag:          true
     }
   ],
