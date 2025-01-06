@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.8.6 -- 2025-01-06 -- stable release
+
+Breaking changes:
 * `compy`:
   * `BaseComponent`: Renamed `CONFIG_CLASS` to `configClass`.
 

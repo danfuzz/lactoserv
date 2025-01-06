@@ -26,6 +26,10 @@ release in question will be withdrawn.
 
 ## List of current stable releases
 
+* v0.8.6
+  * Released 2025-01-06
+  * https://github.com/danfuzz/lactoserv/releases/tag/v0.8.6
+
 * v0.7.8
   * Released 2024-07-30
   * https://github.com/danfuzz/lactoserv/releases/tag/v0.7.8
