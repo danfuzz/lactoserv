@@ -34,10 +34,6 @@ release in question will be withdrawn.
   * Released 2024-04-22
   * https://github.com/danfuzz/lactoserv/releases/tag/v0.6.16
 
-* v0.5.20
-  * Released 2023-12-15
-  * https://github.com/danfuzz/lactoserv/releases/tag/v0.5.20
-
 ## List of retired stable release series
 
-* None.
+* v0.5: Final release on 2023-12-15.
