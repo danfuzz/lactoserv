@@ -1,4 +1,4 @@
-// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// Copyright 2022-2025 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
 // This is the one file where it's okay to use `node:timers/promises`,

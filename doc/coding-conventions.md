@@ -147,6 +147,6 @@ meant to record them, in order to keep track of them and maintain consistency.
 
 - - - - - - - - - -
 ```
-Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+Copyright 2022-2025 the Lactoserv Authors (Dan Bornstein et alia).
 SPDX-License-Identifier: Apache-2.0
 ```
