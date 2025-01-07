@@ -141,8 +141,7 @@ function set-up-out-dir {
         return 1
     fi
 
-    lib buildy out-dir \
-        --out="${outDir}" --create --print "${extraOpts[@]}"
+    lib buildy out-dir --create --print "${extraOpts[@]}"
 }
 
 
