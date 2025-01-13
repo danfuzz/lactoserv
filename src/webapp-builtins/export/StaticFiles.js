@@ -9,6 +9,7 @@ import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes,
   from '@this/net-util';
 import { AskIf } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
+import { StaticFileResponder } from '@this/webapp-util';
 
 
 /**
@@ -16,6 +17,13 @@ import { BaseApplication } from '@this/webapp-core';
  * information about the class's behavior in general.
  */
 export class StaticFiles extends BaseApplication {
+  /**
+   * Handler for "found file" cases.
+   *
+   * @type {StaticFileResponder}
+   */
+  #foundResponder;
+
   /**
    * Path to the file to serve for a not-found result, or `null` if not-found
    * handling shouldn't be done.
@@ -37,13 +45,6 @@ export class StaticFiles extends BaseApplication {
    * @type {?string}
    */
   #cacheControl = null;
-
-  /**
-   * Etag generator to use, or `null` if not using one.
-   *
-   * @type {?EtagGenerator}
-   */
-  #etagGenerator = null;
 
   /**
    * Not-found response to issue, or `null` if either not yet calculated or if
@@ -72,10 +73,10 @@ export class StaticFiles extends BaseApplication {
 
     const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
 
-    this.#notFoundPath  = notFoundPath;
-    this.#siteDirectory = siteDirectory;
-    this.#cacheControl  = cacheControl;
-    this.#etagGenerator = etag ? new EtagGenerator(etag) : null;
+    this.#cacheControl   = cacheControl;
+    this.#foundResponder = new StaticFileResponder({ cacheControl, etag });
+    this.#notFoundPath   = notFoundPath;
+    this.#siteDirectory  = siteDirectory;
   }
 
   /** @override */
@@ -88,39 +89,20 @@ export class StaticFiles extends BaseApplication {
 
     if (!resolved) {
       return this.#notFound();
-    } else if (resolved.redirect) {
-      const redirectTo = resolved.redirect;
-      const response   = FullResponse.makeRedirect(redirectTo, 308);
+    }
+
+    const { path, stats, redirect } = resolved;
+
+    if (redirect) {
+      const response = FullResponse.makeRedirect(redirect, 308);
 
       if (this.#cacheControl) {
         response.cacheControl = this.#cacheControl;
       }
 
       return await response;
-    } else if (resolved.path) {
-      const contentType =
-        MimeTypes.typeFromPathExtension(resolved.path);
-
-      const rawResponse = new FullResponse();
-
-      rawResponse.status = 200;
-      rawResponse.headers.set('content-type', contentType);
-      await rawResponse.setBodyFile(resolved.path);
-
-      if (this.#cacheControl) {
-        rawResponse.cacheControl = this.#cacheControl;
-      }
-
-      if (this.#etagGenerator) {
-        rawResponse.headers.set('etag',
-          await this.#etagGenerator.etagFromFile(resolved.path));
-      }
-
-      const { headers, method } = request;
-      const response = rawResponse.adjustFor(
-        method, headers, { conditional: true, range: true });
-
-      return response;
+    } else if (path) {
+      return this.#foundResponder.makeResponse(request, path, stats);
     } else {
       /* c8 ignore start */
       // Shouldn't happen. If we get here, it's a bug in this class.
