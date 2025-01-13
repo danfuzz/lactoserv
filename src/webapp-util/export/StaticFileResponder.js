@@ -97,6 +97,48 @@ export class StaticFileResponder {
   // Static members
   //
 
+  /**
+   * Checks / accepts a `cacheControl` option. This is a `cache-control` header
+   * to automatically include, or `null` not to include it. Can be passed either
+   * as a literal string or an object to be passed to {@link
+   * HttpUtil#cacheControlHeader}.
+   *
+   * @param {?string|object} value Proposed configuration value. Default
+   *   `null`.
+   * @returns {?string} Accepted configuration value.
+   */
+  static checkCacheControl(value) {
+    if (value === null) {
+      return null;
+    } else if (typeof value === 'string') {
+      return value;
+    } else if (AskIf.plainObject(value)) {
+      return HttpUtil.cacheControlHeader(value);
+    } else {
+      throw new Error('Invalid `cacheControl` option.');
+    }
+  }
+
+  /**
+   * Checks / accepts etag-generating options, `true` for default options, or
+   * `null` not to include an `etag` header in responses.
+   *
+   * @param {?object|true} value Proposed configuration value. Default
+   *   `null`.
+   * @returns {?object} Accepted configuration value.
+   */
+  static checkEtag(value) {
+    if (value === null) {
+      return null;
+    } else if (value === true) {
+      return EtagGenerator.expandOptions({});
+    } else if (AskIf.plainObject(value)) {
+      return EtagGenerator.expandOptions(value);
+    } else {
+      throw new Error('Invalid `etag` option.');
+    }
+  }
+
   /** @override */
   static #Config = class Config extends BaseConfig {
     // @defaultConstructor
@@ -111,15 +153,7 @@ export class StaticFileResponder {
      * @returns {?string} Accepted configuration value.
      */
     _config_cacheControl(value = null) {
-      if (value === null) {
-        return null;
-      } else if (typeof value === 'string') {
-        return value;
-      } else if (AskIf.plainObject(value)) {
-        return HttpUtil.cacheControlHeader(value);
-      } else {
-        throw new Error('Invalid `cacheControl` option.');
-      }
+      return StaticFileResponder.checkCacheControl(value);
     }
 
     /**
@@ -131,15 +165,7 @@ export class StaticFileResponder {
      * @returns {?object} Accepted configuration value.
      */
     _config_etag(value = null) {
-      if (value === null) {
-        return null;
-      } else if (value === true) {
-        return EtagGenerator.expandOptions({});
-      } else if (AskIf.plainObject(value)) {
-        return EtagGenerator.expandOptions(value);
-      } else {
-        throw new Error('Invalid `etag` option.');
-      }
+      return StaticFileResponder.checkEtag(value);
     }
   };
 }

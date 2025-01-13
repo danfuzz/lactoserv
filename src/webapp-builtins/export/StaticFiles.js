@@ -304,15 +304,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {?string} Accepted configuration value.
        */
       _config_cacheControl(value = null) {
-        if (value === null) {
-          return null;
-        } else if (typeof value === 'string') {
-          return value;
-        } else if (AskIf.plainObject(value)) {
-          return HttpUtil.cacheControlHeader(value);
-        } else {
-          throw new Error('Invalid `cacheControl` option.');
-        }
+        return StaticFileResponder.checkCacheControl(value);
       }
 
       /**
@@ -324,15 +316,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {?object} Accepted configuration value.
        */
       _config_etag(value = null) {
-        if (value === null) {
-          return null;
-        } else if (value === true) {
-          return EtagGenerator.expandOptions({});
-        } else if (AskIf.plainObject(value)) {
-          return EtagGenerator.expandOptions(value);
-        } else {
-          throw new Error('Invalid `etag` option.');
-        }
+        return StaticFileResponder.checkEtag(value);
       }
 
       /**
