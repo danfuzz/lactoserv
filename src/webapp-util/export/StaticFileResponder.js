@@ -119,7 +119,7 @@ export class StaticFileResponder {
 
     const resolved = await this.resolvePath(dispatch);
 
-    return this.makeResponse(request, resolved)
+    return this.makeResponse(request, resolved);
   }
 
   /**
