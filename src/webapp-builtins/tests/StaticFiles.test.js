@@ -97,7 +97,7 @@ describe('constructor', () => {
 
   test('accepts `indexFile: []`', () => {
     expect(() => new StaticFiles({
-      indexFile:     null,
+      indexFile:     [],
       siteDirectory: '/florp/fleep'
     })).not.toThrow();
   });
