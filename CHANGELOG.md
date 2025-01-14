@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `webapp-builtins`:
+  * `StaticFileResponder`: Added `indexFile` configuration option.
 * `webapp-util`:
   * New class `StaticFileResponder`, extracted from
     `webapp-builtins.StaticFiles`.
