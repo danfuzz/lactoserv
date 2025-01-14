@@ -16,11 +16,11 @@ import { StaticFileResponder } from '@this/webapp-util';
  */
 export class StaticFiles extends BaseApplication {
   /**
-   * Handler for "found file" cases.
+   * "Responder" that does most of the actual work of this class.
    *
    * @type {StaticFileResponder}
    */
-  #foundResponder;
+  #responder;
 
   /**
    * Path to the file to serve for a not-found result, or `null` if not-found
@@ -71,10 +71,10 @@ export class StaticFiles extends BaseApplication {
 
     const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
 
-    this.#cacheControl   = cacheControl;
-    this.#notFoundPath   = notFoundPath;
-    this.#siteDirectory  = siteDirectory;
-    this.#foundResponder = new StaticFileResponder({
+    this.#cacheControl  = cacheControl;
+    this.#notFoundPath  = notFoundPath;
+    this.#siteDirectory = siteDirectory;
+    this.#responder     = new StaticFileResponder({
       baseDirectory: siteDirectory,
       cacheControl,
       etag,
@@ -85,7 +85,7 @@ export class StaticFiles extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request, dispatch) {
     const response =
-      await this.#foundResponder.handleRequest(request, dispatch);
+      await this.#responder.handleRequest(request, dispatch);
 
     if (response) {
       return response;
