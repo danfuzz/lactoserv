@@ -375,7 +375,7 @@ export class StaticFileResponder {
       throw new Error('Invalid `indexFile` option (bad type).');
     }
 
-    if (!AskIf.arrayOfString(value, /(?!.*[/])/)) {
+    if (!AskIf.arrayOfString(value, /^(?!.*[/])/)) {
       throw new Error('Invalid `indexFile` option (bad contents).');
     }
 
