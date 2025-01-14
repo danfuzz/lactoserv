@@ -40,6 +40,7 @@ describe('constructor', () => {
     expect(() => new StaticFiles({
       cacheControl:  { maxAge: '5 min' },
       etag:          true,
+      indexFile:     ['blorp.html', 'bleep.txt'],
       notFoundPath:  '/blip/blop/bloop.html',
       siteDirectory: '/florp/fleep'
     })).not.toThrow();
@@ -83,6 +84,53 @@ describe('constructor', () => {
   test('rejects an invalid `etag` option', () => {
     expect(() => new StaticFiles({
       etag:          ['ummm'],
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+  });
+
+  test('accepts `indexFile: null`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     null,
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile: []`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     null,
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile` with a single string', () => {
+    expect(() => new StaticFiles({
+      indexFile:     'bonk.html',
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile` with an array of strings', () => {
+    expect(() => new StaticFiles({
+      indexFile:     ['bonk.html', 'blorp', 'zamboni.txt'],
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('rejects `indexFile` with a string containing a slash', () => {
+    expect(() => new StaticFiles({
+      indexFile:     ['x.txt', 'zip/zap.txt'],
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+
+    expect(() => new StaticFiles({
+      indexFile:     'beep/boop.html',
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+  });
+
+  test('rejects an invalid typed `indexFile`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     { eep: 'oop'},
       siteDirectory: '/florp/fleep'
     })).toThrow();
   });
