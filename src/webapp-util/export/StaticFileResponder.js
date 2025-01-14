@@ -56,7 +56,8 @@ export class StaticFileResponder {
   #etagGenerator;
 
   /**
-   * Index file(s) to look for, or `null` to treat directories as not-found.
+   * Name(s) of index file(s) to look for, or `null` to treat directories as
+   * not-found. If non-`null`, always has at least one element.
    *
    * @type {?string[]}
    */
@@ -213,7 +214,8 @@ export class StaticFileResponder {
 
   /**
    * Helper for {@link #resolvePath}, which looks for an index file in the
-   * given directory.
+   * given directory. This will just return `null` if this instance is not
+   * configured with any index file names.
    *
    * @param {string} dirPath Absolute path to the directory to look for an
    *   index file in.
@@ -221,19 +223,28 @@ export class StaticFileResponder {
    *   file to be found.
    */
   async #findIndexFile(dirPath) {
-    const indexPath  = `${dirPath}/index.html`;
-    const indexStats = await Statter.statOrNull(indexPath, true);
+    const names = this.#indexFile;
 
-    if (indexStats === null) {
-      this.#logger?.indexNotFound(indexPath);
-      return null;
-    } else if (indexStats.isDirectory()) {
-      // Weird case, to be clear!
-      this.#logger?.indexIsDirectory(indexPath);
+    if (!names) {
       return null;
     }
 
-    return { path: indexPath, stats: indexStats };
+    for (const name of names) {
+      const indexPath = `${dirPath}/${name}`;
+
+      try {
+        const indexStats = await Statter.statOrNull(indexPath, true);
+
+        if (indexStats?.isFile()) {
+          return { path: indexPath, stats: indexStats };
+        }
+      } catch (e) {
+        this.#logger?.statError(indexPath, e);
+      }
+    }
+
+    this.#logger?.indexNotFound(dirPath);
+    return null;
   }
 
   /**
