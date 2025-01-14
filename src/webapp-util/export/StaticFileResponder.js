@@ -196,17 +196,7 @@ export class StaticFileResponder {
           return { redirect: `${source[source.length - 1]}/` };
         } else {
           // It's a proper directory reference. Look for the index file.
-          const indexPath  = `${fullPath}/index.html`;
-          const indexStats = await Statter.statOrNull(indexPath, true);
-          if (indexStats === null) {
-            this.#logger?.indexNotFound(indexPath);
-            return null;
-          } else if (indexStats.isDirectory()) {
-            // Weird case, to be clear!
-            this.#logger?.indexIsDirectory(indexPath);
-            return null;
-          }
-          return { path: indexPath, stats: indexStats };
+          return this.#findIndexFile(fullPath);
         }
       } else if (isDirectory) {
         // Non-directory file requested as if it is a directory (that is, with a
@@ -219,6 +209,31 @@ export class StaticFileResponder {
       this.#logger?.statError(fullPath, e);
       return null;
     }
+  }
+
+  /**
+   * Helper for {@link #resolvePath}, which looks for an index file in the
+   * given directory.
+   *
+   * @param {string} dirPath Absolute path to the directory to look for an
+   *   index file in.
+   * @returns {?TypeResolved} The resolved file, or `null` if there was no index
+   *   file to be found.
+   */
+  async #findIndexFile(dirPath) {
+    const indexPath  = `${dirPath}/index.html`;
+    const indexStats = await Statter.statOrNull(indexPath, true);
+
+    if (indexStats === null) {
+      this.#logger?.indexNotFound(indexPath);
+      return null;
+    } else if (indexStats.isDirectory()) {
+      // Weird case, to be clear!
+      this.#logger?.indexIsDirectory(indexPath);
+      return null;
+    }
+
+    return { path: indexPath, stats: indexStats };
   }
 
   /**
