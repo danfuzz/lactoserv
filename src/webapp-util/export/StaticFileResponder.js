@@ -185,7 +185,10 @@ export class StaticFileResponder {
         this.#logger?.fileNotFound(fullPath);
         return null;
       } else if (stats.isDirectory()) {
-        if (!isDirectory) {
+        if (isDirectory) {
+          // It's a proper directory reference. Look for the index file.
+          return this.#findIndexFile(fullPath);
+        } else {
           // Redirect from non-ending-slash directory path. As a special case,
           // `path === ''` happens when the mount point (base with regards to
           // `dispatch`) was requested directly, without a final slash. So we
@@ -193,9 +196,6 @@ export class StaticFileResponder {
           this.#logger?.foundDirectoryForRedirect(fullPath);
           const source = (path === '') ? dispatch.base.path : dispatch.extra.path;
           return { redirect: `${source[source.length - 1]}/` };
-        } else {
-          // It's a proper directory reference. Look for the index file.
-          return this.#findIndexFile(fullPath);
         }
       } else if (isDirectory) {
         // Non-directory file requested as if it is a directory (that is, with a
