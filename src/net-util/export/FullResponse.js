@@ -241,7 +241,9 @@ export class FullResponse extends BaseResponse {
       } else if (rangeInfo.error) {
         // Note: We _don't_ use the for-success `headers` here.
         const result = new FullResponse();
-        result.headers = new HttpHeaders(rangeInfo.headers); // TODO: Fix this when `rangeInfo` changes.
+        // TODO: Fix the following line when `rangeInfo` is switched to
+        // returning an actual `HttpHeaders` object.
+        result.headers = new HttpHeaders(rangeInfo.headers);
         result.status  = rangeInfo.status;
         result.setBodyMessage();
         return result;

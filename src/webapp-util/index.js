@@ -8,4 +8,5 @@ export * from '#x/RequestCount';
 export * from '#x/RequestRate';
 export * from '#x/Rotator';
 export * from '#x/Saver';
+export * from '#x/StaticFileResponder';
 export * from '#x/TokenBucket';

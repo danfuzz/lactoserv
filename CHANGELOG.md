@@ -14,7 +14,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `webapp-util`:
+  * New class `StaticFileResponder`, extracted from
+    `webapp-builtins.StaticFiles`.
 
 ### v0.8.6 -- 2025-01-06 -- stable release
 
