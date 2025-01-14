@@ -130,7 +130,7 @@ describe('constructor', () => {
 
   test('rejects an invalid typed `indexFile`', () => {
     expect(() => new StaticFiles({
-      indexFile:     { eep: 'oop'},
+      indexFile:     { eep: 'oop' },
       siteDirectory: '/florp/fleep'
     })).toThrow();
   });
