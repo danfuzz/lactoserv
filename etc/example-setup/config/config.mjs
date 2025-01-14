@@ -227,6 +227,7 @@ const applications = [
     class:          StaticFiles,
     siteDirectory:  filePath('../site'),
     notFoundPath:   filePath('../site-extra/not-found.html'),
+    indexFile:      ['index.html', 'index.txt'],
     cacheControl:   { public: true, maxAge: '5 min' },
     etag:           { dataOnly: true, hashLength: 20 }
   },
@@ -337,6 +338,7 @@ const config = {
     '/application/*': false,
     '/application/mySeries/*': true,
     '/application/mySite/*': true,
+    // '/application/myStaticFun/*': true,
     '/application/myRedirector/*': true
   }
 };

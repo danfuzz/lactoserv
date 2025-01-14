@@ -40,6 +40,7 @@ describe('constructor', () => {
     expect(() => new StaticFiles({
       cacheControl:  { maxAge: '5 min' },
       etag:          true,
+      indexFile:     ['blorp.html', 'bleep.txt'],
       notFoundPath:  '/blip/blop/bloop.html',
       siteDirectory: '/florp/fleep'
     })).not.toThrow();
@@ -83,6 +84,53 @@ describe('constructor', () => {
   test('rejects an invalid `etag` option', () => {
     expect(() => new StaticFiles({
       etag:          ['ummm'],
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+  });
+
+  test('accepts `indexFile: null`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     null,
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile: []`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     [],
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile` with a single string', () => {
+    expect(() => new StaticFiles({
+      indexFile:     'bonk.html',
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('accepts `indexFile` with an array of strings', () => {
+    expect(() => new StaticFiles({
+      indexFile:     ['bonk.html', 'blorp', 'zamboni.txt'],
+      siteDirectory: '/florp/fleep'
+    })).not.toThrow();
+  });
+
+  test('rejects `indexFile` with a string containing a slash', () => {
+    expect(() => new StaticFiles({
+      indexFile:     ['x.txt', 'zip/zap.txt'],
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+
+    expect(() => new StaticFiles({
+      indexFile:     'beep/boop.html',
+      siteDirectory: '/florp/fleep'
+    })).toThrow();
+  });
+
+  test('rejects an invalid typed `indexFile`', () => {
+    expect(() => new StaticFiles({
+      indexFile:     { eep: 'oop' },
       siteDirectory: '/florp/fleep'
     })).toThrow();
   });
@@ -239,13 +287,23 @@ describe('_impl_handleRequest()', () => {
     expect(result.headers.get('location')).toBe(expectedLoc);
   });
 
-  test('includes a `cache-control` header in responses if so configured', async () => {
+  test('includes a `cache-control` header in file responses if so configured', async () => {
     const sf      = await makeInstance({ cacheControl: 'florp=123' });
     const request = RequestUtil.makeGet('/some-file.txt');
     const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
     expect(result).toBeInstanceOf(FullResponse);
     expect(result.status).toBe(200);
+    expect(result.cacheControl).toBe('florp=123');
+  });
+
+  test('includes a `cache-control` header in redirect responses if so configured', async () => {
+    const sf      = await makeInstance({ cacheControl: 'florp=123' });
+    const request = RequestUtil.makeGet('/subdir2');
+    const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(result.status).toBe(308);
     expect(result.cacheControl).toBe('florp=123');
   });
 

@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { DispatchInfo, FullResponse, HttpUtil, MimeTypes, StatusResponse }
+import { FullResponse, HttpUtil, MimeTypes, StatusResponse }
   from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
 import { StaticFileResponder } from '@this/webapp-util';
@@ -16,11 +16,11 @@ import { StaticFileResponder } from '@this/webapp-util';
  */
 export class StaticFiles extends BaseApplication {
   /**
-   * Handler for "found file" cases.
+   * Configuration to pass to the {@link StaticFileResponder} constructor.
    *
-   * @type {StaticFileResponder}
+   * @type {object}
    */
-  #foundResponder;
+  #responderConfig;
 
   /**
    * Path to the file to serve for a not-found result, or `null` if not-found
@@ -42,7 +42,15 @@ export class StaticFiles extends BaseApplication {
    *
    * @type {?string}
    */
-  #cacheControl = null;
+  #cacheControl;
+
+  /**
+   * "Responder" that does most of the actual work of this class, or `null` if
+   * not yet set up.
+   *
+   * @type {?StaticFileResponder}
+   */
+  #responder = null;
 
   /**
    * Not-found response to issue, or `null` if either not yet calculated or if
@@ -69,44 +77,33 @@ export class StaticFiles extends BaseApplication {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
+    const { cacheControl, etag, indexFile, notFoundPath, siteDirectory } =
+      this.config;
 
-    this.#cacheControl   = cacheControl;
-    this.#foundResponder = new StaticFileResponder({ cacheControl, etag });
-    this.#notFoundPath   = notFoundPath;
-    this.#siteDirectory  = siteDirectory;
+    this.#responderConfig = {
+      baseDirectory: siteDirectory,
+      cacheControl,
+      etag,
+      indexFile
+    };
+
+    this.#cacheControl  = cacheControl;
+    this.#notFoundPath  = notFoundPath;
+    this.#siteDirectory = siteDirectory;
   }
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    if (!request.isGetOrHead()) {
+    const response =
+      await this.#responder.handleRequest(request, dispatch);
+
+    if (response) {
+      return response;
+    } if (!request.isGetOrHead()) {
       return StatusResponse.FORBIDDEN;
-    }
-
-    const resolved = await this.#resolvePath(dispatch);
-
-    if (!resolved) {
+    } else {
       return this.#notFound();
     }
-
-    const { path, stats, redirect } = resolved;
-
-    if (redirect) {
-      const response = FullResponse.makeRedirect(redirect, 308);
-
-      if (this.#cacheControl) {
-        response.cacheControl = this.#cacheControl;
-      }
-
-      return await response;
-    } else if (path) {
-      return this.#foundResponder.makeResponse(request, path, stats);
-    } else {
-      /* c8 ignore start */
-      // Shouldn't happen. If we get here, it's a bug in this class.
-      throw new Error('Shouldn\'t happen.');
-    }
-    /* c8 ignore stop */
   }
 
   /** @override */
@@ -126,6 +123,11 @@ export class StaticFiles extends BaseApplication {
       // is needed.
       await this.#notFound();
     }
+
+    this.#responder = new StaticFileResponder({
+      ...this.#responderConfig,
+      logger: this.logger
+    });
 
     await super._impl_start();
   }
@@ -184,71 +186,6 @@ export class StaticFiles extends BaseApplication {
     return response;
   }
 
-  /**
-   * Figures out the absolute path to serve for the given request path.
-   *
-   * @param {DispatchInfo} dispatch Dispatch info containing the path to serve.
-   * @returns {{path: string, stats: fs.Stats}|{redirect: string}|null} The
-   *   absolute path and stat info of the file to serve, the (absolute or
-   *   relative) URL to redirect to, or `null` if given invalid input or the
-   *   indicated path is not found.
-   */
-  async #resolvePath(dispatch) {
-    const decoded = StaticFileResponder.decodePath(dispatch.extra.path);
-
-    if (!decoded) {
-      return null;
-    }
-
-    const { path, isDirectory } = decoded;
-
-    // The conditional guarantees that the `fullPath` does not end with a slash,
-    // which makes the code below a bit simpler (because we care about only
-    // producing canonicalized paths that have no double slashes).
-    const fullPath = (path === '')
-      ? this.#siteDirectory
-      : `${this.#siteDirectory}/${path}`;
-    this.logger?.fullPath(fullPath);
-
-    try {
-      const stats = await Statter.statOrNull(fullPath);
-      if (stats === null) {
-        this.logger?.notFound(fullPath);
-        return null;
-      } else if (stats.isDirectory()) {
-        if (!isDirectory) {
-          // Redirect from non-ending-slash directory path. As a special case,
-          // `path === ''` happens when the mount point was requested directly,
-          // without a final slash. So we need to look at the base to figure out
-          // what to redirect to.
-          const source = (path === '') ? dispatch.base.path : dispatch.extra.path;
-          return { redirect: `${source[source.length - 1]}/` };
-        } else {
-          // It's a proper directory reference. Look for the index file.
-          const indexPath = `${fullPath}/index.html`;
-          const indexStats = await Statter.statOrNull(indexPath, true);
-          if (indexStats === null) {
-            this.logger?.indexNotFound(indexPath);
-            return null;
-          } else if (indexStats.isDirectory()) {
-            // Weird case, to be clear!
-            this.logger?.indexIsDirectory(indexPath);
-            return null;
-          }
-          return { path: indexPath, stats: indexStats };
-        }
-      } else if (isDirectory) {
-        // Non-directory file requested as if it is a directory (that is, with a
-        // final slash). Not accepted per class contract.
-        return null;
-      }
-      return { path: fullPath, stats };
-    } catch (e) {
-      this.logger?.statError(fullPath, e);
-      return null;
-    }
-  }
-
 
   //
   // Static members
@@ -285,6 +222,20 @@ export class StaticFiles extends BaseApplication {
       }
 
       /**
+       * A file name to look for, or a list of file names to look for in order,
+       * to use when responding to a request for a directory. If `null` or an
+       * empty array, plain directory requests get a not-found response. Names
+       * must not contain any slash (`/`) characters.
+       *
+       * @param {?string|string[]} [value] Proposed configuration value. Default
+       *   `index.html`.
+       * @returns {?string[]} Accepted configuration value.
+       */
+      _config_indexFile(value = 'index.html') {
+        return StaticFileResponder.checkIndexFile(value);
+      }
+
+      /**
        * Absolute path to the file to serve for a not-found result, or `null` if
        * not-found handling shouldn't be done.
        *
@@ -304,7 +255,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {string} Accepted configuration value.
        */
       _config_siteDirectory(value) {
-        return Paths.checkAbsolutePath(value);
+        return StaticFileResponder.checkBaseDirectory(value);
       }
     };
   }
