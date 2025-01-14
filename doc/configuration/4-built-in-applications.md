@@ -459,13 +459,17 @@ reasonable demand:
 An application which serves static files from a local directory. This
 application accepts the following configuration bindings:
 
-* `etag` &mdash; ETag-generating options. If present and not `null`, the
-  response comes with an `ETag` header. See
-  [ETag Configuration](#etag-configuration-etag) for details.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
   `null`, every cacheable response comes with the specified header. See
   [Cache control configuration](#cache-control-configuration-cacheControl) for
   details.
+* `etag` &mdash; ETag-generating options. If present and not `null`, the
+  response comes with an `ETag` header. See
+  [ETag Configuration](#etag-configuration-etag) for details.
+* `indexFile` &mdash; Name or list of names to search for in response to a
+  directory request, or `null` (or empty array) to respond to directory requests
+  as not-found. When there is more than one name, the first one in listed order
+  to be found is the one that is used. Default is `index.html`.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
   file/path is not found. The indicated file will get sent back along with a
   `404` ("Not Found") status code.
@@ -478,6 +482,7 @@ const applications = [
   {
     name:          'mySite',
     class:         StaticFiles,
+    indexFile:     ['index.html', 'index.txt'],
     siteDirectory: '/path/to/site',
     notFoundPath:  '/path/to/404.html'
   }
@@ -505,9 +510,6 @@ reasonable demand:
 * Directory responses:
   * "Naked" directory paths (i.e. ones that do not end with a slash) are
     redirected to the same path with a final slash appended.
-  * Directory paths are responded to with the contents of a file called
-    `index.html` in that directory, if it exists. The index file name is not
-    configurable.
 * These "odd" URL paths all cause not-found responses:
   * Ones with a `..` that would "back out" of the site directory.
   * Ones with an _encoded_ slash in them, that is to say literally `%2F`. (It is

@@ -16,6 +16,13 @@ import { StaticFileResponder } from '@this/webapp-util';
  */
 export class StaticFiles extends BaseApplication {
   /**
+   * Configuration to pass to the {@link StaticFileResponder} constructor.
+   *
+   * @type {object}
+   */
+  #responderConfig;
+
+  /**
    * Path to the file to serve for a not-found result, or `null` if not-found
    * handling shouldn't be done.
    *
@@ -36,13 +43,6 @@ export class StaticFiles extends BaseApplication {
    * @type {?string}
    */
   #cacheControl;
-
-  /**
-   * Options for generating `etag` headers, or `null` not to do that.
-   *
-   * @type {?object|true}
-   */
-  #etag;
 
   /**
    * "Responder" that does most of the actual work of this class, or `null` if
@@ -77,10 +77,17 @@ export class StaticFiles extends BaseApplication {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
+    const { cacheControl, etag, indexFile, notFoundPath, siteDirectory } =
+      this.config;
+
+    this.#responderConfig = {
+      baseDirectory: siteDirectory,
+      cacheControl,
+      etag,
+      indexFile
+    };
 
     this.#cacheControl  = cacheControl;
-    this.#etag          = etag;
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
   }
@@ -118,11 +125,8 @@ export class StaticFiles extends BaseApplication {
     }
 
     this.#responder = new StaticFileResponder({
-      baseDirectory: siteDirectory,
-      cacheControl:  this.#cacheControl,
-      etag:          this.#etag,
-      indexFile:     'index.html',
-      logger:        this.logger
+      ...this.#responderConfig,
+      logger: this.logger
     });
 
     await super._impl_start();
@@ -215,6 +219,20 @@ export class StaticFiles extends BaseApplication {
        */
       _config_etag(value = null) {
         return StaticFileResponder.checkEtag(value);
+      }
+
+      /**
+       * A file name to look for, or a list of file names to look for in order,
+       * to use when responding to a request for a directory. If `null` or an
+       * empty array, plain directory requests get a not-found response. Names
+       * must not contain any slash (`/`) characters.
+       *
+       * @param {?string|string[]} [value] Proposed configuration value. Default
+       *   `index.html`.
+       * @returns {?string[]} Accepted configuration value.
+       */
+      _config_indexFile(value = 'index.html') {
+        return StaticFileResponder.checkIndexFile(value);
       }
 
       /**
