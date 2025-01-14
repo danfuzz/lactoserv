@@ -194,52 +194,20 @@ export class StaticFiles extends BaseApplication {
    *   indicated path is not found.
    */
   async #resolvePath(dispatch) {
-    const path     = dispatch.extra.path;
-    const parts    = [];
-    let   endSlash = false; // Path ends with a slash?
+    const decoded = StaticFileResponder.decodePath(dispatch.extra.path);
 
-    for (const p of path) {
-      if (endSlash) {
-        // We got an empty path component _not_ at the end of the path.
-        return null;
-      }
-
-      switch (p) {
-        case '.':
-        case '..': {
-          /* c8 ignore start */
-          // These should have already been resolved away. This is a thrown
-          // error (and not `return null`) because it is indicative of a bug in
-          // this project.
-          throw new Error('Shouldn\'t happen.');
-        }
-        /* c8 ignore stop */
-        case '': {
-          endSlash = true;
-          break;
-        }
-        default: {
-          try {
-            const decoded = decodeURIComponent(p);
-            if (/[/]/.test(decoded)) {
-              // Not allowed to have an encoded slash.
-              return null;
-            }
-            parts.push(decoded);
-          } catch {
-            // Syntax error in encoded path.
-            return null;
-          }
-        }
-      }
+    if (!decoded) {
+      return null;
     }
+
+    const { path, isDirectory } = decoded;
 
     // The conditional guarantees that the `fullPath` does not end with a slash,
     // which makes the code below a bit simpler (because we care about only
     // producing canonicalized paths that have no double slashes).
-    const fullPath = (parts.length === 0)
+    const fullPath = (path === '')
       ? this.#siteDirectory
-      : `${this.#siteDirectory}/${parts.join('/')}`;
+      : `${this.#siteDirectory}/${path}`;
     this.logger?.fullPath(fullPath);
 
     try {
@@ -248,14 +216,12 @@ export class StaticFiles extends BaseApplication {
         this.logger?.notFound(fullPath);
         return null;
       } else if (stats.isDirectory()) {
-        if (!endSlash) {
+        if (!isDirectory) {
           // Redirect from non-ending-slash directory path. As a special case,
-          // `parts.length === 0` happens when the mount point was requested
-          // directly, without a final slash. So we need to look at the base
-          // to figure out what to redirect to.
-          const source = (parts.length === 0)
-            ? dispatch.base.path
-            : parts;
+          // `path === ''` happens when the mount point was requested directly,
+          // without a final slash. So we need to look at the base to figure out
+          // what to redirect to.
+          const source = (path === '') ? dispatch.base.path : dispatch.extra.path;
           return { redirect: `${source[source.length - 1]}/` };
         } else {
           // It's a proper directory reference. Look for the index file.
@@ -271,8 +237,9 @@ export class StaticFiles extends BaseApplication {
           }
           return { path: indexPath, stats: indexStats };
         }
-      } else if (endSlash) {
-        // Non-directory with a slash. Not accepted per class contract.
+      } else if (isDirectory) {
+        // Non-directory file requested as if it is a directory (that is, with a
+        // final slash). Not accepted per class contract.
         return null;
       }
       return { path: fullPath, stats };

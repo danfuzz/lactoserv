@@ -139,6 +139,64 @@ export class StaticFileResponder {
     }
   }
 
+  /**
+   * Decodes a relative path into a simple string along with an "is a directory"
+   * flag (which indicates if the final path component was empty). The given
+   * path is required to _not_ contain the following path components:
+   *
+   * * `.`
+   * * `..`
+   * * an empty path component other than as the final component
+   * * any component with a slash (`/`) in it (whether or not escaped)
+   * * any component with an invalid escape sequence in it
+   *
+   * **Note:** This method does _not_ check to see if the resolved path actually
+   * exists.
+   *
+   * @returns {?{ isDirectory: boolean, path: string }} The decoded path and
+   *   is-a-directory flag, or `null` if it could not be decoded.
+   */
+  static decodePath(relativePath) {
+    const parts       = [];
+    let   isDirectory = false; // Is a directory? (Path ends with a slash?)
+
+    for (const p of relativePath) {
+      if (isDirectory) {
+        // We got an empty path component _not_ at the end of the path.
+        return null;
+      }
+
+      switch (p) {
+        case '.':
+        case '..': {
+          return null;
+        }
+
+        case '': {
+          isDirectory = true;
+          break;
+        }
+
+        default: {
+          try {
+            const decoded = decodeURIComponent(p);
+            if (/[/]/.test(decoded)) {
+              // Not allowed to have an encoded slash.
+              return null;
+            }
+            parts.push(decoded);
+          } catch {
+            // Syntax error in encoded path.
+            return null;
+          }
+        }
+      }
+    }
+
+    const path = (parts.length === 0) ? '' : parts.join('/');
+    return { isDirectory, path };
+  }
+
   /** @override */
   static #Config = class Config extends BaseConfig {
     // @defaultConstructor
