@@ -4,10 +4,8 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes,
-  StatusResponse }
+import { DispatchInfo, FullResponse, HttpUtil, MimeTypes, StatusResponse }
   from '@this/net-util';
-import { AskIf } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 import { StaticFileResponder } from '@this/webapp-util';
 
