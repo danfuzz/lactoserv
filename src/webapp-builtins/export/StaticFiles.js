@@ -16,13 +16,6 @@ import { StaticFileResponder } from '@this/webapp-util';
  */
 export class StaticFiles extends BaseApplication {
   /**
-   * "Responder" that does most of the actual work of this class.
-   *
-   * @type {StaticFileResponder}
-   */
-  #responder;
-
-  /**
    * Path to the file to serve for a not-found result, or `null` if not-found
    * handling shouldn't be done.
    *
@@ -42,7 +35,22 @@ export class StaticFiles extends BaseApplication {
    *
    * @type {?string}
    */
-  #cacheControl = null;
+  #cacheControl;
+
+  /**
+   * Options for generating `etag` headers, or `null` not to do that.
+   *
+   * @type {?object|true}
+   */
+  #etag;
+
+  /**
+   * "Responder" that does most of the actual work of this class, or `null` if
+   * not yet set up.
+   *
+   * @type {?StaticFileResponder}
+   */
+  #responder = null;
 
   /**
    * Not-found response to issue, or `null` if either not yet calculated or if
@@ -72,14 +80,9 @@ export class StaticFiles extends BaseApplication {
     const { cacheControl, etag, notFoundPath, siteDirectory } = this.config;
 
     this.#cacheControl  = cacheControl;
+    this.#etag          = etag;
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
-    this.#responder     = new StaticFileResponder({
-      baseDirectory: siteDirectory,
-      cacheControl,
-      etag,
-      indexFile: 'index.html'
-    });
   }
 
   /** @override */
@@ -113,6 +116,14 @@ export class StaticFiles extends BaseApplication {
       // is needed.
       await this.#notFound();
     }
+
+    this.#responder = new StaticFileResponder({
+      baseDirectory: siteDirectory,
+      cacheControl:  this.#cacheControl,
+      etag:          this.#etag,
+      indexFile:     'index.html',
+      logger:        this.logger
+    });
 
     await super._impl_start();
   }
