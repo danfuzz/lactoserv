@@ -178,12 +178,11 @@ export class StaticFileResponder {
     const fullPath = (path === '')
       ? this.#baseDirectory
       : `${this.#baseDirectory}/${path}`;
-    this.#logger?.fullPath(fullPath);
 
     try {
       const stats = await Statter.statOrNull(fullPath);
       if (stats === null) {
-        this.#logger?.notFound(fullPath);
+        this.#logger?.fileNotFound(fullPath);
         return null;
       } else if (stats.isDirectory()) {
         if (!isDirectory) {
@@ -191,6 +190,7 @@ export class StaticFileResponder {
           // `path === ''` happens when the mount point (base with regards to
           // `dispatch`) was requested directly, without a final slash. So we
           // need to look at the base to figure out what to redirect to.
+          this.#logger?.foundDirectoryForRedirect(fullPath);
           const source = (path === '') ? dispatch.base.path : dispatch.extra.path;
           return { redirect: `${source[source.length - 1]}/` };
         } else {
@@ -203,6 +203,7 @@ export class StaticFileResponder {
         this.#logger?.fileIsDirectory(fullPath);
         return null;
       }
+      this.#logger?.foundFile(fullPath);
       return { path: fullPath, stats };
     } catch (e) {
       this.#logger?.statError(fullPath, e);
@@ -234,6 +235,7 @@ export class StaticFileResponder {
         const indexStats = await Statter.statOrNull(indexPath, true);
 
         if (indexStats?.isFile()) {
+          this.#logger?.foundIndex(dirPath, name);
           return { path: indexPath, stats: indexStats };
         }
       } catch (e) {
