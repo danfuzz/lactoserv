@@ -287,13 +287,23 @@ describe('_impl_handleRequest()', () => {
     expect(result.headers.get('location')).toBe(expectedLoc);
   });
 
-  test('includes a `cache-control` header in responses if so configured', async () => {
+  test('includes a `cache-control` header in file responses if so configured', async () => {
     const sf      = await makeInstance({ cacheControl: 'florp=123' });
     const request = RequestUtil.makeGet('/some-file.txt');
     const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
 
     expect(result).toBeInstanceOf(FullResponse);
     expect(result.status).toBe(200);
+    expect(result.cacheControl).toBe('florp=123');
+  });
+
+  test('includes a `cache-control` header in redirect responses if so configured', async () => {
+    const sf      = await makeInstance({ cacheControl: 'florp=123' });
+    const request = RequestUtil.makeGet('/subdir2');
+    const result  = await sf.handleRequest(request, new DispatchInfo(PathKey.EMPTY, request.pathname));
+
+    expect(result).toBeInstanceOf(FullResponse);
+    expect(result.status).toBe(308);
     expect(result.cacheControl).toBe('florp=123');
   });
 
