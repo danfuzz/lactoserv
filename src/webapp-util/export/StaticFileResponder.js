@@ -17,9 +17,7 @@ import { AskIf } from '@this/typey';
  * Return type from {@link #resolvePath}.
  *
  * @typedef {
- *     { path: string, stats: fs.Stats }
- *   | { redirect: string }
- *   | null
+ *   { path: string, stats: fs.Stats } | { redirect: string } | null
  * } TypeResolved
  */
 
@@ -151,9 +149,9 @@ export class StaticFileResponder {
    * form of a directory request), or indicates that the path is not found.
    *
    * Special cases:
-   * * When asked to resolve a path in directory form (trailing slash),
-   *   if the path corresponds to a regular (non-directory) file, this method
-   *   will treat it as not-found.
+   * * When asked to resolve a path in directory form (trailing slash), if the
+   *   path corresponds to a regular (non-directory) file, this method will
+   *   treat it as not-found.
    * * Index files (searched for when responding to a directory request) will
    *   only be found if they are in fact regular (non-directory) files.
    *
@@ -212,12 +210,12 @@ export class StaticFileResponder {
   }
 
   /**
-   * Helper for {@link #resolvePath}, which looks for an index file in the
-   * given directory. This will just return `null` if this instance is not
-   * configured with any index file names.
+   * Helper for {@link #resolvePath}, which looks for an index file in the given
+   * directory. This will just return `null` if this instance is not configured
+   * with any index file names.
    *
-   * @param {string} dirPath Absolute path to the directory to look for an
-   *   index file in.
+   * @param {string} dirPath Absolute path to the directory to look for an index
+   *   file in.
    * @returns {?TypeResolved} The resolved file, or `null` if there was no index
    *   file to be found.
    */
@@ -314,8 +312,8 @@ export class StaticFileResponder {
   /**
    * Checks / accepts a `cacheControl` option. This is a `cache-control` header
    * to automatically include, or `null` not to include it. Can be passed either
-   * as a literal string or an object to be passed to {@link
-   * HttpUtil#cacheControlHeader}.
+   * as a literal string or an object to be passed to
+   * {@link HttpUtil#cacheControlHeader}.
    *
    * @param {?string|object} value Proposed configuration value.
    * @returns {?string} Accepted configuration value.
@@ -456,9 +454,9 @@ export class StaticFileResponder {
     }
 
     /**
-     * `cache-control` header to automatically include, or `null` not to
-     * include it. Can be passed either as a literal string or an object to be
-     * passed to {@link HttpUtil#cacheControlHeader}.
+     * `cache-control` header to automatically include, or `null` not to include
+     * it. Can be passed either as a literal string or an object to be passed to
+     * {@link HttpUtil#cacheControlHeader}.
      *
      * @param {?string|object} [value] Proposed configuration value. Default
      *   `null`.
