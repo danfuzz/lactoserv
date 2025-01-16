@@ -17,8 +17,10 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocky": "*",
+    "@this/collections": "*",
     "@this/fs-util": "*",
     "@this/loggy-intf": "*",
+    "@this/net-util": "*",
     "@this/quant": "*",
     "@this/structy": "*",
     "@this/typey": "*",
