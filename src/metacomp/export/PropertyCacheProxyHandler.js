@@ -118,7 +118,7 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    *   `name`.
    */
   _impl_valueFor(name) {
-    return Methods.abstract(name);
+    throw Methods.abstract(name);
   }
 
 

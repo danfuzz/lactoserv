@@ -227,7 +227,7 @@ export class ProtocolWrangler {
    *   socket state.
    */
   get _impl_infoForLog() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**

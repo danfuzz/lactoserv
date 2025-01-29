@@ -50,7 +50,7 @@ export class IntfLoggingEnvironment {
    * @returns {string} A short-ish unique-ish ID string.
    */
   makeId() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**
@@ -70,7 +70,7 @@ export class IntfLoggingEnvironment {
    * @returns {LogPayload} The constructed payload.
    */
   makePayload(omitCount, tag, type, ...args) {
-    return Methods.abstract(omitCount, tag, type, args);
+    throw Methods.abstract(omitCount, tag, type, args);
   }
 
   /**
@@ -84,7 +84,7 @@ export class IntfLoggingEnvironment {
    * @returns {?StackTrace} An appropriately-constructed instance.
    */
   makeStackTrace(omitCount = 0) {
-    return Methods.abstract(omitCount);
+    throw Methods.abstract(omitCount);
   }
 
   /**
@@ -93,6 +93,6 @@ export class IntfLoggingEnvironment {
    * @returns {Moment} The moment "now."
    */
   now() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 }

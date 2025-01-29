@@ -140,7 +140,7 @@ export class BaseFilePreserver {
    * @returns {?Promise} Optional promise which settles when work is to be done.
    */
   _impl_whenWorkRequired() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**

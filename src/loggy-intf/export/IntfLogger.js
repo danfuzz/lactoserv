@@ -60,14 +60,14 @@ export class IntfLogger {
    * instance.
    */
   get $env() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**
    * @returns {IntfLogger.Meta} Metainformation about this instance.
    */
   get $meta() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**
@@ -76,7 +76,7 @@ export class IntfLogger {
    * shorthand for `logger[logger.$meta.makeId()]`.
    */
   get $newId() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
 
@@ -132,12 +132,12 @@ export class IntfLogger {
      * logger.
      */
     get $env() {
-      return Methods.abstract();
+      throw Methods.abstract();
     }
 
     /** @returns {string} Convenient shorthand for `this.tag.lastContext`. */
     get lastContext() {
-      return Methods.abstract();
+      throw Methods.abstract();
     }
 
     /**
@@ -146,7 +146,7 @@ export class IntfLogger {
      * generally unexpected case).
      */
     get tag() {
-      return Methods.abstract();
+      throw Methods.abstract();
     }
 
     /**
@@ -156,7 +156,7 @@ export class IntfLogger {
      * @returns {string} The new ID.
      */
     makeId() {
-      return Methods.abstract();
+      throw Methods.abstract();
     }
   };
 }

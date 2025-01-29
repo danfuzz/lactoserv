@@ -20,7 +20,7 @@ export class IntfTimeSource {
    * @returns {Moment} The current time.
    */
   now() {
-    return Methods.abstract();
+    throw Methods.abstract();
   }
 
   /**
@@ -38,7 +38,7 @@ export class IntfTimeSource {
    * @returns {null} `null`, always.
    */
   static async waitFor(dur, options = undefined) {
-    return Methods.abstract(dur, options);
+    throw Methods.abstract(dur, options);
   }
 
   /**
@@ -54,6 +54,6 @@ export class IntfTimeSource {
    * @returns {null} `null`, always.
    */
   async waitUntil(time) {
-    return Methods.abstract(time);
+    throw Methods.abstract(time);
   }
 }
