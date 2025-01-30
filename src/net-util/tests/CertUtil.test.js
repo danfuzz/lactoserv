@@ -37,10 +37,10 @@ describe('checkPrivateKey()', () => {
     '-----BEGIN RSA PRIVATE KEY-----\n' +
     'ABCDEFG+/abcdefg1234567890=\n' +
     '-----END RSA PRIVATE KEY-----\n';
-    const SOME_EC_KEY =
-      '-----BEGIN EC PRIVATE KEY-----\n' +
-      'ABCDEFG+/abcdefg1234567890=\n' +
-      '-----END EC PRIVATE KEY-----\n';
+  const SOME_EC_KEY =
+    '-----BEGIN EC PRIVATE KEY-----\n' +
+    'ABCDEFG+/abcdefg1234567890=\n' +
+    '-----END EC PRIVATE KEY-----\n';
 
   test('throws given a non-string', () => {
     expect(() => CertUtil.checkPrivateKey(12345)).toThrow();
