@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Duration, Moment } from '@this/quant';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { MustBe } from '@this/typey';
 
 
@@ -10,8 +11,10 @@ import { MustBe } from '@this/typey';
  * related parsing and utility functionality.
  *
  * **Note:** See <https://www.rfc-editor.org/info/rfc6265> for the RFC spec.
+ *
+ * @implements {IntfDeconstructable}
  */
-export class Cookies {
+export class Cookies extends IntfDeconstructable {
   /**
    * Map from each cookie name to its attributes, including attributes per se
    * for use as `Set-Cookie` headers, but also properties `name` and `value`.
@@ -20,12 +23,7 @@ export class Cookies {
    */
   #attributes = new Map();
 
-  /**
-   * Constructs an empty instance.
-   */
-  constructor() {
-    // @emptyBlock
-  }
+  // @defaultConstructor
 
   /** @returns {number} How many cookies are in this instance. */
   get size() {
@@ -53,6 +51,16 @@ export class Cookies {
    */
   attributeSets() {
     return this.#attributes.values();
+  }
+
+  /** @override */
+  deconstruct(forLogging) {
+    if (!forLogging) {
+      // This method doesn't produce a constructable form.
+      throw new Error('Can only use for logging.');
+    }
+
+    return new Sexp(this.constructor, Object.fromEntries(this));
   }
 
   /**
