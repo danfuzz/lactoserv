@@ -37,6 +37,10 @@ describe('checkPrivateKey()', () => {
     '-----BEGIN RSA PRIVATE KEY-----\n' +
     'ABCDEFG+/abcdefg1234567890=\n' +
     '-----END RSA PRIVATE KEY-----\n';
+    const SOME_EC_KEY =
+      '-----BEGIN EC PRIVATE KEY-----\n' +
+      'ABCDEFG+/abcdefg1234567890=\n' +
+      '-----END EC PRIVATE KEY-----\n';
 
   test('throws given a non-string', () => {
     expect(() => CertUtil.checkPrivateKey(12345)).toThrow();
@@ -52,6 +56,10 @@ describe('checkPrivateKey()', () => {
 
   test('accepts a pretty minimal syntactically correct RSA key (PKCS#1)', () => {
     expect(() => CertUtil.checkPrivateKey(SOME_RSA_KEY)).not.toThrow();
+  });
+
+  test('accepts a pretty minimal syntactically correct EC key (PKCS#1)', () => {
+    expect(() => CertUtil.checkPrivateKey(SOME_EC_KEY)).not.toThrow();
   });
 });
 

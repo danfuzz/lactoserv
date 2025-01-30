@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `net-util`:
+  * Now recognize `EC PRIVATE KEY` as a label in PEM files for private keys.
 * `webapp-builtins`:
   * `StaticFileResponder`: Added `indexFile` configuration option.
 * `webapp-util`:

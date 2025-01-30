@@ -39,7 +39,7 @@ export class CertUtil {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkPrivateKey(value) {
-    const pattern = this.#makePemPattern('(RSA )?PRIVATE KEY');
+    const pattern = this.#makePemPattern('((RSA|EC) )?PRIVATE KEY');
     return MustBe.string(value, pattern);
   }
 
