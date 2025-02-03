@@ -85,7 +85,7 @@ export class Cookies extends IntfDeconstructable {
    * @throws {Error} Thrown if `name` is not bound.
    */
   getAttributes(name) {
-    const result = this.getAttributesOrNull(name);
+    const result = this.getAttributesElseNull(name);
 
     if (result !== null) {
       return result;
@@ -95,14 +95,15 @@ export class Cookies extends IntfDeconstructable {
   }
 
   /**
-   * Gets a cookie value, if available.
+   * Like {@link #getAttributes}, except returning `null` if there no so-named
+   * cookie.
    *
    * @param {string} name Cookie name.
    * @returns {?object} Cookie attributes, as a frozen object, or `null` if
    *   there is no such cookie. In addition to the attributes from the original
    *   call to {@link #set}, this also includes `name` and `value` properties.
    */
-  getAttributesOrNull(name) {
+  getAttributesElseNull(name) {
     return this.#attributes.get(name) ?? null;
   }
 
@@ -125,7 +126,7 @@ export class Cookies extends IntfDeconstructable {
    * @returns {?string} Cookie value, or `null` if not found.
    */
   getValueElseNull(name) {
-    return this.getAttributesOrNull(name)?.value ?? null;
+    return this.getAttributesElseNull(name)?.value ?? null;
   }
 
   /**

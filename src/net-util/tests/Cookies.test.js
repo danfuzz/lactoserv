@@ -119,11 +119,11 @@ describe('getAttributes()', () => {
   });
 });
 
-describe('getAttributesOrNull()', () => {
+describe('getAttributesElseNull()', () => {
   test('returns `null` if a cookie is not found', () => {
     const cookies = new Cookies();
 
-    expect(cookies.getAttributesOrNull('florp')).toBeNull();
+    expect(cookies.getAttributesElseNull('florp')).toBeNull();
   });
 
   test('finds a cookie that was set', () => {
@@ -134,7 +134,7 @@ describe('getAttributesOrNull()', () => {
 
     cookies.set(name, value, att);
 
-    expect(cookies.getAttributesOrNull(name)).toEqual({
+    expect(cookies.getAttributesElseNull(name)).toEqual({
       name,
       value,
       ...att
@@ -149,7 +149,7 @@ describe('getAttributesOrNull()', () => {
 
     cookies.set(name, value, att);
 
-    expect(cookies.getAttributesOrNull(name)).toBeFrozen();
+    expect(cookies.getAttributesElseNull(name)).toBeFrozen();
   });
 });
 
