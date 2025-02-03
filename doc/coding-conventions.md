@@ -157,8 +157,9 @@ use the following comment in place of an intentionally omitted constructor:
   `foo` and not that the method is allowed to return `null` in case of error.
 
 * `mustBe<thing>()` &mdash; Names a method which is checking that its argument
-  is of the given type (or type-ish thing), and which will `throw` if not. This
-  parallels the library class `typey.MustBe`.
+  is of the given type (or type-ish thing), returning the given value if it
+  matches the type, or `throw`ing if not. This parallels the library class
+  `typey.MustBe`.
 
 ### Ledger of arbitrary decisions
 
