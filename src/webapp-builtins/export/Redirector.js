@@ -88,7 +88,7 @@ export class Redirector extends BaseApplication {
        * @returns {string} Accepted configuration value.
        */
       _config_target(value) {
-        return UriUtil.checkBasicUri(value);
+        return UriUtil.mustBeBasicUri(value);
       }
 
       /**

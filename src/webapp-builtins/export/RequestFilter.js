@@ -127,7 +127,7 @@ export class RequestFilter extends BaseApplication {
        * @returns {number} Accepted configuration value.
        */
       _config_filterResponseStatus(value = 404) {
-        return HttpUtil.checkStatus(value);
+        return HttpUtil.mustBeStatus(value);
       }
 
       /**

@@ -28,7 +28,7 @@ describe('cacheControlHeader()', () => {
   });
 });
 
-describe('checkStatus()', () => {
+describe('mustBeStatus()', () => {
   // pass cases
   test.each`
   value
@@ -43,7 +43,7 @@ describe('checkStatus()', () => {
   ${501}
   ${599}
   `('passes value $value', ({ value }) => {
-    expect(HttpUtil.checkStatus(value)).toBe(value);
+    expect(HttpUtil.mustBeStatus(value)).toBe(value);
   });
 
   // fail cases
@@ -58,7 +58,7 @@ describe('checkStatus()', () => {
   ${'123'}
   ${[123]}
   `('throws given value $value', ({ value }) => {
-    expect(() => HttpUtil.checkStatus(value)).toThrow();
+    expect(() => HttpUtil.mustBeStatus(value)).toThrow();
   });
 });
 
