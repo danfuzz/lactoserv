@@ -146,7 +146,7 @@ export class StaticFiles extends BaseApplication {
     }
 
     const existingResponse = this.#notFoundResponse;
-    const stats            = await Statter.statOrNull(notFoundPath);
+    const stats            = await Statter.statElseNull(notFoundPath);
     const isFile           = stats?.isFile();
 
     if (existingResponse) {

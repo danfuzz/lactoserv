@@ -241,7 +241,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
      *   suitable is found.
      */
     #findItem(name, allowWildcard) {
-      const key = HostUtil.parseHostnameOrNull(name, allowWildcard);
+      const key = HostUtil.parseHostnameElseNull(name, allowWildcard);
 
       if (key === null) {
         this.#logger?.invalidHostname(name);

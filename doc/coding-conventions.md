@@ -91,32 +91,70 @@ use the following comment in place of an intentionally omitted constructor:
 
 ### Member naming (and details)
 
-* `_config_<name>` &mdash; Method defined by configuration classes which are
+#### Prefixes
+
+* `_config_<name>()` &mdash; Method defined by configuration classes which are
   (direct or indirect) subclasses of `structy.BaseConfig`. Each such method
   is responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
 
-* `_impl_<name>` &mdash; Declared in base classes, _either_ as abstract and left
-  for subclasses to fill in (as specified by the base class), or with a
+* `_impl_<name>()` &mdash; Declared in base classes, _either_ as abstract and
+  left for subclasses to fill in (as specified by the base class), or with a
   reasonable default implementation. _Not_ supposed to be called except by the
   defining base class (not even subclasses). These are more or less `protected`
   and methods declared by a base class, often (but not always) also `abstract`.
 
-* `_prop_<name>` &mdash; Method defined by struct classes which are (direct or
+  With very few exceptions, members _not_ marked with `_impl_` should be treated
+  as effectively `final`, that is, not to be overridden.
+
+* `_prop_<name>()` &mdash; Method defined by struct classes which are (direct or
   indirect) subclasses of `structy.BaseStruct`. Each such method is
   responsible for validating and parsing/converting the correspondingly named
   property of a plain-object configuration.
 
-* `_prot_<name>` &mdash; Defined in base classes and _not_ to be overridden. To
-  be called by subclasses; _not_ supposed to be used outside of the class. These
-  are more or less `protected final` methods defined by a base class.
+* `_prot_<name>()` &mdash; Defined in base classes and _not_ to be overridden.
+  To be called by subclasses; _not_ supposed to be used outside of the class.
+  These are more or less `protected final` methods defined by a base class.
 
-* `_testing_<name>` &mdash; Methods whose sole purpose is to do instance
+* `_testing_<name>()` &mdash; Methods whose sole purpose is to do instance
   introspection (and generally, break encapsulation) in order to make unit
   testing a little less painful.
 
-With very few exceptions, members _not_ marked with `_impl_` should be treated
-as effectively `final`, that is, not to be overridden.
+#### "Morphemes"
+
+* `<thing>From<thing>()` &mdash; This is the general pattern for converting one
+  sort of thing to another. It is phrased in terms of "from" so that the thing
+  names are close to the named things. For example, in `foo = fooFromBar(bar)`,
+  the `bar` parameter is next to the `Bar` label, and the returned `foo` is next
+  to the `foo` label.
+
+* `*<thing>OrNull*()` &mdash; Indicates that a method either accepts or returns
+  (depending on context) a "nullable" type without considering `null` to be an
+  error. For example, `fooOrNullFromString()` would accept a `string` (not
+  `null`) and return either a `foo` or `null`. And `fooFromStringOrNull()`
+  would accept either a `string` or `null` and always return a `foo` (never
+  `null`).
+
+* `*ElseNull()` &mdash; Indicates that a method will return `null` if there is
+  a reasonably-expected error or error-like condition, as opposed to throwing an
+  `Error` in such cases. For example, contrast `fooFromStringOrNull()` (see
+  previous bullet), `fooOrNullFromString()` (same), and
+  `fooFromStringElseNull()`. The last one only considers a `string` to be a
+  valid argument (not `null`), and it will return `null` to indicate an error
+  (and not an "expected" return value).
+
+  This pattern is often used along side methods with the same name but _without_
+  the `ElseNull` suffix which _do_ throw `Error`s.
+
+  Note that with this suffix, a method may draw a distinction between what is
+  an "expected" error (suitable for returning `null`) and an "unexpected" error
+  (which is cause for a `throw`).
+
+  With type conversion methods, the distinction is sometimes a bit arbitrary,
+  but the pattern `*ElseNull()` can also be used in non-conversion contexts.
+  For example, in `findFooElseNull()`, the distinction is more meaningful. And
+  in `expectFooOrNull()` it is clear that the expectation is for a "nullable"
+  `foo` and not that the method is allowed to return `null` in case of error.
 
 ### Ledger of arbitrary decisions
 
@@ -138,6 +176,10 @@ meant to record them, in order to keep track of them and maintain consistency.
   ```js
   // @emptyBlock
   ```
+
+* Methods that throw `Error`s when encountering trouble aren't specially marked.
+  However, methods that return `null` to indicate an error _are_ marked with the
+  suffix `ElseNull`. (See above.)
 
 * Terminology:
   * Use "HTTP1" or "HTTP1-ish" to refer to the HTTP1 family of protocols. (No

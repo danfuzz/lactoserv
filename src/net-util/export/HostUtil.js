@@ -49,7 +49,7 @@ export class HostUtil {
    */
   static checkHostname(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -73,9 +73,9 @@ export class HostUtil {
    *   pattern, canonicalized if it is an IP address. Returns `null` to indicate
    *   a parsing error.
    */
-  static checkHostnameOrNull(name, allowWildcard = false) {
+  static checkHostnameElseNull(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -125,7 +125,7 @@ export class HostUtil {
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseHostname(name, allowWildcard = false) {
-    const result = this.parseHostnameOrNull(name, allowWildcard);
+    const result = this.parseHostnameElseNull(name, allowWildcard);
 
     if (result) {
       return result;
@@ -143,11 +143,11 @@ export class HostUtil {
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
    * @returns {?PathKey} Parsed key, or `null` if `name` is invalid.
    */
-  static parseHostnameOrNull(name, allowWildcard = false) {
+  static parseHostnameElseNull(name, allowWildcard = false) {
     MustBe.string(name);
 
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return new PathKey([canonicalIp], false);
     }

@@ -131,9 +131,9 @@ describe('toString()', () => {
 //
 
 describe.each`
-method                         | throws
-${'canonicalizeAddress'}       | ${true}
-${'canonicalizeAddressOrNull'} | ${false}
+method                           | throws
+${'canonicalizeAddress'}         | ${true}
+${'canonicalizeAddressElseNull'} | ${false}
 `('$method()', ({ method, throws }) => {
   // Failures from passing non-strings. These are always supposed to throw.
   test.each`

@@ -11,7 +11,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* framework API (general):
+  * Defined a new `*ElseNull()` method naming convention, to use instead of
+    `*OrNull*()`, clarifying the contexts in which each is appropriate. As a
+    result, renamed a bunch of methods throughout the system.
 
 Other notable changes:
 * `net-util`:
@@ -628,7 +631,7 @@ Other notable changes:
 
 ### v0.6.10 -- 2024-03-15
 
-It's Fast(ish) Follow Friday!
+It's Fast-ish Follow Friday!
 
 Breaking changes:
 * Request logging: Stopped quoting URLs, as there was no need. (They won't have
@@ -777,7 +780,7 @@ Other notable changes:
     request stuff, including for conditional ranges.
   * Extracted new class `HttpRange` from `net-protocol.Request`, for range
     request handling.
-  * New class `HttpResponse` to encapsulate data required to make an HTTP(ish)
+  * New class `HttpResponse` to encapsulate data required to make an HTTP-ish
     response and to handle much of the mechanics of actually producing a
     response. Notably, it does _not_ use Express-specific functionality.
 * Changed all the built-in applications to construct `HttpResponse` objects
@@ -850,7 +853,7 @@ Other notable changes:
 Breaking changes:
 * Renamed most `url`-named properties on `Request` to instead use the term
   `target`. This represents a divergence from Node, which confusingly uses the
-  property name `url` to refer to an HTTP(ish) request target, even though it
+  property name `url` to refer to an HTTP-ish request target, even though it
   isn't actually ever a URL per se except when the server is being called as a
   proxy (and not just a regular webserver).
 

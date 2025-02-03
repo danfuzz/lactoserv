@@ -127,7 +127,7 @@ export class EndpointAddress extends IntfDeconstructable {
    *   address.
    */
   static canonicalizeAddress(value, allowAny = false) {
-    const result = this.canonicalizeAddressOrNull(value, allowAny);
+    const result = this.canonicalizeAddressElseNull(value, allowAny);
 
     if (result) {
       return result;
@@ -147,7 +147,7 @@ export class EndpointAddress extends IntfDeconstructable {
    *   could not be parsed.
    * @throws {Error} Thrown if `value` is not a string.
    */
-  static canonicalizeAddressOrNull(value, allowAny = false) {
+  static canonicalizeAddressElseNull(value, allowAny = false) {
     MustBe.string(value);
 
     return this.#canonicalizeAddressV4(value, allowAny)

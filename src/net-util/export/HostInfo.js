@@ -202,7 +202,7 @@ export class HostInfo {
    * @throws {Error} Thrown if there was parsing trouble.
    */
   static parseHostHeader(hostString, localPort = null) {
-    const result = this.parseHostHeaderOrNull(hostString, localPort);
+    const result = this.parseHostHeaderElseNull(hostString, localPort);
 
     if (!result) {
       throw this.#parsingError(hostString);
@@ -220,7 +220,7 @@ export class HostInfo {
    * @returns {?HostInfo} The parsed info, or `null` if `hostString` was
    *   syntactically invalid.
    */
-  static parseHostHeaderOrNull(hostString, localPort = null) {
+  static parseHostHeaderElseNull(hostString, localPort = null) {
     MustBe.string(hostString);
 
     if (localPort !== null) {
@@ -240,7 +240,7 @@ export class HostInfo {
     const { hostname, port } = topParse;
 
     // Refined `hostname` check, along with IP address canonicalization.
-    const canonicalHostname = HostUtil.checkHostnameOrNull(hostname, false);
+    const canonicalHostname = HostUtil.checkHostnameElseNull(hostname, false);
 
     if (!canonicalHostname) {
       return null;
@@ -268,7 +268,7 @@ export class HostInfo {
    * @returns {HostInfo} The parsed info.
    */
   static safeParseHostHeader(hostString, localPort = null) {
-    return this.parseHostHeaderOrNull(hostString, localPort)
+    return this.parseHostHeaderElseNull(hostString, localPort)
       ?? this.localhostInstance(localPort);
   }
 

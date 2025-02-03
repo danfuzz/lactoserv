@@ -326,7 +326,7 @@ export class InterfaceAddress extends IntfDeconstructable {
    * @throws {Error} Thrown if `value` does not match.
    */
   static canonicalizeAddress(value) {
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(value, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(value, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -364,7 +364,7 @@ export class InterfaceAddress extends IntfDeconstructable {
    * @returns {?InterfaceAddress} Instance of this class representing the
    *   server's interface, or `null` if `server` is not currently listening.
    */
-  static fromNodeServerOrNull(server) {
+  static fromNodeServerElseNull(server) {
     const nodeAddress = server?.address();
 
     if (!nodeAddress) {

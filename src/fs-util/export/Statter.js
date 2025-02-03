@@ -18,7 +18,7 @@ export class Statter {
    * @returns {boolean} The answer.
    */
   static async directoryExists(path) {
-    const stats = await this.statOrNull(path);
+    const stats = await this.statElseNull(path);
 
     return stats ? stats.isDirectory() : false;
   }
@@ -31,7 +31,7 @@ export class Statter {
    * @returns {boolean} The answer.
    */
   static async fileExists(path) {
-    const stats = await this.statOrNull(path);
+    const stats = await this.statElseNull(path);
 
     return stats ? stats.isFile() : false;
   }
@@ -44,7 +44,7 @@ export class Statter {
    * @returns {boolean} The answer.
    */
   static async pathExists(path) {
-    const stats = await this.statOrNull(path);
+    const stats = await this.statElseNull(path);
 
     return (stats !== null);
   }
@@ -56,7 +56,7 @@ export class Statter {
    * @returns {boolean} The answer.
    */
   static async socketExists(path) {
-    const stats = await this.statOrNull(path);
+    const stats = await this.statElseNull(path);
 
     return stats ? stats.isSocket() : false;
   }
@@ -70,7 +70,7 @@ export class Statter {
    * @param {string} path Path to check.
    * @returns {?fs.Stats} The stats, if the path exists, or `null` if not.
    */
-  static async statOrNull(path) {
+  static async statElseNull(path) {
     MustBe.string(path);
 
     try {

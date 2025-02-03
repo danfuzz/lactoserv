@@ -139,7 +139,7 @@ export class IncomingRequest {
    * @param {?IntfLogger} [config.logger] Logger to use as a base, or `null` to
    *   not do any logging. If passed as non-`null`, the actual logger instance
    *   will be one that includes an additional subtag representing a new
-   *   unique(ish) ID for the request.
+   *   unique-ish ID for the request.
    * @param {string} config.protocolName The protocol name. This is expected to
    *   be a lowercase name followed by a dash and a version, e.g. `http-1.1`.
    * @param {HttpHeaders} config.pseudoHeaders HTTP2-ish "pseudo-headers" that
@@ -191,7 +191,7 @@ export class IncomingRequest {
    */
   get cookies() {
     if (!this.#cookies) {
-      const cookieStr = this.getHeaderOrNull('cookie');
+      const cookieStr = this.getHeaderElseNull('cookie');
       const result    = cookieStr ? Cookies.parse(cookieStr) : null;
 
       this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
@@ -414,14 +414,15 @@ export class IncomingRequest {
   }
 
   /**
-   * Gets a request header, by name.
+   * Gets a request header, by name, returning `null` if there was no such
+   * header.
    *
    * @param {string} name The header name.
    * @returns {?string|Array<string>} The corresponding value, or `null` if
    *   there was no such header. The only case where an array is returned is for
    *   the very special name `set-coookie`.
    */
-  getHeaderOrNull(name) {
+  getHeaderElseNull(name) {
     return (name === 'set-cookie')
       ? this.headers.getSetCookie()
       : this.headers.get(name);
@@ -532,7 +533,7 @@ export class IncomingRequest {
    * @param {?IntfLogger} [options.logger] Logger to use as a base, or `null`
    *   not to do any logging. If passed as non-`null`, the actual logger
    *   instance will be one that includes an additional subtag representing a
-   *   new unique(ish) ID for the request.
+   *   new unique-ish ID for the request.
    * @param {?number} [options.maxRequestBodyBytes] Maximum size allowed for a
    *   request body, in bytes, or `null` not to have a limit. Note that not
    *   having a limit is often ill-advised. If non-`null`, must be a

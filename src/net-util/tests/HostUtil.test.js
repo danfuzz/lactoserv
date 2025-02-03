@@ -6,11 +6,11 @@ import { EndpointAddress, HostUtil } from '@this/net-util';
 
 
 describe.each`
-method                   | throws   | returns
-${'checkHostname'}       | ${true}  | ${'string'}
-${'checkHostnameOrNull'} | ${false} | ${'string'}
-${'parseHostname'}       | ${true}  | ${'path'}
-${'parseHostnameOrNull'} | ${false} | ${'path'}
+method                     | throws   | returns
+${'checkHostname'}         | ${true}  | ${'string'}
+${'checkHostnameElseNull'} | ${false} | ${'string'}
+${'parseHostname'}         | ${true}  | ${'path'}
+${'parseHostnameElseNull'} | ${false} | ${'path'}
 `('$method()', ({ method, throws, returns }) => {
   const LONGEST_COMPONENT = 'x'.repeat(63);
   const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
@@ -84,7 +84,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   const checkAnswer = (hostname, got) => {
     expect(got).not.toBeNull();
 
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(hostname, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(hostname, false);
 
     if (returns === 'string') {
       if (canonicalIp) {
