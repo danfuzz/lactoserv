@@ -20,7 +20,7 @@ export class Names {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkName(value) {
+  static mustBeName(value) {
     if (this.isName(value)) {
       return value;
     }

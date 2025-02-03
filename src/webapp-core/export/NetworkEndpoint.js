@@ -189,7 +189,7 @@ export class NetworkEndpoint extends BaseDispatched {
        * @returns {string} Accepted configuration value.
        */
       _config_application(value) {
-        return Names.checkName(value);
+        return Names.mustBeName(value);
       }
 
       /**

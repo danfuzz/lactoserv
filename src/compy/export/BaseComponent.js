@@ -19,7 +19,7 @@ import { ThisModule } from '#p/ThisModule';
  *
  * **Note:** If a concrete subclass uses a configuration object with a `name`
  * property, then this class requires that that name honor the contract of
- * {@link Names#checkName}.
+ * {@link Names#mustBeName}.
  */
 export class BaseComponent {
   /**
@@ -78,7 +78,7 @@ export class BaseComponent {
 
     const name = this.#config?.name;
     if (name) {
-      Names.checkName(name);
+      Names.mustBeName(name);
     }
 
     if (rootContext !== null) {
@@ -544,7 +544,7 @@ export class BaseComponent {
        * The item's name, or `null` if it does not have a configured name. If
        * `null`, the corresponding component will get a synthesized name as soon
        * as it is attached to a hierarchy. If non-`null`, it must adhere to the
-       * syntax defined by {@link Names#checkName}. Names are used when finding
+       * syntax defined by {@link Names#mustBeName}. Names are used when finding
        * a component in its hierarchy, and when logging.
        *
        * @param {?string} [value] Proposed configuration value. Default `null`.
@@ -553,7 +553,7 @@ export class BaseComponent {
       _config_name(value = null) {
         return (value === null)
           ? null
-          : Names.checkName(value);
+          : Names.mustBeName(value);
       }
     };
   }

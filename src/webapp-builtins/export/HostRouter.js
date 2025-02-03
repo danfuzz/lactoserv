@@ -108,7 +108,7 @@ export class HostRouter extends BaseApplication {
        * Map which goes from a host prefix to the name of an application which
        * should handle that prefix. Each host must be a valid
        * possibly-wildcarded host name, per {@link HostUtil#parseHostname}. Each
-       * name must be a valid component name, per {@link Names#checkName}. On
+       * name must be a valid component name, per {@link Names#mustBeName}. On
        * input, the value must be a plain object.
        *
        * @param {object} value Proposed configuration value.
@@ -118,7 +118,7 @@ export class HostRouter extends BaseApplication {
         MustBe.plainObject(value);
 
         for (const [host, name] of Object.entries(value)) {
-          Names.checkName(name);
+          Names.mustBeName(name);
           HostUtil.canonicalizeHostname(host, true);
         }
 
