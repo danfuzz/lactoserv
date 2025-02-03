@@ -153,8 +153,13 @@ use the following comment in place of an intentionally omitted constructor:
   With type conversion methods, the distinction is sometimes a bit arbitrary,
   but the pattern `*ElseNull()` can also be used in non-conversion contexts.
   For example, in `findFooElseNull()`, the distinction is more meaningful. And
-  in `expectFooOrNull()` it is clear that the expectation is for a "nullable"
+  in `mustBeFooOrNull()` it is clear that the expectation is for a "nullable"
   `foo` and not that the method is allowed to return `null` in case of error.
+
+* `mustBe<thing>()` &mdash; Names a method which is checking that its argument
+  is of the given type (or type-ish thing), returning the given value if it
+  matches the type, or `throw`ing if not. This parallels the library class
+  `typey.MustBe`.
 
 ### Ledger of arbitrary decisions
 

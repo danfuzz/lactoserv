@@ -99,7 +99,7 @@ export class PathRouter extends BaseApplication {
        * Map which goes from a path prefix to the name of the application to
        * handle that prefix. Each path prefix must be a valid
        * possibly-wildcarded _absolute_ path prefix. Each name must be a valid
-       * component name, per {@link Names#checkName}. On input, the value must
+       * component name, per {@link Names#mustBeName}. On input, the value must
        * be a plain object.
        *
        * @param {object} value Proposed configuration value.
@@ -112,7 +112,7 @@ export class PathRouter extends BaseApplication {
 
         for (const [path, name] of Object.entries(value)) {
           if (name !== null) {
-            Names.checkName(name);
+            Names.mustBeName(name);
           }
           const key = Config.#parsePath(path);
           result.add(key, name);

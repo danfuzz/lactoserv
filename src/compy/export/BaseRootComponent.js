@@ -80,7 +80,7 @@ export class BaseRootComponent extends BaseComponent {
        * @returns {string} Accepted configuration value.
        */
       _config_name(value = 'root') {
-        return Names.checkName(value);
+        return Names.mustBeName(value);
       }
 
       /**

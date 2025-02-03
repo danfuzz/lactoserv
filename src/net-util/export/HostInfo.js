@@ -240,7 +240,7 @@ export class HostInfo {
     const { hostname, port } = topParse;
 
     // Refined `hostname` check, along with IP address canonicalization.
-    const canonicalHostname = HostUtil.checkHostnameElseNull(hostname, false);
+    const canonicalHostname = HostUtil.canonicalizeHostnameElseNull(hostname, false);
 
     if (!canonicalHostname) {
       return null;

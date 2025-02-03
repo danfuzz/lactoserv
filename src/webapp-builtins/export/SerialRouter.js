@@ -75,7 +75,7 @@ export class SerialRouter extends BaseApplication {
 
       /**
        * List of the names of all the applications to route to, in order. Each
-       * name must be a valid component name, per {@link Names#checkName}.
+       * name must be a valid component name, per {@link Names#mustBeName}.
        *
        * @param {Array<string>} value Proposed configuration value.
        * @returns {Array<string>} Accepted configuration value.
@@ -83,7 +83,7 @@ export class SerialRouter extends BaseApplication {
       _config_applications(value) {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => Names.checkName(item));
+          (item) => Names.mustBeName(item));
       }
     };
   }

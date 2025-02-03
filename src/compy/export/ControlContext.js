@@ -243,7 +243,7 @@ export class ControlContext {
    * @param {string} state State to wait for.
    */
   async whenState(state) {
-    ControlContext.#checkState(state);
+    ControlContext.#mustBeState(state);
 
     while (this.#state !== state) {
       await this.#stateChangeCondition.whenTrue();
@@ -280,7 +280,7 @@ export class ControlContext {
    * @param {string} state The new state.
    */
   [ThisModule.SYM_setState](state) {
-    ControlContext.#checkState(state);
+    ControlContext.#mustBeState(state);
 
     if (state !== this.#state) {
       this.#state = state;
@@ -343,7 +343,7 @@ export class ControlContext {
    * @param {string} state State value to check.
    * @throws {Error} Thrown if `state` is invalid.
    */
-  static #checkState(state) {
+  static #mustBeState(state) {
     MustBe.string(state);
 
     if (!this.#VALID_STATES.has(state)) {

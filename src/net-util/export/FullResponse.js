@@ -337,7 +337,7 @@ export class FullResponse extends BaseResponse {
    *   header based on the file's stats. Defaults to `true`.
    */
   async setBodyFile(absolutePath, options = null) {
-    Paths.checkAbsolutePath(absolutePath);
+    Paths.mustBeAbsolutePath(absolutePath);
     const {
       offset = null,
       length = null,

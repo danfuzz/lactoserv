@@ -189,7 +189,7 @@ export class NetworkEndpoint extends BaseDispatched {
        * @returns {string} Accepted configuration value.
        */
       _config_application(value) {
-        return Names.checkName(value);
+        return Names.mustBeName(value);
       }
 
       /**
@@ -203,7 +203,7 @@ export class NetworkEndpoint extends BaseDispatched {
       _config_hostnames(value = '*') {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => HostUtil.checkHostname(item, true));
+          (item) => HostUtil.canonicalizeHostname(item, true));
       }
 
       /**
@@ -252,7 +252,7 @@ export class NetworkEndpoint extends BaseDispatched {
        * @returns {string} Accepted configuration value.
        */
       _config_protocol(value) {
-        return ProtocolWranglers.checkProtocol(value);
+        return ProtocolWranglers.mustBeProtocol(value);
       }
 
       /**

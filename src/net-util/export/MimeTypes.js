@@ -52,7 +52,7 @@ export class MimeTypes {
    * @returns {string} The MIME type.
    */
   static typeFromPathExtension(absolutePath, options = {}) {
-    Paths.checkAbsolutePath(absolutePath);
+    Paths.mustBeAbsolutePath(absolutePath);
     const { charSet = 'utf-8', isText = false } = MustBe.object(options);
 
     return this.#typeFromPathOrExtension(absolutePath, charSet, isText);

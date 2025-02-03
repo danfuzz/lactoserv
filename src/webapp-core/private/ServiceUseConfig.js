@@ -27,8 +27,8 @@ export class ServiceUseConfig {
    */
   constructor(rawConfig) {
     for (const [role, name] of Object.entries(rawConfig)) {
-      Names.checkName(role);
-      Names.checkName(name);
+      Names.mustBeName(role);
+      Names.mustBeName(name);
 
       if (!ServiceUseConfig.#ROLES.has(role)) {
         throw new Error(`Invalid role: ${role}`);

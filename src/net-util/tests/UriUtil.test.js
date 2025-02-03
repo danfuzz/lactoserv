@@ -5,7 +5,7 @@ import { PathKey } from '@this/collections';
 import { UriUtil } from '@this/net-util';
 
 
-describe('checkBasicUri()', () => {
+describe('mustBeBasicUri()', () => {
   // Failure cases.
   test.each`
   label                               | path
@@ -28,7 +28,7 @@ describe('checkBasicUri()', () => {
   ${'username and password'}          | ${'https://user:pass@foo/bar/'}
   ${'invalid hostname'}               | ${'https://foo .bar/'}
   `('fails for $label', ({ path }) => {
-    expect(() => UriUtil.checkBasicUri(path)).toThrow();
+    expect(() => UriUtil.mustBeBasicUri(path)).toThrow();
   });
 
   // Success cases.
@@ -39,7 +39,7 @@ describe('checkBasicUri()', () => {
   ${'https://foo.bar/baz/'}
   ${'https://foo.bar/b%20az/'}
   `('succeeds for $path', ({ path }) => {
-    expect(UriUtil.checkBasicUri(path)).toBe(path);
+    expect(UriUtil.mustBeBasicUri(path)).toBe(path);
   });
 });
 

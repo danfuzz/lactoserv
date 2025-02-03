@@ -71,7 +71,7 @@ export class LimitedLoader {
    */
   constructor(context = null, logger = null) {
     this.#context = context;
-    this.#logger  = IntfLogger.expectInstanceOrNull(logger);
+    this.#logger  = IntfLogger.mustBeInstanceOrNull(logger);
 
     if (context && !vm.isContext(context)) {
       vm.createContext(context);

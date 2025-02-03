@@ -137,7 +137,7 @@ export class EtagGenerator {
    *   exist.
    */
   async etagFromFileData(absolutePath) {
-    Paths.checkAbsolutePath(absolutePath);
+    Paths.mustBeAbsolutePath(absolutePath);
 
     const stats = await Statter.statElseNull(absolutePath);
     if (!stats) {
@@ -205,7 +205,7 @@ export class EtagGenerator {
       throw new Error('Cannot use with data-only instance.');
     }
 
-    Paths.checkAbsolutePath(absolutePath);
+    Paths.mustBeAbsolutePath(absolutePath);
 
     // Converts a number to hex.
     const hex = (num) => {

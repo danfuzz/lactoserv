@@ -7,7 +7,7 @@ import { Names } from '@this/compy';
 
 describe.each`
 methodName      | throws
-${'checkName'}  | ${true}
+${'mustBeName'}  | ${true}
 ${'isName'}     | ${false}
 `('$methodName()', ({ methodName, throws }) => {
   // Non-string errors. Always expected to throw.

@@ -100,7 +100,7 @@ export class EventFan extends BaseService {
 
       /**
        * Names of services to fan out to. Each name must be a valid component
-       * name, per {@link Names#checkName}.
+       * name, per {@link Names#mustBeName}.
        *
        * @param {string|Array<string>} value Proposed configuration value.
        * @returns {Array<string>} Accepted configuration value.
@@ -108,7 +108,7 @@ export class EventFan extends BaseService {
       _config_services(value) {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => Names.checkName(item));
+          (item) => Names.mustBeName(item));
       }
     };
   }

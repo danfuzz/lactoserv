@@ -130,7 +130,7 @@ export class HostManager extends TemplAggregateComponent('HostAggregate', BaseCo
      * @param {?IntfLogger} logger Logger to use, if any.
      */
     constructor(logger) {
-      this.#logger = IntfLogger.expectInstanceOrNull(logger);
+      this.#logger = IntfLogger.mustBeInstanceOrNull(logger);
     }
 
     /**

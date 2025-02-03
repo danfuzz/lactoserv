@@ -18,7 +18,7 @@ export class Paths {
    * @returns {string} `value` if it is a string which matches the pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkAbsolutePath(value) {
+  static mustBeAbsolutePath(value) {
     const pattern = '^' +
       '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
       '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
@@ -45,7 +45,7 @@ export class Paths {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkFileName(value) {
+  static mustBeFileName(value) {
     const pattern = /^(?![.]{1,2}$)[^/]+$/;
 
     try {

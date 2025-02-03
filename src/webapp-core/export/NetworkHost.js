@@ -129,7 +129,7 @@ export class NetworkHost extends BaseComponent {
       _config_hostnames(value) {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => HostUtil.checkHostname(item, true));
+          (item) => HostUtil.canonicalizeHostname(item, true));
       }
 
       /**
@@ -142,7 +142,7 @@ export class NetworkHost extends BaseComponent {
       _config_certificate(value = null) {
         return (value === null)
           ? null
-          : CertUtil.checkCertificateChain(NetworkHost.#bufferFilter(value));
+          : CertUtil.mustBeCertificateChain(NetworkHost.#bufferFilter(value));
       }
 
       /**
@@ -155,7 +155,7 @@ export class NetworkHost extends BaseComponent {
       _config_privateKey(value = null) {
         return (value === null)
           ? null
-          : CertUtil.checkPrivateKey(NetworkHost.#bufferFilter(value));
+          : CertUtil.mustBePrivateKey(NetworkHost.#bufferFilter(value));
       }
 
       /**

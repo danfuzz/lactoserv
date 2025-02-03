@@ -138,7 +138,7 @@ export class HttpUtil {
    * @returns {number} `value` if it is indeed a valid status value.
    * @throws {Error} Thrown if `value` is not valid.
    */
-  static checkStatus(value) {
+  static mustBeStatus(value) {
     if (AskIf.number(value, { safeInteger: true, minInclusive: 100, maxInclusive: 599 })) {
       return value;
     }

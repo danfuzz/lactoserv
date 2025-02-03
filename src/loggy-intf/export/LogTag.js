@@ -60,10 +60,10 @@ export class LogTag extends IntfDeconstructable {
   constructor(main, ...context) {
     super();
 
-    this.#main = LogTag.#checkMainString(main);
+    this.#main = LogTag.#mustBeMainString(main);
 
     for (const c of context) {
-      LogTag.#checkContextString(c);
+      LogTag.#mustBeContextString(c);
     }
 
     this.#context = Object.freeze(context);
@@ -215,7 +215,7 @@ export class LogTag extends IntfDeconstructable {
    * @returns {string} `value`, if it is valid.
    * @throws {Error} Thrown if `value` is invalid.
    */
-  static #checkContextString(value) {
+  static #mustBeContextString(value) {
     return MustBe.string(value, /^.{1,30}$/);
   }
 
@@ -226,7 +226,7 @@ export class LogTag extends IntfDeconstructable {
    * @returns {string} `value`, if it is valid.
    * @throws {Error} Thrown if `value` is invalid.
    */
-  static #checkMainString(value) {
+  static #mustBeMainString(value) {
     return MustBe.string(value, /^(?![-.])(?:[-._a-zA-Z0-9]{1,20}|\(top\))(?<![-.])$/);
   }
 }

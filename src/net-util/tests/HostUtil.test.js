@@ -6,11 +6,11 @@ import { EndpointAddress, HostUtil } from '@this/net-util';
 
 
 describe.each`
-method                     | throws   | returns
-${'checkHostname'}         | ${true}  | ${'string'}
-${'checkHostnameElseNull'} | ${false} | ${'string'}
-${'parseHostname'}         | ${true}  | ${'path'}
-${'parseHostnameElseNull'} | ${false} | ${'path'}
+method                            | throws   | returns
+${'canonicalizeHostname'}         | ${true}  | ${'string'}
+${'canonicalizeHostnameElseNull'} | ${false} | ${'string'}
+${'parseHostname'}                | ${true}  | ${'path'}
+${'parseHostnameElseNull'}        | ${false} | ${'path'}
 `('$method()', ({ method, throws, returns }) => {
   const LONGEST_COMPONENT = 'x'.repeat(63);
   const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;

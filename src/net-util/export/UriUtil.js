@@ -28,7 +28,7 @@ export class UriUtil {
    * @returns {string} `value` if it is a string which matches the pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkBasicUri(value) {
+  static mustBeBasicUri(value) {
     // Basic constraints.
     const pattern =
       '^' +

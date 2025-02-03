@@ -66,7 +66,7 @@ export class FileAppender {
    *   stuff to write, or `null` not to do any buffering.
    */
   constructor(filePath, maxBufferTime = null) {
-    this.#filePath = Paths.checkAbsolutePath(filePath);
+    this.#filePath = Paths.mustBeAbsolutePath(filePath);
     this.#maxBufferTime = maxBufferTime
       ? MustBe.instanceOf(maxBufferTime, Duration)
       : Duration.ZERO;
