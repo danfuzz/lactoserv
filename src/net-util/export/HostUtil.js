@@ -49,7 +49,7 @@ export class HostUtil {
    */
   static checkHostname(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -75,7 +75,7 @@ export class HostUtil {
    */
   static checkHostnameOrNull(name, allowWildcard = false) {
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return canonicalIp;
     }
@@ -147,7 +147,7 @@ export class HostUtil {
     MustBe.string(name);
 
     // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressOrNull(name, false);
+    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
       return new PathKey([canonicalIp], false);
     }
