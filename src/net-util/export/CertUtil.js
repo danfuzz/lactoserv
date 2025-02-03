@@ -24,7 +24,7 @@ export class CertUtil {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkCertificateChain(value) {
+  static mustBeCertificateChain(value) {
     const pattern = this.#makePemPattern('CERTIFICATE', true);
     return MustBe.string(value, pattern);
   }
@@ -38,7 +38,7 @@ export class CertUtil {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkPrivateKey(value) {
+  static mustBePrivateKey(value) {
     const pattern = this.#makePemPattern('((RSA|EC) )?PRIVATE KEY');
     return MustBe.string(value, pattern);
   }
