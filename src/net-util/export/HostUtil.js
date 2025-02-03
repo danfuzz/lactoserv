@@ -73,7 +73,7 @@ export class HostUtil {
    *   pattern, canonicalized if it is an IP address. Returns `null` to indicate
    *   a parsing error.
    */
-  static checkHostnameOrNull(name, allowWildcard = false) {
+  static checkHostnameElseNull(name, allowWildcard = false) {
     // Handle IP address cases.
     const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {

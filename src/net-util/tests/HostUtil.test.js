@@ -8,7 +8,7 @@ import { EndpointAddress, HostUtil } from '@this/net-util';
 describe.each`
 method                     | throws   | returns
 ${'checkHostname'}         | ${true}  | ${'string'}
-${'checkHostnameOrNull'}   | ${false} | ${'string'}
+${'checkHostnameElseNull'} | ${false} | ${'string'}
 ${'parseHostname'}         | ${true}  | ${'path'}
 ${'parseHostnameElseNull'} | ${false} | ${'path'}
 `('$method()', ({ method, throws, returns }) => {
