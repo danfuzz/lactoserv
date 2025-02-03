@@ -11,7 +11,7 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* general:
+* framework API (general):
   * Defined a new `*ElseNull()` method naming convention, to use instead of
     `*OrNull*()`, clarifying the contexts in which each is appropriate. As a
     result, renamed a bunch of methods throughout the system.
