@@ -46,13 +46,13 @@ describe('cookies', () => {
   });
 });
 
-describe('getHeaderOrNull', () => {
+describe('getHeaderElseNull', () => {
   test('finds an existing header', () => {
     const req = makeWithHeaders({
       beep: 'boop'
     });
 
-    expect(req.getHeaderOrNull('beep')).toBe('boop');
+    expect(req.getHeaderElseNull('beep')).toBe('boop');
   });
 
   test('returns `null` for a nonexistent header', () => {
@@ -60,7 +60,7 @@ describe('getHeaderOrNull', () => {
       beep: 'boop'
     });
 
-    expect(req.getHeaderOrNull('blomp')).toBeNull();
+    expect(req.getHeaderElseNull('blomp')).toBeNull();
   });
 
   test('returns the empty array for a nonexistent `set-cookie` header', () => {
@@ -68,6 +68,6 @@ describe('getHeaderOrNull', () => {
       beep: 'boop'
     });
 
-    expect(req.getHeaderOrNull('set-cookie')).toEqual([]);
+    expect(req.getHeaderElseNull('set-cookie')).toEqual([]);
   });
 });

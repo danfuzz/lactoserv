@@ -191,7 +191,7 @@ export class IncomingRequest {
    */
   get cookies() {
     if (!this.#cookies) {
-      const cookieStr = this.getHeaderOrNull('cookie');
+      const cookieStr = this.getHeaderElseNull('cookie');
       const result    = cookieStr ? Cookies.parse(cookieStr) : null;
 
       this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
@@ -414,14 +414,15 @@ export class IncomingRequest {
   }
 
   /**
-   * Gets a request header, by name.
+   * Gets a request header, by name, returning `null` if there was no such
+   * header.
    *
    * @param {string} name The header name.
    * @returns {?string|Array<string>} The corresponding value, or `null` if
    *   there was no such header. The only case where an array is returned is for
    *   the very special name `set-coookie`.
    */
-  getHeaderOrNull(name) {
+  getHeaderElseNull(name) {
     return (name === 'set-cookie')
       ? this.headers.getSetCookie()
       : this.headers.get(name);
