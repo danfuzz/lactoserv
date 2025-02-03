@@ -203,7 +203,7 @@ export class ControlContext {
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponent(path, ...classes) {
-    const result = this.#root.getComponentOrNull(path, ...classes);
+    const result = this.#root.getComponentElseNull(path, ...classes);
 
     if (result === null) {
       path = Names.parsePossiblyNullPath(path);
@@ -232,8 +232,8 @@ export class ControlContext {
    * @returns {?BaseComponent} Found instance, or `null` if there was none.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
-  getComponentOrNull(path, ...classes) {
-    return this.#root.getComponentOrNull(path, ...classes);
+  getComponentElseNull(path, ...classes) {
+    return this.#root.getComponentElseNull(path, ...classes);
   }
 
   /**
