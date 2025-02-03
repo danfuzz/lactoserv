@@ -119,7 +119,7 @@ export class HostRouter extends BaseApplication {
 
         for (const [host, name] of Object.entries(value)) {
           Names.checkName(name);
-          HostUtil.checkHostname(host, true);
+          HostUtil.canonicalizeHostname(host, true);
         }
 
         return value;

@@ -203,7 +203,7 @@ export class NetworkEndpoint extends BaseDispatched {
       _config_hostnames(value = '*') {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => HostUtil.checkHostname(item, true));
+          (item) => HostUtil.canonicalizeHostname(item, true));
       }
 
       /**

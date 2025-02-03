@@ -129,7 +129,7 @@ export class NetworkHost extends BaseComponent {
       _config_hostnames(value) {
         return StringUtil.checkAndFreezeStrings(
           value,
-          (item) => HostUtil.checkHostname(item, true));
+          (item) => HostUtil.canonicalizeHostname(item, true));
       }
 
       /**

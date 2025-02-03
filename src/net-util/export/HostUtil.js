@@ -47,7 +47,7 @@ export class HostUtil {
    *   pattern, canonicalized if it is an IP address.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkHostname(name, allowWildcard = false) {
+  static canonicalizeHostname(name, allowWildcard = false) {
     // Handle IP address cases.
     const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
@@ -64,8 +64,8 @@ export class HostUtil {
   }
 
   /**
-   * Like {@link #checkHostname}, except it returns `null` to indicate a parsing
-   * error.
+   * Like {@link #canonicalizeHostname}, except it returns `null` to indicate a
+   * parsing error.
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
@@ -73,7 +73,7 @@ export class HostUtil {
    *   pattern, canonicalized if it is an IP address. Returns `null` to indicate
    *   a parsing error.
    */
-  static checkHostnameElseNull(name, allowWildcard = false) {
+  static canonicalizeHostnameElseNull(name, allowWildcard = false) {
     // Handle IP address cases.
     const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
