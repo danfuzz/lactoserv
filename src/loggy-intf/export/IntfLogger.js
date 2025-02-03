@@ -95,7 +95,7 @@ export class IntfLogger {
    * @returns {IntfLogger} `logger` if it is a logger.
    * @throws {Error} Thrown if `logger` is not actually a logger.
    */
-  static expectInstance(logger) {
+  static mustBeInstance(logger) {
     if (logger instanceof IntfLogger) {
       return logger;
     } else if (AskIf.callableFunction(logger) && logger.$env) {
@@ -116,8 +116,8 @@ export class IntfLogger {
    * @returns {?IntfLogger} `logger` if it is a logger or `null`.
    * @throws {Error} Thrown if `logger` is not actually a logger or `null`.
    */
-  static expectInstanceOrNull(logger) {
-    return (logger === null) ? null : this.expectInstance(logger);
+  static mustBeInstanceOrNull(logger) {
+    return (logger === null) ? null : this.mustBeInstance(logger);
   }
 
   /**

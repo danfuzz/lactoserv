@@ -76,7 +76,7 @@ export class AsyncServerSocket {
     // Note: `interface` is a reserved word.
     this.#interface = MustBe.instanceOf(iface, InterfaceAddress);
     this.#protocol  = MustBe.string(protocol);
-    this.#logger    = IntfLogger.expectInstanceOrNull(logger);
+    this.#logger    = IntfLogger.mustBeInstanceOrNull(logger);
   }
 
   /**

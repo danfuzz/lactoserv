@@ -500,7 +500,7 @@ export class StaticFileResponder {
      * @returns {?IntfLogger} Accepted configuration value.
      */
     _config_logger(value = null) {
-      return IntfLogger.expectInstanceOrNull(value);
+      return IntfLogger.mustBeInstanceOrNull(value);
     }
   };
 }

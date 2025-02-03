@@ -267,7 +267,7 @@ export class WranglerContext {
     ctx.#socket   = socket;
 
     if (logger) {
-      ctx.#connectionLogger = IntfLogger.expectInstanceOrNull(logger);
+      ctx.#connectionLogger = IntfLogger.mustBeInstanceOrNull(logger);
       ctx.#connectionId     = logger?.$meta.lastContext ?? null;
     }
 
