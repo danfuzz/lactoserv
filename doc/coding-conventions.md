@@ -156,9 +156,14 @@ use the following comment in place of an intentionally omitted constructor:
   in `mustBeFooOrNull()` it is clear that the expectation is for a "nullable"
   `foo` and not that the method is allowed to return `null` in case of error.
 
-* `mustBe<thing>()` &mdash; Names a method which is checking that its argument
-  is of the given type (or type-ish thing), returning the given value if it
-  matches the type, or `throw`ing if not. This parallels the library class
+* `mustBe<thing>()` &mdash; Names a `static` method which is checking that its
+  argument is of an indicated type (or type-ish thing), or an instance method
+  which is checking that itself is of an indicated type (or type-ish thing).
+  So-named `static` methods return the given value if it matches the type, and
+  so-named instance methods do not return anything. Both `throw` if the type
+  does not match.
+
+  This naming convention is intentionally similar to the library class name
   `typey.MustBe`.
 
 ### Ledger of arbitrary decisions
