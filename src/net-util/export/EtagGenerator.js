@@ -139,7 +139,7 @@ export class EtagGenerator {
   async etagFromFileData(absolutePath) {
     Paths.checkAbsolutePath(absolutePath);
 
-    const stats = await Statter.statOrNull(absolutePath);
+    const stats = await Statter.statElseNull(absolutePath);
     if (!stats) {
       return null;
     } else if (!stats.isFile()) {

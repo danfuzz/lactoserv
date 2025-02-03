@@ -59,7 +59,7 @@ export class SimpleResponse extends BaseApplication {
     const headers   = response.headers;
 
     if (filePath) {
-      const stats = await Statter.statOrNull(filePath);
+      const stats = await Statter.statElseNull(filePath);
       if (!stats || stats.isDirectory()) {
         throw new Error(`Not found or not a non-directory file: ${filePath}`);
       }

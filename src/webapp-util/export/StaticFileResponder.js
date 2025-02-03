@@ -178,7 +178,7 @@ export class StaticFileResponder {
       : `${this.#baseDirectory}/${path}`;
 
     try {
-      const stats = await Statter.statOrNull(fullPath);
+      const stats = await Statter.statElseNull(fullPath);
       if (stats === null) {
         this.#logger?.fileNotFound(fullPath);
         return null;
@@ -230,7 +230,7 @@ export class StaticFileResponder {
       const indexPath = `${dirPath}/${name}`;
 
       try {
-        const indexStats = await Statter.statOrNull(indexPath, true);
+        const indexStats = await Statter.statElseNull(indexPath, true);
 
         if (indexStats?.isFile()) {
           this.#logger?.foundIndex(dirPath, name);
