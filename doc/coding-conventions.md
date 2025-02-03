@@ -156,6 +156,10 @@ use the following comment in place of an intentionally omitted constructor:
   in `expectFooOrNull()` it is clear that the expectation is for a "nullable"
   `foo` and not that the method is allowed to return `null` in case of error.
 
+* `mustBe<thing>()` &mdash; Names a method which is checking that its argument
+  is of the given type (or type-ish thing), and which will `throw` if not. This
+  parallels the library class `typey.MustBe`.
+
 ### Ledger of arbitrary decisions
 
 Every enduring project of nontrivial size ends up having the results of myriad
