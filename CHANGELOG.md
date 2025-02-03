@@ -13,8 +13,10 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * framework API (general):
   * Defined a new `*ElseNull()` method naming convention, to use instead of
-    `*OrNull*()`, clarifying the contexts in which each is appropriate. As a
-    result, renamed a bunch of methods throughout the system.
+    `*OrNull*()`, clarifying the contexts in which each is appropriate.
+  * Reworked method naming convention for type/value-checking methods to be
+    `mustBe*()`, instead of using either `expect*()` or `check*()`.
+  * As a result of the above, renamed a bunch of methods throughout the system.
 
 Other notable changes:
 * `net-util`:
