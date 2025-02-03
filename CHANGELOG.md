@@ -12,7 +12,7 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * general:
-  * Defined a new `*ElseNull()` method name coding convention, to use instead of
+  * Defined a new `*ElseNull()` method naming convention, to use instead of
     `*OrNull*()`, clarifying the contexts in which each is appropriate. As a
     result, renamed a bunch of methods throughout the system.
 
