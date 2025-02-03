@@ -140,10 +140,13 @@ use the following comment in place of an intentionally omitted constructor:
   `fooFromStringOrNull()` (see previous bullet), `fooOrNullFromString()` (same),
   and `fooFromStringElseNull()`. The last one only considers a `string` to be
   a valid argument (not `null`), and it will return `null` to indicate an error
-  (and not an "expected" return value). With type conversion methods, the
-  distinction is sometimes a bit arbitrary, but the pattern `*ElseNull()` can
-  also be used in non-conversion contexts, e.g. `findFooElseNull()`, where the
-  distinction is more meaningful.
+  (and not an "expected" return value).
+
+  With type conversion methods, the distinction is sometimes a bit arbitrary,
+  but the pattern `*ElseNull()` can also be used in non-conversion contexts.
+  For example, in `findFooElseNull()`, the distinction is more meaningful. And
+  in `expectFooOrNull()` it is clear that the expectation is for a "nullable"
+  `foo` and not that the method is allowed to return `null` in case of error.
 
 ### Ledger of arbitrary decisions
 
