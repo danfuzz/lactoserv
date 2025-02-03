@@ -121,7 +121,7 @@ export class InterfaceAddress extends IntfDeconstructable {
       }
 
       if (portNumber) {
-        InterfaceAddress.#checkPortNumber(portNumber);
+        InterfaceAddress.#mustBePortNumber(portNumber);
       }
     }
 
@@ -401,7 +401,7 @@ export class InterfaceAddress extends IntfDeconstructable {
     MustBe.string(iface);
 
     const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
-    const port    = portStr ? this.#checkPortNumber(portStr, true) : null;
+    const port    = portStr ? this.#mustBePortNumber(portStr, true) : null;
 
     const addressStr = portStr
       ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
@@ -443,7 +443,7 @@ export class InterfaceAddress extends IntfDeconstructable {
    * @returns {number} `portNumber` if it is valid.
    * @throws {Error} Thrown if `portNumber` is invalid.
    */
-  static #checkPortNumber(portNumber, allowString = false) {
+  static #mustBePortNumber(portNumber, allowString = false) {
     if (allowString && (typeof portNumber === 'string')) {
       if (/^[0-9]{1,5}$/.test(portNumber)) {
         portNumber = parseInt(portNumber, 10);
