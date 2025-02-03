@@ -171,11 +171,11 @@ describe('getValue()', () => {
   });
 });
 
-describe('getValueOrNull()', () => {
+describe('getValueElseNull()', () => {
   test('returns `null` if a cookie is not found', () => {
     const cookies = new Cookies();
 
-    expect(cookies.getValueOrNull('florp')).toBeNull();
+    expect(cookies.getValueElseNull('florp')).toBeNull();
   });
 
   test('finds a cookie that was set', () => {
@@ -185,7 +185,7 @@ describe('getValueOrNull()', () => {
 
     cookies.set(name, value);
 
-    expect(cookies.getValueOrNull(name)).toBe(value);
+    expect(cookies.getValueElseNull(name)).toBe(value);
   });
 });
 

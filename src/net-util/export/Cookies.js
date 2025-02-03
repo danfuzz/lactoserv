@@ -118,12 +118,13 @@ export class Cookies extends IntfDeconstructable {
   }
 
   /**
-   * Gets a cookie value, if there is a so-named cookie.
+   * Like {@link #getValue}, except returning `null` if there no so-named
+   * cookie.
    *
    * @param {string} name Cookie name.
    * @returns {?string} Cookie value, or `null` if not found.
    */
-  getValueOrNull(name) {
+  getValueElseNull(name) {
     return this.getAttributesOrNull(name)?.value ?? null;
   }
 

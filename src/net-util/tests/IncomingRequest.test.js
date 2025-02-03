@@ -42,7 +42,7 @@ describe('cookies', () => {
       cookie: 'blorp=bleep'
     });
 
-    expect(req.cookies.getValueOrNull('blorp')).toBe('bleep');
+    expect(req.cookies.getValueElseNull('blorp')).toBe('bleep');
   });
 });
 
