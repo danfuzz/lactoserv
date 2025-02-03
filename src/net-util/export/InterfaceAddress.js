@@ -364,7 +364,7 @@ export class InterfaceAddress extends IntfDeconstructable {
    * @returns {?InterfaceAddress} Instance of this class representing the
    *   server's interface, or `null` if `server` is not currently listening.
    */
-  static fromNodeServerOrNull(server) {
+  static fromNodeServerElseNull(server) {
     const nodeAddress = server?.address();
 
     if (!nodeAddress) {

@@ -84,7 +84,7 @@ export class AsyncServerSocket {
    * address and current-listening info.
    */
   get infoForLog() {
-    const address = InterfaceAddress.fromNodeServerOrNull(this.#serverSocket);
+    const address = InterfaceAddress.fromNodeServerElseNull(this.#serverSocket);
 
     return {
       protocol:  this.#protocol,
