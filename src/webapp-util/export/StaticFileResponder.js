@@ -305,7 +305,7 @@ export class StaticFileResponder {
    * @param {string} value Proposed configuration value.
    * @returns {string} Accepted configuration value.
    */
-  static checkBaseDirectory(value) {
+  static mustBeBaseDirectory(value) {
     return Paths.mustBeAbsolutePath(value);
   }
 
@@ -318,7 +318,7 @@ export class StaticFileResponder {
    * @param {?string|object} value Proposed configuration value.
    * @returns {?string} Accepted configuration value.
    */
-  static checkCacheControl(value) {
+  static mustBeCacheControl(value) {
     if (value === null) {
       return null;
     } else if (typeof value === 'string') {
@@ -337,7 +337,7 @@ export class StaticFileResponder {
    * @param {?object|true} value Proposed configuration value.
    * @returns {?object} Accepted configuration value.
    */
-  static checkEtag(value) {
+  static mustBeEtag(value) {
     if (value === null) {
       return null;
     } else if (value === true) {
@@ -359,7 +359,7 @@ export class StaticFileResponder {
    * @param {?string|string[]} value Proposed configuration value.
    * @returns {?string[]} Accepted configuration value.
    */
-  static checkIndexFile(value) {
+  static mustBeIndexFile(value) {
     if (value === null) {
       return null;
     } else if (typeof value === 'string') {
@@ -450,7 +450,7 @@ export class StaticFileResponder {
      * @returns {string} Accepted configuration value.
      */
     _config_baseDirectory(value) {
-      return StaticFileResponder.checkBaseDirectory(value);
+      return StaticFileResponder.mustBeBaseDirectory(value);
     }
 
     /**
@@ -463,7 +463,7 @@ export class StaticFileResponder {
      * @returns {?string} Accepted configuration value.
      */
     _config_cacheControl(value = null) {
-      return StaticFileResponder.checkCacheControl(value);
+      return StaticFileResponder.mustBeCacheControl(value);
     }
 
     /**
@@ -475,7 +475,7 @@ export class StaticFileResponder {
      * @returns {?object} Accepted configuration value.
      */
     _config_etag(value = null) {
-      return StaticFileResponder.checkEtag(value);
+      return StaticFileResponder.mustBeEtag(value);
     }
 
     /**
@@ -489,7 +489,7 @@ export class StaticFileResponder {
      * @returns {?string[]} Accepted configuration value.
      */
     _config_indexFile(value = null) {
-      return StaticFileResponder.checkIndexFile(value);
+      return StaticFileResponder.mustBeIndexFile(value);
     }
 
     /**

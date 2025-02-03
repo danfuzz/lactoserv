@@ -53,7 +53,7 @@ export class ProtocolWranglers {
    * @throws {Error} Thrown if `name` is not a known protocol (or is not a
    *   string).
    */
-  static checkProtocol(name) {
+  static mustBeProtocol(name) {
     MustBe.string(name);
 
     if (!this.#WRANGLER_CLASSES.has(name)) {

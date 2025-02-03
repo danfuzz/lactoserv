@@ -252,7 +252,7 @@ export class NetworkEndpoint extends BaseDispatched {
        * @returns {string} Accepted configuration value.
        */
       _config_protocol(value) {
-        return ProtocolWranglers.checkProtocol(value);
+        return ProtocolWranglers.mustBeProtocol(value);
       }
 
       /**

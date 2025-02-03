@@ -206,7 +206,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {?string} Accepted configuration value.
        */
       _config_cacheControl(value = null) {
-        return StaticFileResponder.checkCacheControl(value);
+        return StaticFileResponder.mustBeCacheControl(value);
       }
 
       /**
@@ -218,7 +218,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {?object} Accepted configuration value.
        */
       _config_etag(value = null) {
-        return StaticFileResponder.checkEtag(value);
+        return StaticFileResponder.mustBeEtag(value);
       }
 
       /**
@@ -232,7 +232,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {?string[]} Accepted configuration value.
        */
       _config_indexFile(value = 'index.html') {
-        return StaticFileResponder.checkIndexFile(value);
+        return StaticFileResponder.mustBeIndexFile(value);
       }
 
       /**
@@ -255,7 +255,7 @@ export class StaticFiles extends BaseApplication {
        * @returns {string} Accepted configuration value.
        */
       _config_siteDirectory(value) {
-        return StaticFileResponder.checkBaseDirectory(value);
+        return StaticFileResponder.mustBeBaseDirectory(value);
       }
     };
   }
