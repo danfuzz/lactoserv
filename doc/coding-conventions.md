@@ -136,11 +136,12 @@ use the following comment in place of an intentionally omitted constructor:
   `null`).
 
 * `*ElseNull()` &mdash; Indicates that a method will return `null` if there is
-  a reasonably-expected error, as opposed to throwing an `Error`. For example,
-  contrast `fooFromStringOrNull()` (see previous bullet),
-  `fooOrNullFromString()` (same), and `fooFromStringElseNull()`. The last one
-  only considers a `string` to be a valid argument (not `null`), and it will
-  return `null` to indicate an error (and not an "expected" return value).
+  a reasonably-expected error or error-like condition, as opposed to throwing an
+  `Error` in such cases. For example, contrast `fooFromStringOrNull()` (see
+  previous bullet), `fooOrNullFromString()` (same), and
+  `fooFromStringElseNull()`. The last one only considers a `string` to be a
+  valid argument (not `null`), and it will return `null` to indicate an error
+  (and not an "expected" return value).
 
   This pattern is often used along side methods with the same name but _without_
   the `ElseNull` suffix which _do_ throw `Error`s.
