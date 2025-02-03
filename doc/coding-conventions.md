@@ -142,6 +142,9 @@ use the following comment in place of an intentionally omitted constructor:
   a valid argument (not `null`), and it will return `null` to indicate an error
   (and not an "expected" return value).
 
+  This pattern is often used along side methods with the same name but _without_
+  the `ElseNull` suffix which _do_ throw `Error`s.
+
   With type conversion methods, the distinction is sometimes a bit arbitrary,
   but the pattern `*ElseNull()` can also be used in non-conversion contexts.
   For example, in `findFooElseNull()`, the distinction is more meaningful. And
@@ -168,6 +171,10 @@ meant to record them, in order to keep track of them and maintain consistency.
   ```js
   // @emptyBlock
   ```
+
+* Methods that throw `Error`s when encountering trouble aren't specially marked.
+  However, methods that return `null` to indicate an error _are_ marked with the
+  suffix `ElseNull`. (See above.)
 
 * Terminology:
   * Use "HTTP1" or "HTTP1-ish" to refer to the HTTP1 family of protocols. (No
