@@ -245,7 +245,7 @@ export class StaticFiles extends BaseApplication {
       _config_notFoundPath(value = null) {
         return (value === null)
           ? null
-          : Paths.checkAbsolutePath(value);
+          : Paths.mustBeAbsolutePath(value);
       }
 
       /**

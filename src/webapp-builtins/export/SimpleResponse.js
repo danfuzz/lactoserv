@@ -193,7 +193,7 @@ export class SimpleResponse extends BaseApplication {
       _config_filePath(value = null) {
         return (value === null)
           ? null
-          : Paths.checkAbsolutePath(value);
+          : Paths.mustBeAbsolutePath(value);
       }
 
       /**

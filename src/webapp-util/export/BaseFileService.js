@@ -100,7 +100,7 @@ export class BaseFileService extends BaseService {
        * @returns {string} Accepted configuration value.
        */
       _config_path(value) {
-        return Paths.checkAbsolutePath(value);
+        return Paths.mustBeAbsolutePath(value);
       }
 
       /**

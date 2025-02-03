@@ -306,7 +306,7 @@ export class StaticFileResponder {
    * @returns {string} Accepted configuration value.
    */
   static checkBaseDirectory(value) {
-    return Paths.checkAbsolutePath(value);
+    return Paths.mustBeAbsolutePath(value);
   }
 
   /**

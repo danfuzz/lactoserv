@@ -4,7 +4,7 @@
 import { Paths } from '@this/fs-util';
 
 
-describe('checkAbsolutePath()', () => {
+describe('mustBeAbsolutePath()', () => {
   // Errors: Wrong argument type.
   test.each`
   arg
@@ -16,7 +16,7 @@ describe('checkAbsolutePath()', () => {
   ${['/x/y']}
   ${new Map()}
   `('fails for $arg', ({ arg }) => {
-    expect(() => Paths.checkAbsolutePath(arg)).toThrow();
+    expect(() => Paths.mustBeAbsolutePath(arg)).toThrow();
   });
 
   // Errors: Invalid string syntax.
@@ -36,7 +36,7 @@ describe('checkAbsolutePath()', () => {
   ${'/a/../b'}
   ${'/a/b/'}
   `('fails for $arg', ({ arg }) => {
-    expect(() => Paths.checkAbsolutePath(arg)).toThrow();
+    expect(() => Paths.mustBeAbsolutePath(arg)).toThrow();
   });
 
   // Correct cases.
@@ -47,11 +47,11 @@ describe('checkAbsolutePath()', () => {
   ${'/abc'}
   ${'/abc/def'}
   `('succeeds for $arg', ({ arg }) => {
-    expect(Paths.checkAbsolutePath(arg)).toBe(arg);
+    expect(Paths.mustBeAbsolutePath(arg)).toBe(arg);
   });
 });
 
-describe('checkFileName()', () => {
+describe('mustBeFileName()', () => {
   // Errors: Wrong argument type.
   test.each`
   arg
@@ -63,7 +63,7 @@ describe('checkFileName()', () => {
   ${['/x/y']}
   ${new Map()}
   `('fails for $arg', ({ arg }) => {
-    expect(() => Paths.checkFileName(arg)).toThrow();
+    expect(() => Paths.mustBeFileName(arg)).toThrow();
   });
 
   // Errors: Invalid string syntax.
@@ -77,7 +77,7 @@ describe('checkFileName()', () => {
   ${'a/'}
   ${'a/b'}
   `('fails for $arg', ({ arg }) => {
-    expect(() => Paths.checkFileName(arg)).toThrow();
+    expect(() => Paths.mustBeFileName(arg)).toThrow();
   });
 
   // Correct cases.
@@ -92,6 +92,6 @@ describe('checkFileName()', () => {
   ${'a..'}
   ${'a..b'}
   `('succeeds for $arg', ({ arg }) => {
-    expect(Paths.checkFileName(arg)).toBe(arg);
+    expect(Paths.mustBeFileName(arg)).toBe(arg);
   });
 });
