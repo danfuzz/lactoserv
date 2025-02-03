@@ -219,10 +219,10 @@ describe('localhostInstance()', () => {
 });
 
 describe.each`
-methodName                 | onError
-${'parseHostHeader'}       | ${'throws'}
-${'parseHostHeaderOrNull'} | ${'null'}
-${'safeParseHostHeader'}   | ${'localhost'}
+methodName                   | onError
+${'parseHostHeader'}         | ${'throws'}
+${'parseHostHeaderElseNull'} | ${'null'}
+${'safeParseHostHeader'}     | ${'localhost'}
 `('$methodName', ({ methodName, onError }) => {
   // Type failure cases. These should throw even in the "safe" versions.
   test.each`
