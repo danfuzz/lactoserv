@@ -27,9 +27,10 @@ best-effort basis at that. As an exception, the project developers are able to
 make fixes to maintenance release series on a paid contract basis. (Send email
 to inquire.)
 
-Approximately a year after an maintenance release series's first stable release,
-it transitions to retired. Retired series are not further developed (again, with
-the possible exception of paid work).
+Approximately a year after an maintenance release series's first stable release
+_or_ approximately six months after it became a maintenance release (whichever
+is later), it transitions to retired. Retired series are not further developed
+(again, with the possible exception of paid work).
 
 
 ## Active release series
