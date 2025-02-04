@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.9.0 -- 2025-02-04
+
+Breaking changes:
 * framework API (general):
   * Defined a new `*ElseNull()` method naming convention, to use instead of
     `*OrNull*()`, clarifying the contexts in which each is appropriate.
