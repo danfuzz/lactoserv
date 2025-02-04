@@ -22,9 +22,10 @@ release in question will be withdrawn.)
 
 Later, a new development release series may become active, at which point the
 current active release series becomes a maintenance series. Maintenance series
-only receive urgent new releases (e.g. to address security problems). As an
-exception, the project developers are able to make fixes to maintenance release
-series on a paid contract basis. (Send email to inquire.)
+only receive urgent new releases (e.g. to address security problems) and on a
+best-effort basis at that. As an exception, the project developers are able to
+make fixes to maintenance release series on a paid contract basis. (Send email
+to inquire.)
 
 Approximately a year after an maintenance release series's first stable release,
 it transitions to retired. Retired series are not further developed (again, with
