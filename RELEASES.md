@@ -1,43 +1,59 @@
-Stable Releases
-===============
+List of Releases
+================
 
-This is a list of stable releases of Lactoserv, divided into "current" and
-"retired" lists. A stable release is considered current for approximately a
-year after it is created, or until an API-compatible release is created that
-supersedes it, whichever comes first. Stable releases follow semantic versioning
-principles in terms of API compatibility (both of configuration and of use as
-a framework); _unstable_ releases do not.
-
-Current stable releases receive bugfixes and security updates, on an as-needed
-best-effort basis. Note that, in the absence of a paid support contract, you
-should have no particular expectation about when any given stable release series
-will get updated.
+This is a list of stable releases of Lactoserv.
 
 ### Series lifecycle
 
-Each release series starts with a number of unstable releases, with no
-guarantees about forward or backward compatibility of such releases within the
-series or between series.
+A release series starts as a "development" series. _Some_ release series then
+become "active" then "maintenance" and finally "retired."
 
-Once a series has a stable release, subsequent releases of that series &mdash;
-that is, with higher version numbers &mdash; are also intended to be stable.
-Should the stability guarantee turn out to be inadvertently violated, the
-release in question will be withdrawn.
+Development release series are considered "unstable," in that no guarantees
+are made with regards to forward or backward compatibility of such releases
+within the series or between series. (That is, semantic versioning does not
+apply to unstable releases.)
 
-## List of current stable releases
+At some point, a development release series _might_ get a stable release. With
+this stable release, the series becomes active, and semantic versioning applies
+to it with regards to other _stable_ releases within and between series. And,
+once a series becomes active, no further unstable releases are made to it.
+(Should the stability guarantee turn out to be inadvertently violated, the
+release in question will be withdrawn.)
 
-* v0.8.6
-  * Released 2025-01-06
-  * https://github.com/danfuzz/lactoserv/releases/tag/v0.8.6
+Later, a new development release series may become active, at which point the
+current active release series becomes a maintenance series. Maintenance series
+only receive urgent new releases (e.g. to address security problems). As an
+exception, the project developers are able to make fixes to maintenance release
+series on a paid contract basis. (Send email to inquire.)
 
-* v0.7.8
-  * Released 2024-07-30
-  * https://github.com/danfuzz/lactoserv/releases/tag/v0.7.8
+Approximately a year after an maintenance release series's first stable release,
+it transitions to retired. Retired series are not further developed (again, with
+the possible exception of paid work).
 
-* v0.6.16
-  * Released 2024-04-22
-  * https://github.com/danfuzz/lactoserv/releases/tag/v0.6.16
 
-## List of retired stable release series
+## Active release series
 
-* v0.5: Final release on 2023-12-15.
+* v0.8:
+  * 2026-01-06: Scheduled for retirement
+  * 2025-01-06: First stable release, v0.8.6
+    * https://github.com/danfuzz/lactoserv/releases/tag/v0.8.6
+
+## Maintenance release series
+
+* v0.7:
+  * 2025-06-04: Scheduled for retirement
+  * 2025-01-06: Moved to maintenance
+  * 2024-07-30: Released v0.7.8
+  * 2024-06-04: First stable release, v0.7.6
+
+* v0.6:
+  * 2025-04-22: Scheduled for retirement
+  * 2024-06-04: Moved to maintenance
+  * 2024-04-22: First stable release, v0.6.16
+
+## Retired release series
+
+* v0.5:
+  * 2024-12-15: Retired
+  * 2024-04-22: Moved to maintenance
+  * 2023-12-15: First stable release, v0.5.20
