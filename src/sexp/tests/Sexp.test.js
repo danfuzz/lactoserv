@@ -170,6 +170,22 @@ describe('[Symbol.iterator]()', () => {
   });
 });
 
+describe('deconstruct()', () => {
+  test.each`
+  label                   | expected
+  ${'a no-arg instance'}  | ${['blorp']}
+  ${'a one-arg instance'} | ${['bonk', 5]}
+  ${'a two-arg instance'} | ${[Set, 123n, false]}
+  `('works with $label', ({ expected }) => {
+    const sexp = new Sexp(...expected);
+    const got  = sexp.deconstruct();
+
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.functor).toBe(Sexp);
+    expect(got.args).toStrictEqual(expected);
+  });
+});
+
 describe('.toArray()', () => {
   test.each`
   label                   | expected

@@ -5,6 +5,12 @@ import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
 
+/**
+ * Typedef to avoid circular dependency.
+ *
+ * @typedef {object} IntfDeconstructable
+ */
+
 
 /**
  * Data value that represents a free-form would-be method call (or
@@ -15,6 +21,8 @@ import { MustBe } from '@this/typey';
  *
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
+ *
+ * @implements {IntfDeconstructable}
  */
 export class Sexp {
   /**
@@ -133,6 +141,11 @@ export class Sexp {
 
     yield this.#functor;
     yield* args;
+  }
+
+  /** @override */
+  deconstruct(forLogging_unused) {
+    return new Sexp(this.constructor, this.#functor, ...this.#args);
   }
 
   /**
