@@ -177,9 +177,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
     const firstPass = encoder.visitSync();
 
     if (encoder.hasRefs()) {
-      const rewriter = new this.#DefRewriter(firstPass, encoder);
-      const result = rewriter.visitSync();
-      return result;
+      return this.#DefRewriter.visitSync(firstPass, encoder);
     } else {
       return firstPass;
     }
