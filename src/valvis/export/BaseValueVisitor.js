@@ -177,6 +177,17 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Like {@link #visitWrap}, except that it always operates asynchronously.
+   *
+   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
+   *   method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit.
+   */
+  async visitAsyncWrap() {
+    return this.#visitRoot().extractAsync();
+  }
+
+  /**
    * Similar to {@link #visitWrap}, except (a) it will fail if the visit did not
    * finish synchronously; and (b) the result is not wrapped. Specifically with
    * respect to (b), if a promise is returned, it is only ever because an
@@ -221,17 +232,6 @@ export class BaseValueVisitor {
     return entry.isFinished()
       ? entry.extractSync(true)
       : entry.extractAsync();
-  }
-
-  /**
-   * Like {@link #visitWrap}, except that it always operates asynchronously.
-   *
-   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
-   *   method which processed the original `value`.
-   * @throws {Error} Thrown if there was trouble with the visit.
-   */
-  async visitAsyncWrap() {
-    return this.#visitRoot().extractAsync();
   }
 
   /**
