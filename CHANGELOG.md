@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `valvis`:
+  * New `static` convenience methods to cover a common use case.
 
 ### v0.9.0 -- 2025-02-04
 

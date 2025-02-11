@@ -177,6 +177,17 @@ export class BaseValueVisitor {
   }
 
   /**
+   * Like {@link #visitWrap}, except that it always operates asynchronously.
+   *
+   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
+   *   method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit.
+   */
+  async visitAsyncWrap() {
+    return this.#visitRoot().extractAsync();
+  }
+
+  /**
    * Similar to {@link #visitWrap}, except (a) it will fail if the visit did not
    * finish synchronously; and (b) the result is not wrapped. Specifically with
    * respect to (b), if a promise is returned, it is only ever because an
@@ -221,17 +232,6 @@ export class BaseValueVisitor {
     return entry.isFinished()
       ? entry.extractSync(true)
       : entry.extractAsync();
-  }
-
-  /**
-   * Like {@link #visitWrap}, except that it always operates asynchronously.
-   *
-   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
-   *   method which processed the original `value`.
-   * @throws {Error} Thrown if there was trouble with the visit.
-   */
-  async visitAsyncWrap() {
-    return this.#visitRoot().extractAsync();
   }
 
   /**
@@ -974,6 +974,48 @@ export class BaseValueVisitor {
    * @type {symbol}
    */
   static #SYM_associatedVisitor = Symbol('BaseValueVisitor.associatedVisitor');
+
+  /**
+   * Convenient shorthand for `new this(value, ...).visitAsyncWrap()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
+   *
+   * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
+   * @returns {*} Visitor result.
+   */
+  static async visitAsyncWrap(value, ...args) {
+    return new this(value, ...args).visitAsyncWrap();
+  }
+
+  /**
+   * Convenient shorthand for `new this(value, ...args).visitSync()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
+   *
+   * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
+   * @returns {*} Visitor result.
+   */
+  static visitSync(value, ...args) {
+    return new this(value, ...args).visitSync();
+  }
+
+  /**
+   * Convenient shorthand for `new this(value, ...args).visitWrap()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
+   *
+   * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
+   * @returns {*} Visitor result.
+   */
+  static visitWrap(value, ...args) {
+    return new this(value, ...args).visitWrap();
+  }
 
   /**
    * Entry in a {@link #visitEntries} map.
