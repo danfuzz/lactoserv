@@ -976,42 +976,45 @@ export class BaseValueVisitor {
   static #SYM_associatedVisitor = Symbol('BaseValueVisitor.associatedVisitor');
 
   /**
-   * Convenient shorthand for `new this(value).visitAsyncWrap()`, for use when
-   * only the visitor result is needed post-visit (and not access to the visitor
-   * itself). This is meant to be called on concrete visitor subclasses, and not
-   * directly on this (abstract base) class.
+   * Convenient shorthand for `new this(value, ...).visitAsyncWrap()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
    *
    * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
    * @returns {*} Visitor result.
    */
-  static async visitAsyncWrap(value) {
-    return new this(value).visitAsyncWrap();
+  static async visitAsyncWrap(value, ...args) {
+    return new this(value, ...args).visitAsyncWrap();
   }
 
   /**
-   * Convenient shorthand for `new this(value).visitSync()`, for use when only
-   * the visitor result is needed post-visit (and not access to the visitor
-   * itself). This is meant to be called on concrete visitor subclasses, and not
-   * directly on this (abstract base) class.
+   * Convenient shorthand for `new this(value, ...args).visitSync()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
    *
    * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
    * @returns {*} Visitor result.
    */
-  static visitSync(value) {
-    return new this(value).visitSync();
+  static visitSync(value, ...args) {
+    return new this(value, ...args).visitSync();
   }
 
   /**
-   * Convenient shorthand for `new this(value).visitWrap()`, for use when only
-   * the visitor result is needed post-visit (and not access to the visitor
-   * itself). This is meant to be called on concrete visitor subclasses, and not
-   * directly on this (abstract base) class.
+   * Convenient shorthand for `new this(value, ...args).visitWrap()`, for use
+   * when only the visitor result is needed post-visit (and not access to the
+   * visitor itself). This is meant to be called on concrete visitor subclasses,
+   * and not directly on this (abstract base) class.
    *
    * @param {*} value Value to visit.
+   * @param {*[]} args Arbitrary other constructor arguments.
    * @returns {*} Visitor result.
    */
-  static visitWrap(value) {
-    return new this(value).visitWrap();
+  static visitWrap(value, ...args) {
+    return new this(value, ...args).visitWrap();
   }
 
   /**
