@@ -1494,40 +1494,6 @@ ${'visitSync'}      | ${false} | ${true}  | ${false}
 ${'visitWrap'}      | ${true}  | ${true}  | ${true}
 ${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
 `('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
-  async function doTest(value, options = {}) {
-    const {
-      cls      = BaseValueVisitor,
-      check    = (got, visitor_unused) => { expect(got).toBe(value); },
-      runsSync = isSync && !isAsync
-    } = options;
-
-    if (isSync && !isAsync && !runsSync) {
-      // This unit test shouldn't have been called for this method.
-      throw new Error('Test should not have been run!');
-    }
-
-    const visitor = new cls(value);
-    const got     = visitor[methodName]();
-
-    const callCheck = (wrapperOrResult) => {
-      if (wraps) {
-        const wrapper = wrapperOrResult;
-        expect(wrapper).toBeInstanceOf(VisitResult);
-        check(wrapper.value, visitor);
-      } else {
-        const result = wrapperOrResult;
-        check(result, visitor);
-      }
-    };
-
-    if (runsSync && isSync) {
-      callCheck(got);
-    } else {
-      expect(got).toBeInstanceOf(Promise);
-      callCheck(await got);
-    }
-  }
-
   if (isSync) {
     test('works on a smoke-test-ish sync example', () => {
       class TestVisitor extends BaseValueVisitor {
