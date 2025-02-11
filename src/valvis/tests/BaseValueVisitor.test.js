@@ -303,7 +303,7 @@ describe('refFromResultValue()', () => {
   });
 });
 
-// Tests for all three `visit*()` methods.
+// Tests for all three `visit*()` instance methods.
 describe.each`
 methodName          | isAsync  | isSync   | wraps
 ${'visitSync'}      | ${false} | ${true}  | ${false}
@@ -1480,4 +1480,103 @@ describe('_prot_wrapResult()', () => {
 
     expect(got).toBe(value);
   });
+});
+
+
+//
+// Static members
+//
+
+// Tests for all three `visit*()` static methods.
+describe.each`
+methodName          | isAsync  | isSync   | wraps
+${'visitSync'}      | ${false} | ${true}  | ${false}
+${'visitWrap'}      | ${true}  | ${true}  | ${true}
+${'visitAsyncWrap'} | ${true}  | ${false} | ${true}
+`('$methodName()', ({ methodName, isAsync, isSync, wraps }) => {
+  async function doTest(value, options = {}) {
+    const {
+      cls      = BaseValueVisitor,
+      check    = (got, visitor_unused) => { expect(got).toBe(value); },
+      runsSync = isSync && !isAsync
+    } = options;
+
+    if (isSync && !isAsync && !runsSync) {
+      // This unit test shouldn't have been called for this method.
+      throw new Error('Test should not have been run!');
+    }
+
+    const visitor = new cls(value);
+    const got     = visitor[methodName]();
+
+    const callCheck = (wrapperOrResult) => {
+      if (wraps) {
+        const wrapper = wrapperOrResult;
+        expect(wrapper).toBeInstanceOf(VisitResult);
+        check(wrapper.value, visitor);
+      } else {
+        const result = wrapperOrResult;
+        check(result, visitor);
+      }
+    };
+
+    if (runsSync && isSync) {
+      callCheck(got);
+    } else {
+      expect(got).toBeInstanceOf(Promise);
+      callCheck(await got);
+    }
+  }
+
+  if (isSync) {
+    test('works on a smoke-test-ish sync example', () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        _impl_visitNumber(node) { return `${node}`; }
+        _impl_visitPlainObject(node) { return this._prot_visitProperties(node); }
+      }
+
+      const value    = [1, 2, { a: 123 }, true];
+      const expected = ['1', '2', { a: '123' }, true];
+      const got      = TestVisitor[methodName](value);
+
+      if (wraps) {
+        const wrapper = got;
+        expect(wrapper).toBeInstanceOf(VisitResult);
+        expect(wrapper.value).toEqual(expected);
+      } else {
+        expect(got).toEqual(expected);
+      }
+    });
+  }
+
+  if (isAsync) {
+    test('works on a smoke-test-ish async example', async () => {
+      class TestVisitor extends BaseValueVisitor {
+        _impl_visitArray(node) { return this._prot_visitProperties(node); }
+        _impl_visitPlainObject(node) { return this._prot_visitProperties(node); }
+
+        async _impl_visitNumber(node) {
+          await null;
+          return `${node}`;
+        }
+      }
+
+      const value      = [7, 8, { a: 987 }, false];
+      const expected   = ['7', '8', { a: '987' }, false];
+      const gotPromise = TestVisitor[methodName](value);
+
+      expect(gotPromise).toBeInstanceOf(Promise);
+      await expect(gotPromise).toResolve();
+      const got = await gotPromise;
+
+      if (wraps) {
+        const wrapper = got;
+        expect(wrapper).toBeInstanceOf(VisitResult);
+        expect(wrapper.value).toEqual(expected);
+      } else {
+        expect(got).toEqual(expected);
+      }
+    });
+  }
 });
