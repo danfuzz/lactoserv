@@ -6,6 +6,7 @@ import { types } from 'node:util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseDefRef } from '#x/BaseDefRef';
+import { Inspecty } from '#x/Inspecty';
 import { VisitDef } from '#x/VisitDef';
 import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
@@ -523,52 +524,7 @@ export class BaseValueVisitor {
    * @returns {string} The label.
    */
   _prot_labelFromValue(value) {
-    const proxyWrapIfNecessary = (name) => {
-      return types.isProxy(value) ? `Proxy {${name}}` : name;
-    };
-
-    switch (typeof value) {
-      case 'function': {
-        const rawName   = value.name;
-        const basicName = ((typeof rawName === 'string') && (rawName !== '')) ? rawName : '<anonymous>';
-        const name      = AskIf.callableFunction(value)
-          ? `${basicName}()`
-          : `class ${basicName}`;
-        return proxyWrapIfNecessary(name);
-      }
-
-      case 'object': {
-        if (value === null) {
-          return 'null';
-        } else if (AskIf.plainObject(value)) {
-          if (typeof value.name === 'string') {
-            return proxyWrapIfNecessary(`${value.name} {...}`);
-          } else {
-            return proxyWrapIfNecessary('object {...}');
-          }
-        } else if (typeof value.constructor === 'function') {
-          const rawClassName    = value.constructor?.name;
-          const className       = ((typeof rawClassName === 'string') && (rawClassName !== '')) ? rawClassName : '<anonymous>';
-          const rawInstanceName = value.name ?? null;
-          const instanceName    = ((typeof rawInstanceName === 'string') && (rawInstanceName !== '')) ? ` ${rawInstanceName}` : '';
-          return proxyWrapIfNecessary(`${className}${instanceName} {...}`);
-        } else {
-          return proxyWrapIfNecessary('<anonymous> {...}');
-        }
-      }
-
-      case 'string': {
-        return (value === '') ? '<anonymous>' : value;
-      }
-
-      case 'symbol': {
-        return `symbol {${value.description}}`;
-      }
-
-      default: {
-        return `${value}`;
-      }
-    }
+    return Inspecty.labelFromValue(value);
   }
 
   /**
@@ -581,31 +537,7 @@ export class BaseValueVisitor {
    * @returns {string} The name.
    */
   _prot_nameFromValue(value) {
-    switch (typeof value) {
-      case 'function':
-      case 'object': {
-        if (value === null) {
-          return 'null';
-        }
-
-        const rawName = value.name;
-        return ((typeof rawName === 'string') && (rawName !== ''))
-          ? rawName
-          : '<anonymous>';
-      }
-
-      case 'string': {
-        return (value === '') ? '<anonymous>' : value;
-      }
-
-      case 'symbol': {
-        return value.description;
-      }
-
-      default: {
-        return `${value}`;
-      }
-    }
+    return Inspecty.nameFromValue(value);
   }
 
   /**
