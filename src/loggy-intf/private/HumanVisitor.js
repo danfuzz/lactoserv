@@ -127,8 +127,9 @@ export class HumanVisitor extends BaseValueVisitor {
   }
 
   /** @override */
-  _impl_visitSymbol(node_unused, isInterned_unused) {
-    throw this.#shouldntHappen();
+  _impl_visitSymbol(node, isInterned) {
+    return this.#renderSexp(
+      new Sexp(isInterned ? 'Symbol.for' : 'Symbol', node.description));
   }
 
   /** @override */
