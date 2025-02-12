@@ -6,7 +6,6 @@ import { types } from 'node:util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseDefRef } from '#x/BaseDefRef';
-import { Inspecty } from '#x/Inspecty';
 import { VisitDef } from '#x/VisitDef';
 import { VisitRef } from '#x/VisitRef';
 import { VisitResult } from '#x/VisitResult';
