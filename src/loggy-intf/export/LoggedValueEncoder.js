@@ -3,7 +3,8 @@
 
 import { Sexp } from '@this/sexp';
 import { AskIf } from '@this/typey';
-import { BaseValueVisitor, ErrorUtil, StackTrace } from '@this/valvis';
+import { BaseValueVisitor, ErrorUtil, Inspecty, StackTrace }
+  from '@this/valvis';
 
 
 /**
@@ -72,7 +73,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
   /** @override */
   _impl_visitError(node) {
     const [cls, mainProps, otherProps] = ErrorUtil.deconstructError(node);
-    const className  = this._prot_nameFromValue(cls);
+    const className  = Inspecty.nameFromValue(cls);
     const loggedBody = {
       ...mainProps,
       ...otherProps
@@ -109,7 +110,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
       const ELIDED      = LoggedValueEncoder.#SEXP_ELIDED;
       return constructor
         ? new Sexp(this._prot_visitSync(constructor), ELIDED)
-        : new Sexp('Object', this._prot_labelFromValue(node), ELIDED);
+        : new Sexp('Object', Inspecty.labelFromValue(node), ELIDED);
     }
   }
 
@@ -120,7 +121,7 @@ export class LoggedValueEncoder extends BaseValueVisitor {
 
   /** @override */
   _impl_visitProxy(node, isFunction_unused) {
-    return new Sexp('Proxy', this._prot_nameFromValue(node));
+    return new Sexp('Proxy', Inspecty.nameFromValue(node));
   }
 
   /** @override */
