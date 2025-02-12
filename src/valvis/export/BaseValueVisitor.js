@@ -512,35 +512,6 @@ export class BaseValueVisitor {
   }
 
   /**
-   * Determines a "label" for the given value, in a standardized way, meant to
-   * be suggestive (to a human) of what type of value it is as well. For
-   * anything but objects, functions and symbols, this returns the string form
-   * of the given value unless it would be empty. Beyond that, it makes
-   * reasonable efforts to find a name and suggestive label, also marking
-   * proxies explicitly as such. This can be thought of, approximately, as a
-   * minimalistic form of `util.inspect()`.
-   *
-   * @param {*} value Value to figure out the label of.
-   * @returns {string} The label.
-   */
-  _prot_labelFromValue(value) {
-    return Inspecty.labelFromValue(value);
-  }
-
-  /**
-   * Determines a "name" for the given value, in a standardized way. For
-   * anything but objects or functions, this returns the simple string form of
-   * the given value unless it would be empty. Beyond that, it makes reasonable
-   * efforts to find a name in the usual ways one might expect.
-   *
-   * @param {*} value Value to figure out the name of.
-   * @returns {string} The name.
-   */
-  _prot_nameFromValue(value) {
-    return Inspecty.nameFromValue(value);
-  }
-
-  /**
    * Like {@link #_prot_visitWrap}, except only ever synchronously visits the
    * given value, throwing an error if that turned out not to be possible.
    *
