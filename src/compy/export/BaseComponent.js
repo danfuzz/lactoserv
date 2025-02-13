@@ -445,7 +445,7 @@ export class BaseComponent {
 
   /**
    * @returns {function(new:BaseConfig, object)} The expected configuration
-   * class. for this class. Subclasses should not override this; instead they
+   * class for this class. Subclasses should not override this; instead they
    * should override {@link #_impl_configClass}.
    */
   static get configClass() {
