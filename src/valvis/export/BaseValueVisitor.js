@@ -885,7 +885,9 @@ export class BaseValueVisitor {
    *
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
-   * @returns {*} Visitor result.
+   * @returns {VisitResult} Whatever result was returned from the `_impl_*()`
+   *   method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit.
    */
   static async visitAsyncWrap(value, ...args) {
     return new this(value, ...args).visitAsyncWrap();
@@ -900,6 +902,9 @@ export class BaseValueVisitor {
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
    * @returns {*} Visitor result.
+   * @throws {Error} Thrown if there was trouble with the visit which could be
+   *   determined synchronously, _or_ if the visit could not be completed
+   *   synchronously.
    */
   static visitSync(value, ...args) {
     return new this(value, ...args).visitSync();
@@ -913,7 +918,10 @@ export class BaseValueVisitor {
    *
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
-   * @returns {*} Visitor result.
+   * @returns {VisitResult|Promise<VisitResult>} Whatever result was returned
+   *   from the `_impl_*()` method which processed the original `value`.
+   * @throws {Error} Thrown if there was trouble with the visit which could be
+   *   determined synchronously.
    */
   static visitWrap(value, ...args) {
     return new this(value, ...args).visitWrap();
