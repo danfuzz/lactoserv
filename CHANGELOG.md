@@ -16,7 +16,7 @@ Breaking changes:
 Other notable changes:
 * `valvis`:
   * `BaseValueVisitor`:
-    * New `static` convenience methods to cover a common use case.
+    * New `static` convenience methods to cover a common use pattern.
     * Extracted the `inspect`-ish helper methods into their own class,
       `Inspecty`.
 
