@@ -17,9 +17,9 @@ import { AskIf, MustBe } from '@this/typey';
 export class BaseStruct {
   /**
    * Constructs an instance. The argument, if non-`null`, is taken to be a
-   * "plain-like" object, in that its own enumerable string-keyed properties are
-   * what matter. Instances of (concrete subclasses of) this class can be used
-   * as arguments.
+   * "plain-like" object, in that its "own" enumerable string-keyed properties
+   * are what matter. Instances of (concrete subclasses of) this class can be
+   * used as arguments.
    *
    * @param {?object} [rawObject] Raw object to parse, or `null` to have all
    *   default values. Passing `null` is equivalent to passing `{}` (an empty
