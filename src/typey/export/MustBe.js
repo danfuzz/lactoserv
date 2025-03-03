@@ -50,6 +50,24 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `array`, where each element must be an instance of a
+   * particular class.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(new:*, ...*)} cls Class (constructor function) that each
+   *   element must be an instance of.
+   * @returns {Array<*>} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOfInstanceOf(value, cls) {
+    if (AskIf.arrayOfInstanceOf(value, cls)) {
+      return value;
+    }
+
+    throw new Error(`Must be of type \`${cls.name}[]\`.`);
+  }
+
+  /**
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
@@ -175,7 +193,7 @@ export class MustBe {
    * class.
    *
    * @param {*} value Arbitrary value.
-   * @param {function(new:*, ...*)} [cls] Class (constructor function) `value`
+   * @param {function(new:*, ...*)} cls Class (constructor function) `value`
    *   must be an instance of.
    * @returns {object} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.

@@ -27,6 +27,52 @@ describe('bigint()', () => {
   });
 });
 
+describe('arrayOfInstanceOf()', () => {
+  function expectAccept(arg, cls) {
+    expect(MustBe.arrayOfInstanceOf(arg, cls)).toBe(arg);
+  }
+
+  function expectReject(arg, cls) {
+    expect(() => MustBe.arrayOfInstanceOf(arg, cls)).toThrow();
+  }
+
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${'abc1231'}
+  ${1234}
+  ${{ a: [1, 2, 3] }}
+  `('rejects non-array: $arg', ({ arg }) => {
+    expectReject(arg, Object);
+  });
+
+  test('returns a given empty array, no matter what the class', () => {
+    expectAccept([], Object);
+    expectAccept([], Map);
+  });
+
+  test('accepts a single-element array with matching class', () => {
+    expectAccept([{}], Object);
+    expectAccept([new Map()], Map);
+
+    class SomeClass {}
+    expectAccept([new SomeClass()], SomeClass);
+  });
+
+  test('accepts a multi-element array with all matching classes', () => {
+    class SomeClass {}
+    expectAccept([{}, new Map(), new SomeClass()], Object);
+  });
+
+  test('rejects an array with any element which fails to match the class', () => {
+    expectReject(['florp', {}], Object);
+    expectReject([{}, 123], Object);
+    expectReject([new Map(), new Map(), {}], Map);
+  });
+});
+
 describe('object()', () => {
   test('accepts a plain object', () => {
     const value = { x: 12 };

@@ -104,6 +104,44 @@ describe('arrayOf()', () => {
   });
 });
 
+describe('arrayOfInstanceOf()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${'abc1231'}
+  ${1234}
+  ${{ a: [1, 2, 3] }}
+  `('returns `false` for non-array: $arg', ({ arg }) => {
+    expect(AskIf.arrayOfInstanceOf(arg, Object)).toBeFalse();
+  });
+
+  test('returns `true` no matter what the class, given an empty array', () => {
+    expect(AskIf.arrayOfInstanceOf([], Object)).toBeTrue();
+    expect(AskIf.arrayOfInstanceOf([], Map)).toBeTrue();
+  });
+
+  test('returns `true` for a single-element array with matching class', () => {
+    expect(AskIf.arrayOfInstanceOf([{}], Object)).toBeTrue();
+    expect(AskIf.arrayOfInstanceOf([new Map()], Map)).toBeTrue();
+
+    class SomeClass {}
+    expect(AskIf.arrayOfInstanceOf([new SomeClass()], SomeClass)).toBeTrue();
+  });
+
+  test('returns `true` for a multi-element array with all matching classes', () => {
+    class SomeClass {}
+    expect(AskIf.arrayOfInstanceOf([{}, new Map(), new SomeClass()], Object)).toBeTrue();
+  });
+
+  test('returns `false` if any element fails to match the class', () => {
+    expect(AskIf.arrayOfInstanceOf(['florp', {}], Object)).toBeFalse();
+    expect(AskIf.arrayOfInstanceOf([{}, 123], Object)).toBeFalse();
+    expect(AskIf.arrayOfInstanceOf([new Map(), new Map(), {}], Map)).toBeFalse();
+  });
+});
+
 describe('arrayOfString()', () => {
   test.each`
   arg

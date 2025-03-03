@@ -58,6 +58,29 @@ export class AskIf {
   }
 
   /**
+   * Checks for type `array`, where each element must be an instance of a
+   * particular class.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(new:*, ...*)} cls Class (constructor function) that each
+   *   element must be an instance of.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static arrayOfInstanceOf(value, cls) {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+
+    for (const v of value) {
+      if (!(v instanceof cls)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
