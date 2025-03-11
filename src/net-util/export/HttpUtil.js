@@ -132,21 +132,6 @@ export class HttpUtil {
   }
 
   /**
-   * Checks an alleged HTTP-ish response status value for validity.
-   *
-   * @param {*} value The alleged status value.
-   * @returns {number} `value` if it is indeed a valid status value.
-   * @throws {Error} Thrown if `value` is not valid.
-   */
-  static mustBeStatus(value) {
-    if (AskIf.number(value, { safeInteger: true, minInclusive: 100, maxInclusive: 599 })) {
-      return value;
-    }
-
-    throw new Error(`Not a valid status value: ${value}`);
-  }
-
-  /**
    * Given a header name in any casing, return the classic casing. Classic
    * casing is _mostly_ capitalized at dashes, but `ETag` is a notable
    * exception.
@@ -269,6 +254,21 @@ export class HttpUtil {
     }
 
     return isNaN(result) ? null : result;
+  }
+
+  /**
+   * Checks an alleged HTTP-ish response status value for validity.
+   *
+   * @param {*} value The alleged status value.
+   * @returns {number} `value` if it is indeed a valid status value.
+   * @throws {Error} Thrown if `value` is not valid.
+   */
+  static mustBeStatus(value) {
+    if (AskIf.number(value, { safeInteger: true, minInclusive: 100, maxInclusive: 599 })) {
+      return value;
+    }
+
+    throw new Error(`Not a valid status value: ${value}`);
   }
 
   /**
