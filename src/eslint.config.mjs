@@ -134,6 +134,7 @@ const semanticRules = {
   'no-regex-spaces': 'off',
   'no-self-assign': ['error', { props: true }],
   'no-shadow': 'error',
+  'no-throw-literal': 'error',
   'no-undef': 'error',
   'no-unsafe-negation': 'error',
   'no-unused-vars': [
