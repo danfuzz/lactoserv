@@ -10,6 +10,24 @@ import { MustBe } from '@this/typey';
  */
 export class Names {
   /**
+   * Checks whether or not a given value is a string which can be used as a
+   * "name of something" in this system. Allowed strings must be non-empty and
+   * consist only of alphanumerics plus any of `-_.+`, and furthermore must
+   * start and end with an alphanumeric character or `_`.
+   *
+   * @param {string} value Value in question.
+   * @returns {boolean} `true` if it is a string which matches the stated
+   *   pattern, or `false` if not.
+   * @throws {Error} Thrown if `value` is not even a string.
+   */
+  static isName(value) {
+    MustBe.string(value);
+
+    const pattern = /^(?![-.])[-_.+a-zA-Z0-9]+(?<![-.])$/;
+    return pattern.test(value);
+  }
+
+  /**
    * Checks that a given value is a string which can be used as a "name of
    * something" in this system. Allowed strings must be non-empty and consist
    * only of alphanumerics plus any of `-_.+`, and furthermore must start and
@@ -26,24 +44,6 @@ export class Names {
     }
 
     throw new Error(`Invalid component name: ${value}`);
-  }
-
-  /**
-   * Checks whether or not a given value is a string which can be used as a
-   * "name of something" in this system. Allowed strings must be non-empty and
-   * consist only of alphanumerics plus any of `-_.+`, and furthermore must
-   * start and end with an alphanumeric character or `_`.
-   *
-   * @param {string} value Value in question.
-   * @returns {boolean} `true` if it is a string which matches the stated
-   *   pattern, or `false` if not.
-   * @throws {Error} Thrown if `value` is not even a string.
-   */
-  static isName(value) {
-    MustBe.string(value);
-
-    const pattern = /^(?![-.])[-_.+a-zA-Z0-9]+(?<![-.])$/;
-    return pattern.test(value);
   }
 
   /**

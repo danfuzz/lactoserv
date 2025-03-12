@@ -16,34 +16,6 @@ import { MustBe } from '@this/typey';
  */
 export class CertUtil {
   /**
-   * Checks that a given value is a string containing a standard-form PEM
-   * certificate chain file.
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static mustBeCertificateChain(value) {
-    const pattern = this.#makePemPattern('CERTIFICATE', true);
-    return MustBe.string(value, pattern);
-  }
-
-  /**
-   * Checks that a given value is a string containing a standard-form PEM key
-   * file.
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static mustBePrivateKey(value) {
-    const pattern = this.#makePemPattern('((RSA|EC) )?PRIVATE KEY');
-    return MustBe.string(value, pattern);
-  }
-
-  /**
    * Generates a self-signed (certificate, private key) pair. **Note:** This
    * takes user-visible time (around a second or so typically).
    *
@@ -83,6 +55,34 @@ export class CertUtil {
     const { cert: certificate, private: privateKey } = pemResult;
 
     return { certificate, privateKey };
+  }
+
+  /**
+   * Checks that a given value is a string containing a standard-form PEM
+   * certificate chain file.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static mustBeCertificateChain(value) {
+    const pattern = this.#makePemPattern('CERTIFICATE', true);
+    return MustBe.string(value, pattern);
+  }
+
+  /**
+   * Checks that a given value is a string containing a standard-form PEM key
+   * file.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static mustBePrivateKey(value) {
+    const pattern = this.#makePemPattern('((RSA|EC) )?PRIVATE KEY');
+    return MustBe.string(value, pattern);
   }
 
   /**
