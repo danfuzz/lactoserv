@@ -104,6 +104,12 @@ export class Moment extends IntfDeconstructable {
     }
   }
 
+  /** @override */
+  deconstruct(forLogging) {
+    const extraArgs = forLogging ? [this.toString({ decimals: 6 })] : [];
+    return new Sexp(Moment, this.#atSec, ...extraArgs);
+  }
+
   /**
    * Shorthand for `.compare(other) == 0`.
    *
@@ -230,12 +236,6 @@ export class Moment extends IntfDeconstructable {
    */
   toString(options = {}) {
     return Moment.stringFromSec(this.#atSec, options);
-  }
-
-  /** @override */
-  deconstruct(forLogging) {
-    const extraArgs = forLogging ? [this.toString({ decimals: 6 })] : [];
-    return new Sexp(Moment, this.#atSec, ...extraArgs);
   }
 
 
