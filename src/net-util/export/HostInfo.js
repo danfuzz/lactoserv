@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PathKey } from '@this/collections';
+import { IntfDeconstructable, Sexp } from '@this/sexp';
 import { AskIf, MustBe } from '@this/typey';
 
 import { HostUtil } from '#x/HostUtil';
@@ -10,8 +11,10 @@ import { HostUtil } from '#x/HostUtil';
 /**
  * Information about a network host, including port number, along with parsing
  * facilities for same.
+ *
+ * @implements {IntfDeconstructable}
  */
-export class HostInfo {
+export class HostInfo extends IntfDeconstructable {
   /**
    * The (fully qualified) name string.
    *
@@ -65,6 +68,8 @@ export class HostInfo {
    *   se or a string.
    */
   constructor(nameString, portNumber) {
+    super();
+
     // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
     this.#nameString = MustBe.string(nameString, /^[-_.:[\]a-zA-Z0-9]+$/);
 
@@ -120,6 +125,11 @@ export class HostInfo {
     }
 
     return this.#portString;
+  }
+
+  /** @override */
+  deconstruct(forLogging_unused) {
+    return new Sexp(HostInfo, this.#nameString, this.#portNumber);
   }
 
   /**
