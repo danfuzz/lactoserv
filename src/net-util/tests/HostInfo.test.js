@@ -3,6 +3,7 @@
 
 import { PathKey } from '@this/collections';
 import { HostInfo } from '@this/net-util';
+import { Sexp } from '@this/sexp';
 
 
 describe('constructor', () => {
@@ -111,6 +112,26 @@ describe('.portString', () => {
     const hi   = new HostInfo('host', port);
 
     expect(hi.portString).toBe(port);
+  });
+});
+
+describe('deconstruct()', () => {
+  test('produces a value which reflects the construction args', () => {
+    const name = 'floop.florp';
+    const port = 123;
+    const hi   = new HostInfo(name, port);
+    const got  = hi.deconstruct();
+
+    expect(got).toBeInstanceOf(Sexp);
+    expect(got.functor).toBe(HostInfo);
+    expect(got.args).toStrictEqual([name, port]);
+  });
+
+  test('produces a number for `port` even when originally constructed with a string', () => {
+    const hi   = new HostInfo('bingo.bongo', '321');
+    const got  = hi.deconstruct();
+
+    expect(got.args[1]).toBe(321);
   });
 });
 
