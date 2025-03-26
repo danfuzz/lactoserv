@@ -64,7 +64,8 @@ export class HostInfo extends IntfDeconstructable {
    * **Note:** You are probably better off constructing an instance using one of
    * the static methods on this class.
    *
-   * @param {string} nameString The name string.
+   * @param {string} nameString The name string, which is assumed to be
+   *   in canonicalized form.
    * @param {string|number} portNumber The port number, as either a number per
    *   se or a string.
    */
