@@ -94,7 +94,7 @@ ${'parseHostnameElseNull'}        | ${false} | ${'path'}
       } else {
         expect(got).toBe(canonicalName);
       }
-    } else if (returns == 'path') {
+    } else if (returns === 'path') {
       if (canonicalIp) {
         expect(got.wildcard).toBeFalse();
         expect(got.length).toBe(1);
