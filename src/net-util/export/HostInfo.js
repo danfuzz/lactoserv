@@ -184,6 +184,35 @@ export class HostInfo extends IntfDeconstructable {
   //
 
   /**
+   * Gets an instance of this class from a URL or the string form of same,
+   * returning `null` if the
+   *
+   * @param {URL|string} url URL to extract from.
+   * @returns {?HostInfo} The extracted instance, or `null` if `url` could not
+   *   be parsed.
+   */
+  static fromUrlElseNull(url) {
+    if (!(url instanceof URL)) {
+      try {
+        url = new URL(url);
+      } catch {
+        return null;
+      }
+    }
+
+    const hostname = this.#hostnameFromUrl(url);
+    if (hostname === '') {
+      return null;
+    }
+
+    // Note: The `hostname` of a `URL` instance is always canonicalized
+    // (downcased if a name per se, numbers of IP addresses in canonical form,
+    // etc.), so there's no need to do anything extra to canonicalize before
+    // construction.
+    return new HostInfo(hostname, this.#portFromUrl(url));
+  }
+
+  /**
    * Gets an instance of this class representing `localhost` with the given
    * protocol.
    *
@@ -284,6 +313,33 @@ export class HostInfo extends IntfDeconstructable {
   }
 
   /**
+   * Gets the hostname from a URL, in canonicalized form.
+   *
+   * @param {URL} url The URL to extract from.
+   * @returns {string} The hostname.
+   */
+  static #hostnameFromUrl(url) {
+    const { hostname, protocol } = url;
+
+    // If the `protocol` is one of the usual ones, then the `hostname` comes
+    // pre-canonicalized. If not, we have to canonicalize it.
+    switch (protocol) {
+      case 'http:':
+      case 'https:': {
+        // Constructed instances aren't supposed to have brackets for IPv6
+        // hostnames.
+        return (hostname.startsWith('['))
+          ? hostname.replaceAll(/\[|\]/g, '')
+          : hostname;
+      }
+
+      default: {
+        return HostUtil.canonicalizeHostnameElseNull(hostname, false) ?? '';
+      }
+    }
+  }
+
+  /**
    * Constructs a standard-form parsing error.
    *
    * @param {string} input The input.
@@ -296,5 +352,26 @@ export class HostInfo extends IntfDeconstructable {
     error.input = input;
 
     return error;
+  }
+
+  /**
+   * Gets the port number from a URL, including using the standard port numbers
+   * for the usual protocols when the port number wasn't specified.
+   *
+   * @param {URL} url The URL to extract from.
+   * @returns {number} The port number.
+   */
+  static #portFromUrl(url) {
+    const port = url.port;
+
+    if (port !== '') {
+      return Number(port);
+    }
+
+    switch (url.protocol) {
+      case 'http:':  return 80;
+      case 'https:': return 443;
+      default:       return 0;
+    }
   }
 }

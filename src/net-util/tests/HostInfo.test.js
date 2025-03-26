@@ -200,8 +200,12 @@ describe('nameIsIpAddress()', () => {
   });
 
   test('returns `true` given an IPv6 address for the name', () => {
-    const hi = new HostInfo('[1234:abcd::ef]', 123);
-    expect(hi.nameIsIpAddress()).toBeTrue();
+    const address = '1234:abcd::ef';
+    const hi1     = new HostInfo(address, 123);
+    const hi2     = new HostInfo(`[${address}]`, 123);
+
+    expect(hi1.nameIsIpAddress()).toBeTrue();
+    expect(hi2.nameIsIpAddress()).toBeTrue();
   });
 
   // Various `false` cases.
@@ -241,6 +245,54 @@ describe('toLowerCase()', () => {
 
     expect(got1).not.toBe(hi);
     expect(got2).toBe(got1);
+  });
+});
+
+
+//
+// Static members
+//
+
+describe('fromUrlElseNull()', () => {
+  test('returns `null` given an invalid URL string', () => {
+    expect(HostInfo.fromUrlElseNull('zonk')).toBeNull();
+    expect(HostInfo.fromUrlElseNull('http://boop.bop:99999/')).toBeNull();
+  });
+
+  test.each`
+  urlString                         | hostname      | port
+  ${'zonk://a.b:123'}               | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/'}              | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/bloop'}         | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/bloop/bleep'}   | ${'a.b'}      | ${123}
+  ${'zonk://1.2.3.4:5'}             | ${'1.2.3.4'}  | ${5}
+  ${'http://1.2.3.4:5'}             | ${'1.2.3.4'}  | ${5}
+  ${'zonk://01.02.03.04:65432'}     | ${'1.2.3.4'}  | ${65432}
+  ${'http://01.02.03.04:65432'}     | ${'1.2.3.4'}  | ${65432}
+  ${'zonk://[a::123]:222'}          | ${'a::123'}   | ${222}
+  ${'https://[a::123]:222'}         | ${'a::123'}   | ${222}
+  ${'zonk://[00a:00::0123]:12345'}  | ${'a::123'}   | ${12345}
+  ${'https://[00a:00::0123]:12345'} | ${'a::123'}   | ${12345}
+  ${'http://bip.bop'}               | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop/'}              | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop/xyz'}           | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop:99/zonk'}       | ${'bip.bop'}  | ${99}
+  ${'https://zip.zop'}              | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop/'}             | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop/xyz'}          | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop:99/zonk'}      | ${'zip.zop'}  | ${99}
+  `('returns the extracted bits of valid URL: $urlString', ({ urlString, hostname, port }) => {
+    const url  = new URL(urlString);
+    const got1 = HostInfo.fromUrlElseNull(urlString);
+    const got2 = HostInfo.fromUrlElseNull(url);
+
+    expect(got1).not.toBeNull();
+    expect(got1.nameString).toBe(hostname);
+    expect(got1.portNumber).toBe(port);
+
+    expect(got2).not.toBeNull();
+    expect(got2.nameString).toBe(hostname);
+    expect(got2.portNumber).toBe(port);
   });
 });
 
