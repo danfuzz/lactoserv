@@ -183,6 +183,50 @@ describe('deconstruct()', () => {
   });
 });
 
+describe('equals()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${123}
+  ${'1.2.3.4'}
+  ${[1, 2]}
+  ${{ a: 'x' }}
+  ${new Map()}
+  `('returns `false` when given non-`HostInfo`: $arg', ({ arg }) => {
+    const hi = new HostInfo('1.2.3.4', 5);
+    expect(hi.equals(arg)).toBeFalse();
+  });
+
+  test('returns `true` when passed `this`', () => {
+    const hi = new HostInfo('a.b', 123);
+
+    expect(hi.equals(hi)).toBeTrue();
+  });
+
+  test('returns `true` when passed an instance which was constructed with the same values', () => {
+    const hi1 = new HostInfo('a::b', 999);
+    const hi2 = new HostInfo('a::b', 999);
+
+    expect(hi1.equals(hi2)).toBeTrue();
+  });
+
+  test('returns `false` when passed an instance with a matching host but different port', () => {
+    const hi1 = new HostInfo('1.2.3.4', 999);
+    const hi2 = new HostInfo('1.2.3.4', 888);
+
+    expect(hi1.equals(hi2)).toBeFalse();
+  });
+
+  test('returns `false` when passed an instance with a matching port but different host', () => {
+    const hi1 = new HostInfo('1.2.3.4', 777);
+    const hi2 = new HostInfo('1:2::3:4', 777);
+
+    expect(hi1.equals(hi2)).toBeFalse();
+  });
+});
+
 describe('getNamePortString()', () => {
   test('does not skip the port if it does not match', () => {
     const name = 'bonk.boop';

@@ -130,6 +130,19 @@ export class HostInfo extends IntfDeconstructable {
   }
 
   /**
+   * Indicates whether the given other instance is an instance of this class
+   * with the same information.
+   *
+   * @param {*} other Instance to compare.
+   * @returns {boolean} `true` iff this instance is equal to `other`.
+   */
+  equals(other) {
+    return (other instanceof HostInfo)
+      && (this.#nameString === other.#nameString)
+      && (this.#portNumber === other.#portNumber);
+  }
+
+  /**
    * Gets the name-and-port string, colon separated, except without the port if
    * it is equal to the given one.
    *
