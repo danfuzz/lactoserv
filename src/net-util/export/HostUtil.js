@@ -39,7 +39,7 @@ export class HostUtil {
 
   /**
    * Checks that a given string can be used as a hostname, including non-"any"
-   * IP addresses.
+   * IP addresses. Returns the canonicalized version.
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
