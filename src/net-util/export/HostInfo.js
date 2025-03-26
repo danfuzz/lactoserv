@@ -73,8 +73,8 @@ export class HostInfo extends IntfDeconstructable {
     // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
     this.#nameString = MustBe.string(nameString, /^[-_.:[\]a-zA-Z0-9]+$/);
 
-    this.#portNumber = AskIf.string(portNumber)
-      ? Number(MustBe.string(portNumber, /^[0-9]+$/))
+    this.#portNumber = AskIf.string(portNumber, /^[0-9]+$/)
+      ? Number(portNumber)
       : MustBe.number(portNumber);
 
     MustBe.number(this.#portNumber, {
