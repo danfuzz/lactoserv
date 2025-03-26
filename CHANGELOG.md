@@ -22,7 +22,8 @@ Breaking changes:
     supposed to treat hostname case as significant.
 
 Other notable changes:
-  * Added a little more functionality to `HostInfo`.
+* `net-util`:
+  * Expanded the functionality of `HostInfo`.
 * `valvis`:
   * `BaseValueVisitor`:
     * New `static` convenience methods to cover a common use pattern.
