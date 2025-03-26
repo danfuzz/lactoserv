@@ -11,6 +11,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.9.1 -- 2025-03-26
+
+Breaking changes:
 * `net-util`:
   * Made hostname canonicalization always include both lowercasing of DNS names
     and removal of brackets around IPv6 addresses.
