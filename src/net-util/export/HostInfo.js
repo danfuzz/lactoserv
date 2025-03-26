@@ -124,10 +124,9 @@ export class HostInfo extends IntfDeconstructable {
    */
   get namePortString() {
     if (!this.#namePortString) {
-      const nameString = this.#nameString;
+      const nameString = this.#nameWithBracketsIfNecessary();
       const portString = this.portString;
-      const namePart   = (this.nameType === 'ipv6') ? `[${nameString}]` : nameString;
-      this.#namePortString = `${namePart}:${portString}`;
+      this.#namePortString = `${nameString}:${portString}`;
     }
 
     return this.#namePortString;
@@ -195,7 +194,7 @@ export class HostInfo extends IntfDeconstructable {
    */
   getNamePortString(portToElide = null) {
     return (this.#portNumber === portToElide)
-      ? this.#nameString
+      ? this.#nameWithBracketsIfNecessary()
       : this.namePortString;
   }
 
@@ -206,6 +205,17 @@ export class HostInfo extends IntfDeconstructable {
    */
   nameIsIpAddress() {
     return this.nameType !== 'dns';
+  }
+
+  /**
+   * Gets the name string, but including brackets if it's an IPv6 address.
+   *
+   * @returns {string} The possibly-bracketed name string.
+   */
+  #nameWithBracketsIfNecessary() {
+    const nameString = this.#nameString;
+
+    return (this.nameType === 'ipv6') ? `[${nameString}]` : nameString;
   }
 
 

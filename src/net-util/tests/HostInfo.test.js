@@ -273,6 +273,16 @@ describe('getNamePortString()', () => {
 
     expect(hi.getNamePortString(111)).toBe('bonk.boop');
   });
+
+  test('brackets an IPv6 address when the port is included', () => {
+    const hi = new HostInfo('7654::3210', 99);
+    expect(hi.getNamePortString()).toBe('[7654::3210]:99');
+  });
+
+  test('brackets an IPv6 address when the port is _not_ included', () => {
+    const hi = new HostInfo('7654::3210', 99);
+    expect(hi.getNamePortString(99)).toBe('[7654::3210]');
+  });
 });
 
 describe('nameIsIpAddress()', () => {
