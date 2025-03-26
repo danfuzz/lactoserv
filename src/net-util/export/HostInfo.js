@@ -51,13 +51,6 @@ export class HostInfo extends IntfDeconstructable {
   #nameKey = null;
 
   /**
-   * The result of {@link #toLowerCase}, or `null` if not yet calculated.
-   *
-   * @type {HostInfo}
-   */
-  #lowercaseVersion = null;
-
-  /**
    * Constructs an instance. **Note:** IPv6 addresses must _not_ include square
    * brackets.
    *
@@ -72,8 +65,10 @@ export class HostInfo extends IntfDeconstructable {
   constructor(nameString, portNumber) {
     super();
 
-    // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
-    this.#nameString = MustBe.string(nameString, /^[-_.:a-zA-Z0-9]+$/);
+    // Note: The regex is a bit lenient, though notably it _does_ at least
+    // guarantee that there are no uppercase letters. TODO: Maybe it should be
+    // more restrictive?
+    this.#nameString = MustBe.string(nameString, /^[-_.:a-z0-9]+$/);
 
     this.#portNumber = AskIf.string(portNumber, /^0*[0-9]{1,5}$/)
       ? Number(portNumber)
@@ -158,26 +153,6 @@ export class HostInfo extends IntfDeconstructable {
     }
 
     return this.#nameIsIp;
-  }
-
-  /**
-   * Gets an instance of this class which is identical to `this` but with the
-   * name lowercased. If this instance's name is already all-lowercase, then
-   * this method returns `this`.
-   *
-   * @returns {HostInfo} The lowercased version.
-   */
-  toLowerCase() {
-    if (this.#lowercaseVersion === null) {
-      const name      = this.#nameString;
-      const lowerName = name.toLowerCase();
-
-      this.#lowercaseVersion = (name === lowerName)
-        ? this
-        : new HostInfo(lowerName, this.#portNumber);
-    }
-
-    return this.#lowercaseVersion;
   }
 
 
