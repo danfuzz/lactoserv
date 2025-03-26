@@ -16,6 +16,7 @@ describe('constructor', () => {
   ${1}
   ${['x']}
   ${''}
+  ${'[a::b]'} // IPv6 addresses must not use brackets.
   `('fails when passing name as $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 123)).toThrow();
   });
@@ -75,6 +76,18 @@ describe('constructor', () => {
   ${65535}
   `('accepts valid port number $arg', ({ arg }) => {
     expect(() => new HostInfo('host', arg)).not.toThrow();
+  });
+
+  test.each`
+  arg
+  ${'host'}
+  ${'host.sub'}
+  ${'1.2.3.4'}
+  ${'01.02.03.04'}
+  ${'a:b::c:d'}
+  ${'0a:0123:0:0::987a'}
+  `('accepts valid host name $arg', ({ arg }) => {
+    expect(() => new HostInfo(arg, 1)).not.toThrow();
   });
 });
 
@@ -200,12 +213,9 @@ describe('nameIsIpAddress()', () => {
   });
 
   test('returns `true` given an IPv6 address for the name', () => {
-    const address = '1234:abcd::ef';
-    const hi1     = new HostInfo(address, 123);
-    const hi2     = new HostInfo(`[${address}]`, 123);
+    const hi = new HostInfo('1234:abcd::ef', 123);
 
-    expect(hi1.nameIsIpAddress()).toBeTrue();
-    expect(hi2.nameIsIpAddress()).toBeTrue();
+    expect(hi.nameIsIpAddress()).toBeTrue();
   });
 
   // Various `false` cases.

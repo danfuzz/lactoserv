@@ -58,7 +58,8 @@ export class HostInfo extends IntfDeconstructable {
   #lowercaseVersion = null;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. **Note:** IPv6 addresses must _not_ include square
+   * brackets.
    *
    * **Note:** You are probably better off constructing an instance using one of
    * the static methods on this class.
@@ -71,7 +72,7 @@ export class HostInfo extends IntfDeconstructable {
     super();
 
     // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
-    this.#nameString = MustBe.string(nameString, /^[-_.:[\]a-zA-Z0-9]+$/);
+    this.#nameString = MustBe.string(nameString, /^[-_.:a-zA-Z0-9]+$/);
 
     this.#portNumber = AskIf.string(portNumber, /^0*[0-9]{1,5}$/)
       ? Number(portNumber)
