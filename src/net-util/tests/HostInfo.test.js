@@ -16,6 +16,7 @@ describe('constructor', () => {
   ${1}
   ${['x']}
   ${''}
+  ${'[a::b]'} // IPv6 addresses must not use brackets.
   `('fails when passing name as $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 123)).toThrow();
   });
@@ -34,12 +35,59 @@ describe('constructor', () => {
   ${0.5}
   ${65535.9}
   ${65536}
+
+  // Valid number-as-string but not a valid port number.
+  ${'111111'}
+  ${'0.5'}
+  ${'-1'}
+  ${'1e2'}
+  ${'65536'}
   `('fails when passing port as $arg', ({ arg }) => {
     expect(() => new HostInfo('host', arg)).toThrow();
   });
 
-  test('accepts a valid port number string', () => {
-    expect(() => new HostInfo('host', '123')).not.toThrow();
+  test.each`
+  arg
+  ${'0'}
+  ${'00'}
+  ${'00000000000'}
+  ${'1'}
+  ${'01'}
+  ${'000001'}
+  ${'99'}
+  ${'888'}
+  ${'7777'}
+  ${'12345'}
+  ${'65535'}
+  ${'065535'}
+  ${'0000000000065535'}
+  `('accepts valid port number string $arg', ({ arg }) => {
+    expect(() => new HostInfo('host', arg)).not.toThrow();
+  });
+
+  test.each`
+  arg
+  ${0}
+  ${1}
+  ${22}
+  ${333}
+  ${4444}
+  ${55555}
+  ${65535}
+  `('accepts valid port number $arg', ({ arg }) => {
+    expect(() => new HostInfo('host', arg)).not.toThrow();
+  });
+
+  test.each`
+  arg
+  ${'host'}
+  ${'host.sub'}
+  ${'1.2.3.4'}
+  ${'01.02.03.04'}
+  ${'a:b::c:d'}
+  ${'0a:0123:0:0::987a'}
+  `('accepts valid host name $arg', ({ arg }) => {
+    expect(() => new HostInfo(arg, 1)).not.toThrow();
   });
 });
 
@@ -76,10 +124,35 @@ describe('.nameString', () => {
 
 describe('.namePortString', () => {
   test('gets the name and port that were passed in the constructor', () => {
-    const name = 'floop.florp';
-    const hi   = new HostInfo(name, 123);
-
+    const hi = new HostInfo('floop.florp', 123);
     expect(hi.namePortString).toBe('floop.florp:123');
+  });
+
+  test('brackets IPv6 addresses', () => {
+    const hi = new HostInfo('12:34::ab:cd', 321);
+    expect(hi.namePortString).toBe('[12:34::ab:cd]:321');
+  });
+
+  test('does not bracket IPv4 addresses', () => {
+    const hi = new HostInfo('12.34.56.78', 90);
+    expect(hi.namePortString).toBe('12.34.56.78:90');
+  });
+});
+
+describe('.nameType', () => {
+  test('returns `ipv4` for an IPv4 address', () => {
+    const hi = new HostInfo('127.0.0.1', 1);
+    expect(hi.nameType).toBe('ipv4');
+  });
+
+  test('returns `ipv6` for an IPv6 address', () => {
+    const hi = new HostInfo('1234::5678:9:a', 1);
+    expect(hi.nameType).toBe('ipv6');
+  });
+
+  test('returns `dns` for a DNS name', () => {
+    const hi = new HostInfo('this.is.a.host', 1);
+    expect(hi.nameType).toBe('dns');
   });
 });
 
@@ -93,7 +166,7 @@ describe('.portNumber', () => {
 
   test('gets the parsed port number-as-string that was passed in the constructor', () => {
     const port = 7771;
-    const hi   = new HostInfo('host', port.toString());
+    const hi   = new HostInfo('host', '0000' + port.toString());
 
     expect(hi.portNumber).toBe(port);
   });
@@ -135,6 +208,50 @@ describe('deconstruct()', () => {
   });
 });
 
+describe('equals()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${123}
+  ${'1.2.3.4'}
+  ${[1, 2]}
+  ${{ a: 'x' }}
+  ${new Map()}
+  `('returns `false` when given non-`HostInfo`: $arg', ({ arg }) => {
+    const hi = new HostInfo('1.2.3.4', 5);
+    expect(hi.equals(arg)).toBeFalse();
+  });
+
+  test('returns `true` when passed `this`', () => {
+    const hi = new HostInfo('a.b', 123);
+
+    expect(hi.equals(hi)).toBeTrue();
+  });
+
+  test('returns `true` when passed an instance which was constructed with the same values', () => {
+    const hi1 = new HostInfo('a::b', 999);
+    const hi2 = new HostInfo('a::b', 999);
+
+    expect(hi1.equals(hi2)).toBeTrue();
+  });
+
+  test('returns `false` when passed an instance with a matching host but different port', () => {
+    const hi1 = new HostInfo('1.2.3.4', 999);
+    const hi2 = new HostInfo('1.2.3.4', 888);
+
+    expect(hi1.equals(hi2)).toBeFalse();
+  });
+
+  test('returns `false` when passed an instance with a matching port but different host', () => {
+    const hi1 = new HostInfo('1.2.3.4', 777);
+    const hi2 = new HostInfo('1:2::3:4', 777);
+
+    expect(hi1.equals(hi2)).toBeFalse();
+  });
+});
+
 describe('getNamePortString()', () => {
   test('does not skip the port if it does not match', () => {
     const name = 'bonk.boop';
@@ -156,6 +273,16 @@ describe('getNamePortString()', () => {
 
     expect(hi.getNamePortString(111)).toBe('bonk.boop');
   });
+
+  test('brackets an IPv6 address when the port is included', () => {
+    const hi = new HostInfo('7654::3210', 99);
+    expect(hi.getNamePortString()).toBe('[7654::3210]:99');
+  });
+
+  test('brackets an IPv6 address when the port is _not_ included', () => {
+    const hi = new HostInfo('7654::3210', 99);
+    expect(hi.getNamePortString(99)).toBe('[7654::3210]');
+  });
 });
 
 describe('nameIsIpAddress()', () => {
@@ -165,7 +292,8 @@ describe('nameIsIpAddress()', () => {
   });
 
   test('returns `true` given an IPv6 address for the name', () => {
-    const hi = new HostInfo('[1234:abcd::ef]', 123);
+    const hi = new HostInfo('1234:abcd::ef', 123);
+
     expect(hi.nameIsIpAddress()).toBeTrue();
   });
 
@@ -184,28 +312,51 @@ describe('nameIsIpAddress()', () => {
   });
 });
 
-describe('toLowerCase()', () => {
-  test('returns `this` if the name is already all-lowercase', () => {
-    const hi = new HostInfo('fleep.florp', 123);
-    expect(hi.toLowerCase()).toBe(hi);
+
+//
+// Static members
+//
+
+describe('fromUrlElseNull()', () => {
+  test('returns `null` given an invalid URL string', () => {
+    expect(HostInfo.fromUrlElseNull('zonk')).toBeNull();
+    expect(HostInfo.fromUrlElseNull('http://boop.bop:99999/')).toBeNull();
   });
 
-  test('returns a correct new instance if the name needs to be lowercased', () => {
-    const hi  = new HostInfo('fleEP.florp', 123);
-    const got = hi.toLowerCase();
+  test.each`
+  urlString                         | hostname      | port
+  ${'zonk://a.b:123'}               | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/'}              | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/bloop'}         | ${'a.b'}      | ${123}
+  ${'zonk://a.b:123/bloop/bleep'}   | ${'a.b'}      | ${123}
+  ${'zonk://1.2.3.4:5'}             | ${'1.2.3.4'}  | ${5}
+  ${'http://1.2.3.4:5'}             | ${'1.2.3.4'}  | ${5}
+  ${'zonk://01.02.03.04:65432'}     | ${'1.2.3.4'}  | ${65432}
+  ${'http://01.02.03.04:65432'}     | ${'1.2.3.4'}  | ${65432}
+  ${'zonk://[a::123]:222'}          | ${'a::123'}   | ${222}
+  ${'https://[a::123]:222'}         | ${'a::123'}   | ${222}
+  ${'zonk://[00a:00::0123]:12345'}  | ${'a::123'}   | ${12345}
+  ${'https://[00a:00::0123]:12345'} | ${'a::123'}   | ${12345}
+  ${'http://bip.bop'}               | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop/'}              | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop/xyz'}           | ${'bip.bop'}  | ${80}
+  ${'http://bip.bop:99/zonk'}       | ${'bip.bop'}  | ${99}
+  ${'https://zip.zop'}              | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop/'}             | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop/xyz'}          | ${'zip.zop'}  | ${443}
+  ${'https://zip.zop:99/zonk'}      | ${'zip.zop'}  | ${99}
+  `('returns the extracted bits of valid URL: $urlString', ({ urlString, hostname, port }) => {
+    const url  = new URL(urlString);
+    const got1 = HostInfo.fromUrlElseNull(urlString);
+    const got2 = HostInfo.fromUrlElseNull(url);
 
-    expect(got).not.toBe(hi);
-    expect(got.portNumber).toBe(123);
-    expect(got.nameString).toBe('fleep.florp');
-  });
+    expect(got1).not.toBeNull();
+    expect(got1.nameString).toBe(hostname);
+    expect(got1.portNumber).toBe(port);
 
-  test('returns the same not-`this` result on subsequent calls', () => {
-    const hi   = new HostInfo('fleep.florP', 123);
-    const got1 = hi.toLowerCase();
-    const got2 = hi.toLowerCase();
-
-    expect(got1).not.toBe(hi);
-    expect(got2).toBe(got1);
+    expect(got2).not.toBeNull();
+    expect(got2.nameString).toBe(hostname);
+    expect(got2.portNumber).toBe(port);
   });
 });
 

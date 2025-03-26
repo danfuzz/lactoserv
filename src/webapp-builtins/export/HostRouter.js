@@ -14,13 +14,6 @@ import { BaseApplication } from '@this/webapp-core';
  */
 export class HostRouter extends BaseApplication {
   /**
-   * Same value as in the config object.
-   *
-   * @type {boolean}
-   */
-  #ignoreCase = null;
-
-  /**
    * Map which goes from a host prefix to a handler (typically a
    * {@link BaseApplication}) which should handle that prefix. Gets set in
    * {@link #_impl_start}.
@@ -66,7 +59,7 @@ export class HostRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
-    const { hosts, ignoreCase } = this.config;
+    const { hosts } = this.config;
 
     const appManager = this.root.applicationManager;
     const routeTree  = new TreeMap();
@@ -76,8 +69,7 @@ export class HostRouter extends BaseApplication {
       routeTree.add(host, app);
     }
 
-    this.#ignoreCase = ignoreCase;
-    this.#routeTree  = routeTree;
+    this.#routeTree = routeTree;
 
     await super._impl_start();
   }
@@ -90,7 +82,7 @@ export class HostRouter extends BaseApplication {
    *   match.
    */
   #applicationFromHost(host) {
-    const key   = this.#ignoreCase ? host.toLowerCase().nameKey : host.nameKey;
+    const key   = host.nameKey;
     const found = this.#routeTree.find(key);
 
     return found?.value ?? null;
@@ -117,12 +109,15 @@ export class HostRouter extends BaseApplication {
       _config_hosts(value) {
         MustBe.plainObject(value);
 
+        const hosts = new TreeMap();
+
         for (const [host, name] of Object.entries(value)) {
           Names.mustBeName(name);
-          HostUtil.canonicalizeHostname(host, true);
+          const key = HostUtil.parseHostname(host, true);
+          hosts.add(key, name);
         }
 
-        return value;
+        return Object.freeze(hosts);
       }
 
       /**
@@ -134,24 +129,6 @@ export class HostRouter extends BaseApplication {
        */
       _config_ignoreCase(value = true) {
         return MustBe.boolean(value);
-      }
-
-      /** @override */
-      _impl_validate(config) {
-        // We can (and do) only create the `hosts` map here, after we know the
-        // value for `ignoreCase`.
-
-        const { hosts: hostsObj, ignoreCase } = config;
-        const hosts                           = new TreeMap();
-
-        for (const [host, name] of Object.entries(hostsObj)) {
-          const keyString = ignoreCase ? host.toLowerCase() : host;
-          const key       = HostUtil.parseHostname(keyString, true);
-          hosts.add(key, name);
-        }
-        Object.freeze(hosts);
-
-        return { ...config, hosts };
       }
     };
   }

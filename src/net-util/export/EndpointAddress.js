@@ -6,10 +6,10 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * The address of a network endpoint, consisting of an IP address and port. This
- * can be used for either the local or origin (remote) side of a network
- * connection. This class only accepts numerical IP addresses, not hostnames.
- * Instances of this class are immutable.
+ * The address of a network endpoint, consisting of an IP address (not a
+ * hostname) and port. This can be used for either the local or origin (remote)
+ * side of a network connection. This class only accepts numerical IP addresses,
+ * not hostnames. Instances of this class are immutable.
  *
  * **Note:** This class allows the details of instances to be "unknown." This is
  * unusual in practice, though it _can_ happen. Specifically, Node will report
@@ -62,7 +62,8 @@ export class EndpointAddress extends IntfDeconstructable {
   }
 
   /**
-   * @returns {?string} The IP address, or `null` if unknown.
+   * @returns {?string} The IP address, or `null` if unknown. In the case of an
+   * IPv6 address, this does _not_ include square brackets around the result.
    */
   get address() {
     return this.#address;

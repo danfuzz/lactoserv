@@ -84,26 +84,32 @@ ${'parseHostnameElseNull'}        | ${false} | ${'path'}
   const checkAnswer = (hostname, got) => {
     expect(got).not.toBeNull();
 
-    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(hostname, false);
+    const canonicalIp   = EndpointAddress.canonicalizeAddressElseNull(hostname, false);
+    const canonicalName = canonicalIp ? null : hostname.toLowerCase();
 
     if (returns === 'string') {
       if (canonicalIp) {
         // Expect IP addresses to be canonicalized.
         expect(got).toBe(canonicalIp);
       } else {
-        expect(got).toBe(hostname);
+        expect(got).toBe(canonicalName);
       }
-    } else if (canonicalIp) {
-      expect(got.wildcard).toBeFalse();
-      expect(got.length).toBe(1);
-      expect(got.path[0]).toBe(canonicalIp);
-    } else {
-      const expectWildcard = hostname.startsWith('*');
-      const expectLength   = hostname.replace(/[^.]/g, '').length + Number(!expectWildcard);
+    } else if (returns === 'path') {
+      if (canonicalIp) {
+        expect(got.wildcard).toBeFalse();
+        expect(got.length).toBe(1);
+        expect(got.path[0]).toBe(canonicalIp);
+      } else {
+        const expectWildcard = canonicalName.startsWith('*');
+        const expectLength   = canonicalName.replace(/[^.]/g, '').length + Number(!expectWildcard);
 
-      expect(got.wildcard).toBe(expectWildcard);
-      expect(got.length).toBe(expectLength);
-      expect(HostUtil.hostnameStringFrom(got)).toBe(hostname);
+        expect(got.wildcard).toBe(expectWildcard);
+        expect(got.length).toBe(expectLength);
+        expect(HostUtil.hostnameStringFrom(got)).toBe(canonicalName);
+      }
+    } else {
+      // We forgot to add a case in this test.
+      throw new Error('Shouldn\'t happen.');
     }
   };
 

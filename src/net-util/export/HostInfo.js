@@ -37,44 +37,49 @@ export class HostInfo extends IntfDeconstructable {
   #portString = null;
 
   /**
-   * Is the hostname actually an IP address? `null` if not yet calculated.
+   * The "name type," or `null` if not yet calculated.
    *
-   * @type {?boolean}
+   * @type {?string}
    */
-  #nameIsIp = null;
+  #nameType = null;
 
   /**
-   * A path key representing {@link #nameString}.
+   * A path key representing {@link #nameString}, or `null` if not yet
+   * calculated.
    *
    * @type {?PathKey}
    */
   #nameKey = null;
 
   /**
-   * The result of {@link #toLowerCase}, or `null` if not yet calculated.
+   * The combined name-port string, or `null` if not yet calculated.
    *
-   * @type {HostInfo}
+   * @type {?string}
    */
-  #lowercaseVersion = null;
+  #namePortString = null;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. **Note:** IPv6 addresses must _not_ include square
+   * brackets.
    *
    * **Note:** You are probably better off constructing an instance using one of
    * the static methods on this class.
    *
-   * @param {string} nameString The name string.
+   * @param {string} nameString The name string, which is assumed to be
+   *   in canonicalized form.
    * @param {string|number} portNumber The port number, as either a number per
    *   se or a string.
    */
   constructor(nameString, portNumber) {
     super();
 
-    // Note: The regex is a bit lenient. TODO: Maybe it shouldn't be?
-    this.#nameString = MustBe.string(nameString, /^[-_.:[\]a-zA-Z0-9]+$/);
+    // Note: The regex is a bit lenient, though notably it _does_ at least
+    // guarantee that there are no uppercase letters. TODO: Maybe it should be
+    // more restrictive?
+    this.#nameString = MustBe.string(nameString, /^[-_.:a-z0-9]+$/);
 
-    this.#portNumber = AskIf.string(portNumber)
-      ? Number(MustBe.string(portNumber, /^[0-9]+$/))
+    this.#portNumber = AskIf.string(portNumber, /^0*[0-9]{1,5}$/)
+      ? Number(portNumber)
       : MustBe.number(portNumber);
 
     MustBe.number(this.#portNumber, {
@@ -103,14 +108,47 @@ export class HostInfo extends IntfDeconstructable {
     return this.#nameKey;
   }
 
-  /** @returns {string} The (fully qualified) canonicalized name string. */
+  /**
+   * @returns {string} The (fully qualified) canonicalized name string. In the
+   * case of an IPv6 address, this _does not_ include brackets around the
+   * result.
+   */
   get nameString() {
     return this.#nameString;
   }
 
-  /** @returns {string} The name and port, colon-separated. */
+  /**
+   * @returns {string} The name and port, colon-separated. In the case of an
+   * IPv6 address for the name, the result includes square brackets around the
+   * address.
+   */
   get namePortString() {
-    return `${this.#nameString}:${this.#portNumber}`;
+    if (!this.#namePortString) {
+      const nameString = this.#nameWithBracketsIfNecessary();
+      const portString = this.portString;
+      this.#namePortString = `${nameString}:${portString}`;
+    }
+
+    return this.#namePortString;
+  }
+
+  /**
+   * @returns {string} The type of the hostname of this instance, one of `dns`
+   * (DNS name), `ipv4` (IPv4 address), or `ipv6` (IPv6 address).
+   */
+  get nameType() {
+    if (!this.#nameType) {
+      const nameString = this.#nameString;
+      if (/:/.test(nameString)) {
+        this.#nameType = 'ipv6';
+      } else if (/^[.0-9]+$/.test(nameString)) {
+        this.#nameType = 'ipv4';
+      } else {
+        this.#nameType = 'dns';
+      }
+    }
+
+    return this.#nameType;
   }
 
   /** @returns {number} The port number. */
@@ -133,15 +171,30 @@ export class HostInfo extends IntfDeconstructable {
   }
 
   /**
+   * Indicates whether the given other instance is an instance of this class
+   * with the same information.
+   *
+   * @param {*} other Instance to compare.
+   * @returns {boolean} `true` iff this instance is equal to `other`.
+   */
+  equals(other) {
+    return (other instanceof HostInfo)
+      && (this.#nameString === other.#nameString)
+      && (this.#portNumber === other.#portNumber);
+  }
+
+  /**
    * Gets the name-and-port string, colon separated, except without the port if
-   * it is equal to the given one.
+   * it is equal to the given one. In the case of an IPv6 address for the name,
+   * this _does_ include square brackets around the address even when the port
+   * is elided.
    *
    * @param {?number} [portToElide] Port to _not_ include in the result.
    * @returns {string} The name-and-port string.
    */
   getNamePortString(portToElide = null) {
     return (this.#portNumber === portToElide)
-      ? this.#nameString
+      ? this.#nameWithBracketsIfNecessary()
       : this.namePortString;
   }
 
@@ -151,37 +204,53 @@ export class HostInfo extends IntfDeconstructable {
    * @returns {boolean} `true` iff the hostname is an IP address.
    */
   nameIsIpAddress() {
-    if (this.#nameIsIp === null) {
-      this.#nameIsIp = /[:]|^[.0-9]+$/.test(this.#nameString);
-    }
-
-    return this.#nameIsIp;
+    return this.nameType !== 'dns';
   }
 
   /**
-   * Gets an instance of this class which is identical to `this` but with the
-   * name lowercased. If this instance's name is already all-lowercase, then
-   * this method returns `this`.
+   * Gets the name string, but including brackets if it's an IPv6 address.
    *
-   * @returns {HostInfo} The lowercased version.
+   * @returns {string} The possibly-bracketed name string.
    */
-  toLowerCase() {
-    if (this.#lowercaseVersion === null) {
-      const name      = this.#nameString;
-      const lowerName = name.toLowerCase();
+  #nameWithBracketsIfNecessary() {
+    const nameString = this.#nameString;
 
-      this.#lowercaseVersion = (name === lowerName)
-        ? this
-        : new HostInfo(lowerName, this.#portNumber);
-    }
-
-    return this.#lowercaseVersion;
+    return (this.nameType === 'ipv6') ? `[${nameString}]` : nameString;
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * Gets an instance of this class from a URL or the string form of same,
+   * returning `null` if the
+   *
+   * @param {URL|string} url URL to extract from.
+   * @returns {?HostInfo} The extracted instance, or `null` if `url` could not
+   *   be parsed.
+   */
+  static fromUrlElseNull(url) {
+    if (!(url instanceof URL)) {
+      try {
+        url = new URL(url);
+      } catch {
+        return null;
+      }
+    }
+
+    const hostname = this.#hostnameFromUrl(url);
+    if (hostname === '') {
+      return null;
+    }
+
+    // Note: The `hostname` of a `URL` instance is always canonicalized
+    // (downcased if a name per se, numbers of IP addresses in canonical form,
+    // etc.), so there's no need to do anything extra to canonicalize before
+    // construction.
+    return new HostInfo(hostname, this.#portFromUrl(url));
+  }
 
   /**
    * Gets an instance of this class representing `localhost` with the given
@@ -202,9 +271,10 @@ export class HostInfo extends IntfDeconstructable {
 
   /**
    * Constructs an instance of this class by parsing a string in the format used
-   * by the `Host` header of an HTTP-ish request. The local port number, if
-   * provided, is used when there is no explicit port number in `hostString`; if
-   * needed and not provided, it is treated as if it is `0`.
+   * by the `Host` header of an HTTP-ish request, that is, a hostname and port
+   * number separated by a colon (`:`). The local port number, if provided, is
+   * used when there is no explicit port number in `hostString`; if needed and
+   * not provided, it is treated as if it is `0`.
    *
    * @param {string} hostString The `Host` header string to parse.
    * @param {?number} [localPort] Local port being listened on, if known.
@@ -241,7 +311,7 @@ export class HostInfo extends IntfDeconstructable {
 
     // Basic top-level parse.
     const topParse =
-      hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>[0-9]{1,5}))?$/)?.groups;
+      hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>0*[0-9]{1,5}))?$/)?.groups;
 
     if (!topParse) {
       return null;
@@ -283,6 +353,33 @@ export class HostInfo extends IntfDeconstructable {
   }
 
   /**
+   * Gets the hostname from a URL, in canonicalized form.
+   *
+   * @param {URL} url The URL to extract from.
+   * @returns {string} The hostname.
+   */
+  static #hostnameFromUrl(url) {
+    const { hostname, protocol } = url;
+
+    // If the `protocol` is one of the usual ones, then the `hostname` comes
+    // pre-canonicalized. If not, we have to canonicalize it.
+    switch (protocol) {
+      case 'http:':
+      case 'https:': {
+        // Constructed instances aren't supposed to have brackets for IPv6
+        // hostnames.
+        return (hostname.startsWith('['))
+          ? hostname.replaceAll(/\[|\]/g, '')
+          : hostname;
+      }
+
+      default: {
+        return HostUtil.canonicalizeHostnameElseNull(hostname, false) ?? '';
+      }
+    }
+  }
+
+  /**
    * Constructs a standard-form parsing error.
    *
    * @param {string} input The input.
@@ -295,5 +392,26 @@ export class HostInfo extends IntfDeconstructable {
     error.input = input;
 
     return error;
+  }
+
+  /**
+   * Gets the port number from a URL, including using the standard port numbers
+   * for the usual protocols when the port number wasn't specified.
+   *
+   * @param {URL} url The URL to extract from.
+   * @returns {number} The port number.
+   */
+  static #portFromUrl(url) {
+    const port = url.port;
+
+    if (port !== '') {
+      return Number(port);
+    }
+
+    switch (url.protocol) {
+      case 'http:':  return 80;
+      case 'https:': return 443;
+      default:       return 0;
+    }
   }
 }
