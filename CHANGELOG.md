@@ -11,13 +11,18 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* `net-util`:
+  * Made hostname canonicalization always include both lowercasing of DNS names
+    and removal of brackets around IPv6 addresses.
+  * `HostInfo`:
+    * As a result of the change to canonicalization (above), removed the method
+      `toLowerCase()`.
 * `webapp-builtins`:
   * Removed `ignoreCase` option from `HostRouter`, because per RFC one is never
     supposed to treat hostname case as significant.
 
 Other notable changes:
-* `net-util`:
-  * Tightened up `HostInfo`, and added a little more functionality.
+  * Added a little more functionality to `HostInfo`.
 * `valvis`:
   * `BaseValueVisitor`:
     * New `static` convenience methods to cover a common use pattern.
