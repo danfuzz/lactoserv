@@ -163,7 +163,6 @@ const applications = [
   {
     name:       'myHosts',
     class:      HostRouter,
-    ignoreCase: true,
     hosts: {
       '*':         'myPaths',
       '127.0.0.1': 'mySeries',

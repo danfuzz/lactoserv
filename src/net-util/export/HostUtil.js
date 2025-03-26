@@ -39,7 +39,9 @@ export class HostUtil {
 
   /**
    * Checks that a given string can be used as a hostname, including non-"any"
-   * IP addresses. Returns the canonicalized version.
+   * IP addresses. Returns the canonicalized version, including IP address
+   * canonicalization (which in this case drops brackets from IPv6 addresses)
+   * and lowercasing non-IP-address names.
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
@@ -48,19 +50,20 @@ export class HostUtil {
    * @throws {Error} Thrown if `value` does not match.
    */
   static canonicalizeHostname(name, allowWildcard = false) {
-    // Handle IP address cases.
-    const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
-    if (canonicalIp) {
-      return canonicalIp;
+    const result = this.canonicalizeHostnameElseNull(name, allowWildcard);
+    if (result) {
+      return result;
     }
 
-    MustBe.string(name, this.#HOSTNAME_REGEX);
+    // Try to throw a maximally-helpful error.
 
-    if ((!allowWildcard) && /[*]/.test(name)) {
+    if (typeof name !== 'string') {
+      throw new Error(`Not a string: ${name}`);
+    } if ((!allowWildcard) && /[*]/.test(name)) {
       throw new Error(`Must not have a wildcard: ${name}`);
+    } else {
+      throw new Error(`Not a valid hostname: ${name}`);
     }
-
-    return name;
   }
 
   /**
@@ -88,7 +91,7 @@ export class HostUtil {
       return null;
     }
 
-    return name;
+    return name.toLowerCase();
   }
 
   /**
@@ -156,7 +159,7 @@ export class HostUtil {
       return null;
     }
 
-    const path = name.split('.').reverse();
+    const path = name.toLowerCase().split('.').reverse();
 
     if (path[path.length - 1] === '*') {
       if (allowWildcard) {

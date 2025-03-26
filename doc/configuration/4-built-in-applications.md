@@ -67,11 +67,6 @@ following configuration bindings:
   the _names_ of other applications as values. A wildcard only covers the prefix
   of a hostname and cannot be used for hostnames identified by numeric IP
   address.
-* `ignoreCase` &mdash; Optional boolean indicating whether (`true`) or not
-  (`false`) the case of hostnames should be ignored and always looked up as
-  lowercase. Default `true`, which is the generally-accepted behavior of
-  websites. **Note:** This setting does not affect the hostname as received by
-  applications.
 
 **Note:** Unlike `PathRouter`, this application does not do fallback to
 less-and-less specific routes; it just finds (at most) one to route to.

@@ -11,7 +11,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `webapp-builtins`:
+  * Removed `ignoreCase` option from `HostRouter`, because per RFC one is never
+    supposed to treat hostname case as significant.
 
 Other notable changes:
 * `net-util`:
