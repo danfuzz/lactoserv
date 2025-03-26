@@ -37,18 +37,26 @@ export class HostInfo extends IntfDeconstructable {
   #portString = null;
 
   /**
-   * Is the hostname actually an IP address? `null` if not yet calculated.
+   * The "name type," or `null` if not yet calculated.
    *
-   * @type {?boolean}
+   * @type {?string}
    */
-  #nameIsIp = null;
+  #nameType = null;
 
   /**
-   * A path key representing {@link #nameString}.
+   * A path key representing {@link #nameString}, or `null` if not yet
+   * calculated.
    *
    * @type {?PathKey}
    */
   #nameKey = null;
+
+  /**
+   * The combined name-port string, or `null` if not yet calculated.
+   *
+   * @type {?string}
+   */
+  #namePortString = null;
 
   /**
    * Constructs an instance. **Note:** IPv6 addresses must _not_ include square
@@ -100,14 +108,48 @@ export class HostInfo extends IntfDeconstructable {
     return this.#nameKey;
   }
 
-  /** @returns {string} The (fully qualified) canonicalized name string. */
+  /**
+   * @returns {string} The (fully qualified) canonicalized name string. In the
+   * case of an IPv6 address, this _does not_ include brackets around the
+   * result.
+   */
   get nameString() {
     return this.#nameString;
   }
 
-  /** @returns {string} The name and port, colon-separated. */
+  /**
+   * @returns {string} The name and port, colon-separated. In the case of an
+   * IPv6 address for the name, the result includes square brackets around the
+   * address.
+   */
   get namePortString() {
-    return `${this.#nameString}:${this.#portNumber}`;
+    if (!this.#namePortString) {
+      const nameString = this.#nameString;
+      const portString = this.portString;
+      const namePart   = (this.nameType === 'ipv6') ? `[${nameString}]` : nameString;
+      this.#namePortString = `${namePart}:${portString}`;
+    }
+
+    return this.#namePortString;
+  }
+
+  /**
+   * @returns {string} The type of the hostname of this instance, one of `dns`
+   * (DNS name), `ipv4` (IPv4 address), or `ipv6` (IPv6 address).
+   */
+  get nameType() {
+    if (!this.#nameType) {
+      const nameString = this.#nameString;
+      if (/:/.test(nameString)) {
+        this.#nameType = 'ipv6';
+      } else if (/^[.0-9]+$/.test(nameString)) {
+        this.#nameType = 'ipv4';
+      } else {
+        this.#nameType = 'dns';
+      }
+    }
+
+    return this.#nameType;
   }
 
   /** @returns {number} The port number. */
@@ -144,7 +186,9 @@ export class HostInfo extends IntfDeconstructable {
 
   /**
    * Gets the name-and-port string, colon separated, except without the port if
-   * it is equal to the given one.
+   * it is equal to the given one. In the case of an IPv6 address for the name,
+   * this _does_ include square brackets around the address even when the port
+   * is elided.
    *
    * @param {?number} [portToElide] Port to _not_ include in the result.
    * @returns {string} The name-and-port string.
@@ -161,11 +205,7 @@ export class HostInfo extends IntfDeconstructable {
    * @returns {boolean} `true` iff the hostname is an IP address.
    */
   nameIsIpAddress() {
-    if (this.#nameIsIp === null) {
-      this.#nameIsIp = /[:]|^[.0-9]+$/.test(this.#nameString);
-    }
-
-    return this.#nameIsIp;
+    return this.nameType !== 'dns';
   }
 
 

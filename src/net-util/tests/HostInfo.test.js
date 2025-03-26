@@ -124,10 +124,35 @@ describe('.nameString', () => {
 
 describe('.namePortString', () => {
   test('gets the name and port that were passed in the constructor', () => {
-    const name = 'floop.florp';
-    const hi   = new HostInfo(name, 123);
-
+    const hi = new HostInfo('floop.florp', 123);
     expect(hi.namePortString).toBe('floop.florp:123');
+  });
+
+  test('brackets IPv6 addresses', () => {
+    const hi = new HostInfo('12:34::ab:cd', 321);
+    expect(hi.namePortString).toBe('[12:34::ab:cd]:321');
+  });
+
+  test('does not bracket IPv4 addresses', () => {
+    const hi = new HostInfo('12.34.56.78', 90);
+    expect(hi.namePortString).toBe('12.34.56.78:90');
+  });
+});
+
+describe('.nameType', () => {
+  test('returns `ipv4` for an IPv4 address', () => {
+    const hi = new HostInfo('127.0.0.1', 1);
+    expect(hi.nameType).toBe('ipv4');
+  });
+
+  test('returns `ipv6` for an IPv6 address', () => {
+    const hi = new HostInfo('1234::5678:9:a', 1);
+    expect(hi.nameType).toBe('ipv6');
+  });
+
+  test('returns `dns` for a DNS name', () => {
+    const hi = new HostInfo('this.is.a.host', 1);
+    expect(hi.nameType).toBe('dns');
   });
 });
 
