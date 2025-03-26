@@ -202,9 +202,10 @@ export class HostInfo extends IntfDeconstructable {
 
   /**
    * Constructs an instance of this class by parsing a string in the format used
-   * by the `Host` header of an HTTP-ish request. The local port number, if
-   * provided, is used when there is no explicit port number in `hostString`; if
-   * needed and not provided, it is treated as if it is `0`.
+   * by the `Host` header of an HTTP-ish request, that is, a hostname and port
+   * number separated by a colon (`:`). The local port number, if provided, is
+   * used when there is no explicit port number in `hostString`; if needed and
+   * not provided, it is treated as if it is `0`.
    *
    * @param {string} hostString The `Host` header string to parse.
    * @param {?number} [localPort] Local port being listened on, if known.
@@ -241,7 +242,7 @@ export class HostInfo extends IntfDeconstructable {
 
     // Basic top-level parse.
     const topParse =
-      hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>[0-9]{1,5}))?$/)?.groups;
+      hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>0*[0-9]{1,5}))?$/)?.groups;
 
     if (!topParse) {
       return null;
