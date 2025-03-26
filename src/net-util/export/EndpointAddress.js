@@ -62,7 +62,8 @@ export class EndpointAddress extends IntfDeconstructable {
   }
 
   /**
-   * @returns {?string} The IP address, or `null` if unknown.
+   * @returns {?string} The IP address, or `null` if unknown. In the case of an
+   * IPv6 address, this does _not_ include square brackets around the result.
    */
   get address() {
     return this.#address;
