@@ -14,6 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `net-util`:
+  * Tightened up `HostInfo`, and added a little more functionality.
 * `valvis`:
   * `BaseValueVisitor`:
     * New `static` convenience methods to cover a common use pattern.
