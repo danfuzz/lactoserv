@@ -34,12 +34,47 @@ describe('constructor', () => {
   ${0.5}
   ${65535.9}
   ${65536}
+
+  // Valid number-as-string but not a valid port number.
+  ${'111111'}
+  ${'0.5'}
+  ${'-1'}
+  ${'1e2'}
+  ${'65536'}
   `('fails when passing port as $arg', ({ arg }) => {
     expect(() => new HostInfo('host', arg)).toThrow();
   });
 
-  test('accepts a valid port number string', () => {
-    expect(() => new HostInfo('host', '123')).not.toThrow();
+  test.each`
+  arg
+  ${'0'}
+  ${'00'}
+  ${'00000000000'}
+  ${'1'}
+  ${'01'}
+  ${'000001'}
+  ${'99'}
+  ${'888'}
+  ${'7777'}
+  ${'12345'}
+  ${'65535'}
+  ${'065535'}
+  ${'0000000000065535'}
+  `('accepts valid port number string $arg', ({ arg }) => {
+    expect(() => new HostInfo('host', arg)).not.toThrow();
+  });
+
+  test.each`
+  arg
+  ${0}
+  ${1}
+  ${22}
+  ${333}
+  ${4444}
+  ${55555}
+  ${65535}
+  `('accepts valid port number $arg', ({ arg }) => {
+    expect(() => new HostInfo('host', arg)).not.toThrow();
   });
 });
 
@@ -93,7 +128,7 @@ describe('.portNumber', () => {
 
   test('gets the parsed port number-as-string that was passed in the constructor', () => {
     const port = 7771;
-    const hi   = new HostInfo('host', port.toString());
+    const hi   = new HostInfo('host', '0000' + port.toString());
 
     expect(hi.portNumber).toBe(port);
   });
