@@ -120,6 +120,20 @@ prepare the `CHANGELOG` file for release.
 $ ubik update-version 123.45.6
 ```
 
+### Updating Allowed Node Versions
+
+The project has checks to make sure only vetted versions of Node are used to
+build and run the project.
+
+To update what Node versions are allowed when building:
+
+* Update the `check-dependency` regex in the file
+  `scripts/lib/lactoserv/_prereqs`.
+
+To update what Node versions are allowed when running:
+
+* Update the `--runner-versions=` list in the file `scripts/lib/lactoserv/dev`.
+
 - - - - - - - - - -
 ```
 Copyright 2022-2025 the Lactoserv Authors (Dan Bornstein et alia).

@@ -65,7 +65,7 @@ function target-build {
         && env-minimize \
         && lib node-project build-main-module \
             --out="${outDir}" --modules-dirs="${srcDir}" \
-            --runner-script=run --runner-versions[]='20 21 22 23' \
+            --runner-script=run --runner-versions[]='20 21 22 23 24' \
             lactoserv
     )
 }
