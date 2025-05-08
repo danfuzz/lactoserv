@@ -59,7 +59,7 @@ jobs:
         node: ['20.x', '22.x', '24.x']
         include:
           - node: '24.x'
-          - fullBuild: true
+            fullBuild: true
     name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node v${{ matrix.node }}.
