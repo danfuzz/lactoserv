@@ -14,6 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.9.2 -- 2025-05-08
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * Updated allowed Node versions.
 
 ### v0.9.1 -- 2025-03-26
