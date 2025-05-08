@@ -52,7 +52,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      mainNode: '24.x' # Which version to use for the full build.
+      MAIN_NODE_VERSION: '24.x' # Which version to use for the full build.
     strategy:
       matrix:
         node: ['20.x', '22.x', '24.x']
@@ -87,11 +87,11 @@ jobs:
           }
 
       - name: Ensure the cert creator still works.
-        if: ${{ matrix.node == mainNode }}
+        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
         run: ./scripts/ubik make-localhost-cert
 
       - name: Tarball artifact.
-        if: ${{ matrix.node == mainNode }}
+        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
         uses: actions/upload-artifact@v4
         with:
           name: distro
@@ -101,7 +101,7 @@ jobs:
           retention-days: 90
 
       - name: node_modules artifact.
-        if: ${{ matrix.node == mainNode }}
+        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
         uses: actions/upload-artifact@v4
         with:
           name: node_modules
@@ -113,7 +113,7 @@ jobs:
           retention-days: 90
 
       - name: Announcement.
-        if: ${{ matrix.node == mainNode }}
+        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
         run: |
           info="$(jq . out/lactoserv/product-info.json)"
           printf '::notice title=product-info::%s\n' \
