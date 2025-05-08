@@ -57,6 +57,9 @@ jobs:
     strategy:
       matrix:
         node: ['20.x', '22.x', '24.x']
+        include:
+          - node: '24.x'
+          - fullBuild: true
     name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node v${{ matrix.node }}.
@@ -89,7 +92,7 @@ jobs:
           }
 
       - name: Ensure the cert creator still works.
-        if: matrix.node == env.MAIN_NODE_VERSION
+        if: matrix.fullBuild == true
         run: ./scripts/ubik make-localhost-cert
 
       - name: Tarball artifact.
