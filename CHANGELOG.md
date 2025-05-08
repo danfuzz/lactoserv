@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Got CI set up to build and test with multiple versions of Node. As currently
+  configured, it uses Node v20, v22, and v24.
 
 ### v0.9.2 -- 2025-05-08 -- stable release
 
