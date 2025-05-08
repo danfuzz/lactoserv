@@ -80,7 +80,7 @@ jobs:
         run: ./scripts/ubik run-tests --type=integration
 
       - name: Run the unit tests, with coverage reporting.
-        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
+        if: matrix.node == env.MAIN_NODE_VERSION
         run: |
           ./scripts/ubik run-tests --type=unit-coverage || {
             echo 'Weird coverage-report failure (originally started happening'
@@ -88,11 +88,11 @@ jobs:
           }
 
       - name: Ensure the cert creator still works.
-        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
+        if: matrix.node == env.MAIN_NODE_VERSION
         run: ./scripts/ubik make-localhost-cert
 
       - name: Tarball artifact.
-        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
+        if: matrix.node == env.MAIN_NODE_VERSION
         uses: actions/upload-artifact@v4
         with:
           name: distro
@@ -102,7 +102,7 @@ jobs:
           retention-days: 90
 
       - name: node_modules artifact.
-        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
+        if: matrix.node == env.MAIN_NODE_VERSION
         uses: actions/upload-artifact@v4
         with:
           name: node_modules
@@ -114,7 +114,7 @@ jobs:
           retention-days: 90
 
       - name: Announcement.
-        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
+        if: matrix.node == env.MAIN_NODE_VERSION
         run: |
           info="$(jq . out/lactoserv/product-info.json)"
           printf '::notice title=product-info::%s\n' \
