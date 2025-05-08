@@ -52,11 +52,15 @@ jobs:
   # Build the project.
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['20.x', '22.x', '24.x']
+    name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node.
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node }}
 
       # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
