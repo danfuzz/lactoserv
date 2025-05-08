@@ -81,7 +81,7 @@ To build:
   Windows, but if it does nobody has told anyone on the project.)
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
-* Node v20 or later (tested regularly on v20, v22, and v23).
+* Node v20 or later (tested regularly on v20, v22, v23, and v24).
 * Recent version of `jq` (v1.6 or later).
 
 To run (versions as above):
