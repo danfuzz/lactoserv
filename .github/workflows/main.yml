@@ -80,6 +80,7 @@ jobs:
         run: ./scripts/ubik run-tests --type=integration
 
       - name: Run the unit tests, with coverage reporting.
+        if: ${{ matrix.node == env.MAIN_NODE_VERSION }}
         run: |
           ./scripts/ubik run-tests --type=unit-coverage || {
             echo 'Weird coverage-report failure (originally started happening'
