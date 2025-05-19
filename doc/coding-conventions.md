@@ -187,9 +187,9 @@ meant to record them, in order to keep track of them and maintain consistency.
   // @emptyBlock
   ```
 
-* Methods that throw `Error`s when encountering trouble aren't specially marked.
-  However, methods that return `null` to indicate an error _are_ marked with the
-  suffix `ElseNull`. (See above.)
+* Methods that throw `Error`s when encountering trouble aren't specially marked
+  in their name. However, methods that return `null` to indicate an error _are_
+  marked with the suffix `ElseNull`. (See above.)
 
 * Terminology:
   * Use "HTTP1" or "HTTP1-ish" to refer to the HTTP1 family of protocols. (No
