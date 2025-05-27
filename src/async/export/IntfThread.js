@@ -39,8 +39,9 @@ export class IntfThread {
   }
 
   /**
-   * Starts this instance running as with {@link #run}, except that it
-   * async-returns once the instance is _started_, as with {@link #whenStarted}.
+   * Starts this instance running, if it isn't already, similar to {@link #run}.
+   * Unlike {@link #run}, this method async-returns once the instance is
+   * _started_, as with {@link #whenStarted}.
    *
    * @returns {*} Return value from {@link #whenStarted} (see which).
    * @throws {Error} Error thrown by {@link #whenStarted} (see which).
