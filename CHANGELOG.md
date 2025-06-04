@@ -14,6 +14,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* New class `net-util.JsonUtil`, with just one method... so far.
 * Got CI set up to build and test with multiple versions of Node. As currently
   configured, it uses Node v20, v22, and v24.
 
