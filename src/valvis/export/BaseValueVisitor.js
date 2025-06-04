@@ -879,9 +879,10 @@ export class BaseValueVisitor {
 
   /**
    * Convenient shorthand for `new this(value, ...).visitAsyncWrap()`, for use
-   * when only the visitor result is needed post-visit (and not access to the
-   * visitor itself). This is meant to be called on concrete visitor subclasses,
-   * and not directly on this (abstract base) class.
+   * when no access to the visitor instance is required post-visit (that is,
+   * either only the visitor _result_ is needed, or no result is needed at all).
+   * This is meant to be called on concrete visitor subclasses, and not directly
+   * on this (abstract base) class.
    *
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
@@ -895,9 +896,10 @@ export class BaseValueVisitor {
 
   /**
    * Convenient shorthand for `new this(value, ...args).visitSync()`, for use
-   * when only the visitor result is needed post-visit (and not access to the
-   * visitor itself). This is meant to be called on concrete visitor subclasses,
-   * and not directly on this (abstract base) class.
+   * when no access to the visitor instance is required post-visit (that is,
+   * either only the visitor _result_ is needed, or no result is needed at all).
+   * This is meant to be called on concrete visitor subclasses, and not directly
+   * on this (abstract base) class.
    *
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
@@ -912,9 +914,10 @@ export class BaseValueVisitor {
 
   /**
    * Convenient shorthand for `new this(value, ...args).visitWrap()`, for use
-   * when only the visitor result is needed post-visit (and not access to the
-   * visitor itself). This is meant to be called on concrete visitor subclasses,
-   * and not directly on this (abstract base) class.
+   * when no access to the visitor instance is required post-visit (that is,
+   * either only the visitor _result_ is needed, or no result is needed at all).
+   * This is meant to be called on concrete visitor subclasses, and not directly
+   * on this (abstract base) class.
    *
    * @param {*} value Value to visit.
    * @param {*[]} args Arbitrary other constructor arguments.
