@@ -18,6 +18,7 @@ export * from '#x/HttpUtil';
 export * from '#x/IncomingRequest';
 export * from '#x/InterfaceAddress';
 export * from '#x/IntfRequestHandler';
+export * from '#x/JsonUtil';
 export * from '#x/MimeTypes';
 export * from '#x/RequestContext';
 export * from '#x/StatusResponse';
