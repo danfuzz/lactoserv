@@ -17,11 +17,14 @@ export class JsonUtil {
    * fact of deep-frozenness, this method behaves mostly just like
    * `JSON.parse(text)`. The one difference is that it type-checks its input.
    *
-   * @param {string} text JSON text to parse.
+   * @param {string|Buffer} text JSON text to parse.
    * @returns {*} The parsed value.
    */
   static parseAndFreeze(text) {
-    MustBe.string(text);
+    if (!(text instanceof Buffer)) {
+      MustBe.string(text);
+    }
+
     return JSON.parse(text, (key_unused, value) => Object.freeze(value));
   }
 }

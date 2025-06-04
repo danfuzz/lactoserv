@@ -43,6 +43,15 @@ describe('parseAndFreeze()', () => {
     expect(() => JsonUtil.parseAndFreeze(arg)).toThrow();
   });
 
+  test.each`
+  type | arg
+  ${'string'} | ${'123456'}
+  ${'Buffer'} | ${Buffer.from('654321')}
+  `('accepts a $type argument', ({ arg }) => {
+    const expected = JSON.parse(arg);
+    expect(JsonUtil.parseAndFreeze(arg)).toBe(expected);
+  });
+
   // Simple values
   test.each`
   arg
