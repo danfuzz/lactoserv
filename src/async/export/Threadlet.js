@@ -21,7 +21,7 @@ import { PromiseUtil } from '#x/PromiseUtil';
  */
 export class Threadlet {
   /**
-   * Start function to run, if any
+   * Start function to run, if any.
    *
    * @type {?function(Threadlet): *}
    */
