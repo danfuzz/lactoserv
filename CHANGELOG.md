@@ -25,6 +25,8 @@ Other notable changes:
 * New class `net-util.JsonUtil`, with just one method... so far.
 * Got CI set up to build and test with multiple versions of Node. As currently
   configured, it uses Node v20, v22, and v24.
+* Updated linter version and dependencies (and tweaked config).
+* Updated Jest (unit test system) version and dependencies.
 
 ### v0.9.2 -- 2025-05-08 -- stable release
 
