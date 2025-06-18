@@ -16,7 +16,7 @@ Breaking changes:
 Other notable changes:
 * None.
 
-### v0.9.3 -- 2025-06-18
+### v0.9.3 -- 2025-06-18 -- stable release
 
 Breaking changes:
 * None.
