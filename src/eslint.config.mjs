@@ -21,6 +21,14 @@ const stylisticRules = {
   '@stylistic/comma-dangle': ['error', 'never'],
   '@stylistic/dot-location': ['error', 'property'],
   '@stylistic/eol-last': 'error',
+  '@stylistic/generator-star-spacing': [
+    'error',
+    {
+      before: false,
+      after:  true,
+      method: { before: true, after: false }
+    }
+  ],
   '@stylistic/indent': [
     'error',
     2,
