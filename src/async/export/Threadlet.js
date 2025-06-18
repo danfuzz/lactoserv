@@ -91,7 +91,8 @@ export class Threadlet {
    * The thread functions are always called fully asynchronously (that is, never
    * synchronously during instance construction nor synchronously with respect
    * to a call to {@link #run}). When called, the functions are passed as an
-   * argument the instance of this class that is calling them.
+   * argument a `RunnerAccess` instance which provides access to this
+   * (constructed) instance.
    *
    * @param {function(Threadlet.RunnerAccess): *} function1 First function to
    *   call (start function or main function).
