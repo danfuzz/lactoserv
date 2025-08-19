@@ -53,7 +53,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MAIN_NODE_VERSION: '24.x' # Which version to use for the full build.
+      MAIN_NODE_VERSION: '24.5' # Which version to use for the full build.
     strategy:
       matrix:
         node: ['20.x', '22.x', '24.5']
