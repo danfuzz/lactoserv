@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check dependencies.
         uses: actions/dependency-review-action@v4
@@ -69,7 +69,7 @@ jobs:
 
       # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run the linter.
         run: ./scripts/ubik dev lint
