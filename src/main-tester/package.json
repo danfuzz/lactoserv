@@ -13,7 +13,7 @@
   },
 
   "dependencies": {
-    "jest": "^30.0.0",
+    "jest": "^30.0.5",
     "jest-extended": "^6.0.0",
     "trace-unhandled": "^2.0.1"
   }
