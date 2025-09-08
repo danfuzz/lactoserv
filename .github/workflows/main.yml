@@ -61,7 +61,7 @@ jobs:
     name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node v${{ matrix.node }}.
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
 
