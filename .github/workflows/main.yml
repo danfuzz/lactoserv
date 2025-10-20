@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo.
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
       - name: Check dependencies.
         uses: actions/dependency-review-action@v4
@@ -61,7 +61,7 @@ jobs:
     name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node v${{ matrix.node }}.
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
 
