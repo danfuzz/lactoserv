@@ -95,7 +95,7 @@ jobs:
 
       - name: Tarball artifact.
         if: matrix.fullBuild == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: distro
           path: out/lactoserv-*.tgz
@@ -105,7 +105,7 @@ jobs:
 
       - name: node_modules artifact.
         if: matrix.fullBuild == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: node_modules
           path: |
