@@ -99,7 +99,7 @@ const stylisticRules = {
     'single',
     {
       avoidEscape:           true,
-      allowTemplateLiterals: true
+      allowTemplateLiterals: 'always'
     }
   ],
   '@stylistic/semi': ['error', 'always'],
@@ -292,6 +292,12 @@ const jsdocRules = {
         MethodDefinition: true
       }
     }
+  ],
+  'jsdoc/reject-any-type': [
+    'off'
+  ],
+  'jsdoc/reject-function-type': [
+    'off'
   ],
   'jsdoc/require-property': [
     'off'
