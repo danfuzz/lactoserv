@@ -316,7 +316,7 @@ export default [
   js.configs.recommended,
   jsdocPlugin.configs['flat/recommended'],
   stylisticPlugin.configs['disable-legacy'],
-  stylisticPlugin.configs['recommended-flat'],
+  stylisticPlugin.configs['recommended'],
   {
     languageOptions: {
       ecmaVersion: 2024,
