@@ -96,7 +96,7 @@ export class CertUtil {
     const base64Line = '[/+a-zA-Z0-9]{1,80}';
     const body       = `(${base64Line}[\r\n]+){0,500}${base64Line}={0,2}[\r\n]+`;
     const oneBlock   =
-        '[\r\n]*'
+      '[\r\n]*'
       + `-----BEGIN ${label}-----[\r\n]+`
       + body
       + `-----END ${label}-----[\r\n]*`;
