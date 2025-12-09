@@ -14,6 +14,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.9.4 -- 2025-12-09 -- stable release
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * Updated upstream dependencies.
 
 ### v0.9.3 -- 2025-06-18 -- stable release
