@@ -35,25 +35,29 @@ is later), it transitions to retired. Retired series are not further developed
 
 ## Active release series
 
-* v0.8:
-  * 2026-01-06: Scheduled for retirement
-  * 2025-01-06: First stable release, v0.8.6
-    * https://github.com/danfuzz/lactoserv/releases/tag/v0.8.6
+* v0.9:
+  * 2025-05-08: First stable release, v0.9.4
+    * https://github.com/danfuzz/lactoserv/releases/tag/v0.9.4
 
 ## Maintenance release series
 
+* v0.8:
+  * 2026-06-01: Scheduled for retirement
+  * 2025-12-09: Moved to maintenance
+  * 2025-01-06: First stable release, v0.8.6
+
+## Retired release series
+
 * v0.7:
-  * 2025-06-04: Scheduled for retirement
+  * 2025-06-04: Retired
   * 2025-01-06: Moved to maintenance
   * 2024-07-30: Released v0.7.8
   * 2024-06-04: First stable release, v0.7.6
 
 * v0.6:
-  * 2025-04-22: Scheduled for retirement
+  * 2025-04-22: Retired
   * 2024-06-04: Moved to maintenance
   * 2024-04-22: First stable release, v0.6.16
-
-## Retired release series
 
 * v0.5:
   * 2024-12-15: Retired
