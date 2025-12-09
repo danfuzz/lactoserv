@@ -22,10 +22,10 @@
     "@this/sexp": "*",
     "@this/typey": "*",
     "@this/valvis": "*",
-    "mime": "^4.0.1",
+    "mime": "^4.1.0",
     "range-parser": "^1.2.1",
     "selfsigned": "^5.2.0",
-    "statuses": "^2.0.1"
+    "statuses": "^2.0.2"
   },
 
   "scripts": {
