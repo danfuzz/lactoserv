@@ -24,6 +24,6 @@
     "@this/typey": "*",
     "@this/webapp-builtins": "*",
     "@this/webapp-core": "*",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   }
 }
