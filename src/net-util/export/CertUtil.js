@@ -50,7 +50,7 @@ export class CertUtil {
       algorithm: 'sha256'
     };
 
-    const pemResult = selfsigned.generate(attributes, options);
+    const pemResult = await selfsigned.generate(attributes, options);
 
     const { cert: certificate, private: privateKey } = pemResult;
 
