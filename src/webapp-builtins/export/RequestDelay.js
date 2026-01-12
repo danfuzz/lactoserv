@@ -101,12 +101,9 @@ export class RequestDelay extends BaseApplication {
        * @returns {IntfTimeSource} Accepted configuration value.
        */
       _config_timeSource(value = null) {
-        // TODO: Check that a non-`null` `value` actually implements
-        // `IntfTimeSource`.
-
         return (value === null)
           ? StdTimeSource.INSTANCE
-          : MustBe.object(value);
+          : MustBe.instanceOf(value, IntfTimeSource);
       }
 
       /** @override */
