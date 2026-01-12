@@ -16,7 +16,6 @@ describe('constructor', () => {
   ${1}
   ${['x']}
   ${''}
-  ${'[a::b]'}      // IPv6 addresses must not use brackets.
   ${'--bad'}       // Starts with hyphen.
   ${'.leading'}    // Starts with dot.
   ${'trailing.'}   // Ends with dot.
@@ -101,6 +100,7 @@ describe('constructor', () => {
   ${'a:b::c:d'}       // IPv6 address.
   ${'0a:0123:0:0::987a'} // IPv6 with leading zeros.
   ${'::1'}            // IPv6 loopback.
+  ${'[a::b]'}         // Bracketed IPv6 (brackets stripped on canonicalization).
   `('accepts valid host name $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 1)).not.toThrow();
   });
@@ -134,6 +134,12 @@ describe('.nameString', () => {
     const hi   = new HostInfo(name, 123);
 
     expect(hi.nameString).toBe(name);
+  });
+
+  test('canonicalizes bracketed IPv6 to bracket-free form', () => {
+    const hi = new HostInfo('[a::b]', 123);
+
+    expect(hi.nameString).toBe('a::b');
   });
 });
 
