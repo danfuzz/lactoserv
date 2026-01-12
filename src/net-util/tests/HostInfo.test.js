@@ -16,7 +16,15 @@ describe('constructor', () => {
   ${1}
   ${['x']}
   ${''}
-  ${'[a::b]'} // IPv6 addresses must not use brackets.
+  ${'[a::b]'}      // IPv6 addresses must not use brackets.
+  ${'--bad'}       // Starts with hyphen.
+  ${'.leading'}    // Starts with dot.
+  ${'trailing.'}   // Ends with dot.
+  ${'double..dot'} // Consecutive dots.
+  ${'-start'}      // Label starts with hyphen.
+  ${'end-'}        // Label ends with hyphen.
+  ${'mid.-bad'}    // Label starts with hyphen after dot.
+  ${'bad-.mid'}    // Label ends with hyphen before dot.
   `('fails when passing name as $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 123)).toThrow();
   });
@@ -82,10 +90,17 @@ describe('constructor', () => {
   arg
   ${'host'}
   ${'host.sub'}
-  ${'1.2.3.4'}
-  ${'01.02.03.04'}
-  ${'a:b::c:d'}
-  ${'0a:0123:0:0::987a'}
+  ${'a'}              // Single character.
+  ${'localhost'}      // Single label.
+  ${'my-host'}        // Hyphen mid-label.
+  ${'a1.b2.c3'}       // Alphanumeric labels.
+  ${'example.com'}    // Typical domain.
+  ${'sub.example.com'} // Multi-level domain.
+  ${'1.2.3.4'}        // IPv4 address.
+  ${'01.02.03.04'}    // IPv4 with leading zeros.
+  ${'a:b::c:d'}       // IPv6 address.
+  ${'0a:0123:0:0::987a'} // IPv6 with leading zeros.
+  ${'::1'}            // IPv6 loopback.
   `('accepts valid host name $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 1)).not.toThrow();
   });

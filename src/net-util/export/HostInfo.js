@@ -73,10 +73,12 @@ export class HostInfo extends IntfDeconstructable {
   constructor(nameString, portNumber) {
     super();
 
-    // Note: The regex is a bit lenient, though notably it _does_ at least
-    // guarantee that there are no uppercase letters. TODO: Maybe it should be
-    // more restrictive?
-    this.#nameString = MustBe.string(nameString, /^[-_.:a-z0-9]+$/);
+    // Validates canonicalized hostname formats:
+    // - IPv6: hex digits and colons (must contain at least one colon)
+    // - IPv4: digits with dot separators
+    // - DNS: labels separated by dots, each starting/ending with alphanumeric,
+    //   hyphens allowed mid-label only
+    this.#nameString = MustBe.string(nameString, HostInfo.#NAME_REGEX);
 
     this.#portNumber = AskIf.string(portNumber, /^0*[0-9]{1,5}$/)
       ? Number(portNumber)
@@ -222,6 +224,17 @@ export class HostInfo extends IntfDeconstructable {
   //
   // Static members
   //
+
+  /**
+   * Regex for validating canonicalized hostname strings. Accepts:
+   * - IPv6 addresses (lowercase hex with colons)
+   * - IPv4 addresses (digits with dot separators)
+   * - DNS names (labels of alphanumerics/hyphens, starting and ending with
+   *   alphanumeric, separated by dots)
+   *
+   * @type {RegExp}
+   */
+  static #NAME_REGEX = /^(?:[a-f0-9]*:[a-f0-9:]*|[0-9]+(?:\.[0-9]+)*|[a-z0-9](?:[-a-z0-9]*[a-z0-9])?(?:\.[a-z0-9](?:[-a-z0-9]*[a-z0-9])?)*)$/;
 
   /**
    * Gets an instance of this class from a URL or the string form of same,
