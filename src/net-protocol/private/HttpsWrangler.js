@@ -49,7 +49,19 @@ export class HttpsWrangler extends TcpWrangler {
     this.#protocolServer.close();
     this.#protocolServer.closeIdleConnections();
 
-    // TODO: Consider tracking connections and forcing things closed after a
-    // timeout, similar to what's done with HTTP2.
+    await this._prot_closeSocketsWithGracePeriod(HttpsWrangler.#STOP_GRACE_PERIOD_MSEC);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * How long in msec to wait when stopping, after closing idle connections,
+   * before force-closing remaining connections.
+   *
+   * @type {number}
+   */
+  static #STOP_GRACE_PERIOD_MSEC = 250;
 }
