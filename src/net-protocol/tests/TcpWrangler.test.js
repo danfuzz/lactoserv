@@ -48,12 +48,12 @@ class TestTcpWrangler extends TcpWrangler {
   }
 
   /** @override */
-  async _impl_serverStop(_willReload) {
+  async _impl_serverStop(_willReload_unused) {
     // @emptyBlock
   }
 
   /** @override */
-  async _impl_newConnection(_context) {
+  async _impl_newConnection(_context_unused) {
     // @emptyBlock
   }
 
@@ -61,6 +61,7 @@ class TestTcpWrangler extends TcpWrangler {
    * Exposes the protected method for testing.
    *
    * @param {number} gracePeriodMsec Grace period.
+   * @returns {Promise<void>} Resolves when complete.
    */
   async closeSocketsWithGracePeriod(gracePeriodMsec) {
     return this._prot_closeSocketsWithGracePeriod(gracePeriodMsec);
