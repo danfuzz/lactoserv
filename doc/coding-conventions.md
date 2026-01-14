@@ -15,6 +15,18 @@ those comments neat and tidy.
 
 - - - - - - - - - -
 
+### Code comments
+
+Use Github-flavored Markdown in all code comments, including both JSDoc and
+general comments, no matter how delimited. With regards to unordered lists,
+use `*` to mark each item (not `-`).
+
+Use JSDoc comments to document class members and top-level module definitions
+(including classes, functions, and other variables). In the code base, a
+missing JSDoc comment is taken to mean "I forgot to write a comment" and not
+"No comment needed." Using `/** @override */` per se as a method doc comment is
+a-okay to indicate "No comment needed."
+
 ### Canonical order of items in a class declaration
 
 Other than direct fields (instance / static variables), each section of
