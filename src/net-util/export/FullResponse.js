@@ -775,8 +775,12 @@ export class FullResponse extends BaseResponse {
           throw new Error(`File changed length during response processing: ${path}`);
         }
 
-        // TODO: Handle `drain` requests (based on return value of `write()`).
-        res.write(bytesRead === buffer.length ? buffer : buffer.subarray(0, bytesRead));
+        const chunk = bytesRead === buffer.length ? buffer : buffer.subarray(0, bytesRead);
+        const canContinue = res.write(chunk);
+
+        if (!canContinue) {
+          await FullResponse.#waitForDrain(res);
+        }
 
         at += bytesRead;
         remaining -= bytesRead;
@@ -1028,6 +1032,58 @@ export class FullResponse extends BaseResponse {
     }
 
     return buffer;
+  }
+
+  /**
+   * Waits for the 'drain' event on a response, or returns immediately if the
+   * response is already closed/destroyed.
+   *
+   * @param {TypeNodeResponse} res The low-level response object.
+   * @returns {boolean} `true` if drained successfully, `false` if the response
+   *   was closed/destroyed.
+   * @throws {Error} Any error reported by the response.
+   */
+  static async #waitForDrain(res) {
+    if (res.closed || res.destroyed) {
+      const error = res.errored;
+      if (error) {
+        throw (error instanceof Error) ? error : new Error(`Response error: ${error}`);
+      }
+      return false;
+    }
+
+    const resultMp = new ManualPromise();
+
+    const onDrain = () => {
+      cleanup();
+      resultMp.resolve(true);
+    };
+
+    const onError = (error) => {
+      cleanup();
+      if (error) {
+        resultMp.reject((error instanceof Error) ? error : new Error(`Response error: ${error}`));
+      } else {
+        resultMp.resolve(false);
+      }
+    };
+
+    const onClose = () => {
+      cleanup();
+      resultMp.resolve(false);
+    };
+
+    const cleanup = () => {
+      res.removeListener('drain', onDrain);
+      res.removeListener('error', onError);
+      res.removeListener('close', onClose);
+    };
+
+    res.once('drain', onDrain);
+    res.once('error', onError);
+    res.once('close', onClose);
+
+    return resultMp.promise;
   }
 
   /**
