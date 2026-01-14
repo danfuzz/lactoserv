@@ -374,6 +374,24 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /**
+   * Adds a socket to the internal tracking set. This is for testing purposes
+   * only.
+   *
+   * @param {object} socket The socket to add.
+   */
+  _testing_addSocket(socket) {
+    this.#sockets.add(socket);
+    this.#anySockets.value = true;
+
+    socket.once('close', () => {
+      this.#sockets.delete(socket);
+      if (this.#sockets.size === 0) {
+        this.#anySockets.value = false;
+      }
+    });
+  }
+
+  /**
    * Runs the low-level stack. This is called as the main function of the
    * {@link #runner}.
    *
