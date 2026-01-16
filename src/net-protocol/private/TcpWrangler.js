@@ -110,6 +110,39 @@ export class TcpWrangler extends ProtocolWrangler {
     throw Methods.abstract(context);
   }
 
+  /**
+   * Waits for all sockets to close, up to a grace period. After the grace
+   * period expires, any remaining sockets are force-destroyed. This is intended
+   * to be called by subclasses during shutdown.
+   *
+   * @param {number} gracePeriodMsec Time in milliseconds to wait before
+   *   force-closing remaining sockets.
+   */
+  async _prot_closeSocketsWithGracePeriod(gracePeriodMsec) {
+    if (this.#sockets.size === 0) {
+      return;
+    }
+
+    this.logger?.waitingForSocketClose(this.#sockets.size);
+
+    await PromiseUtil.race([
+      this.#anySockets.whenFalse(),
+      WallClock.waitForMsec(gracePeriodMsec)
+    ]);
+
+    if (this.#sockets.size === 0) {
+      return;
+    }
+
+    this.logger?.forceClosingSockets(this.#sockets.size);
+
+    for (const socket of this.#sockets) {
+      if (!socket.destroyed) {
+        socket.destroy();
+      }
+    }
+  }
+
   /** @override */
   async _impl_socketStart() {
     await this.#runner.start();
@@ -338,6 +371,24 @@ export class TcpWrangler extends ProtocolWrangler {
     }
 
     return connLogger;
+  }
+
+  /**
+   * Adds a socket to the internal tracking set. This is for testing purposes
+   * only.
+   *
+   * @param {object} socket The socket to add.
+   */
+  _testing_addSocket(socket) {
+    this.#sockets.add(socket);
+    this.#anySockets.value = true;
+
+    socket.once('close', () => {
+      this.#sockets.delete(socket);
+      if (this.#sockets.size === 0) {
+        this.#anySockets.value = false;
+      }
+    });
   }
 
   /**
