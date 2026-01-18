@@ -149,27 +149,73 @@ export class HostUtil {
   static parseHostnameElseNull(name, allowWildcard = false) {
     MustBe.string(name);
 
+    const result = this.#pathArrayFromHostnameElseNull(name, allowWildcard);
+
+    if (!result) {
+      return null;
+    }
+
+    return new PathKey(result.pathArray, result.wildcard);
+  }
+
+  /**
+   * Validates that the given value is a valid hostname string, returning it
+   * (canonicalized) if so. This accepts both DNS names and IP addresses
+   * (including bracketed IPv6), but not wildcards.
+   *
+   * @param {*} value Value to check.
+   * @returns {string} `value` canonicalized if it is a valid hostname.
+   * @throws {Error} Thrown if `value` is not a valid hostname string.
+   */
+  static mustBeHostname(value) {
+    if (typeof value !== 'string') {
+      throw new Error(`Expected hostname string, got: ${typeof value}`);
+    }
+
+    const result = this.canonicalizeHostnameElseNull(value, false);
+
+    if (result === null) {
+      throw new Error(`Invalid hostname: ${value}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Private helper that validates a hostname and returns its path array
+   * representation, or `null` if invalid.
+   *
+   * @param {*} name Hostname to parse.
+   * @param {boolean} allowWildcard Is a wildcard form allowed?
+   * @returns {?{pathArray: string[], wildcard: boolean}} The path array and
+   *   wildcard flag, or `null` if invalid.
+   */
+  static #pathArrayFromHostnameElseNull(name, allowWildcard) {
+    if (typeof name !== 'string') {
+      return null;
+    }
+
     // Handle IP address cases.
     const canonicalIp = EndpointAddress.canonicalizeAddressElseNull(name, false);
     if (canonicalIp) {
-      return new PathKey([canonicalIp], false);
+      return { pathArray: [canonicalIp], wildcard: false };
     }
 
     if (!AskIf.string(name, this.#HOSTNAME_REGEX)) {
       return null;
     }
 
-    const path = name.toLowerCase().split('.').reverse();
+    const pathArray = name.toLowerCase().split('.').reverse();
 
-    if (path[path.length - 1] === '*') {
+    if (pathArray[pathArray.length - 1] === '*') {
       if (allowWildcard) {
-        path.pop();
-        return new PathKey(path, true);
+        pathArray.pop();
+        return { pathArray, wildcard: true };
       } else {
         return null;
       }
     } else {
-      return new PathKey(path, false);
+      return { pathArray, wildcard: false };
     }
   }
 }

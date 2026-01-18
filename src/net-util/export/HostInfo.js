@@ -73,10 +73,7 @@ export class HostInfo extends IntfDeconstructable {
   constructor(nameString, portNumber) {
     super();
 
-    // Note: The regex is a bit lenient, though notably it _does_ at least
-    // guarantee that there are no uppercase letters. TODO: Maybe it should be
-    // more restrictive?
-    this.#nameString = MustBe.string(nameString, /^[-_.:a-z0-9]+$/);
+    this.#nameString = HostUtil.mustBeHostname(nameString);
 
     this.#portNumber = AskIf.string(portNumber, /^0*[0-9]{1,5}$/)
       ? Number(portNumber)
