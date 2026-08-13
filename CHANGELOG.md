@@ -14,7 +14,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Accept Node v26.
 
 ### v0.9.4 -- 2025-12-09 -- stable release
 
