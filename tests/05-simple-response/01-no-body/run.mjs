@@ -13,6 +13,7 @@ const result = await requestAndCheck(
   }, {
     status: 204,
     statusText: 'No Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control': 'public, immutable, max-age=660',
       'etag':          /^"[-+/0-9a-zA-Z]+"$/
@@ -30,6 +31,7 @@ await requestAndCheck(
   }, {
     status: 204,
     statusText: 'No Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control': 'public, immutable, max-age=660',
       'etag':          etag
@@ -47,6 +49,7 @@ await requestAndCheck(
   }, {
     status: 304,
     statusText: 'Not Modified',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control': 'public, immutable, max-age=660',
       'etag':          etag
@@ -64,6 +67,7 @@ await requestAndCheck(
   }, {
     status: 204,
     statusText: 'No Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control': 'public, immutable, max-age=660',
       'etag':          etag
