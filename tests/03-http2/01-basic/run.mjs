@@ -13,6 +13,7 @@ await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, max-age=300',
@@ -30,6 +31,7 @@ await requestAndCheck(
   }, {
     status: 308,
     statusText: 'Permanent Redirect',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control':  'public, max-age=300',
       'content-length': /./,
@@ -46,6 +48,7 @@ await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, max-age=300',
@@ -63,6 +66,7 @@ await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, max-age=300',
