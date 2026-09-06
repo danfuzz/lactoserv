@@ -14,7 +14,6 @@
 
   "dependencies": {
     "jest": "^30.5.1",
-    "jest-extended": "^7.0.0",
-    "trace-unhandled": "^2.0.1"
+    "jest-extended": "^7.0.0"
   }
 }

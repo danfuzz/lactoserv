@@ -64,11 +64,13 @@ export default {
   ...{
     // These get run before each test.
     setupFiles: [
-      // Uncomment this only temporarily, when debugging issues with unhandled
-      // promise rejections. Reason: When this is used, there are enough oddball
-      // changes to / hooks into the underlying system that it can't truly be
-      // trusted to be an accurate representation of what's going on when _not_
-      // doing testing.
+      // When debugging issues with unhandled promise rejections, uncomment the
+      // following line _temporarily._ Also add a dependency on
+      // `trace-unhandled@latest` in `main-tester/package.json`. Reason for this
+      // being out of the build by default: When it is used, there are enough
+      // oddball changes to / hooks into the underlying system that it can't
+      // truly be trusted to be an accurate representation of what's going on
+      // when _not_ doing testing.
       // `${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
     ],
 
