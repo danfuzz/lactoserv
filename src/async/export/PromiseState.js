@@ -45,9 +45,11 @@ export class PromiseState {
     // loosey-goosey one when given a subclass. The latter can (and does)
     // happen, for example, when using testing tools that instrument promises.
     // Note: The use of `|()` guarantees that `str.match()` won't ever get an
-    // error (it'll just successfully match nothing).
+    // error (it'll just successfully match nothing). **Note:** `\s+` below
+    // because, as of Node v26, `inspect()` on rejected promises end up with a
+    // newline after the `{` (despite the `compact` option).
     const regex = (name === 'Promise')
-      ? /^Promise \{ <(pending|rejected)>|()/
+      ? /^Promise \{\s+<(pending|rejected)>|()/
       : /^[^{]+[{][^<]+<(pending|rejected)>|()/;
 
     return str.match(regex)[1] ?? 'fulfilled';

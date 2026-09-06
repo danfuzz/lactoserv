@@ -23,6 +23,7 @@ await requestAndCheck(
   }, {
     status: 206,
     statusText: 'Partial Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
@@ -47,6 +48,7 @@ await requestAndCheck(
   }, {
     status: 206,
     statusText: 'Partial Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
@@ -71,6 +73,7 @@ await requestAndCheck(
   }, {
     status: 206,
     statusText: 'Partial Content',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
@@ -95,6 +98,7 @@ await requestAndCheck(
   }, {
     status: 416,
     statusText: 'Range Not Satisfiable',
+    expectHttp2AsOfNode26: true,
     headers: {
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
@@ -114,6 +118,7 @@ await requestAndCheck(
   }, {
     status: 416,
     statusText: 'Range Not Satisfiable',
+    expectHttp2AsOfNode26: true,
     headers: {
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,

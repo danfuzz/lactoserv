@@ -159,6 +159,7 @@ const semanticRules = {
   'prefer-const': 'error',
   'prefer-rest-params': 'error',
   'prefer-spread': 'error',
+  'preserve-caught-error': 'off',
   'symbol-description': 'error'
 };
 
