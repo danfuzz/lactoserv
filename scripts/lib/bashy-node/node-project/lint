@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022-2024 the Bashy-lib Authors (Dan Bornstein et alia).
+# Copyright 2022-2025 the Bashy-lib Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
@@ -122,10 +122,14 @@ fi
 outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
-configFile="$(config-file-path)" \
+toolPath="$(linter-path)" \
 || exit "$?"
 
-toolPath="$(linter-path)" \
+if (( doBuildLinter )); then
+    exit
+fi
+
+configFile="$(config-file-path)" \
 || exit "$?"
 
 opts=(
