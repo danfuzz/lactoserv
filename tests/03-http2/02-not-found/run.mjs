@@ -11,6 +11,7 @@ await requestAndCheck(
   }, {
     status: 404,
     statusText: 'Not Found',
+    expectHttp2AsOfNode26: true,
     headers: {
       'cache-control':  'public, max-age=300',
       'content-length': /^[0-9]+$/,

@@ -81,13 +81,13 @@ To build:
   Windows, but if it does nobody has told anyone on the project.)
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
-* Node v20 or later (tested regularly on v20, v22, v23, and v24).
+* Node v22 or later (tested regularly on v22, v24, and v26).
 * Recent version of `jq` (v1.6 or later).
 
 To run (versions as above):
 * Standard-ish POSIX operating environment.
 * Recent-ish version of Bash.
-* Node v20 or later. This is required because the project uses:
+* Node v22 or later. This is required because the project uses:
   * The relatively new `/v` flag on regular expressions, which became available
     as of v20.
   * The module `inspector/promises` (for heap dumps), which became available as

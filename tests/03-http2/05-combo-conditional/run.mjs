@@ -32,6 +32,7 @@ await requestAndCheck(
   }, {
     status: 304,
     statusText: 'Not Modified',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges': 'bytes',
       'cache-control': /./,

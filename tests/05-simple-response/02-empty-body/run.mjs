@@ -13,6 +13,7 @@ const result = await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, immutable, max-age=600',
@@ -33,6 +34,7 @@ await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, immutable, max-age=600',
@@ -53,6 +55,7 @@ await requestAndCheck(
   }, {
     status: 304,
     statusText: 'Not Modified',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges': 'bytes',
       'cache-control': 'public, immutable, max-age=600',
@@ -74,6 +77,7 @@ await requestAndCheck(
   }, {
     status: 200,
     statusText: 'OK',
+    expectHttp2AsOfNode26: true,
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, immutable, max-age=600',
@@ -94,6 +98,7 @@ await requestAndCheck(
   }, {
     status: 416,
     statusText: 'Range Not Satisfiable',
+    expectHttp2AsOfNode26: true,
     headers: {
       'content-length': /./,
       'content-range':  'bytes */0',
