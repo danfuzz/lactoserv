@@ -212,7 +212,7 @@ export class EtagGenerator {
       return Math.floor(num).toString(16);
     };
 
-    const stats = await fs.stat(absolutePath, true);
+    const stats = await fs.stat(absolutePath);
     const mtime = stats.mtimeMs;
     const size  = stats.size;
 
