@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* Accept Node v26.
+* Accept and test with Node v26.
+* Updated upstream dependencies.
 
 ### v0.9.4 -- 2025-12-09 -- stable release
 
