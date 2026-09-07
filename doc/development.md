@@ -48,6 +48,8 @@ form:
 
 ### Testing
 
+#### Unit tests
+
 Unit test files live in directories named `tests` directly under each local
 package. They use Jest for both test definitions (`describe(...)`, `test(...)`)
 and assertions (`expect(...)...`).
@@ -58,11 +60,26 @@ $ ubik run-tests
 No errors! Yay!
 ```
 
+#### Integration tests
+
+Integration tests live in the top-level project directory `tests`. To run them:
+
+```sh
+$ ubik run-tests --type=integration
+...
+No errors! Yay!
+```
+
+You can also run `./tests/run-all`, which provides options that can be useful
+depending on context. `./tests/run-all --help` for details.
+
+#### The `run-tests` script
+
 The `run-tests` script takes other options; `run-tests --help` for details.
-TLDR:
+Beyond the above, TLDR:
 
 * `run-tests --do=build` to do a build first, for convenience.
-* `run-tests --type=unit-coverage` to generate a coverage report.
+* `run-tests --type=unit-coverage` to generate a unit test coverage report.
 * `run-tests --type=unit-debug` to enable interactive debugging while running
   the unit tests.
 

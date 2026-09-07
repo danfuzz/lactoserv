@@ -117,6 +117,13 @@ function run-unit-tests {
     toolPath="$(tester-path)" \
     || exit "$?"
 
+    # Run from the directory containing the config file, which is what Jest
+    # wants as of v30.5.1. It's arguably a bug in that we explicitly pass a
+    # `--config`. TODO: Check to see if this `cd` command can be removed in the
+    # next time we bump the Jest version.
+    cd "$(dirname "${configFile}")" \
+    || return "$?"
+
     "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
     || return "$?"
 }

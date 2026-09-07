@@ -262,7 +262,7 @@ describe('etagFromFileStats()', () => {
         : num.toString(16);
     };
 
-    const stats = await fs.stat(shortFilePath, true);
+    const stats = await fs.stat(shortFilePath);
     const mtime = stats.mtimeMs;
     const size  = stats.size;
 

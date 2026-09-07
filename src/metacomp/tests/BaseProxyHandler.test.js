@@ -155,6 +155,7 @@ describe('makeProxy()', () => {
       expect(proxy.florp).toBeUndefined();
       expect(gotTarget).toBeInstanceOf(SomeTarget);
       expect(gotTarget).toBeFrozen();
+      expect(gotThis).toBeNull();
       expect(gotProperty).toBe('florp');
 
       gotTarget = null;
@@ -214,6 +215,7 @@ describe('makeProxy()', () => {
       expect(proxy.florp).toBeUndefined();
       expect(gotTarget).toBeInstanceOf(SomeTarget);
       expect(gotTarget).toBeFrozen();
+      expect(gotThis).toBeNull();
       expect(gotProperty).toBe('florp');
 
       gotTarget = null;
