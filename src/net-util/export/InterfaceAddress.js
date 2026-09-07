@@ -87,10 +87,6 @@ export class InterfaceAddress extends IntfDeconstructable {
     let needCanonicalization;
     if (typeof fullAddress === 'string') {
       fullAddress = InterfaceAddress.parseInterface(fullAddress);
-      // `parseInterface()` expects `port` not `portNumber`. TODO: Fix it to be
-      // consistent with this class (not the other way around).
-      fullAddress.portNumber = fullAddress.port;
-      delete fullAddress.port;
       needCanonicalization = false;
     } else {
       needCanonicalization = true;
@@ -395,13 +391,14 @@ export class InterfaceAddress extends IntfDeconstructable {
    * port, users of this system might want to provide it more directly.
    *
    * @param {string} iface Interface spec to parse.
-   * @returns {{address: ?string, fd: ?number, port: ?number}} The parsed form.
+   * @returns {{address: ?string, fd: ?number, portNumber: ?number}} The parsed
+   *   form.
    */
   static parseInterface(iface) {
     MustBe.string(iface);
 
-    const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
-    const port    = portStr ? this.#mustBePortNumber(portStr, true) : null;
+    const portStr    = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
+    const portNumber = portStr ? this.#mustBePortNumber(portStr, true) : null;
 
     const addressStr = portStr
       ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
@@ -417,7 +414,7 @@ export class InterfaceAddress extends IntfDeconstructable {
     if (addressOrFd.fd) {
       const fd = MustBe.number(parseInt(addressOrFd.fd),
         { safeInteger: true,  minInclusive: 0, maxInclusive: 65535 });
-      return (port === null) ? { fd } : { fd, port };
+      return (portNumber === null) ? { fd } : { fd, portNumber };
     }
 
     const address = InterfaceAddress.canonicalizeAddress(addressOrFd.address);
@@ -426,12 +423,12 @@ export class InterfaceAddress extends IntfDeconstructable {
       // If we managed to parse and made it here, then we are necessarily
       // looking at an IPv6 address without brackets.
       throw new Error(`Invalid network interface (missing brackets): ${iface}`);
-    } else if (port === null) {
+    } else if (portNumber === null) {
       // Must specify port at this point. (It's optional with the FD form).
       throw new Error(`Invalid network interface (missing port): ${iface}`);
     }
 
-    return { address, port };
+    return { address, portNumber };
   }
 
   /**

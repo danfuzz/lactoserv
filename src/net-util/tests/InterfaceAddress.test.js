@@ -558,17 +558,17 @@ describe('parseInterface()', () => {
 
   test('parses an interface with IPv4 address as expected', () => {
     const got = InterfaceAddress.parseInterface('12.34.56.78:123');
-    expect(got).toStrictEqual({ address: '12.34.56.78', port: 123 });
+    expect(got).toStrictEqual({ address: '12.34.56.78', portNumber: 123 });
   });
 
   test('parses an interface with IPv6 address as expected', () => {
     const got = InterfaceAddress.parseInterface('[abc::123:4567]:999');
-    expect(got).toStrictEqual({ address: 'abc::123:4567', port: 999 });
+    expect(got).toStrictEqual({ address: 'abc::123:4567', portNumber: 999 });
   });
 
   test('parses an interface with wildcard address as expected', () => {
     const got = InterfaceAddress.parseInterface('*:17777');
-    expect(got).toStrictEqual({ address: '*', port: 17777 });
+    expect(got).toStrictEqual({ address: '*', portNumber: 17777 });
   });
 
   test('parses an FD interface with no port as expected', () => {
@@ -578,7 +578,7 @@ describe('parseInterface()', () => {
 
   test('parses an FD interface with port as expected', () => {
     const got = InterfaceAddress.parseInterface('/dev/fd/109:914');
-    expect(got).toStrictEqual({ fd: 109, port: 914 });
+    expect(got).toStrictEqual({ fd: 109, portNumber: 914 });
   });
 
   test('accepts the minimum and maximum allowed FD numbers', () => {
