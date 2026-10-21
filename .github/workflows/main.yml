@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo.
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Check dependencies.
         uses: actions/dependency-review-action@v5
@@ -61,13 +61,13 @@ jobs:
     name: Build with Node v${{ matrix.node }}
     steps:
       - name: Get Node v${{ matrix.node }}.
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
 
       # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run the linter.
         run: ./scripts/ubik dev lint
