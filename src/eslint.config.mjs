@@ -218,7 +218,7 @@ const disallowedFunctionality = {
       patterns: [
         ...allNodeCoreModules.map((name) => {
           return {
-            group: [`^${name}$`, `^${name}/`],
+            regex: `^${name}(/|$)`,
             message: 'Use `node:` prefix on core Node module imports.'
           };
         })
